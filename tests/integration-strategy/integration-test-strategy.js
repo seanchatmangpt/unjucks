@@ -615,8 +615,8 @@ export class EnterpriseIntegrationTestStrategy {
   async generateIntegrationReport() {
     const report = {
       executionSummary: {
-        startTime: new Date(Date.now() - this.totalDuration).toISOString(),
-        endTime: new Date().toISOString(),
+        startTime: new Date(this.getDeterministicTimestamp() - this.totalDuration).toISOString(),
+        endTime: this.getDeterministicDate().toISOString(),
         totalDuration: Math.round(this.totalDuration),
         overallStatus: this.calculateOverallStatus()
       },
@@ -633,7 +633,7 @@ export class EnterpriseIntegrationTestStrategy {
     };
 
     // Save detailed report
-    const reportPath = path.join(this.options.reportDir, `integration-test-report-${Date.now()}.json`);
+    const reportPath = path.join(this.options.reportDir, `integration-test-report-${this.getDeterministicTimestamp()}.json`);
     await fs.writeJSON(reportPath, report, { spaces: 2 });
 
     // Generate summary report

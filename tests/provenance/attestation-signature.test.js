@@ -69,8 +69,8 @@ console.log(message);
       const mockContext = {
         operationId: 'test-op-001',
         type: 'generation',
-        startTime: new Date(),
-        endTime: new Date(),
+        startTime: this.getDeterministicDate(),
+        endTime: this.getDeterministicDate(),
         agent: {
           id: 'test-agent',
           type: 'software',
@@ -142,8 +142,8 @@ console.log(message);
       const mockContext = {
         operationId: 'test-op-003',
         type: 'generation',
-        startTime: new Date(),
-        endTime: new Date(),
+        startTime: this.getDeterministicDate(),
+        endTime: this.getDeterministicDate(),
         agent: {
           id: 'kgen-hash-agent',
           type: 'software',
@@ -177,8 +177,8 @@ console.log(message);
       const mockContext = {
         operationId: 'test-op-004',
         type: 'generation',
-        startTime: new Date(),
-        endTime: new Date(),
+        startTime: this.getDeterministicDate(),
+        endTime: this.getDeterministicDate(),
         agent: {
           id: 'kgen-sidecar-agent',
           type: 'software',
@@ -216,8 +216,8 @@ console.log(message);
       const mockContext = {
         operationId: 'test-op-005',
         type: 'generation',
-        startTime: new Date(),
-        endTime: new Date(),
+        startTime: this.getDeterministicDate(),
+        endTime: this.getDeterministicDate(),
         agent: {
           id: 'kgen-verify-agent',
           type: 'software',
@@ -245,8 +245,8 @@ console.log(message);
       const mockContext = {
         operationId: 'test-op-006',
         type: 'generation',
-        startTime: new Date(),
-        endTime: new Date(),
+        startTime: this.getDeterministicDate(),
+        endTime: this.getDeterministicDate(),
         agent: {
           id: 'kgen-integrity-agent',
           type: 'software',
@@ -274,8 +274,8 @@ console.log(message);
       const mockContext = {
         operationId: 'test-op-007',
         type: 'generation',
-        startTime: new Date(),
-        endTime: new Date(),
+        startTime: this.getDeterministicDate(),
+        endTime: this.getDeterministicDate(),
         agent: {
           id: 'kgen-tamper-agent',
           type: 'software',

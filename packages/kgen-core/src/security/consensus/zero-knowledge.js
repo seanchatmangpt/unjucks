@@ -70,7 +70,7 @@ export class ZeroKnowledgeProofSystem extends EventEmitter {
       throw new Error('ZK proof system not initialized');
     }
 
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
 
     try {
       // Generate random nonce
@@ -92,7 +92,7 @@ export class ZeroKnowledgeProofSystem extends EventEmitter {
         challenge: c,
         response: response,
         publicKey: publicKey,
-        timestamp: new Date()
+        timestamp: this.getDeterministicDate()
       };
 
       // Cache proof for potential reuse
@@ -101,11 +101,11 @@ export class ZeroKnowledgeProofSystem extends EventEmitter {
 
       // Update metrics
       this.metrics.proofsGenerated++;
-      this.metrics.proofGenerationTime.push(Date.now() - startTime);
+      this.metrics.proofGenerationTime.push(this.getDeterministicTimestamp() - startTime);
 
       this.emit('discrete_log_proof_generated', {
         proofHash,
-        generationTime: Date.now() - startTime
+        generationTime: this.getDeterministicTimestamp() - startTime
       });
 
       return proof;
@@ -123,7 +123,7 @@ export class ZeroKnowledgeProofSystem extends EventEmitter {
       throw new Error('ZK proof system not initialized');
     }
 
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
 
     try {
       const { commitment, challenge, response } = proof;
@@ -148,17 +148,17 @@ export class ZeroKnowledgeProofSystem extends EventEmitter {
 
       // Update metrics
       this.metrics.proofsVerified++;
-      this.metrics.verificationTime.push(Date.now() - startTime);
+      this.metrics.verificationTime.push(this.getDeterministicTimestamp() - startTime);
 
       this.emit('discrete_log_proof_verified', {
         valid,
-        verificationTime: Date.now() - startTime
+        verificationTime: this.getDeterministicTimestamp() - startTime
       });
 
       return {
         valid,
-        verificationTime: Date.now() - startTime,
-        timestamp: new Date()
+        verificationTime: this.getDeterministicTimestamp() - startTime,
+        timestamp: this.getDeterministicDate()
       };
     } catch (error) {
       this.emit('discrete_log_verification_failed', { error: error.message });
@@ -178,7 +178,7 @@ export class ZeroKnowledgeProofSystem extends EventEmitter {
       throw new Error('Value outside specified range');
     }
 
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
 
     try {
       const bitLength = Math.ceil(Math.log2(max - min + 1));
@@ -210,16 +210,16 @@ export class ZeroKnowledgeProofSystem extends EventEmitter {
         bitLength: bitLength,
         bitProofs: bitProofs,
         originalCommitment: commitment,
-        timestamp: new Date()
+        timestamp: this.getDeterministicDate()
       };
 
       this.metrics.proofsGenerated++;
-      this.metrics.proofGenerationTime.push(Date.now() - startTime);
+      this.metrics.proofGenerationTime.push(this.getDeterministicTimestamp() - startTime);
 
       this.emit('range_proof_generated', {
         range: { min, max },
         bitLength,
-        generationTime: Date.now() - startTime
+        generationTime: this.getDeterministicTimestamp() - startTime
       });
 
       return proof;
@@ -237,7 +237,7 @@ export class ZeroKnowledgeProofSystem extends EventEmitter {
       throw new Error('ZK proof system not initialized');
     }
 
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
 
     try {
       const { range, bitLength, bitProofs, originalCommitment } = proof;
@@ -266,19 +266,19 @@ export class ZeroKnowledgeProofSystem extends EventEmitter {
       }
 
       this.metrics.proofsVerified++;
-      this.metrics.verificationTime.push(Date.now() - startTime);
+      this.metrics.verificationTime.push(this.getDeterministicTimestamp() - startTime);
 
       this.emit('range_proof_verified', {
         valid: true,
         range,
-        verificationTime: Date.now() - startTime
+        verificationTime: this.getDeterministicTimestamp() - startTime
       });
 
       return {
         valid: true,
         range,
-        verificationTime: Date.now() - startTime,
-        timestamp: new Date()
+        verificationTime: this.getDeterministicTimestamp() - startTime,
+        timestamp: this.getDeterministicDate()
       };
     } catch (error) {
       this.emit('range_proof_verification_failed', { error: error.message });
@@ -294,7 +294,7 @@ export class ZeroKnowledgeProofSystem extends EventEmitter {
       throw new Error('ZK proof system not initialized');
     }
 
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
 
     try {
       const proof = await this.bulletproof.generateProof(
@@ -305,12 +305,12 @@ export class ZeroKnowledgeProofSystem extends EventEmitter {
       );
 
       this.metrics.proofsGenerated++;
-      this.metrics.proofGenerationTime.push(Date.now() - startTime);
+      this.metrics.proofGenerationTime.push(this.getDeterministicTimestamp() - startTime);
 
       this.emit('bulletproof_generated', {
         range,
         proofSize: this.calculateProofSize(proof),
-        generationTime: Date.now() - startTime
+        generationTime: this.getDeterministicTimestamp() - startTime
       });
 
       return proof;
@@ -328,23 +328,23 @@ export class ZeroKnowledgeProofSystem extends EventEmitter {
       throw new Error('ZK proof system not initialized');
     }
 
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
 
     try {
       const valid = await this.bulletproof.verifyProof(proof, commitment);
 
       this.metrics.proofsVerified++;
-      this.metrics.verificationTime.push(Date.now() - startTime);
+      this.metrics.verificationTime.push(this.getDeterministicTimestamp() - startTime);
 
       this.emit('bulletproof_verified', {
         valid,
-        verificationTime: Date.now() - startTime
+        verificationTime: this.getDeterministicTimestamp() - startTime
       });
 
       return {
         valid,
-        verificationTime: Date.now() - startTime,
-        timestamp: new Date()
+        verificationTime: this.getDeterministicTimestamp() - startTime,
+        timestamp: this.getDeterministicDate()
       };
     } catch (error) {
       this.emit('bulletproof_verification_failed', { error: error.message });
@@ -422,7 +422,7 @@ export class ZeroKnowledgeProofSystem extends EventEmitter {
         challenge: challenge,
         response1: s1,
         response2: s2,
-        timestamp: new Date()
+        timestamp: this.getDeterministicDate()
       };
 
       this.emit('commitment_knowledge_proof_generated', {
@@ -468,7 +468,7 @@ export class ZeroKnowledgeProofSystem extends EventEmitter {
 
       this.emit('commitment_knowledge_proof_verified', { valid });
 
-      return { valid, timestamp: new Date() };
+      return { valid, timestamp: this.getDeterministicDate() };
     } catch (error) {
       this.emit('commitment_knowledge_verification_failed', { error: error.message });
       return { valid: false, reason: error.message };
@@ -554,7 +554,7 @@ export class ZeroKnowledgeProofSystem extends EventEmitter {
       bit: bit,
       commitment: commitment,
       blindingFactor: blindingFactor,
-      timestamp: new Date()
+      timestamp: this.getDeterministicDate()
     };
 
     return proof;
@@ -866,7 +866,7 @@ class BulletproofSystem {
       blindingFactor,
       range,
       innerProductProof: await this.generateInnerProductProof(value, commitment),
-      timestamp: new Date()
+      timestamp: this.getDeterministicDate()
     };
 
     return proof;

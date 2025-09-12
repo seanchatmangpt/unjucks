@@ -72,7 +72,7 @@ export const validateCommand = defineCommand({
   },
   async run(context) {
     const { args } = context;
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
 
     try {
       if (!args.quiet) {
@@ -191,7 +191,7 @@ export const validateCommand = defineCommand({
         }
       }
 
-      const duration = Date.now() - startTime;
+      const duration = this.getDeterministicTimestamp() - startTime;
       const isValid = validationResult.issues.filter(i => i.severity === 'error').length === 0;
       
       if (!args.quiet) {
@@ -283,7 +283,7 @@ export const validateCommand = defineCommand({
   // Format validation results as Markdown
   formatValidationAsMarkdown(validationResult) {
     let markdown = `# Specification Validation Report\n\n`;
-    markdown += `**Generated:** ${new Date().toISOString()}\n`;
+    markdown += `**Generated:** ${this.getDeterministicDate().toISOString()}\n`;
     markdown += `**Files Validated:** ${validationResult.filesValidated}\n`;
     markdown += `**Total Issues:** ${validationResult.totalIssues}\n\n`;
 
@@ -402,7 +402,7 @@ class SpecificationValidator {
       totalIssues: 0,
       issues: [],
       metadata: {
-        validated: new Date().toISOString(),
+        validated: this.getDeterministicDate().toISOString(),
         validator: 'unjucks-specify',
         version: '1.0.0'
       }

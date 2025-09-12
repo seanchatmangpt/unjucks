@@ -217,7 +217,7 @@ describe('Simple Office Workflow Test', () => {
 
   describe('7. Summary Report Generation', () => {
     test('should generate test summary', () => {
-      const timestamp = new Date().toISOString();
+      const timestamp = this.getDeterministicDate().toISOString();
       const reportContent = `# Simple Office E2E Test Summary
 
 ## Test Execution

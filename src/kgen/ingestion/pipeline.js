@@ -6,7 +6,7 @@
  */
 
 import { EventEmitter } from 'events';
-import { Logger } from 'consola';
+import { Consola } from 'consola';
 import { DatabaseConnector } from './connectors/database.js';
 import { APIConnector } from './connectors/api.js';
 import { FileConnector } from './connectors/file.js';
@@ -47,7 +47,7 @@ export class IngestionPipeline extends EventEmitter {
       ...config
     };
     
-    this.logger = new Logger({ tag: 'ingestion-pipeline' });
+    this.logger = new Consola({ tag: 'ingestion-pipeline' });
     this.state = 'initialized';
     
     // Initialize connectors
@@ -200,7 +200,7 @@ export class IngestionPipeline extends EventEmitter {
         connector,
         connection,
         sourceConfig,
-        connectedAt: new Date()
+        connectedAt: this.getDeterministicDate()
       });
       
       this.emit('source:connected', { sourceConfig, connection });
@@ -233,7 +233,7 @@ export class IngestionPipeline extends EventEmitter {
       this.extractedData.set(sourceConfig.id || sourceConfig.name, {
         sourceConfig,
         data: extractedData,
-        extractedAt: new Date(),
+        extractedAt: this.getDeterministicDate(),
         recordCount: Array.isArray(extractedData) ? extractedData.length : 1
       });
       
@@ -405,7 +405,7 @@ export class IngestionPipeline extends EventEmitter {
   // Private methods
 
   _generateOperationId() {
-    return `ingestion_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    return `ingestion_${this.getDeterministicTimestamp()}_${Math.random().toString(36).substr(2, 9)}`;
   }
 
   async _validateSources(sources) {
@@ -458,7 +458,7 @@ export class IngestionPipeline extends EventEmitter {
           processedData.set(source.id || source.name, {
             sourceConfig: source,
             data,
-            processedAt: new Date()
+            processedAt: this.getDeterministicDate()
           });
           
           return { source, data, status: 'success' };
@@ -469,7 +469,7 @@ export class IngestionPipeline extends EventEmitter {
           processedData.set(source.id || source.name, {
             sourceConfig: source,
             error,
-            processedAt: new Date(),
+            processedAt: this.getDeterministicDate(),
             status: 'error'
           });
           
@@ -538,7 +538,7 @@ export class IngestionPipeline extends EventEmitter {
   async _buildKnowledgeGraph(extractionResult, qualityReport, operationId) {
     const knowledgeGraph = {
       id: operationId,
-      createdAt: new Date(),
+      createdAt: this.getDeterministicDate(),
       entities: extractionResult.entities || [],
       relationships: extractionResult.relationships || [],
       sources: extractionResult.sources || [],
@@ -552,7 +552,7 @@ export class IngestionPipeline extends EventEmitter {
       metadata: {
         ingestionPipeline: 'kgen-v1.0.0',
         operationId,
-        processingTime: Date.now(),
+        processingTime: this.getDeterministicTimestamp(),
         configuration: this.config
       }
     };
@@ -675,7 +675,7 @@ export class IngestionPipeline extends EventEmitter {
   _generateProcessingReport(operationId, sources, knowledgeGraph, qualityReport) {
     return {
       operationId,
-      processingStarted: new Date(),
+      processingStarted: this.getDeterministicDate(),
       sourcesProcessed: sources.length,
       entitiesExtracted: knowledgeGraph.entities?.length || 0,
       relationshipsExtracted: knowledgeGraph.relationships?.length || 0,

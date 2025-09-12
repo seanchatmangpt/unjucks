@@ -132,8 +132,8 @@ export class FederatedQueryOptimizer extends EventEmitter {
         config: normalizedConfig,
         capabilities,
         metadata: {
-          registeredAt: Date.now(),
-          lastHealthCheck: Date.now(),
+          registeredAt: this.getDeterministicTimestamp(),
+          lastHealthCheck: this.getDeterministicTimestamp(),
           totalQueries: 0,
           successfulQueries: 0,
           averageResponseTime: 0,
@@ -177,7 +177,7 @@ export class FederatedQueryOptimizer extends EventEmitter {
    */
   async executeFederatedQuery(query, options = {}) {
     const queryId = crypto.randomUUID();
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       this.logger.info(`Executing federated query: ${queryId}`);
@@ -257,7 +257,7 @@ export class FederatedQueryOptimizer extends EventEmitter {
       }
       
       // Update metrics and complete query
-      const executionTime = Date.now() - startTime;
+      const executionTime = this.getDeterministicTimestamp() - startTime;
       this._updateMetrics(queryId, executionTime, true);
       this.activeQueries.delete(queryId);
       
@@ -283,7 +283,7 @@ export class FederatedQueryOptimizer extends EventEmitter {
       };
       
     } catch (error) {
-      const executionTime = Date.now() - startTime;
+      const executionTime = this.getDeterministicTimestamp() - startTime;
       this._updateMetrics(queryId, executionTime, false);
       this.activeQueries.delete(queryId);
       
@@ -468,13 +468,13 @@ export class FederatedQueryOptimizer extends EventEmitter {
     // Execute SPARQL query against remote endpoint
     // This would integrate with actual SPARQL endpoint clients
     
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       // Simulate remote query execution
       const result = {
         results: [],
-        executionTime: Date.now() - startTime,
+        executionTime: this.getDeterministicTimestamp() - startTime,
         endpoint: endpoint.id,
         fromCache: false
       };
@@ -558,12 +558,12 @@ export class FederatedQueryOptimizer extends EventEmitter {
     try {
       // Test basic connectivity
       const testQuery = 'SELECT * WHERE { ?s ?p ?o } LIMIT 1';
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
       // Execute test query (would use actual HTTP client)
       // const response = await this._executeTestQuery(endpointConfig.url, testQuery);
       
-      capabilities.responseTime = Date.now() - startTime;
+      capabilities.responseTime = this.getDeterministicTimestamp() - startTime;
       capabilities.availability = 1.0;
       
     } catch (error) {
@@ -589,7 +589,7 @@ export class FederatedQueryOptimizer extends EventEmitter {
       queryId,
       executionTime,
       success,
-      timestamp: Date.now()
+      timestamp: this.getDeterministicTimestamp()
     });
     
     // Limit history size
@@ -604,7 +604,7 @@ export class FederatedQueryOptimizer extends EventEmitter {
       endpoint.metadata.totalQueries++;
       endpoint.metadata.averageResponseTime = 
         (endpoint.metadata.averageResponseTime * 0.9) + (result.executionTime * 0.1);
-      endpoint.metadata.lastHealthCheck = Date.now();
+      endpoint.metadata.lastHealthCheck = this.getDeterministicTimestamp();
     }
   }
 
@@ -664,8 +664,8 @@ class EndpointMonitor {
 
   async startMonitoring(endpointId) {
     this.monitoring.set(endpointId, {
-      started: Date.now(),
-      lastCheck: Date.now(),
+      started: this.getDeterministicTimestamp(),
+      lastCheck: this.getDeterministicTimestamp(),
       status: 'monitoring'
     });
   }
@@ -674,7 +674,7 @@ class EndpointMonitor {
     // Perform health check on endpoint
     const health = {
       endpointId,
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       status: 'healthy',
       responseTime: 100
     };
@@ -951,7 +951,7 @@ class FederatedResultCache {
     const key = this._generateCacheKey(query);
     const cached = this.cache.get(key);
     
-    if (cached && Date.now() - cached.timestamp < 300000) { // 5 minute TTL
+    if (cached && this.getDeterministicTimestamp() - cached.timestamp < 300000) { // 5 minute TTL
       return cached.result;
     }
     
@@ -962,7 +962,7 @@ class FederatedResultCache {
     const key = this._generateCacheKey(query);
     this.cache.set(key, {
       result,
-      timestamp: Date.now()
+      timestamp: this.getDeterministicTimestamp()
     });
   }
 

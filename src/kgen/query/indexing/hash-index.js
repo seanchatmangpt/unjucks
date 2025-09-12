@@ -134,7 +134,7 @@ export class HashIndex extends EventEmitter {
         key,
         value: this._createValue(triple),
         hash,
-        timestamp: Date.now()
+        timestamp: this.getDeterministicTimestamp()
       });
       
       await this._setBucket(bucketIndex, bucket);
@@ -519,7 +519,7 @@ export class HashIndex extends EventEmitter {
       loadFactor: this.loadFactor,
       salt: this.salt.toString('base64'),
       hashFunction: this.config.hashFunction,
-      lastSaved: Date.now()
+      lastSaved: this.getDeterministicTimestamp()
     };
     
     const indexPath = path.join(this.config.storageDir, 'hash-index.json');
@@ -540,7 +540,7 @@ export class HashIndex extends EventEmitter {
       subject: triple.subject,
       predicate: triple.predicate,
       object: triple.object,
-      timestamp: Date.now()
+      timestamp: this.getDeterministicTimestamp()
     };
   }
 

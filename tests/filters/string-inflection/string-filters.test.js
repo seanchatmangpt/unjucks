@@ -194,9 +194,9 @@ describe('String Inflection Filters (15+ filters)', () => {
   describe('Performance with Large Strings', () => {
     it('should handle large strings efficiently', () => {
       const largeString = 'word '.repeat(1000);
-      const start = Date.now();
+      const start = this.getDeterministicTimestamp();
       env.renderString(`{{ "${largeString}" | camelCase }}`);
-      const end = Date.now();
+      const end = this.getDeterministicTimestamp();
       expect(end - start).toBeLessThan(1000); // Should complete in under 1 second
     });
 

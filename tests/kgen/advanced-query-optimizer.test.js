@@ -27,7 +27,7 @@ describe('Advanced Query Optimizer - Sub-10ms Performance Suite', () => {
 
   beforeAll(async () => {
     // Setup test environment
-    testDataDir = path.join(os.tmpdir(), 'kgen-optimizer-test', Date.now().toString());
+    testDataDir = path.join(os.tmpdir(), 'kgen-optimizer-test', this.getDeterministicTimestamp().toString());
     await fs.mkdir(testDataDir, { recursive: true });
     
     // Initialize optimizer with performance-focused configuration

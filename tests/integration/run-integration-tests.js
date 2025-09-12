@@ -21,7 +21,7 @@ class IntegrationTestRunner {
     console.log('============================================');
     console.log(`Running ${this.testSuites.length} test suites...\n`);
     
-    const overallStartTime = Date.now();
+    const overallStartTime = this.getDeterministicTimestamp();
     let totalTests = 0;
     let totalPassed = 0;
     let totalFailed = 0;
@@ -61,7 +61,7 @@ class IntegrationTestRunner {
       }
     }
     
-    const overallDuration = Date.now() - overallStartTime;
+    const overallDuration = this.getDeterministicTimestamp() - overallStartTime;
     
     // Print consolidated summary
     console.log('\n' + '='.repeat(60));
@@ -200,7 +200,7 @@ async function main() {
       
       await fs.mkdir(path.dirname(resultsFile), { recursive: true });
       await fs.writeFile(resultsFile, JSON.stringify({
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         environment: {
           node: process.version,
           platform: process.platform,

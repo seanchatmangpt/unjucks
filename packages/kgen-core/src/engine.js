@@ -6,7 +6,7 @@
  */
 
 import { EventEmitter } from 'events';
-import { Logger } from 'consola';
+import { Consola } from 'consola';
 import { SemanticProcessor } from '../semantic/processor.js';
 import { IngestionPipeline } from '../ingestion/pipeline.js';
 import { ProvenanceTracker } from '../provenance/tracker.js';
@@ -38,7 +38,7 @@ export class KGenEngine extends EventEmitter {
       ...config
     };
     
-    this.logger = new Logger({ tag: 'kgen-engine' });
+    this.logger = new Consola({ tag: 'kgen-engine' });
     this.state = 'initialized';
     this.operationQueue = [];
     this.activeOperations = new Map();

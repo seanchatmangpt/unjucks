@@ -34,7 +34,7 @@ class OfficeWorkflowManager {
    * Execute complete document generation workflow
    */
   async executeDocumentGeneration(workflow) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     this.stats.workflowsExecuted++;
     
     try {
@@ -49,7 +49,7 @@ class OfficeWorkflowManager {
         }
       }
       
-      const processingTime = Date.now() - startTime;
+      const processingTime = this.getDeterministicTimestamp() - startTime;
       this.stats.totalProcessingTime += processingTime;
       
       return {
@@ -68,7 +68,7 @@ class OfficeWorkflowManager {
         success: false,
         workflow: workflow.name,
         error: error.message,
-        processingTime: Date.now() - startTime
+        processingTime: this.getDeterministicTimestamp() - startTime
       };
     }
   }
@@ -247,7 +247,7 @@ class OfficeWorkflowManager {
    */
   async executeBatchProcessing(batchConfig) {
     const results = [];
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     for (const config of batchConfig.templates) {
       try {
@@ -277,7 +277,7 @@ class OfficeWorkflowManager {
       }
     }
     
-    const processingTime = Date.now() - startTime;
+    const processingTime = this.getDeterministicTimestamp() - startTime;
     this.stats.totalProcessingTime += processingTime;
     
     return {
@@ -458,7 +458,7 @@ export function registerTests(testRunner) {
                 injections: [
                   {
                     target: 'bookmark:footer',
-                    content: 'Generated on ' + new Date().toLocaleDateString(),
+                    content: 'Generated on ' + this.getDeterministicDate().toLocaleDateString(),
                     mode: 'replace'
                   }
                 ]

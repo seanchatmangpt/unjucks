@@ -85,7 +85,7 @@ class DashboardGenerator {
   }
 
   prepareDashboardData(metrics, analysis, alerts) {
-    const now = new Date();
+    const now = this.getDeterministicDate();
     
     return {
       generated_at: now.toISOString(),

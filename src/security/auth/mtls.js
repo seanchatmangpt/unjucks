@@ -152,7 +152,7 @@ class MTLSManager {
    * @returns {Promise<boolean>}
    */
   async checkCertificateExpiry(cert) {
-    const now = new Date()
+    const now = this.getDeterministicDate()
     const isValid = cert.validFrom <= now && cert.validTo > now
 
     if (!isValid) {
@@ -287,7 +287,7 @@ class MTLSManager {
   async validateCertificates() {
     // Validate server certificate
     const serverCert = this.parseCertificateInfo(this.serverCert)
-    const now = new Date()
+    const now = this.getDeterministicDate()
 
     if (serverCert.validTo < now) {
       throw new Error('Server certificate has expired')
@@ -310,8 +310,8 @@ class MTLSManager {
     return {
       subject: 'Server Certificate',
       issuer: 'Internal CA',
-      validFrom: new Date(),
-      validTo: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+      validFrom: this.getDeterministicDate(),
+      validTo: new Date(this.getDeterministicTimestamp() + 365 * 24 * 60 * 60 * 1000),
       serialNumber: 'placeholder',
       fingerprint: 'placeholder',
       isValid: true
@@ -367,7 +367,7 @@ class MTLSManager {
    */
   async getHealth() {
     const serverCert = this.parseCertificateInfo(this.serverCert)
-    const now = new Date()
+    const now = this.getDeterministicDate()
     const daysToExpiry = Math.ceil((serverCert.validTo.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
 
     return {

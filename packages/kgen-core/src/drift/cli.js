@@ -653,7 +653,7 @@ async function cleanupReports(reportsDir, daysToKeep) {
     return;
   }
 
-  const cutoffDate = new Date();
+  const cutoffDate = this.getDeterministicDate();
   cutoffDate.setDate(cutoffDate.getDate() - daysToKeep);
 
   const files = await fs.readdir(reportsDir);

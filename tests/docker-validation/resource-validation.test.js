@@ -44,7 +44,7 @@ class ResourceMonitor {
     }
 
     return {
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       process: {
         rss: memInfo.rss,
         heapTotal: memInfo.heapTotal,
@@ -453,7 +453,7 @@ describe('Production Resource Validation', () => {
 
   describe('Graceful Degradation Under Load', () => {
     test('should maintain responsiveness under high load', async () => {
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const loadDuration = 3000; // 3 seconds of load
       const responseTimes = [];
       
@@ -464,14 +464,14 @@ describe('Production Resource Validation', () => {
       // Background load generator
       const generateLoad = async () => {
         while (!loadComplete) {
-          const taskStart = Date.now();
+          const taskStart = this.getDeterministicTimestamp();
           
           // Simulate template processing
           const template = 'Hello {{ name }}, your order #{{ orderId }} is ready!';
           const result = template.replace('{{ name }}', 'Customer')
                                 .replace('{{ orderId }}', Math.floor(Math.random() * 10000));
           
-          const taskEnd = Date.now();
+          const taskEnd = this.getDeterministicTimestamp();
           responseTimes.push(taskEnd - taskStart);
           
           // Small delay to prevent overwhelming
@@ -491,7 +491,7 @@ describe('Production Resource Validation', () => {
       
       await Promise.all(loadPromises);
       
-      const endTime = Date.now();
+      const endTime = this.getDeterministicTimestamp();
       const actualDuration = endTime - startTime;
       
       // Analyze performance

@@ -51,7 +51,7 @@ export class MemoryStorage extends EventEmitter {
       // Store data with timestamp
       const entry = {
         data,
-        timestamp: Date.now(),
+        timestamp: this.getDeterministicTimestamp(),
         metadata: {
           ...metadata,
           size: this._calculateSize(data)
@@ -93,7 +93,7 @@ export class MemoryStorage extends EventEmitter {
           status: 'success', 
           data: entry.data,
           metadata: entry.metadata,
-          age: Date.now() - entry.timestamp
+          age: this.getDeterministicTimestamp() - entry.timestamp
         };
       } else {
         this.metrics.cacheMisses++;

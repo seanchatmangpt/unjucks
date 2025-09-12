@@ -7,8 +7,7 @@
 import { loadConfig } from 'c12';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { createConfigSchema } from './schema.js';
-import { validateConfig } from './validator.js';
+import { KgenConfigSchema, validateConfig } from './schema.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -145,7 +144,7 @@ export async function loadKgenConfig(options = {}) {
       meta: {
         loadedFrom: resolvedConfigFile || 'defaults',
         validated: validate,
-        timestamp: new Date().toISOString()
+        timestamp: this.getDeterministicDate().toISOString()
       }
     };
   } catch (error) {
@@ -158,7 +157,7 @@ export async function loadKgenConfig(options = {}) {
  * @private
  */
 async function ensureDirectories(directories, cwd) {
-  const { mkdirp } = await import('mkdirp');
+  const mkdirp = (await import('mkdirp')).default;
   
   for (const [key, dir] of Object.entries(directories)) {
     if (dir && typeof dir === 'string') {
@@ -220,7 +219,7 @@ export function getEnvConfig(config, env = 'development') {
  * @param {Function} callback - Callback for configuration changes
  * @returns {Function} Cleanup function
  */
-export function watchConfig(configFile, callback) {
+export async function watchConfig(configFile, callback) {
   const { watchFile, unwatchFile } = await import('node:fs');
   
   watchFile(configFile, (curr, prev) => {
@@ -238,7 +237,7 @@ export function watchConfig(configFile, callback) {
  * @param {string} format - Export format ('json', 'yaml', 'js')
  * @returns {string} Serialized configuration
  */
-export function exportConfig(config, format = 'json') {
+export async function exportConfig(config, format = 'json') {
   switch (format) {
     case 'json':
       return JSON.stringify(config, null, 2);

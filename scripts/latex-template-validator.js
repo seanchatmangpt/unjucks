@@ -57,7 +57,7 @@ class LaTeXTemplateValidator {
         const baseData = {
             title: 'Test Document Title',
             author: 'Test Author',
-            date: new Date().toLocaleDateString(),
+            date: this.getDeterministicDate().toLocaleDateString(),
             content: 'This is test content for template validation.',
             email: 'test@example.com'
         };
@@ -381,7 +381,7 @@ Comprehensive template validation is essential for robust document generation sy
     generateReport(validations) {
         const report = {
             summary: {
-                timestamp: new Date().toISOString(),
+                timestamp: this.getDeterministicDate().toISOString(),
                 total: this.results.total,
                 passed: this.results.passed,
                 failed: this.results.failed,

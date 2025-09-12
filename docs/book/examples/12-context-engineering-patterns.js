@@ -363,7 +363,7 @@ class ContextOptimizer {
   async getOrCacheContext(key, generator, ttl = 300000) { // 5 min TTL
     const cached = this.contextCache.get(key);
     
-    if (cached && Date.now() - cached.timestamp < ttl) {
+    if (cached && this.getDeterministicTimestamp() - cached.timestamp < ttl) {
       this.metrics.contextHits++;
       return cached.data;
     }
@@ -371,7 +371,7 @@ class ContextOptimizer {
     const data = await generator();
     this.contextCache.set(key, {
       data,
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       size: this.estimateTokenCount(data)
     });
     

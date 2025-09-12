@@ -1,0 +1,632 @@
+{
+  "version": "1.0.0",
+  "timestamp": "2025-09-12T18:28:26.416Z",
+  "directory": ".",
+  "files": {
+    "_templates/enterprise/data/schemas/api-standards.ttl": {
+      "hash": "3902c03413a4f0d3b4d9afc0db53634ff8eb0e156d24c6ce412fc47b3aaee3a8",
+      "size": 1497,
+      "modified": "2025-09-10T17:22:44.458Z"
+    },
+    "_templates/enterprise/data/schemas/compliance-requirements.ttl": {
+      "hash": "daa741c6aa4cc9ff3ab3bdd8cea71fb28499c284d75c18086a4b32183fa271ef",
+      "size": 1779,
+      "modified": "2025-09-10T17:22:44.458Z"
+    },
+    "_templates/nuxt-openapi/config/openapi-schema.ttl": {
+      "hash": "5d7505ebdeeb1279638ad3c1254f1fec6b29483858719165397bac32ec445037",
+      "size": 13366,
+      "modified": "2025-09-10T17:22:44.467Z"
+    },
+    "advanced-demo/advanced-reasoning-rules.n3": {
+      "hash": "9cdd5d078afe1c67b3e46f0779597d1718c2920e3fa570fca155288281db466a",
+      "size": 3949,
+      "modified": "2025-09-12T04:25:11.620Z"
+    },
+    "advanced-demo/semantic-person-enriched.ttl": {
+      "hash": "c396715eee773327d18ee819d655693dbaf75fa0b94335e57d13bb1595e1ea69",
+      "size": 3765,
+      "modified": "2025-09-12T04:23:59.051Z"
+    },
+    "demo/sample-graph.ttl": {
+      "hash": "396730fa21f4dfc1221304117696769bdb3d58635dcba5f21678ea22819e4dca",
+      "size": 479,
+      "modified": "2025-09-12T08:45:22.673Z"
+    },
+    "docs/book/examples/09-rdf-turtle-integration.ttl": {
+      "hash": "018baf9b791517e3f83ca6f298228a0ad0627e1a46dc2001c8dc857e6492074e",
+      "size": 20010,
+      "modified": "2025-09-10T21:06:42.489Z"
+    },
+    "examples/01-basic-generation/data/api-schema.ttl": {
+      "hash": "e101e468f38c4b7804d0b10d7c49058c906494cfb62c66c7847344dfd8aca262",
+      "size": 3616,
+      "modified": "2025-09-10T17:22:44.729Z"
+    },
+    "examples/02-validation/data/invalid-data.ttl": {
+      "hash": "3f104dce0a65b322a129af4d742dabe71bfbfe474c130a72ac245626e4c99585",
+      "size": 3587,
+      "modified": "2025-09-10T17:22:44.729Z"
+    },
+    "examples/02-validation/data/valid-data.ttl": {
+      "hash": "c8b99ea88ab441a5cea334d33d6880bed2580469ba2777bf68f23a44b53baa21",
+      "size": 3217,
+      "modified": "2025-09-10T17:22:44.729Z"
+    },
+    "examples/02-validation/data/validation-rules.ttl": {
+      "hash": "6afb84bfb81aeb8cf6b60cbac9703a544bbceebb6d48065bd2d51e386103c472",
+      "size": 6974,
+      "modified": "2025-09-10T17:22:44.729Z"
+    },
+    "examples/03-enterprise/data/enterprise-ontology.ttl": {
+      "hash": "b8152cad21584213afed1bea9a535f2fac932133796b06a4c2500f5281a772cc",
+      "size": 27347,
+      "modified": "2025-09-10T17:22:44.730Z"
+    },
+    "examples/generated/reverse-generated.ttl": {
+      "hash": "c2df8e5d6d9a0e6c81c4f168db4d27d839a32cfd2745ece195f337d950d73ad1",
+      "size": 2468,
+      "modified": "2025-09-10T17:22:44.733Z"
+    },
+    "examples/generated-hr-types/reverse.ttl": {
+      "hash": "e47e968036b529b412276e2f684ff1be5bebfd2bdf97f48163a5c9b28514dfbb",
+      "size": 1338,
+      "modified": "2025-09-10T17:22:44.733Z"
+    },
+    "examples/output-semantic-web-demo.ttl": {
+      "hash": "95ad9cfd0e921bf36beff51eee5b5070eb140ae43121c0e124b783659a58599a",
+      "size": 7813,
+      "modified": "2025-09-10T17:22:44.733Z"
+    },
+    "examples/sample-ontology.ttl": {
+      "hash": "f461bf0e874d4e058e77998fe033441769be5d98e2cdb614a42029a6c12cbe77",
+      "size": 4124,
+      "modified": "2025-09-10T17:22:44.734Z"
+    },
+    "job.ttl": {
+      "hash": "80d08dc6fbecae6fdca96ce32636d69942d5e7cabeedf7ebc1602979346594b7",
+      "size": 778,
+      "modified": "2025-09-10T20:33:19.384Z"
+    },
+    "model.jsonld": {
+      "hash": "21452955760f2f64d61fd1d64d78f1fef19b8a1c8813866977b63050acd77541",
+      "size": 227,
+      "modified": "2025-09-10T17:22:44.748Z"
+    },
+    "packages/kgen-cli/test/sample-graph.ttl": {
+      "hash": "cf6515d8992b1d35705d7496e83044737442c65313af12d2798855113dc0e42d",
+      "size": 1193,
+      "modified": "2025-09-11T18:55:53.526Z"
+    },
+    "packages/kgen-cli/test-graph.ttl": {
+      "hash": "6a0da1d856033daf84bddebd3929cb65674322e45482aa740ca630f7220bfeca",
+      "size": 197,
+      "modified": "2025-09-12T16:56:34.117Z"
+    },
+    "packages/kgen-core/src/validation/schemas/compliance-shapes.ttl": {
+      "hash": "9d1f77de3b8981f3a57c555b4539b085cfd4f5cc23d7904a3a788e725fb15acf",
+      "size": 14503,
+      "modified": "2025-09-11T19:07:01.094Z"
+    },
+    "packages/kgen-core/test-data/sample.ttl": {
+      "hash": "206ea102fdf74d595936eb275e3ff64dbdd7f4b437045bd0e9617e86ccee7ddb",
+      "size": 2124,
+      "modified": "2025-09-11T19:04:00.865Z"
+    },
+    "packages/kgen-core/test-data/simple.ttl": {
+      "hash": "d5f4b18db69dedce0e00cc6a13a5b30d0066cf86f3344715ff178a77087872ed",
+      "size": 395,
+      "modified": "2025-09-11T19:04:00.901Z"
+    },
+    "packages/kgen-core/tests/fixtures/graphs/complex-hierarchy.ttl": {
+      "hash": "83e40f0cf95f94e39c77086543a75d8f7bbf83451a63da7292143d728aa792e8",
+      "size": 1636,
+      "modified": "2025-09-12T03:24:12.069Z"
+    },
+    "packages/kgen-core/tests/fixtures/graphs/simple-person.ttl": {
+      "hash": "6ff0f2ec9faba75d5295bb937dbc1ce18628c441e139e89a2fd530e08b9d0063",
+      "size": 672,
+      "modified": "2025-09-12T03:24:12.032Z"
+    },
+    "packages/kgen-rules/api-governance/index.n3": {
+      "hash": "1f41f7d3e068aaa050ac8e4efac10362a146d3c9013c3c68a6f8fbd251f4814c",
+      "size": 2860,
+      "modified": "2025-09-11T19:44:27.948Z"
+    },
+    "person.ttl": {
+      "hash": "37308ef4d1b7a83744920e1e6e0cf9d47064ad46ba9576f481f218309bc00562",
+      "size": 929,
+      "modified": "2025-09-10T20:33:19.190Z"
+    },
+    "rules/compliance/gdpr-compliance.n3": {
+      "hash": "c8d358bfb3cff744cc474fabaeae60048f55928752aaef22f00ef9e837af98cd",
+      "size": 1258,
+      "modified": "2025-09-11T23:30:51.710Z"
+    },
+    "rules/compliance/hipaa-compliance.n3": {
+      "hash": "8e2d710ee55dbc9a02d61f0151b5484b061d9125ad99d62abfc5736f23a0f070",
+      "size": 1241,
+      "modified": "2025-09-11T23:30:51.836Z"
+    },
+    "rules/compliance/pci-dss-compliance.n3": {
+      "hash": "8be2122d849b0ff7b7b5de77887cc76d9effb57e35576094712226dc898ad5e0",
+      "size": 1324,
+      "modified": "2025-09-11T23:30:51.901Z"
+    },
+    "rules/compliance/sox-compliance.n3": {
+      "hash": "8908769290a9b078a1936a3f0fb7cb478a30fb46da24fdfc8714bfd88ee8c9ab",
+      "size": 1347,
+      "modified": "2025-09-11T23:30:51.776Z"
+    },
+    "sample.ttl": {
+      "hash": "1ada3c84c4f41d771c91a6b44d391be85dbffbb8537522edb53074a0c636ae78",
+      "size": 555,
+      "modified": "2025-09-12T04:24:27.169Z"
+    },
+    "schema/user.ttl": {
+      "hash": "8f630a0a6663f69fb3753d79c3d1746511a280ba4c46a5d2525ecdb78642b1c6",
+      "size": 1029,
+      "modified": "2025-09-10T17:22:44.758Z"
+    },
+    "src/kgen/validation/shapes/governance-compliance-shapes.ttl": {
+      "hash": "65da5eefaac3f6db1a8a88954dcc91fef0620d29c5048d59bf4953dc38f59341",
+      "size": 18164,
+      "modified": "2025-09-12T08:56:09.946Z"
+    },
+    "src/kgen/validation/shapes/kgen-attest-shapes.ttl": {
+      "hash": "32ec9d694291e4b40ac789a1824fec0327ba3796dfd0bf8339de681fb036ce51",
+      "size": 17494,
+      "modified": "2025-09-12T08:57:17.280Z"
+    },
+    "src/kgen/validation/shapes/template-constraints.ttl": {
+      "hash": "53966060187a2153aee5cf666decdbc5aa2915d20740547c286e640788151766",
+      "size": 15479,
+      "modified": "2025-09-12T08:57:50.851Z"
+    },
+    "src/semantic/ontologies/enterprise-template-ontology.ttl": {
+      "hash": "f1a4fca6d5bac0afbf2bfc3f8b472398be54eb4d3b4fab00ba32132c03a48322",
+      "size": 16043,
+      "modified": "2025-09-10T17:22:44.866Z"
+    },
+    "src/semantic/rules/enterprise-governance.n3": {
+      "hash": "3f2c0d5b49320943cbc8e0ffe4ae4387525bd2f40d52bbdca46f6f46df436155",
+      "size": 10253,
+      "modified": "2025-09-10T17:22:44.866Z"
+    },
+    "src/semantic/schemas/api-governance.ttl": {
+      "hash": "187beef1182034692043f3a2380f1ba1544ded6252abad16e2f9f765b19db198",
+      "size": 10092,
+      "modified": "2025-09-10T17:22:44.867Z"
+    },
+    "src/semantic/schemas/gdpr-compliance.ttl": {
+      "hash": "911bea61de9303897b23d666400edeebf15685c78ec36e6b91aa6d629c146b4d",
+      "size": 7648,
+      "modified": "2025-09-10T17:22:44.867Z"
+    },
+    "src/semantic/schemas/sox-compliance.ttl": {
+      "hash": "47e1e48831abf94f929c142e20857f81a077e3e645e2b468d0c14f366efd459d",
+      "size": 4471,
+      "modified": "2025-09-10T17:22:44.867Z"
+    },
+    "templates/_templates/fortune5/registry.ttl": {
+      "hash": "63cebee3bc58838bb24227f3d74099377342e0fba31b4069a211acbfe056ab1d",
+      "size": 6839,
+      "modified": "2025-09-10T17:22:44.879Z"
+    },
+    "test-data/rdf/baseline.ttl": {
+      "hash": "fa2e70f9f4ff03b607c22de36cecfefeb041b50ea90b1aa697f137ffd8bba3e2",
+      "size": 596,
+      "modified": "2025-09-12T18:27:12.281Z"
+    },
+    "test-data/rdf/modified.ttl": {
+      "hash": "d3dff52c1d1872ddc461e7c83d566b4947bc65f34a043ad7eb01166e1880662c",
+      "size": 1010,
+      "modified": "2025-09-12T18:27:27.229Z"
+    },
+    "test-data/rdf/semantically-equivalent.ttl": {
+      "hash": "e767987829d377f71891fc7e095d6e368a3131507ee02a810f28d1ba7794d6e1",
+      "size": 809,
+      "modified": "2025-09-12T18:27:52.237Z"
+    },
+    "test-data/simple-graph.ttl": {
+      "hash": "84e6bf6f5796f75b0f42c4e9f148cd9f65a75823c5d0e6dc94553fbad4bcc240",
+      "size": 655,
+      "modified": "2025-09-11T23:51:25.041Z"
+    },
+    "test-data-invalid.ttl": {
+      "hash": "eca82cb9e33cbc06474a25c1b43fe4e8c228c3301182d2991528d361bba63cee",
+      "size": 855,
+      "modified": "2025-09-12T18:26:09.592Z"
+    },
+    "test-deterministic/test-graph.ttl": {
+      "hash": "66a226c55cf629302268eae6b3fbcedf500117e6236d59d38332daed19fdb9a0",
+      "size": 368,
+      "modified": "2025-09-12T18:25:51.226Z"
+    },
+    "test-generation/sample-api.ttl": {
+      "hash": "3b25ac243b344e3287ee143b0de63492439e55c9e8099b506d74837f71f24296",
+      "size": 4026,
+      "modified": "2025-09-11T23:58:52.685Z"
+    },
+    "test-generation/sample.ttl": {
+      "hash": "c5f60e474c096e7624060b113c51da84bde905efbcac91631df41d06c52bf964",
+      "size": 483,
+      "modified": "2025-09-12T03:31:39.799Z"
+    },
+    "test-graph-2.ttl": {
+      "hash": "c17bc58eeb6984ae8ed09d9f7b32d4191ab8b7f2b17a466646bb293afec713d5",
+      "size": 471,
+      "modified": "2025-09-11T21:58:10.304Z"
+    },
+    "test-graph-copy.ttl": {
+      "hash": "d41943dde2dff7a9cabf806f7870c8595340ee6cda300d3af8b029b623e9b879",
+      "size": 1934,
+      "modified": "2025-09-12T16:54:25.681Z"
+    },
+    "test-graph-formatted.ttl": {
+      "hash": "bc094bd8b5bba25bec9374487278bfc074d68ed19a4dafd72a9976a65a5c971e",
+      "size": 2221,
+      "modified": "2025-09-12T16:54:34.824Z"
+    },
+    "test-graph-modified.ttl": {
+      "hash": "bbe0fad2a1a695fea239bbd8bb14b8670e47037a1e60d0f24b94d0b7e89b9adc",
+      "size": 2050,
+      "modified": "2025-09-12T18:27:14.635Z"
+    },
+    "test-graph-reordered.ttl": {
+      "hash": "70405fb03a91bff2647db4b20be4b3a13809f0a0ecc505d16680aee22de4c2e8",
+      "size": 2042,
+      "modified": "2025-09-12T16:57:13.457Z"
+    },
+    "test-graph.ttl": {
+      "hash": "d41943dde2dff7a9cabf806f7870c8595340ee6cda300d3af8b029b623e9b879",
+      "size": 1934,
+      "modified": "2025-09-12T03:44:40.967Z"
+    },
+    "test-shapes.ttl": {
+      "hash": "d22956afbfb0fa9f60b0477b0577e9acdae0696f09ab4493d6df6d5af412ee13",
+      "size": 2428,
+      "modified": "2025-09-12T18:25:53.085Z"
+    },
+    "test.ttl": {
+      "hash": "06af33cf8f4155bb2efffb9fa0c3c53d340344790c0de7fccede3ef53690691e",
+      "size": 165,
+      "modified": "2025-09-11T22:24:36.333Z"
+    },
+    "tests/agent6-test-dataset.ttl": {
+      "hash": "a574d2599b22c643cb93ba97fc98cbbad8f9089a673c87b0f568989d820a9f15",
+      "size": 3582,
+      "modified": "2025-09-12T18:26:34.023Z"
+    },
+    "tests/blank-nodes-graph.ttl": {
+      "hash": "5dc650ba7219076fe3a06371df64524e92e27faede3b9b28d93f15e4864af5a4",
+      "size": 1010,
+      "modified": "2025-09-12T18:25:54.243Z"
+    },
+    "tests/blank-nodes-reordered.ttl": {
+      "hash": "b1dd59907f59b467d2897298f475e4d828931f4a67bacc236c678504c11e58d3",
+      "size": 994,
+      "modified": "2025-09-12T18:26:05.858Z"
+    },
+    "tests/fixtures/api-data.ttl": {
+      "hash": "6c88f0d09654d227a52c92f3f34a3569dc76fd4bbf5f4987652be609211d6a46",
+      "size": 4883,
+      "modified": "2025-09-10T17:22:45.080Z"
+    },
+    "tests/fixtures/api-rules.n3": {
+      "hash": "bbdfb1c0e074261fa577de8d42e5a6090f24791cf51d09e095737d83e51ea9b4",
+      "size": 2829,
+      "modified": "2025-09-10T17:22:45.080Z"
+    },
+    "tests/fixtures/cli/services.ttl": {
+      "hash": "644d50b453cd2a3b7b08ca5b9995d638c407d884414c34d4b0258350a1c57604",
+      "size": 491,
+      "modified": "2025-09-12T04:46:14.246Z"
+    },
+    "tests/fixtures/data/invalid-data.ttl": {
+      "hash": "8dcbc5472d1a59f12825f6815c61110c82e8495e71303ce5c32cf039ed7677a7",
+      "size": 230,
+      "modified": "2025-09-12T17:09:22.286Z"
+    },
+    "tests/fixtures/data/valid-data.ttl": {
+      "hash": "b9bb63afb723f73875c7d6ca2c4be3a92b4b85f431fad7f440ab32c1eaee6860",
+      "size": 218,
+      "modified": "2025-09-12T17:09:22.286Z"
+    },
+    "tests/fixtures/fortune5/cvs-health/patient-records.ttl": {
+      "hash": "e0686e1abb7151b40edb078429267b6f746849dab1e298b7dca94447092877c2",
+      "size": 6551,
+      "modified": "2025-09-10T17:22:45.083Z"
+    },
+    "tests/fixtures/fortune5/jpmorgan/financial-instruments.ttl": {
+      "hash": "c0ae598fe5305ba3adec6965f76d1e2ba25399c84ac6e8e03e1651e48934eec4",
+      "size": 7631,
+      "modified": "2025-09-10T17:22:45.083Z"
+    },
+    "tests/fixtures/fortune5/walmart/product-catalog.ttl": {
+      "hash": "4a55d2253d39aef1d3f3a957649209a1fad678baeec8227ac6eb8266ab202521",
+      "size": 9023,
+      "modified": "2025-09-10T17:22:45.083Z"
+    },
+    "tests/fixtures/fortune5/walmart/supply-chain-events.ttl": {
+      "hash": "352d8f0cb8bef272966bfa8187f4955378557e2b7baccc8a17f38e725a5f953a",
+      "size": 11311,
+      "modified": "2025-09-10T17:22:45.083Z"
+    },
+    "tests/fixtures/knowledge-graphs/schemas/kg-validation.shacl.ttl": {
+      "hash": "16db88fde10588e7b86766674bfe90e2612fc782e25f18947e525bea1207a609",
+      "size": 5560,
+      "modified": "2025-09-10T17:22:45.089Z"
+    },
+    "tests/fixtures/performance/large-api-ontology.ttl": {
+      "hash": "b5832e713c13936ce663b167dce2ffa4c1390264b6811eed949bc1ac99b7ed65",
+      "size": 467907,
+      "modified": "2025-09-10T17:22:45.094Z"
+    },
+    "tests/fixtures/performance/massive-enterprise-graph.ttl": {
+      "hash": "db1f433c1f6cca5ac5a3fd720d741b7de3392caeb2331c549e80d838f63be443",
+      "size": 2700161,
+      "modified": "2025-09-10T17:22:45.096Z"
+    },
+    "tests/fixtures/rdf/validation/complex-schema.ttl": {
+      "hash": "9b51d2e6027bc11d5ef002bf4dbab6bf210ea92b798f3f381fe5e0766d118ee3",
+      "size": 2809,
+      "modified": "2025-09-10T17:22:45.097Z"
+    },
+    "tests/fixtures/sample-ontology.ttl": {
+      "hash": "560a505fc0463ebdd4a9018cf24edd51e167fe1e8424e45f1b8103cbfc3f2f7a",
+      "size": 1243,
+      "modified": "2025-09-10T17:22:45.099Z"
+    },
+    "tests/fixtures/semantic/financial/fibo-instruments.ttl": {
+      "hash": "4d7232073d1be98730379f0dd1200fd938a43fe8a7738fd74a0228b0ef5ee1bf",
+      "size": 5439,
+      "modified": "2025-09-10T17:22:45.102Z"
+    },
+    "tests/fixtures/semantic/healthcare/fhir-patient-data.ttl": {
+      "hash": "4fd1b0fdcad86e65d989c17e02dbd6763238b4fc63e1f58731018e4efbeddc40",
+      "size": 4293,
+      "modified": "2025-09-10T17:22:45.102Z"
+    },
+    "tests/fixtures/semantic/supply-chain/gs1-product-catalog.ttl": {
+      "hash": "c6691786baa265b2a3342bb7e3e53ed97f42b559c7cdc43e58cf75c3b5ba0d6f",
+      "size": 7436,
+      "modified": "2025-09-10T17:22:45.102Z"
+    },
+    "tests/fixtures/shapes/sample-shapes.ttl": {
+      "hash": "3cc0a02b78380160ad0a45f182acdf4df995802931a3f355eb3ee19e88c098b0",
+      "size": 736,
+      "modified": "2025-09-12T17:09:22.286Z"
+    },
+    "tests/fixtures/turtle/api-ontology.ttl": {
+      "hash": "aff704ac0f5e2e62b2838d941536c57f9ae48f04b28a8e61327b74ee467354c3",
+      "size": 235,
+      "modified": "2025-09-10T17:22:45.108Z"
+    },
+    "tests/fixtures/turtle/basic-person.ttl": {
+      "hash": "12d19fcc4dd3a1d6bc1d1f3ef237e2a9ab0d96df103b89bc32b8411c3e3d47c6",
+      "size": 599,
+      "modified": "2025-09-10T17:22:45.108Z"
+    },
+    "tests/fixtures/turtle/complex-project.ttl": {
+      "hash": "27f5ec0e29c61990490c713205808e3fc521ca59792b1f99553492460666adcf",
+      "size": 1728,
+      "modified": "2025-09-10T17:22:45.108Z"
+    },
+    "tests/fixtures/turtle/complex-schema.ttl": {
+      "hash": "ae622c9ad94f83607478ae75f6c31b857399a75b05ce66be211a5739e3e7ad09",
+      "size": 1961,
+      "modified": "2025-09-10T17:22:45.108Z"
+    },
+    "tests/fixtures/turtle/compliance-ontology.ttl": {
+      "hash": "fcf1f0189438fabf0bc019f175bed5d5c01cde4d56b78dfa7ee27b65ffb4e585",
+      "size": 290,
+      "modified": "2025-09-10T17:22:45.108Z"
+    },
+    "tests/fixtures/turtle/compliance-rules.n3": {
+      "hash": "4e51d5ce2cfa5ddf5ab5ea4126428a9fa70152f46dfe7ba959f3125a3ea6cf6f",
+      "size": 11161,
+      "modified": "2025-09-10T17:22:45.108Z"
+    },
+    "tests/fixtures/turtle/edge-cases.ttl": {
+      "hash": "a169be503cba2fb0dcb17c4e106e9fd69fee672e1a89c48a62591988ea526a81",
+      "size": 1071,
+      "modified": "2025-09-10T17:22:45.108Z"
+    },
+    "tests/fixtures/turtle/enterprise-schema.ttl": {
+      "hash": "eeac6961987392201702258d4970e707500feceacc44f9563af1e85eb9de6a7c",
+      "size": 18318,
+      "modified": "2025-09-10T17:22:45.108Z"
+    },
+    "tests/fixtures/turtle/fortune5-compliance.ttl": {
+      "hash": "e7261686f8dc8d888845f5f80c1fdaae6384c02a6c4b126feb00a2681e61a662",
+      "size": 487,
+      "modified": "2025-09-10T17:22:45.108Z"
+    },
+    "tests/fixtures/turtle/invalid-syntax.ttl": {
+      "hash": "fa3480367a71709cdb6ce8c1fae3983eb02fc4f72a92ea81d70925e54aecf27a",
+      "size": 193,
+      "modified": "2025-09-10T17:22:45.108Z"
+    },
+    "tests/fixtures/turtle/large-dataset.ttl": {
+      "hash": "881931113f9f3fc9a4ecf8cf31196b6bde9b9faa15ab038c3c11f167d747edc8",
+      "size": 6437,
+      "modified": "2025-09-10T17:22:45.109Z"
+    },
+    "tests/fixtures/turtle/malicious.ttl": {
+      "hash": "531fc621c7511388df9481a40c5ad7945343973a2bc5ce070d902556fecff50a",
+      "size": 1921,
+      "modified": "2025-09-10T17:22:45.109Z"
+    },
+    "tests/fixtures/turtle/ontology.ttl": {
+      "hash": "10c022decb14ffb64d4d1e4549e4737ce221e7f82073d3039f74e16d6eea02b4",
+      "size": 3954,
+      "modified": "2025-09-10T17:22:45.109Z"
+    },
+    "tests/fixtures/turtle/performance/complex-schema.ttl": {
+      "hash": "28787b45e8622dcbc7d718b5485a333715e1272d99d4002ea4f51319428ae43f",
+      "size": 19077,
+      "modified": "2025-09-10T17:22:45.109Z"
+    },
+    "tests/fixtures/turtle/performance/large-10000.ttl": {
+      "hash": "0353111e761d71ba408b71591715d5231d8ddfd77d2d16adbdb9263a103f3eb9",
+      "size": 378255,
+      "modified": "2025-09-10T17:22:45.109Z"
+    },
+    "tests/fixtures/turtle/performance/medium-1000.ttl": {
+      "hash": "e4252b549835c480d096e48d415f5d55b133a7c10f0e0f2adbaf94631afd1f9d",
+      "size": 36255,
+      "modified": "2025-09-10T17:22:45.109Z"
+    },
+    "tests/fixtures/turtle/performance/small-100.ttl": {
+      "hash": "a208bee2f6f8ea940467b80af409f2afafaadcfec912d07f1c59726ada6800d7",
+      "size": 3630,
+      "modified": "2025-09-10T17:22:45.110Z"
+    },
+    "tests/fixtures/turtle/sample-ontology.ttl": {
+      "hash": "991c029bfbe0cc6d8f7673e276b053e22612b0b4d0527a45473d1852c2ae7726",
+      "size": 1538,
+      "modified": "2025-09-10T17:22:45.110Z"
+    },
+    "tests/fixtures/turtle/sample.ttl": {
+      "hash": "8713089d476a4432fef2e768d9c8c8310e6e8d2187f144c7a6f0f479db0658bd",
+      "size": 2671,
+      "modified": "2025-09-10T17:22:45.110Z"
+    },
+    "tests/fixtures/turtle/security-ontology.ttl": {
+      "hash": "13f3e6cc6d6e4b0e64967a411cad05d32c2a98886dbe65837cfdd1e8089c9f5e",
+      "size": 346,
+      "modified": "2025-09-10T17:22:45.110Z"
+    },
+    "tests/fixtures/turtle/shacl-validation.ttl": {
+      "hash": "1ed36a363ac29543daf556ae799cb1006e62538a3a1302488fce5a7e793ebbd2",
+      "size": 2764,
+      "modified": "2025-09-10T17:22:45.110Z"
+    },
+    "tests/invalid-test-data.ttl": {
+      "hash": "05530f298a1adb76c04f3a5c687d29632428f2ee41561b88aaec6ed90d868950",
+      "size": 1943,
+      "modified": "2025-09-12T18:25:02.373Z"
+    },
+    "tests/malformed-turtle-test.ttl": {
+      "hash": "7bbb3a97cc8250929ea79b3294d54794573014d5d4c243c76560418d9e9c696f",
+      "size": 458,
+      "modified": "2025-09-10T21:06:42.687Z"
+    },
+    "tests/modified-test-graph.ttl": {
+      "hash": "f683637a6cb608eb9838f5d2322f86ed6454adbc6da93b7b19738e23a252a1ba",
+      "size": 2159,
+      "modified": "2025-09-12T18:24:53.702Z"
+    },
+    "tests/reproducibility/reports/perf-test/perf-test.ttl": {
+      "hash": "5b5f1c6845fcd36f80ff023af2d9a61cca827c7ae938097aedcea8628f8aad56",
+      "size": 8314,
+      "modified": "2025-09-12T08:50:49.075Z"
+    },
+    "tests/reproducibility/reports/test-graph.ttl": {
+      "hash": "0760a3d62a9eb346c48b75ac9d8233e879e8871a5a2ff85c5e45e94273523a3c",
+      "size": 71,
+      "modified": "2025-09-12T08:50:05.731Z"
+    },
+    "tests/sample-data/test.ttl": {
+      "hash": "cc05ae53390139ce6da76e696c2b2ac51b5bba6f86943ce4a9af4074e37de3fe",
+      "size": 623,
+      "modified": "2025-09-10T17:22:45.215Z"
+    },
+    "tests/sample-ontology.ttl": {
+      "hash": "6e724b61978e8de49a9ba06219204fa0171de9b95bc3a7b4b5848d7e05d88268",
+      "size": 1463,
+      "modified": "2025-09-10T17:22:45.215Z"
+    },
+    "tests/sample.ttl": {
+      "hash": "8455ac9c703aa62bb348d0e3abbefb4e6dfa970bed41fcf02016fafadb67fcf7",
+      "size": 604,
+      "modified": "2025-09-12T03:32:19.308Z"
+    },
+    "tests/security/fixtures/malicious-patterns.ttl": {
+      "hash": "10049a23393b11b711a3824fcd02342021ca30e3ac798edf22703ffb2303456d",
+      "size": 1334,
+      "modified": "2025-09-10T17:22:45.420Z"
+    },
+    "tests/security/fixtures/xxe-attack.rdf": {
+      "hash": "47fd2a6462a498005ea0d1347c9beeaf8fe1c000e1ebff361701f06311ecc3fc",
+      "size": 745,
+      "modified": "2025-09-10T17:22:45.420Z"
+    },
+    "tests/semantic-output/export.jsonld": {
+      "hash": "c8edc0caba8772875b0f15edefb7e22fa9da7ff1f257dfbdb8bc66707039a52b",
+      "size": 227,
+      "modified": "2025-09-10T17:22:45.430Z"
+    },
+    "tests/semantic-web-clean-room/examples/complete-enterprise-ontology.ttl": {
+      "hash": "9f121e43f506f6c4d9950733ddc9cf8fe530435df1bb85b0d9ad1cec09129c19",
+      "size": 13098,
+      "modified": "2025-09-10T18:29:09.289Z"
+    },
+    "tests/semantic-web-clean-room/examples/schema-org-structured-data.ttl": {
+      "hash": "3e78083dda0c5cc2e8d312f34d840b0548f700f2e4c72c510afebbb2cda0ed17",
+      "size": 15203,
+      "modified": "2025-09-10T18:29:09.289Z"
+    },
+    "tests/simple-graph.jsonld": {
+      "hash": "292d8ca4e08ba64e6635ea46d2587744e982b6f3f2c1dd90b98ef789eb0c8f2c",
+      "size": 1051,
+      "modified": "2025-09-12T18:25:15.269Z"
+    },
+    "tests/simple-graph.nt": {
+      "hash": "10a49f7c4d3a2b945d5fb012f622250d9f57c483f811d0f5655bd43b11c7f84f",
+      "size": 897,
+      "modified": "2025-09-12T18:25:04.956Z"
+    },
+    "tests/test-data/graph1.ttl": {
+      "hash": "1bbf0be5b4fd46b0a382108a44d199ada6501c04f56a070004d3f01f3ef4035f",
+      "size": 675,
+      "modified": "2025-09-12T18:25:55.049Z"
+    },
+    "tests/test-data/graph2.ttl": {
+      "hash": "00322fb3bbeb97edde406c59d4b6274987b85f6b6c52b95cdd95202ec72b7528",
+      "size": 808,
+      "modified": "2025-09-12T18:26:29.517Z"
+    },
+    "tests/test-data/graph3.ttl": {
+      "hash": "84decdbd917757a01f55499a3306bcc16e871449f72349fcd213da0c8ff8458f",
+      "size": 770,
+      "modified": "2025-09-12T18:26:38.980Z"
+    },
+    "tests/test-data/invalid.ttl": {
+      "hash": "0c25c82c7cb6235eacc568494d68c4f966802bd20c32a46b05944a7e0f2c2b00",
+      "size": 397,
+      "modified": "2025-09-12T18:26:48.361Z"
+    },
+    "tests/test-data/sample-api.ttl": {
+      "hash": "3b25ac243b344e3287ee143b0de63492439e55c9e8099b506d74837f71f24296",
+      "size": 4026,
+      "modified": "2025-09-11T23:52:13.268Z"
+    },
+    "tests/test-shacl-shapes.ttl": {
+      "hash": "697864a3bf39bf210c540156866470d0ec3e2a90f0bb76c82031eacd186e0807",
+      "size": 7172,
+      "modified": "2025-09-12T18:25:52.523Z"
+    },
+    "tests/valid-test-data.ttl": {
+      "hash": "3bd55b6a31ae90e2eefb8909d02d01d81b8a3125c8236044e14064f4c3710fd4",
+      "size": 2448,
+      "modified": "2025-09-12T18:25:21.699Z"
+    },
+    "workshop/rdf/kgen-shapes.ttl": {
+      "hash": "4902c6eb0cdc9e21d31ed7d5bf5fa0ba31b43f9ad664551daf13977f645317be",
+      "size": 10757,
+      "modified": "2025-09-12T08:53:03.499Z"
+    },
+    "workshop/rdf/workshop.ttl": {
+      "hash": "18d954388a58c7bdbc601a5d904ff6926f112007e835bac272926efbff9f4004",
+      "size": 9482,
+      "modified": "2025-09-12T08:53:03.426Z"
+    },
+    "workshop/validation/validation-report.ttl": {
+      "hash": "13c487570ee7205bfbb208124c2ee14db17851695977ee1eed56dfbcd73d2d3f",
+      "size": 212,
+      "modified": "2025-09-12T08:53:59.682Z"
+    }
+  }
+}

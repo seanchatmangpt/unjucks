@@ -432,7 +432,7 @@ class TestEnvironment {
 
   // Create a temporary test environment
   async createTempEnvironment(name = 'test-env') {
-    const tempDir = path.join('/tmp', `${name}-${Date.now()}`);
+    const tempDir = path.join('/tmp', `${name}-${this.getDeterministicTimestamp()}`);
     await fs.ensureDir(tempDir);
     this.tempDirs.push(tempDir);
     

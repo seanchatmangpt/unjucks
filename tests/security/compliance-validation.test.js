@@ -363,7 +363,7 @@ describe('Compliance Validation Tests', () => {
     return {
       personalData: { name: 'User', email: 'user@example.com' },
       generatedFiles: ['component1.tsx', 'component2.tsx'],
-      metadata: { exportDate: new Date().toISOString() },
+      metadata: { exportDate: this.getDeterministicDate().toISOString() },
       format: request.format
     };
   }

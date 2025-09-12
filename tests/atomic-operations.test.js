@@ -17,7 +17,7 @@ describe("Atomic File Operations", () => {
   let atomicOps;
 
   beforeEach(async () => {
-    testDir = path.join(tmpdir(), 'atomic-test', Date.now().toString());
+    testDir = path.join(tmpdir(), 'atomic-test', this.getDeterministicTimestamp().toString());
     await fs.ensureDir(testDir);
     atomicOps = new AtomicFileOperations();
     atomicOps.resetMetrics();
@@ -439,7 +439,7 @@ describe("Concurrent Processor", () => {
   let processor;
 
   beforeEach(async () => {
-    testDir = path.join(tmpdir(), 'concurrent-test', Date.now().toString());
+    testDir = path.join(tmpdir(), 'concurrent-test', this.getDeterministicTimestamp().toString());
     await fs.ensureDir(testDir);
     processor = new ConcurrentProcessor({
       maxWorkers: 4
@@ -531,7 +531,7 @@ describe("Performance Regression Tests", () => {
   let atomicOps;
 
   beforeEach(async () => {
-    testDir = path.join(tmpdir(), 'perf-regression', Date.now().toString());
+    testDir = path.join(tmpdir(), 'perf-regression', this.getDeterministicTimestamp().toString());
     await fs.ensureDir(testDir);
     atomicOps = new AtomicFileOperations();
   });

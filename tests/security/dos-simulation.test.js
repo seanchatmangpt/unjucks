@@ -13,7 +13,7 @@ describe("Denial of Service (DoS) Attack Simulation", () => {
   beforeEach(async () => {
     fileInjector = new FileInjector();
     generator = new Generator();
-    testDir = path.join(os.tmpdir(), `dos-test-${Date.now()}`);
+    testDir = path.join(os.tmpdir(), `dos-test-${this.getDeterministicTimestamp()}`);
     await fs.ensureDir(testDir);
     performanceMetrics = [];
   });
@@ -42,7 +42,7 @@ describe("Denial of Service (DoS) Attack Simulation", () => {
       const maxMemoryIncrease = 200 * 1024 * 1024; // 200MB
       
       const initialMemory = process.memoryUsage().heapUsed;
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
       const requests = [];
       for (let i = 0; i < concurrentRequests; i++) {
@@ -58,7 +58,7 @@ describe("Denial of Service (DoS) Attack Simulation", () => {
       }
       
       const results = await Promise.allSettled(requests);
-      const duration = Date.now() - startTime;
+      const duration = this.getDeterministicTimestamp() - startTime;
       const finalMemory = process.memoryUsage().heapUsed;
       const memoryIncrease = finalMemory - initialMemory;
       
@@ -87,7 +87,7 @@ describe("Denial of Service (DoS) Attack Simulation", () => {
       const allMetrics = [];
       
       for (let batch = 0; batch < batches; batch++) {
-        const batchStart = Date.now();
+        const batchStart = this.getDeterministicTimestamp();
         const initialMemory = process.memoryUsage().heapUsed;
         
         const requests = [];
@@ -104,7 +104,7 @@ describe("Denial of Service (DoS) Attack Simulation", () => {
         }
         
         const results = await Promise.all(requests);
-        const batchDuration = Date.now() - batchStart;
+        const batchDuration = this.getDeterministicTimestamp() - batchStart;
         const batchMemory = process.memoryUsage().heapUsed - initialMemory;
         const successful = results.filter(r => r.success).length;
         
@@ -147,7 +147,7 @@ describe("Denial of Service (DoS) Attack Simulation", () => {
       ];
       
       for (const bomb of memoryBombSizes) {
-        const startTime = Date.now();
+        const startTime = this.getDeterministicTimestamp();
         const initialMemory = process.memoryUsage().heapUsed;
         
         try {
@@ -161,7 +161,7 @@ describe("Denial of Service (DoS) Attack Simulation", () => {
             { force, dry }
           );
           
-          const duration = Date.now() - startTime;
+          const duration = this.getDeterministicTimestamp() - startTime;
           const memoryUsage = process.memoryUsage().heapUsed - initialMemory;
           
           // Check if the system handled the large content efficiently
@@ -196,11 +196,11 @@ describe("Denial of Service (DoS) Attack Simulation", () => {
       ];
       
       for (const attack of complexityAttacks) {
-        const startTime = Date.now();
+        const startTime = this.getDeterministicTimestamp();
         const initialMemory = process.memoryUsage().heapUsed;
         
         try {
-          const testFile = path.join(testDir, `complexity-${Date.now()}.txt`);
+          const testFile = path.join(testDir, `complexity-${this.getDeterministicTimestamp()}.txt`);
           const result = await fileInjector.processFile(
             testFile,
             attack.template,
@@ -208,7 +208,7 @@ describe("Denial of Service (DoS) Attack Simulation", () => {
             { force, dry }
           );
           
-          const duration = Date.now() - startTime;
+          const duration = this.getDeterministicTimestamp() - startTime;
           const memoryUsage = process.memoryUsage().heapUsed - initialMemory;
           
           // Should complete within reasonable time (30 seconds timeout)
@@ -244,7 +244,7 @@ describe("Denial of Service (DoS) Attack Simulation", () => {
       ];
       
       for (const attack of diskAttacks) {
-        const startTime = Date.now();
+        const startTime = this.getDeterministicTimestamp();
         const initialMemory = process.memoryUsage().heapUsed;
         
         try {
@@ -264,7 +264,7 @@ describe("Denial of Service (DoS) Attack Simulation", () => {
           }
           
           const results = await Promise.all(operations);
-          const duration = Date.now() - startTime;
+          const duration = this.getDeterministicTimestamp() - startTime;
           const memoryUsage = process.memoryUsage().heapUsed - initialMemory;
           const successful = results.filter(r => r.success).length;
           
@@ -288,7 +288,7 @@ describe("Denial of Service (DoS) Attack Simulation", () => {
 
     it("should handle file descriptor exhaustion attempts", async () => {
       const fdExhaustionCount = 200; // Attempt to open many files
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const initialMemory = process.memoryUsage().heapUsed;
       
       try {
@@ -318,7 +318,7 @@ describe("Denial of Service (DoS) Attack Simulation", () => {
           ).length;
         }
         
-        const duration = Date.now() - startTime;
+        const duration = this.getDeterministicTimestamp() - startTime;
         const memoryUsage = process.memoryUsage().heapUsed - initialMemory;
         
         // System should handle file operations without resource exhaustion
@@ -348,11 +348,11 @@ describe("Denial of Service (DoS) Attack Simulation", () => {
       ];
       
       for (const attack of recursionAttacks) {
-        const startTime = Date.now();
+        const startTime = this.getDeterministicTimestamp();
         const initialMemory = process.memoryUsage().heapUsed;
         
         try {
-          const testFile = path.join(testDir, `recursion-${Date.now()}.txt`);
+          const testFile = path.join(testDir, `recursion-${this.getDeterministicTimestamp()}.txt`);
           const result = await fileInjector.processFile(
             testFile,
             attack,
@@ -360,7 +360,7 @@ describe("Denial of Service (DoS) Attack Simulation", () => {
             { force, dry }
           );
           
-          const duration = Date.now() - startTime;
+          const duration = this.getDeterministicTimestamp() - startTime;
           const memoryUsage = process.memoryUsage().heapUsed - initialMemory;
           
           // Should not hang indefinitely - max 30 seconds
@@ -377,7 +377,7 @@ describe("Denial of Service (DoS) Attack Simulation", () => {
           
         } catch (error) { performanceMetrics.push({
             test }...`,
-            duration: Date.now() - startTime,
+            duration: this.getDeterministicTimestamp() - startTime,
             memoryUsage: process.memoryUsage().heapUsed - initialMemory,
             successful,
             mitigated: true
@@ -398,11 +398,11 @@ describe("Denial of Service (DoS) Attack Simulation", () => {
       ];
       
       for (const input of malformedInputs) {
-        const startTime = Date.now();
+        const startTime = this.getDeterministicTimestamp();
         const initialMemory = process.memoryUsage().heapUsed;
         
         try {
-          const testFile = path.join(testDir, `malformed-${Date.now()}.txt`);
+          const testFile = path.join(testDir, `malformed-${this.getDeterministicTimestamp()}.txt`);
           const result = await fileInjector.processFile(
             testFile,
             input,
@@ -410,7 +410,7 @@ describe("Denial of Service (DoS) Attack Simulation", () => {
             { force, dry }
           );
           
-          const duration = Date.now() - startTime;
+          const duration = this.getDeterministicTimestamp() - startTime;
           const memoryUsage = process.memoryUsage().heapUsed - initialMemory;
           
           // Should handle malformed input without crashing
@@ -427,7 +427,7 @@ describe("Denial of Service (DoS) Attack Simulation", () => {
           
         } catch (error) { performanceMetrics.push({
             test }...`,
-            duration: Date.now() - startTime,
+            duration: this.getDeterministicTimestamp() - startTime,
             memoryUsage: process.memoryUsage().heapUsed - initialMemory,
             successful,
             mitigated: true

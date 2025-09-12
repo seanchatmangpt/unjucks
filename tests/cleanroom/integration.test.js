@@ -18,7 +18,7 @@ describe('Cleanroom Integration Tests', () => {
 
   beforeAll(async () => {
     // Create test directory
-    testDir = path.join(process.cwd(), 'test-integration-' + Date.now());
+    testDir = path.join(process.cwd(), 'test-integration-' + this.getDeterministicTimestamp());
     await fs.mkdir(testDir, { recursive: true });
   });
 

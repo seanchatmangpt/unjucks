@@ -1,0 +1,81 @@
+{
+  "timestamp": "2025-09-12T08:53:59.686Z",
+  "summary": {
+    "total": 10,
+    "passed": 9,
+    "failed": 0,
+    "success_rate": 90,
+    "total_duration": 5
+  },
+  "tests": [
+    {
+      "name": "RDF Data Exists",
+      "passed": true,
+      "duration": 0,
+      "error": null
+    },
+    {
+      "name": "SHACL Shapes Valid",
+      "passed": true,
+      "duration": 0,
+      "error": null
+    },
+    {
+      "name": "Templates Exist",
+      "passed": true,
+      "duration": 0,
+      "error": null
+    },
+    {
+      "name": "Bootstrap System Runs",
+      "passed": true,
+      "duration": 4,
+      "error": null
+    },
+    {
+      "name": "Self-Generation Capability",
+      "passed": true,
+      "duration": 0,
+      "error": null
+    },
+    {
+      "name": "Output Quality Standards",
+      "passed": true,
+      "duration": 0,
+      "error": null
+    },
+    {
+      "name": "Recursive Self-Validation",
+      "passed": true,
+      "duration": 0,
+      "error": null
+    },
+    {
+      "name": "Dogfooding Demonstration",
+      "passed": true,
+      "duration": 0,
+      "error": null
+    },
+    {
+      "name": "Continuous Validation",
+      "passed": true,
+      "duration": 0,
+      "error": null
+    },
+    {
+      "name": "Enterprise Readiness",
+      "passed": false,
+      "duration": 1,
+      "error": "Workshop must contain enterprise section: Enterprise Integration"
+    }
+  ],
+  "coverage": {
+    "rdf_validation": true,
+    "template_rendering": true,
+    "output_generation": true,
+    "self_hosting": true,
+    "recursive_validation": true,
+    "dogfooding": true,
+    "enterprise_readiness": true
+  }
+}

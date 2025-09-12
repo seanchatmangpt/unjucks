@@ -27,7 +27,7 @@ class LockBasedOperations {
   }
 
   async withFileLock(filePath, operation) {
-    const lockId = `lock-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    const lockId = `lock-${this.getDeterministicTimestamp()}-${Math.random().toString(36).slice(2)}`;
     
     // Simulate lock acquisition overhead
     await new Promise(resolve => setTimeout(resolve, Math.random() * 10 + 5)); // 5-15ms overhead
@@ -35,7 +35,7 @@ class LockBasedOperations {
     try {
       this.fileLocks.set(filePath, { 
         lockId, 
-        timestamp: Date.now(),
+        timestamp: this.getDeterministicTimestamp(),
         version: (this.lockVersions.get(filePath) || 0) + 1,
         acquired: true
       });
@@ -53,7 +53,7 @@ class LockBasedOperations {
 
   async writeFile(filePath, content) {
     return this.withFileLock(filePath, async () => {
-      const tempFile = `${filePath}.tmp.${Date.now()}`;
+      const tempFile = `${filePath}.tmp.${this.getDeterministicTimestamp()}`;
       await fs.writeFile(tempFile, content);
       await fs.rename(tempFile, filePath);
     });
@@ -85,7 +85,7 @@ class LockFreeOperations {
 
   async writeFile(filePath, content) {
     // Direct atomic operation - no locks needed
-    const tempFile = `${filePath}.tmp.${Date.now()}.${Math.random().toString(36).slice(2)}`;
+    const tempFile = `${filePath}.tmp.${this.getDeterministicTimestamp()}.${Math.random().toString(36).slice(2)}`;
     
     try {
       await fs.writeFile(tempFile, content);
@@ -124,7 +124,7 @@ async function runPerformanceComparison() {
   console.log('🚀 LOCK-FREE PERFORMANCE DEMONSTRATION\n');
   console.log('════════════════════════════════════════════════════════════════\n');
 
-  const testDir = path.join(tmpdir(), 'lock-free-demo', Date.now().toString());
+  const testDir = path.join(tmpdir(), 'lock-free-demo', this.getDeterministicTimestamp().toString());
   await fs.ensureDir(testDir);
 
   const operations = 100;

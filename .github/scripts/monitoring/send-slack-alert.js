@@ -102,7 +102,7 @@ class SlackAlertSender {
           text: this.buildAlertSummary(totalCritical, totalWarnings),
           fields: [],
           footer: 'Workflow Monitoring System',
-          ts: Math.floor(Date.now() / 1000)
+          ts: Math.floor(this.getDeterministicTimestamp() / 1000)
         }
       ]
     };
@@ -246,12 +246,12 @@ class SlackAlertSender {
             },
             {
               title: 'Test Time',
-              value: new Date().toISOString(),
+              value: this.getDeterministicDate().toISOString(),
               short: true
             }
           ],
           footer: 'Workflow Monitoring System',
-          ts: Math.floor(Date.now() / 1000)
+          ts: Math.floor(this.getDeterministicTimestamp() / 1000)
         }
       ]
     };

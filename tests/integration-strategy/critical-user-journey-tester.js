@@ -920,7 +920,7 @@ ex:TestComponent a ex:ReactComponent .`;
     };
 
     // Save report
-    const reportPath = path.join(this.options.projectRoot, 'tests/reports', `user-journey-report-${Date.now()}.json`);
+    const reportPath = path.join(this.options.projectRoot, 'tests/reports', `user-journey-report-${this.getDeterministicTimestamp()}.json`);
     await fs.ensureDir(path.dirname(reportPath));
     await fs.writeJSON(reportPath, report, { spaces: 2 });
 

@@ -1,0 +1,102 @@
+```mermaid
+C4Component
+  title C4 Component Diagram: Git-Native Blockchain Provenance
+  
+  Container_Boundary(blockchain, "Git Blockchain Layer") {
+    Component(gitChain, "Git Chain Manager", "isomorphic-git, simple-git", "Git-native blockchain implementation")
+    Component(blockValidator, "Block Validator", "Cryptographic", "Validates commit integrity and chains")
+    Component(merkleTree, "Merkle Tree Builder", "multiformats, hash-wasm", "Builds Merkle trees from artifact sets")
+    Component(consensusEngine, "Consensus Engine", "Byzantine Fault Tolerant", "Achieves consensus on artifact states")
+  }
+  
+  Container_Boundary(provenance, "Provenance Tracking") {
+    Component(provenanceGraph, "Provenance Graph", "RDF, PROV-O", "Maintains provenance as RDF graph")
+    Component(attestationManager, "Attestation Manager", "Cryptographic Signing", "Manages cryptographic attestations")
+    Component(chainIndexer, "Chain Indexer", "SPARQL Index", "Indexes git history for provenance queries")
+    Component(immutableLog, "Immutable Log", "Git Objects", "Immutable log of all operations")
+  }
+  
+  Container_Boundary(artifacts, "Artifact Management") {
+    Component(artifactStore, "Artifact Store", "Git Blob Storage", "Stores artifacts as git blobs")
+    Component(dependencyTracker, "Dependency Tracker", "Graph Theory", "Tracks artifact dependencies")
+    Component(changeDetector, "Change Detector", "Git Diff", "Detects changes using git diff algorithms")
+    Component(versionResolver, "Version Resolver", "Semantic Versioning", "Resolves artifact versions")
+  }
+  
+  Container_Boundary(integrity, "Integrity Verification") {
+    Component(hashVerifier, "Hash Verifier", "SHA-256, Blake3", "Verifies content hashes")
+    Component(signatureVerifier, "Signature Verifier", "Ed25519, ECDSA", "Verifies cryptographic signatures")
+    Component(timestampVerifier, "Timestamp Verifier", "RFC 3161", "Verifies trusted timestamps")
+    Component(auditTrail, "Audit Trail", "Immutable Log", "Maintains complete audit trail")
+  }
+  
+  SystemDb_Ext(gitRepo, "Git Repository", "Native git storage backend")
+  System_Ext(timestampServer, "Timestamp Server", "RFC 3161 trusted timestamping")
+  System_Ext(keyManagement, "Key Management", "HSM or key vault")
+  
+  ' Git Blockchain Operations
+  Rel(gitChain, blockValidator, "Validates blocks", "Git Commits")
+  Rel(blockValidator, merkleTree, "Builds trees", "Artifact Hashes")
+  Rel(merkleTree, consensusEngine, "Consensus data", "Merkle Root")
+  Rel(gitChain, gitRepo, "Commits", "Git Protocol")
+  
+  ' Provenance Tracking
+  Rel(gitChain, provenanceGraph, "Records provenance", "PROV-O RDF")
+  Rel(provenanceGraph, attestationManager, "Attestation data")
+  Rel(attestationManager, keyManagement, "Signing keys")
+  Rel(chainIndexer, gitRepo, "Indexes history", "Git Log")
+  Rel(immutableLog, gitRepo, "Stores operations", "Git Objects")
+  
+  ' Artifact Management
+  Rel(artifactStore, gitRepo, "Stores blobs", "Git Blobs")
+  Rel(dependencyTracker, provenanceGraph, "Dependency graph")
+  Rel(changeDetector, gitRepo, "Git diff")
+  Rel(versionResolver, gitRepo, "Tag resolution")
+  
+  ' Integrity Verification
+  Rel(hashVerifier, artifactStore, "Verifies hashes")
+  Rel(signatureVerifier, attestationManager, "Verifies signatures")
+  Rel(timestampVerifier, timestampServer, "Timestamp validation")
+  Rel(auditTrail, immutableLog, "Audit entries")
+  
+  ' Cross-component Dependencies
+  Rel(consensusEngine, hashVerifier, "Hash validation")
+  Rel(attestationManager, signatureVerifier, "Signature creation")
+  Rel(provenanceGraph, chainIndexer, "Provenance queries")
+  
+  UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="1")
+```
+
+## Git-Native Blockchain Architecture
+
+Leverages Git's cryptographic properties as a blockchain:
+
+### Core Principles
+- **Git as Blockchain** - Git commits form an immutable blockchain
+- **Merkle Tree Native** - Git trees are natural Merkle trees
+- **Cryptographic Integrity** - SHA-1/SHA-256 content addressing
+- **Distributed Consensus** - Byzantine fault tolerance over git remotes
+
+### Blockchain Properties
+- **Immutability** - Git objects are content-addressed and immutable
+- **Integrity** - Cryptographic hashes ensure data integrity
+- **Auditability** - Complete history in git log
+- **Decentralization** - Distributed across git remotes
+
+### Advanced Features
+- **Smart Contracts** - Git hooks as executable contracts
+- **Atomic Commits** - All-or-nothing artifact updates
+- **Branching Consensus** - Parallel chain development
+- **Merge Consensus** - Conflict resolution mechanisms
+
+### Provenance Integration
+- **PROV-O Graphs** - W3C provenance ontology compliance
+- **Attestation Chains** - Cryptographic attestation linkage
+- **Dependency Tracking** - Transitive dependency resolution
+- **Change Attribution** - Fine-grained change tracking
+
+### Security Model
+- **Multi-signature** - Threshold signatures for critical operations
+- **Time-stamping** - RFC 3161 trusted timestamps
+- **Key Rotation** - Secure key lifecycle management
+- **Audit Trails** - Tamper-evident audit logging

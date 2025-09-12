@@ -232,7 +232,7 @@ export class UserController {
         userId: 'test-user',
         action: 'document_access',
         resource: 'financial_report_q1.pdf',
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         metadata: { department: 'finance', level: 'confidential' }
       };
 
@@ -281,7 +281,7 @@ export class UserController {
         id: 'consent-123',
         dataSubjectId: 'user-456',
         purposes: ['marketing', 'analytics'],
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         granular: true,
         specific: true,
         informed: true,
@@ -301,8 +301,8 @@ export class UserController {
         id: 'dsr-789',
         type: 'access',
         subjectId: 'user-456',
-        requestDate: new Date().toISOString(),
-        dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+        requestDate: this.getDeterministicDate().toISOString(),
+        dueDate: new Date(this.getDeterministicTimestamp() + 30 * 24 * 60 * 60 * 1000).toISOString(),
         status: 'pending'
       };
 
@@ -703,11 +703,11 @@ function validateSOXControls(controls: any[]): {totalControls: number, automated
 
 function generateAuditTrailEntry(event: any): any {
   return {
-    id: `AUD-${Date.now()}-${Math.random().toString(36).substr(2, 8)}`,
+    id: `AUD-${this.getDeterministicTimestamp()}-${Math.random().toString(36).substr(2, 8)}`,
     ...event,
     hash: 'mock-hash-' + Math.random().toString(36).substr(2, 8),
     digitallySigned: true,
-    timestamp: event.timestamp || new Date().toISOString()
+    timestamp: event.timestamp || this.getDeterministicDate().toISOString()
   };
 }
 
@@ -749,7 +749,7 @@ function validateConsentRecord(consent: any): {valid: boolean, gdprCompliant: bo
 
 function trackDataSubjectRequest(request: any): {withinTimeframe: boolean, daysRemaining: number} {
   const dueDate = new Date(request.dueDate);
-  const now = new Date();
+  const now = this.getDeterministicDate();
   const daysRemaining = Math.ceil((dueDate.getTime() - now.getTime()) / (24 * 60 * 60 * 1000));
   
   return {
@@ -785,7 +785,7 @@ function validateCardDataProtection(measures: any): {compliant: boolean, require
 
 function createTestAuditLogger(): any {
   return {
-    log: (event: any) => `AUD-${Date.now()}-${Math.random().toString(36).substr(2, 8)}`,
+    log: (event: any) => `AUD-${this.getDeterministicTimestamp()}-${Math.random().toString(36).substr(2, 8)}`,
     verifyIntegrity: () => ({ valid: true, errors: [] }),
     detectAnomalies: () => ({ suspiciousActivity: true, alerts: ['multiple_failed_logins'] })
   };

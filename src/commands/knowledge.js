@@ -838,10 +838,10 @@ export const knowledgeCommand = defineCommand({
           }
           
           console.log(chalk.yellow("⚡ Executing SPARQL query..."));
-          const startTime = Date.now();
+          const startTime = this.getDeterministicTimestamp();
           
           const results = processor.executeSPARQL(args.sparql);
-          const executionTime = Date.now() - startTime;
+          const executionTime = this.getDeterministicTimestamp() - startTime;
           
           console.log(chalk.green(`📊 Query completed in ${executionTime}ms`));
           console.log(chalk.cyan(`Found ${results.results ? results.results.bindings.length : results.length} results`));
@@ -1005,7 +1005,7 @@ export const knowledgeCommand = defineCommand({
           }
           
           console.log(chalk.yellow("🔍 Performing validation..."));
-          const startTime = Date.now();
+          const startTime = this.getDeterministicTimestamp();
           
           // Perform basic structural validation
           const structuralValidation = this.performStructuralValidation(processor);
@@ -1019,7 +1019,7 @@ export const knowledgeCommand = defineCommand({
             complianceValidation = this.performComplianceValidation(processor, args.compliance);
           }
           
-          const validationTime = Date.now() - startTime;
+          const validationTime = this.getDeterministicTimestamp() - startTime;
           
           const overallValid = structuralValidation.valid && 
                              shaclValidation.conforms && 
@@ -1032,7 +1032,7 @@ export const knowledgeCommand = defineCommand({
           this.displayValidationResults(structuralValidation, shaclValidation, complianceValidation);
           
           const validationReport = {
-            timestamp: new Date().toISOString(),
+            timestamp: this.getDeterministicDate().toISOString(),
             input: args.input,
             tripleCount,
             validationTime,
@@ -1326,9 +1326,9 @@ export const knowledgeCommand = defineCommand({
           }
           
           console.log(chalk.yellow("📥 Loading input file..."));
-          const startLoad = Date.now();
+          const startLoad = this.getDeterministicTimestamp();
           const tripleCount = await processor.loadKnowledgeBase(args.input, args.from);
-          const loadTime = Date.now() - startLoad;
+          const loadTime = this.getDeterministicTimestamp() - startLoad;
           
           console.log(chalk.green(`✅ Loaded ${tripleCount} triples in ${loadTime}ms`));
           
@@ -1350,15 +1350,15 @@ export const knowledgeCommand = defineCommand({
           }
           
           console.log(chalk.yellow(`🔄 Converting to ${args.to} format...`));
-          const startConvert = Date.now();
+          const startConvert = this.getDeterministicTimestamp();
           
           const convertedContent = processor.exportToFormat(args.to);
-          const convertTime = Date.now() - startConvert;
+          const convertTime = this.getDeterministicTimestamp() - startConvert;
           
           console.log(chalk.yellow("💾 Writing output file..."));
           await fs.writeFile(args.output, convertedContent);
           
-          const totalTime = Date.now() - startLoad;
+          const totalTime = this.getDeterministicTimestamp() - startLoad;
           
           console.log(chalk.green("✅ Conversion completed successfully!"));
           console.log(chalk.cyan(`📊 Conversion Summary:`));
@@ -1480,7 +1480,7 @@ export const knowledgeCommand = defineCommand({
           }
           
           console.log(chalk.yellow(`🧠 Performing ${args.rules} inference...`));
-          const startTime = Date.now();
+          const startTime = this.getDeterministicTimestamp();
           
           let totalInferences = 0;
           let iteration = 0;
@@ -1490,9 +1490,9 @@ export const knowledgeCommand = defineCommand({
             iteration++;
             console.log(chalk.gray(`   Iteration ${iteration}...`));
             
-            const iterationStart = Date.now();
+            const iterationStart = this.getDeterministicTimestamp();
             newInferences = processor.performInference();
-            const iterationTime = Date.now() - iterationStart;
+            const iterationTime = this.getDeterministicTimestamp() - iterationStart;
             
             totalInferences += newInferences;
             console.log(chalk.gray(`   → Generated ${newInferences} new inferences (${iterationTime}ms)`));
@@ -1503,7 +1503,7 @@ export const knowledgeCommand = defineCommand({
             }
           } while (newInferences > 0 && iteration < args.iterations);
           
-          const inferenceTime = Date.now() - startTime;
+          const inferenceTime = this.getDeterministicTimestamp() - startTime;
           
           console.log(chalk.green(`🎯 Inference completed in ${iteration} iterations (${inferenceTime}ms)`));
           console.log(chalk.cyan(`📊 Inference Summary:`));

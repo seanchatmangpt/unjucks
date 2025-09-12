@@ -560,14 +560,14 @@ describe('Input Sanitization Security Tests', () => {
 
   describe('Performance and DoS Protection', () => {
     it('should handle sanitization efficiently', () => {
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
       // Test 1000 sanitization operations
       for (let i = 0; i < 1000; i++) {
         sanitizer.sanitizeString(`Test input ${i} with <script>alert(${i})</script>`);
       }
       
-      const endTime = Date.now();
+      const endTime = this.getDeterministicTimestamp();
       const duration = endTime - startTime;
       
       // Should complete within reasonable time (< 1 second for 1000 operations)
@@ -579,13 +579,13 @@ describe('Input Sanitization Security Tests', () => {
       const vulnerablePattern = /^(a+)+$/;
       const reDoSInput = 'a'.repeat(50) + 'b'; // Should not match and could cause ReDoS
       
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
       expect(() => {
         sanitizer.validatePattern(reDoSInput, vulnerablePattern);
       }).toThrow('Input does not match required pattern');
       
-      const endTime = Date.now();
+      const endTime = this.getDeterministicTimestamp();
       const duration = endTime - startTime;
       
       // Should complete quickly even with vulnerable pattern

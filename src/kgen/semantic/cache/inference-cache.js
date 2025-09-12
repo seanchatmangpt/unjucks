@@ -191,7 +191,7 @@ export class InferenceCache extends EventEmitter {
    * @returns {Promise<Object|null>} Cached result or null if not found
    */
   async get(key, options = {}) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     const operationId = options.operationId || crypto.randomUUID();
     
     try {
@@ -248,7 +248,7 @@ export class InferenceCache extends EventEmitter {
       }
       
       // Update access log and analytics
-      const accessTime = Date.now() - startTime;
+      const accessTime = this.getDeterministicTimestamp() - startTime;
       this.metrics.totalAccessTime += accessTime;
       
       await this._recordAccess(key, hitLevel, accessTime, operationId);
@@ -284,7 +284,7 @@ export class InferenceCache extends EventEmitter {
    * @returns {Promise<Object>} Storage result
    */
   async put(key, value, options = {}) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     const operationId = options.operationId || crypto.randomUUID();
     
     try {
@@ -340,7 +340,7 @@ export class InferenceCache extends EventEmitter {
           await this._trackDependencies(key, options.dependencies);
         }
         
-        const putTime = Date.now() - startTime;
+        const putTime = this.getDeterministicTimestamp() - startTime;
         
         this.emit('cache:put', {
           key,
@@ -522,7 +522,7 @@ export class InferenceCache extends EventEmitter {
         totalTime: 0
       };
       
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
       // Process warmup entries in batches
       const batchSize = options.batchSize || 100;
@@ -553,7 +553,7 @@ export class InferenceCache extends EventEmitter {
         }
       }
       
-      warmupResults.totalTime = Date.now() - startTime;
+      warmupResults.totalTime = this.getDeterministicTimestamp() - startTime;
       
       this.emit('cache:warmup', {
         warmupResults,
@@ -832,7 +832,7 @@ export class InferenceCache extends EventEmitter {
       let cacheEntry = JSON.parse(data);
       
       // Check TTL
-      if (cacheEntry.expiresAt && Date.now() > cacheEntry.expiresAt) {
+      if (cacheEntry.expiresAt && this.getDeterministicTimestamp() > cacheEntry.expiresAt) {
         await fs.unlink(filePath).catch(() => {}); // Ignore errors
         return null;
       }
@@ -864,8 +864,8 @@ export class InferenceCache extends EventEmitter {
       key,
       value: preparedValue.data,
       compressed: preparedValue.compressed,
-      createdAt: Date.now(),
-      expiresAt: options.ttl ? Date.now() + options.ttl : null,
+      createdAt: this.getDeterministicTimestamp(),
+      expiresAt: options.ttl ? this.getDeterministicTimestamp() + options.ttl : null,
       metadata: options.metadata || {}
     };
     
@@ -905,7 +905,7 @@ export class InferenceCache extends EventEmitter {
    * Prepare value for storage
    */
   async _prepareValueForStorage(value, options) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     let serializedValue = JSON.stringify(value);
     let size = Buffer.byteLength(serializedValue, 'utf8');
@@ -913,11 +913,11 @@ export class InferenceCache extends EventEmitter {
     
     // Compress if enabled and above threshold
     if (this.config.enableCompression && size > this.config.compressionThreshold) {
-      const compressionStart = Date.now();
+      const compressionStart = this.getDeterministicTimestamp();
       const compressedBuffer = await gzipAsync(Buffer.from(serializedValue, 'utf8'));
       const compressedValue = compressedBuffer.toString('base64');
       
-      this.metrics.totalCompressionTime += Date.now() - compressionStart;
+      this.metrics.totalCompressionTime += this.getDeterministicTimestamp() - compressionStart;
       
       // Use compressed version if it's smaller
       if (compressedValue.length < serializedValue.length) {
@@ -930,7 +930,7 @@ export class InferenceCache extends EventEmitter {
       }
     }
     
-    this.metrics.totalSerializationTime += Date.now() - startTime;
+    this.metrics.totalSerializationTime += this.getDeterministicTimestamp() - startTime;
     
     return {
       data: value,

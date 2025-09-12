@@ -21,7 +21,7 @@ export class FileSystemHelper {
    * Create a temporary directory
    */
   async createTempDir() {
-    const tempDir = path.join(tmpdir(), 'unjucks-fs-test-' + Date.now() + '-' + Math.random().toString(36).substring(2));
+    const tempDir = path.join(tmpdir(), 'unjucks-fs-test-' + this.getDeterministicTimestamp() + '-' + Math.random().toString(36).substring(2));
     await fs.ensureDir(tempDir);
     this.tempPaths.push(tempDir);
     return tempDir;

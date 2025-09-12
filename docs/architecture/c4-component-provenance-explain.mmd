@@ -1,0 +1,123 @@
+```mermaid
+C4Component
+    title Component Diagram for Provenance Verification System
+    
+    Container_Boundary(cli, "KGEN CLI") {
+        Component(explainCmd, "Explain Command", "Citty Command", "CLI interface for provenance explanation")
+        Component(validateCmd, "Validate Command", "Citty Command", "CLI interface for provenance validation")
+        Component(kgenEngine, "KGenCLIEngine", "Core Engine", "Main orchestrator for provenance operations")
+    }
+    
+    Container_Boundary(provenance, "Provenance System") {
+        Component(provenanceEngine, "Provenance Engine", "Engine", "Main provenance tracking engine")
+        Component(attestationManager, "Attestation Manager", "Manager", "Manages cryptographic attestations")
+        Component(chainValidator, "Chain Validator", "Validator", "Validates provenance chains")
+        Component(reproducibilityTester, "Reproducibility Tester", "Tester", "Tests artifact reproducibility")
+    }
+    
+    Container_Boundary(attestation, "Attestation Layer") {
+        Component(attestationGenerator, "Attestation Generator", "Generator", "Generates .attest.json files")
+        Component(cryptoSigner, "Crypto Signer", "Crypto", "Signs attestations cryptographically")
+        Component(timestampService, "Timestamp Service", "Service", "Provides trusted timestamps")
+        Component(hashVerifier, "Hash Verifier", "Verifier", "Verifies content hashes")
+    }
+    
+    Container_Boundary(metadata, "Metadata Tracking") {
+        Component(generationTracker, "Generation Tracker", "Tracker", "Tracks artifact generation metadata")
+        Component(templateTracker, "Template Tracker", "Tracker", "Tracks template provenance")
+        Component(contextTracker, "Context Tracker", "Tracker", "Tracks context data provenance")
+        Component(environmentTracker, "Environment Tracker", "Tracker", "Tracks generation environment")
+    }
+    
+    Container_Boundary(verification, "Verification Engine") {
+        Component(integrityVerifier, "Integrity Verifier", "Verifier", "Verifies artifact integrity")
+        Component(contentVerifier, "Content Verifier", "Verifier", "Verifies content authenticity")
+        Component(signatureVerifier, "Signature Verifier", "Verifier", "Verifies cryptographic signatures")
+        Component(timestampVerifier, "Timestamp Verifier", "Verifier", "Verifies timestamp authenticity")
+    }
+    
+    Container_Boundary(analysis, "Provenance Analysis") {
+        Component(dependencyAnalyzer, "Dependency Analyzer", "Analyzer", "Analyzes artifact dependencies")
+        Component(changeAnalyzer, "Change Analyzer", "Analyzer", "Analyzes provenance changes")
+        Component(auditTrailGenerator, "Audit Trail Generator", "Generator", "Generates audit trails")
+        Component(complianceChecker, "Compliance Checker", "Checker", "Checks regulatory compliance")
+    }
+    
+    Container_Boundary(storage, "Provenance Storage") {
+        Component(attestationStore, "Attestation Store", "File System", "Stores attestation files")
+        Component(provenanceDB, "Provenance Database", "JSON/SQLite", "Stores provenance metadata")
+        Component(auditStore, "Audit Store", "Append-Only Log", "Stores audit events")
+        Component(backupManager, "Backup Manager", "Manager", "Backs up provenance data")
+    }
+    
+    Container_Boundary(reporting, "Reporting System") {
+        Component(reportGenerator, "Report Generator", "Generator", "Generates provenance reports")
+        Component(visualizer, "Provenance Visualizer", "Visualizer", "Visualizes provenance graphs")
+        Component(exportEngine, "Export Engine", "Engine", "Exports provenance data")
+        Component(alertSystem, "Alert System", "System", "Alerts on provenance issues")
+    }
+    
+    Container_Boundary(integration, "External Integration") {
+        Component(gitIntegration, "Git Integration", "Git", "Integrates with Git repositories")
+        Component(cicdIntegration, "CI/CD Integration", "Pipeline", "Integrates with CI/CD systems")
+        Component(registryIntegration, "Registry Integration", "Registry", "Integrates with artifact registries")
+        Component(blockchainLogger, "Blockchain Logger", "Blockchain", "Logs to blockchain for immutability")
+    }
+    
+    Container_Boundary(policy, "Policy Engine") {
+        Component(provenancePolicy, "Provenance Policy", "Policy", "Defines provenance requirements")
+        Component(retentionPolicy, "Retention Policy", "Policy", "Manages data retention")
+        Component(accessControl, "Access Control", "RBAC", "Controls access to provenance data")
+        Component(complianceFramework, "Compliance Framework", "Framework", "Enforces compliance standards")
+    }
+    
+    Rel(explainCmd, kgenEngine, "delegates to")
+    Rel(validateCmd, kgenEngine, "delegates to")
+    Rel(kgenEngine, provenanceEngine, "uses for provenance operations")
+    
+    Rel(provenanceEngine, attestationManager, "manages attestations with")
+    Rel(provenanceEngine, chainValidator, "validates chains with")
+    Rel(provenanceEngine, reproducibilityTester, "tests reproducibility with")
+    
+    Rel(attestationManager, attestationGenerator, "generates attestations with")
+    Rel(attestationGenerator, cryptoSigner, "signs attestations with")
+    Rel(attestationGenerator, timestampService, "timestamps with")
+    Rel(attestationManager, hashVerifier, "verifies hashes with")
+    
+    Rel(provenanceEngine, generationTracker, "tracks generation with")
+    Rel(generationTracker, templateTracker, "tracks templates with")
+    Rel(generationTracker, contextTracker, "tracks context with")
+    Rel(generationTracker, environmentTracker, "tracks environment with")
+    
+    Rel(chainValidator, integrityVerifier, "verifies integrity with")
+    Rel(integrityVerifier, contentVerifier, "verifies content with")
+    Rel(contentVerifier, signatureVerifier, "verifies signatures with")
+    Rel(signatureVerifier, timestampVerifier, "verifies timestamps with")
+    
+    Rel(provenanceEngine, dependencyAnalyzer, "analyzes dependencies with")
+    Rel(dependencyAnalyzer, changeAnalyzer, "analyzes changes with")
+    Rel(changeAnalyzer, auditTrailGenerator, "generates audit trails with")
+    Rel(auditTrailGenerator, complianceChecker, "checks compliance with")
+    
+    Rel(attestationManager, attestationStore, "stores attestations in")
+    Rel(provenanceEngine, provenanceDB, "stores metadata in")
+    Rel(auditTrailGenerator, auditStore, "logs events to")
+    Rel(provenanceDB, backupManager, "backs up with")
+    
+    Rel(provenanceEngine, reportGenerator, "generates reports with")
+    Rel(reportGenerator, visualizer, "visualizes with")
+    Rel(reportGenerator, exportEngine, "exports with")
+    Rel(chainValidator, alertSystem, "sends alerts with")
+    
+    Rel(provenanceEngine, gitIntegration, "integrates with Git")
+    Rel(provenanceEngine, cicdIntegration, "integrates with CI/CD")
+    Rel(attestationManager, registryIntegration, "publishes to registries")
+    Rel(auditStore, blockchainLogger, "logs to blockchain")
+    
+    Rel(provenanceEngine, provenancePolicy, "applies policies from")
+    Rel(provenanceDB, retentionPolicy, "applies retention with")
+    Rel(attestationStore, accessControl, "controls access with")
+    Rel(complianceChecker, complianceFramework, "enforces compliance with")
+    
+    UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="3")
+```

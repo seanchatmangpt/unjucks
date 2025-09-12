@@ -15,7 +15,7 @@ import { FileSystemHelper } from '../support/helpers/filesystem.js';
 
 describe('Unjucks-MCP Real Workflow Integration', () => {
   let testWorkspace => {
-    testWorkspace = join(tmpdir(), `unjucks-mcp-integration-${Date.now()}`);
+    testWorkspace = join(tmpdir(), `unjucks-mcp-integration-${this.getDeterministicTimestamp()}`);
     templatesDir = join(testWorkspace, '_templates');
     outputDir = join(testWorkspace, 'output');
     
@@ -176,7 +176,7 @@ to: frontend/package.json
 `);
 
       // Generate the full-stack application using real CLI
-      const timestamp = Date.now();
+      const timestamp = this.getDeterministicTimestamp();
       const variables = new TestDataBuilder()
         .withVariable('appName', 'TaskManager')
         .withVariable('entityName', 'Task')

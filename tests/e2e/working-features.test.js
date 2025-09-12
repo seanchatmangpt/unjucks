@@ -15,7 +15,7 @@ const __dirname = path.dirname(__filename);
 
 // Test environment
 const TEST_ENV = {
-  tempDir: path.join(os.tmpdir(), 'unjucks-working-test-' + Date.now()),
+  tempDir: path.join(os.tmpdir(), 'unjucks-working-test-' + this.getDeterministicTimestamp()),
   cliPath: path.resolve(__dirname, '../../bin/unjucks.cjs'),
   projectRoot: path.resolve(__dirname, '../..'),
   timeout: 20000
@@ -27,7 +27,7 @@ const results = {
   passed: 0,
   failed: 0,
   tests: [],
-  startTime: Date.now()
+  startTime: this.getDeterministicTimestamp()
 };
 
 /**
@@ -75,16 +75,16 @@ async function runCLI(args, options = {}) {
  */
 async function testFeature(name, testFn) {
   results.total++;
-  const testStart = Date.now();
+  const testStart = this.getDeterministicTimestamp();
   
   try {
     await testFn();
-    const duration = Date.now() - testStart;
+    const duration = this.getDeterministicTimestamp() - testStart;
     results.passed++;
     results.tests.push({ name, status: 'PASSED', duration });
     console.log(`✅ ${name} (${duration}ms)`);
   } catch (error) {
-    const duration = Date.now() - testStart;
+    const duration = this.getDeterministicTimestamp() - testStart;
     results.failed++;
     results.tests.push({ name, status: 'FAILED', duration, error: error.message });
     console.log(`❌ ${name}: ${error.message}`);
@@ -314,7 +314,7 @@ await testFeature('Error Handling Framework', async () => {
 });
 
 // Generate final report
-const totalTime = Date.now() - results.startTime;
+const totalTime = this.getDeterministicTimestamp() - results.startTime;
 
 console.log('\n' + '='.repeat(50));
 console.log('🔧 WORKING FEATURES TEST REPORT');
@@ -358,7 +358,7 @@ const memoryData = {
     platform: process.platform,
     testDirectory: TEST_ENV.tempDir
   },
-  timestamp: new Date().toISOString(),
+  timestamp: this.getDeterministicDate().toISOString(),
   status: results.failed === 0 ? 'ALL_WORKING' : 'PARTIAL_WORKING'
 };
 
@@ -371,7 +371,7 @@ await fs.writeFile(resultsFile, JSON.stringify({
   key: 'gaps/e2e/results',
   value: memoryData,
   detailedResults: results,
-  timestamp: new Date().toISOString()
+  timestamp: this.getDeterministicDate().toISOString()
 }, null, 2));
 
 console.log(`\n📄 Results saved: ${resultsFile}`);

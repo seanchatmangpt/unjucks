@@ -370,7 +370,7 @@ export function createValidateGraphCommand() {
               violationCount: results.violations.length,
               warningCount: results.warnings.length
             },
-            timestamp: new Date().toISOString()
+            timestamp: this.getDeterministicDate().toISOString()
           };
 
           if (options.output) {

@@ -11,7 +11,7 @@ import { tmpdir } from 'os';
 
 describe('Working Turtle Data Support', () => {
   let testDir => {
-    testDir = join(tmpdir(), `unjucks-turtle-test-${Date.now()}`);
+    testDir = join(tmpdir(), `unjucks-turtle-test-${this.getDeterministicTimestamp()}`);
     fs.ensureDirSync(testDir);
     dataLoader = new RDFDataLoader();
   });
@@ -83,10 +83,10 @@ describe('Working Turtle Data Support', () => {
       fs.writeFileSync(turtleFilePath, turtleContent);
 
       // When: I load the dataset and measure performance
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const source = { type };
       const result = await dataLoader.loadFromSource(source);
-      const endTime = Date.now();
+      const endTime = this.getDeterministicTimestamp();
       
       const processingTime = endTime - startTime;
 

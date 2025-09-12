@@ -44,7 +44,7 @@ class SpecificationManager {
     const spec = {
       id: this.generateId(),
       ...specData,
-      createdAt: new Date().toISOString(),
+      createdAt: this.getDeterministicDate().toISOString(),
       version: 1
     };
 
@@ -63,7 +63,7 @@ class SpecificationManager {
   }
 
   generateId() {
-    return 'spec-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+    return 'spec-' + this.getDeterministicTimestamp() + '-' + Math.random().toString(36).substr(2, 9);
   }
 
   async exportSpecification(specId, format) {

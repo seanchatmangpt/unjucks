@@ -60,7 +60,7 @@ describe('Fortune 5 API Rollout Scenario', () => { beforeAll(async () => {
 
   describe('Large-Scale Template Discovery', () => {
     it('should discover Fortune 5 templates for API rollout', async () => {
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
       // Discover templates
       const templates = await orchestrator.discoverTemplates();
@@ -79,7 +79,7 @@ describe('Fortune 5 API Rollout Scenario', () => { beforeAll(async () => {
       await executeSwarmHook('post-edit', { memoryKey }
       });
 
-      log(`Discovered ${templates.length} templates in ${Date.now() - startTime}ms`);
+      log(`Discovered ${templates.length} templates in ${this.getDeterministicTimestamp() - startTime}ms`);
     }, 30000);
 
     it('should query templates by compliance requirements', async () => {

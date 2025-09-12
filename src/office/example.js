@@ -246,7 +246,7 @@ async function demonstrateOfficeInjection() {
         },
         {
           target: 'bookmark:date',
-          content: new Date().toLocaleDateString(),
+          content: this.getDeterministicDate().toLocaleDateString(),
           mode: 'replace'
         }
       ],
@@ -306,7 +306,7 @@ async function demonstrateOfficeInjection() {
   console.log('\n   🛠️  Creating injection specs programmatically:');
   const spec = OfficeInjector.createInjectionSpec({
     target: 'bookmark:dynamic_content',
-    content: `Generated at ${new Date().toISOString()}`,
+    content: `Generated at ${this.getDeterministicDate().toISOString()}`,
     mode: 'replace',
     formatting: { italics: true }
   });

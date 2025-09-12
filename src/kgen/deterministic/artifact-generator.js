@@ -67,7 +67,7 @@ export class DeterministicArtifactGenerator extends EventEmitter {
       cacheMisses: 0,
       attestationsCreated: 0,
       totalGenerationTime: 0,
-      startTime: new Date()
+      startTime: this.getDeterministicDate()
     };
     
     this._setupEventHandlers();
@@ -77,7 +77,7 @@ export class DeterministicArtifactGenerator extends EventEmitter {
    * Generate deterministic artifact from template and context
    */
   async generate(templatePath, context = {}, outputPath = null) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     const operationId = this._generateOperationId();
     
     try {
@@ -159,7 +159,7 @@ export class DeterministicArtifactGenerator extends EventEmitter {
       
       // Update statistics
       this.stats.artifactsGenerated++;
-      this.stats.totalGenerationTime += Date.now() - startTime;
+      this.stats.totalGenerationTime += this.getDeterministicTimestamp() - startTime;
       
       const result = {
         success: true,
@@ -171,7 +171,7 @@ export class DeterministicArtifactGenerator extends EventEmitter {
         content: renderResult.content,
         metadata: artifactMetadata,
         operationId,
-        generationTime: Date.now() - startTime
+        generationTime: this.getDeterministicTimestamp() - startTime
       };
       
       this.emit('generation:complete', result);
@@ -185,7 +185,7 @@ export class DeterministicArtifactGenerator extends EventEmitter {
         error: error.message,
         templatePath,
         operationId,
-        generationTime: Date.now() - startTime
+        generationTime: this.getDeterministicTimestamp() - startTime
       };
       
       this.emit('generation:error', { ...result, error });
@@ -204,7 +204,7 @@ export class DeterministicArtifactGenerator extends EventEmitter {
    */
   async generateBatch(templates, globalContext = {}) {
     const batchId = this._generateOperationId();
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     this.logger.info(`Starting batch generation of ${templates.length} templates`, { batchId });
     
@@ -249,7 +249,7 @@ export class DeterministicArtifactGenerator extends EventEmitter {
       successful,
       failed,
       results,
-      batchTime: Date.now() - startTime,
+      batchTime: this.getDeterministicTimestamp() - startTime,
       globalContext,
       batchHash: crypto.createHash('sha256')
         .update(JSON.stringify(results.map(r => r.contentHash).filter(Boolean)))
@@ -324,7 +324,7 @@ export class DeterministicArtifactGenerator extends EventEmitter {
   getStatistics() {
     return {
       ...this.stats,
-      uptime: Date.now() - this.stats.startTime.getTime(),
+      uptime: this.getDeterministicTimestamp() - this.stats.startTime.getTime(),
       averageGenerationTime: this.stats.artifactsGenerated > 0 
         ? this.stats.totalGenerationTime / this.stats.artifactsGenerated 
         : 0,
@@ -349,7 +349,7 @@ export class DeterministicArtifactGenerator extends EventEmitter {
       cacheMisses: 0,
       attestationsCreated: 0,
       totalGenerationTime: 0,
-      startTime: new Date()
+      startTime: this.getDeterministicDate()
     };
     
     this.emit('generator:reset');
@@ -390,7 +390,7 @@ export class DeterministicArtifactGenerator extends EventEmitter {
   }
   
   _generateOperationId() {
-    return `gen_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
+    return `gen_${this.getDeterministicTimestamp()}_${Math.random().toString(36).substring(2, 8)}`;
   }
   
   _normalizeContext(context) {

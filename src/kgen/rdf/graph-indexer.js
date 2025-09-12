@@ -70,7 +70,7 @@ export class GraphIndexer extends EventEmitter {
    * Index a collection of quads
    */
   async indexQuads(quads, options = {}) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     let indexed = 0;
     
     try {
@@ -98,7 +98,7 @@ export class GraphIndexer extends EventEmitter {
       // Update global statistics
       this.updateStatistics();
       
-      const processingTime = Date.now() - startTime;
+      const processingTime = this.getDeterministicTimestamp() - startTime;
       
       this.emit('indexing-complete', {
         indexed,
@@ -566,7 +566,7 @@ export class GraphIndexer extends EventEmitter {
     const summary = this.getIndexSummary();
     
     return {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       summary,
       topPredicates: this.getTopPredicates(10),
       languageDistribution: Object.fromEntries(this.stats.languageStats),

@@ -20,7 +20,7 @@ describe('Semantic Documentation Validation', () => {
     semanticEngine = new SemanticEngine({
       cacheTTL: 300000,
       maxRetries: 3,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     });
   });
 
@@ -351,7 +351,7 @@ describe('Semantic Documentation Validation', () => {
             const data = generateComplexRDFDataset(1000); // 1K entities
             const result = await executeSPARQLQuery(complexQuery, data);
             
-            const queryTime = Date.now() - startTime;
+            const queryTime = this.getDeterministicTimestamp() - startTime;
             validationResults.performanceMetrics.complexQueryTime = queryTime;
             
             return queryTime < 2000; // < 2 seconds
@@ -427,12 +427,12 @@ describe('Semantic Documentation Validation', () => {
 
       for (const test of responseTimeTests) {
         try {
-          const startTime = Date.now();
+          const startTime = this.getDeterministicTimestamp();
           
           // Mock MCP tool invocation
           await simulateMCPToolCall(test.tool);
           
-          const responseTime = Date.now() - startTime;
+          const responseTime = this.getDeterministicTimestamp() - startTime;
           validationResults.performanceMetrics[`${test.tool}ResponseTime`] = responseTime;
           
           const passed = responseTime <= test.maxResponseTime;

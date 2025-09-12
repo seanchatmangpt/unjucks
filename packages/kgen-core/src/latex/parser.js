@@ -959,7 +959,7 @@ class LaTeXParser {
       errorCount: this.errors.length,
       warningCount: this.warnings.length,
       macroCount: this.macros.size,
-      processingTime: Date.now() // This would be set properly in production
+      processingTime: this.getDeterministicTimestamp() // This would be set properly in production
     };
   }
   

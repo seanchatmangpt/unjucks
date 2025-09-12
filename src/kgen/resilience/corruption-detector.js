@@ -61,8 +61,8 @@ export class CorruptionDetector extends EventEmitter {
         filePath,
         checksum,
         size: content.length,
-        lastVerified: Date.now(),
-        registeredAt: Date.now(),
+        lastVerified: this.getDeterministicTimestamp(),
+        registeredAt: this.getDeterministicTimestamp(),
         verificationCount: 1,
         metadata: {
           type: metadata.type || 'file',
@@ -100,8 +100,8 @@ export class CorruptionDetector extends EventEmitter {
         structureId,
         checksum,
         size: serialized.length,
-        lastVerified: Date.now(),
-        registeredAt: Date.now(),
+        lastVerified: this.getDeterministicTimestamp(),
+        registeredAt: this.getDeterministicTimestamp(),
         verificationCount: 1,
         metadata: {
           type: metadata.type || 'data_structure',
@@ -131,7 +131,7 @@ export class CorruptionDetector extends EventEmitter {
    * Verify integrity of a specific file
    */
   async verifyFile(filePath) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     const checksumInfo = this.fileChecksums.get(filePath);
     
     if (!checksumInfo) {
@@ -143,22 +143,22 @@ export class CorruptionDetector extends EventEmitter {
       const content = await readFile(filePath);
       const currentChecksum = this._calculateChecksum(content);
       
-      const verificationTime = Date.now() - startTime;
+      const verificationTime = this.getDeterministicTimestamp() - startTime;
       this._updateDetectionMetrics(verificationTime);
 
       // Update verification info
-      checksumInfo.lastVerified = Date.now();
+      checksumInfo.lastVerified = this.getDeterministicTimestamp();
       checksumInfo.verificationCount++;
 
       if (currentChecksum !== checksumInfo.checksum) {
         // Corruption detected
         const corruption = {
-          id: `file_${filePath}_${Date.now()}`,
+          id: `file_${filePath}_${this.getDeterministicTimestamp()}`,
           type: 'file_corruption',
           item: filePath,
           originalChecksum: checksumInfo.checksum,
           currentChecksum,
-          detectedAt: Date.now(),
+          detectedAt: this.getDeterministicTimestamp(),
           size: content.length,
           originalSize: checksumInfo.size,
           metadata: checksumInfo.metadata
@@ -189,7 +189,7 @@ export class CorruptionDetector extends EventEmitter {
    * Verify integrity of a specific data structure
    */
   verifyDataStructure(structureId, currentData) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     const checksumInfo = this.dataStructureChecksums.get(structureId);
     
     if (!checksumInfo) {
@@ -200,22 +200,22 @@ export class CorruptionDetector extends EventEmitter {
       const serialized = this._serializeDataStructure(currentData);
       const currentChecksum = this._calculateChecksum(Buffer.from(serialized));
       
-      const verificationTime = Date.now() - startTime;
+      const verificationTime = this.getDeterministicTimestamp() - startTime;
       this._updateDetectionMetrics(verificationTime);
 
       // Update verification info
-      checksumInfo.lastVerified = Date.now();
+      checksumInfo.lastVerified = this.getDeterministicTimestamp();
       checksumInfo.verificationCount++;
 
       if (currentChecksum !== checksumInfo.checksum) {
         // Corruption detected
         const corruption = {
-          id: `data_${structureId}_${Date.now()}`,
+          id: `data_${structureId}_${this.getDeterministicTimestamp()}`,
           type: 'data_structure_corruption',
           item: structureId,
           originalChecksum: checksumInfo.checksum,
           currentChecksum,
-          detectedAt: Date.now(),
+          detectedAt: this.getDeterministicTimestamp(),
           size: serialized.length,
           originalSize: checksumInfo.size,
           metadata: checksumInfo.metadata
@@ -252,7 +252,7 @@ export class CorruptionDetector extends EventEmitter {
 
     this.isScanning = true;
     const scanResults = {
-      startTime: Date.now(),
+      startTime: this.getDeterministicTimestamp(),
       filesScanned: 0,
       dataStructuresScanned: 0,
       corruptionsFound: 0,
@@ -283,7 +283,7 @@ export class CorruptionDetector extends EventEmitter {
       // Note: Data structure scanning would require current data to be passed
       // This would typically be done by the application calling verifyDataStructure
 
-      scanResults.endTime = Date.now();
+      scanResults.endTime = this.getDeterministicTimestamp();
       scanResults.duration = scanResults.endTime - scanResults.startTime;
 
       this.emit('scanCompleted', scanResults);
@@ -307,13 +307,13 @@ export class CorruptionDetector extends EventEmitter {
     }
 
     this.repairAttempts.set(repairId, attemptCount);
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
 
     try {
       // Strategy 1: Restore from backup
       const backupRestored = await this._restoreFromBackup(filePath);
       if (backupRestored) {
-        const repairTime = Date.now() - startTime;
+        const repairTime = this.getDeterministicTimestamp() - startTime;
         this._updateRepairMetrics(repairTime);
         this.metrics.corruptionsRepaired++;
         this.emit('fileRepaired', { filePath, method: 'backup_restore', repairTime });
@@ -324,7 +324,7 @@ export class CorruptionDetector extends EventEmitter {
       // Strategy 2: Pattern-based repair (for structured files)
       const patternRepaired = await this._attemptPatternBasedRepair(filePath, corruption);
       if (patternRepaired) {
-        const repairTime = Date.now() - startTime;
+        const repairTime = this.getDeterministicTimestamp() - startTime;
         this._updateRepairMetrics(repairTime);
         this.metrics.corruptionsRepaired++;
         this.emit('fileRepaired', { filePath, method: 'pattern_based', repairTime });
@@ -335,7 +335,7 @@ export class CorruptionDetector extends EventEmitter {
       // Strategy 3: Partial recovery (salvage what's recoverable)
       const partiallyRecovered = await this._attemptPartialRecovery(filePath, corruption);
       if (partiallyRecovered) {
-        const repairTime = Date.now() - startTime;
+        const repairTime = this.getDeterministicTimestamp() - startTime;
         this._updateRepairMetrics(repairTime);
         this.metrics.corruptionsRepaired++;
         this.emit('fileRepaired', { filePath, method: 'partial_recovery', repairTime });
@@ -369,14 +369,14 @@ export class CorruptionDetector extends EventEmitter {
     }
 
     this.repairAttempts.set(repairId, attemptCount);
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
 
     try {
       // Strategy 1: Restore from backup
       const backupData = this._getDataStructureBackup(structureId);
       if (backupData) {
         this._restoreDataStructureFromBackup(structureId, backupData);
-        const repairTime = Date.now() - startTime;
+        const repairTime = this.getDeterministicTimestamp() - startTime;
         this._updateRepairMetrics(repairTime);
         this.metrics.corruptionsRepaired++;
         this.emit('dataStructureRepaired', { structureId, method: 'backup_restore', repairTime });
@@ -387,7 +387,7 @@ export class CorruptionDetector extends EventEmitter {
       // Strategy 2: Structure validation and repair
       const validationRepaired = this._attemptStructureValidationRepair(structureId, corruption);
       if (validationRepaired) {
-        const repairTime = Date.now() - startTime;
+        const repairTime = this.getDeterministicTimestamp() - startTime;
         this._updateRepairMetrics(repairTime);
         this.metrics.corruptionsRepaired++;
         this.emit('dataStructureRepaired', { structureId, method: 'validation_repair', repairTime });
@@ -451,7 +451,7 @@ export class CorruptionDetector extends EventEmitter {
     const backupInfo = {
       originalPath: filePath,
       content: content,
-      createdAt: Date.now(),
+      createdAt: this.getDeterministicTimestamp(),
       checksum: this._calculateChecksum(content)
     };
     
@@ -466,7 +466,7 @@ export class CorruptionDetector extends EventEmitter {
     const backupInfo = {
       structureId,
       data: JSON.parse(JSON.stringify(data)), // Deep copy
-      createdAt: Date.now(),
+      createdAt: this.getDeterministicTimestamp(),
       checksum: this._calculateChecksum(Buffer.from(this._serializeDataStructure(data)))
     };
     
@@ -488,7 +488,7 @@ export class CorruptionDetector extends EventEmitter {
       const checksumInfo = this.fileChecksums.get(filePath);
       if (checksumInfo) {
         checksumInfo.checksum = backupInfo.checksum;
-        checksumInfo.lastVerified = Date.now();
+        checksumInfo.lastVerified = this.getDeterministicTimestamp();
       }
       
       return true;
@@ -629,8 +629,8 @@ export class MemoryCorruptionDetector extends EventEmitter {
       identifier,
       originalStructure: this._captureObjectStructure(obj),
       validationRules,
-      watchedAt: Date.now(),
-      lastChecked: Date.now(),
+      watchedAt: this.getDeterministicTimestamp(),
+      lastChecked: this.getDeterministicTimestamp(),
       checkCount: 0
     };
 
@@ -654,13 +654,13 @@ export class MemoryCorruptionDetector extends EventEmitter {
       watchInfo.identifier
     );
 
-    watchInfo.lastChecked = Date.now();
+    watchInfo.lastChecked = this.getDeterministicTimestamp();
     watchInfo.checkCount++;
 
     if (corruption) {
       this.corruptionLog.push({
         ...corruption,
-        detectedAt: Date.now(),
+        detectedAt: this.getDeterministicTimestamp(),
         checkCount: watchInfo.checkCount
       });
 

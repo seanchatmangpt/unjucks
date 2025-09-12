@@ -524,7 +524,7 @@ export class TemplateVersionTracker {
     if (this.config.versioningStrategy === 'semantic') {
       versionNumber = this._generateSemanticVersion(existingVersions, info);
     } else if (this.config.versioningStrategy === 'timestamp') {
-      versionNumber = new Date().toISOString();
+      versionNumber = this.getDeterministicDate().toISOString();
     } else {
       versionNumber = contentHash.substring(0, 8);
     }
@@ -538,7 +538,7 @@ export class TemplateVersionTracker {
       contentHash,
       
       // Metadata
-      createdAt: new Date().toISOString(),
+      createdAt: this.getDeterministicDate().toISOString(),
       createdBy: info.createdBy || 'system',
       tags: info.tags || [],
       changeLog: info.changeLog || '',
@@ -609,7 +609,7 @@ export class TemplateVersionTracker {
         version: dep.version || 'latest',
         required: dep.required !== false
       })),
-      trackedAt: new Date().toISOString()
+      trackedAt: this.getDeterministicDate().toISOString()
     };
     
     this.dependencies.set(version.versionId, dependencyData);
@@ -643,7 +643,7 @@ export class TemplateVersionTracker {
       algorithm: this.config.signatureAlgorithm,
       signature,
       keyFingerprint: this.cryptoManager.keyMetadata?.fingerprint,
-      signedAt: new Date().toISOString()
+      signedAt: this.getDeterministicDate().toISOString()
     };
   }
 

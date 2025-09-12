@@ -37,11 +37,11 @@ class TrendAnalyzer {
       const alerts = this.generateAlerts(trends, anomalies);
 
       const analysis = {
-        analysis_time: new Date().toISOString(),
+        analysis_time: this.getDeterministicDate().toISOString(),
         period_analyzed: {
           days: options.lookbackDays,
-          from: subDays(new Date(), parseInt(options.lookbackDays)).toISOString(),
-          to: new Date().toISOString()
+          from: subDays(this.getDeterministicDate(), parseInt(options.lookbackDays)).toISOString(),
+          to: this.getDeterministicDate().toISOString()
         },
         trends,
         anomalies,
@@ -73,7 +73,7 @@ class TrendAnalyzer {
     const historicalData = [];
 
     for (let i = 0; i < lookbackDays; i++) {
-      const date = subDays(new Date(), i);
+      const date = subDays(this.getDeterministicDate(), i);
       const dateStr = format(date, 'yyyy-MM-dd');
       const filePath = path.join(reportPath, `metrics-${dateStr}.json`);
 
@@ -267,13 +267,13 @@ class TrendAnalyzer {
     anomalies.forEach(anomaly => {
       if (anomaly.severity === 'critical' || anomaly.severity === 'warning') {
         alerts.push({
-          id: `alert-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          id: `alert-${this.getDeterministicTimestamp()}-${Math.random().toString(36).substr(2, 9)}`,
           title: this.getAlertTitle(anomaly),
           description: anomaly.description,
           severity: anomaly.severity,
           type: anomaly.type,
           workflow: anomaly.workflow,
-          timestamp: new Date().toISOString(),
+          timestamp: this.getDeterministicDate().toISOString(),
           metrics: this.getAlertMetrics(anomaly),
           recommendations: this.getAlertRecommendations(anomaly)
         });
@@ -381,7 +381,7 @@ class TrendAnalyzer {
     const analysisDir = path.join(this.reportDir, 'analysis');
     await fs.ensureDir(analysisDir);
 
-    const timestamp = format(new Date(), 'yyyy-MM-dd-HH-mm');
+    const timestamp = format(this.getDeterministicDate(), 'yyyy-MM-dd-HH-mm');
     const analysisPath = path.join(analysisDir, `trends-${timestamp}.json`);
     
     await fs.writeJSON(analysisPath, analysis, { spaces: 2 });

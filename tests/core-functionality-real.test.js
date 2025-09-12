@@ -547,13 +547,13 @@ describe('Core 80/20 Implementation - Real Operations', () => {
           '  }',
           '',
           '  private generateId() {',
-          '    return `{{ name | kebabCase }}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;',
+          '    return `{{ name | kebabCase }}-${this.getDeterministicTimestamp()}-${Math.random().toString(36).substr(2, 9)}`;',
           '  }',
           '}'
         ].join('\n')
       );
 
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
       const result = await generator.generate({ generator });
 
@@ -568,7 +568,7 @@ describe('Core 80/20 Implementation - Real Operations', () => {
         '// End'
       ].join('\n'));
 
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
       // Perform multiple injection operations
       for (let i = 0; i < 10; i++) {
@@ -581,7 +581,7 @@ describe('Core 80/20 Implementation - Real Operations', () => {
         expect(result.success).toBe(true);
       }
 
-      const duration = Date.now() - startTime;
+      const duration = this.getDeterministicTimestamp() - startTime;
       
       // Should complete bulk operations quickly (under 500ms for 10 operations)
       expect(duration).toBeLessThan(500);

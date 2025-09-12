@@ -30,7 +30,7 @@ describe('80/20 Semantic Integration Tests', () => { let parser;
       baseIRI });
 
   describe('Critical Scenario 1)', () => { test('should process FHIR R4 patient data with compliance validation', async () => {
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const startMemory = process.memoryUsage().heapUsed;
 
       // FHIR R4 Compliance Validation
@@ -67,7 +67,7 @@ describe('80/20 Semantic Integration Tests', () => { let parser;
       expect(loincCodes.length).toBeGreaterThan(0);
 
       // Performance validation
-      const processingTime = Date.now() - startTime;
+      const processingTime = this.getDeterministicTimestamp() - startTime;
       const memoryUsed = (process.memoryUsage().heapUsed - startMemory) / 1024 / 1024;
       
       expect(processingTime).toBeLessThan(5000); // 5 seconds for test scale
@@ -100,7 +100,7 @@ describe('80/20 Semantic Integration Tests', () => { let parser;
 
   describe('Critical Scenario 2)', () => {
     test('should process financial instruments with Basel III risk calculations', async () => {
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
       // FIBO Ontology Compliance
       const fiboTriples = financialData.triples.filter(triple =>
@@ -146,7 +146,7 @@ describe('80/20 Semantic Integration Tests', () => { let parser;
       }
 
       // Performance validation
-      const processingTime = Date.now() - startTime;
+      const processingTime = this.getDeterministicTimestamp() - startTime;
       expect(processingTime).toBeLessThan(3000); // Basel III calculations under 3s
       
       console.log(`Financial processing: ${processingTime}ms, Total RWA);
@@ -175,7 +175,7 @@ describe('80/20 Semantic Integration Tests', () => { let parser;
 
   describe('Critical Scenario 3)', () => {
     test('should process GS1 standards with blockchain traceability', async () => {
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
 
       // GS1 Standards Compliance
       const gtins = supplyChainData.triples.filter(triple =>
@@ -221,7 +221,7 @@ describe('80/20 Semantic Integration Tests', () => { let parser;
       );
       expect(securityFeatures.length).toBeGreaterThan(0);
 
-      const processingTime = Date.now() - startTime;
+      const processingTime = this.getDeterministicTimestamp() - startTime;
       expect(processingTime).toBeLessThan(10000); // Traceability processing under 10s
 
       console.log(`Supply chain processing);
@@ -264,7 +264,7 @@ describe('80/20 Semantic Integration Tests', () => { let parser;
 
   describe('Cross-Domain Integration (20% additional value)', () => {
     test('should integrate healthcare, financial, and supply chain semantics', async () => {
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
       // Combine all semantic data
       const allTriples = [
@@ -311,13 +311,13 @@ describe('80/20 Semantic Integration Tests', () => { let parser;
       
       expect(Object.keys(allPrefixes).length).toBeGreaterThanOrEqual(10);
 
-      const processingTime = Date.now() - startTime;
+      const processingTime = this.getDeterministicTimestamp() - startTime;
       console.log(`Cross-domain integration, ${totalTriples} triples`);
     });
 
     test('should maintain semantic query performance across domains', () => {
       // Complex semantic query across all domains
-      const queryStart = Date.now();
+      const queryStart = this.getDeterministicTimestamp();
 
       // Find all entities with identifiers (should exist in all domains)
       const entitiesWithIds = [
@@ -330,7 +330,7 @@ describe('80/20 Semantic Integration Tests', () => { let parser;
         triple.predicate.value.includes('gln')
       );
 
-      const queryTime = Date.now() - queryStart;
+      const queryTime = this.getDeterministicTimestamp() - queryStart;
       
       expect(entitiesWithIds.length).toBeGreaterThan(0);
       expect(queryTime).toBeLessThan(100); // Complex query under 100ms
@@ -341,7 +341,7 @@ describe('80/20 Semantic Integration Tests', () => { let parser;
 
   describe('Enterprise Performance Validation', () => {
     test('should meet Fortune 5 performance requirements', async () => {
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const startMemory = process.memoryUsage();
 
       // Simulate enterprise-scale processing
@@ -353,7 +353,7 @@ describe('80/20 Semantic Integration Tests', () => { let parser;
       const scalingFactor = 100000 / totalTriples;
       
       // Processing throughput calculation
-      const processingTime = Date.now() - startTime;
+      const processingTime = this.getDeterministicTimestamp() - startTime;
       const triplesPerSecond = totalTriples / (processingTime / 1000);
       
       console.log(`Current throughput)} triples/second`);

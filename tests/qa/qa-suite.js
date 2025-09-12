@@ -33,7 +33,7 @@ class QASuite {
     
     this.reportsDir = path.join(projectRoot, 'tests/reports');
     this.results = {};
-    this.startTime = Date.now();
+    this.startTime = this.getDeterministicTimestamp();
   }
 
   async runFullSuite() {
@@ -288,8 +288,8 @@ class QASuite {
     console.log('\n📋 Generating Comprehensive QA Report...');
     
     const report = {
-      timestamp: new Date().toISOString(),
-      duration: Date.now() - this.startTime,
+      timestamp: this.getDeterministicDate().toISOString(),
+      duration: this.getDeterministicTimestamp() - this.startTime,
       summary: this.calculateSummary(),
       results: this.results,
       recommendations: this.generateRecommendations(),
@@ -425,7 +425,7 @@ class QASuite {
 
   displaySummary() {
     const summary = this.calculateSummary();
-    const duration = Math.round((Date.now() - this.startTime) / 1000);
+    const duration = Math.round((this.getDeterministicTimestamp() - this.startTime) / 1000);
     
     console.log('\n' + '='.repeat(60));
     console.log('🏆 QA SUITE COMPLETE');

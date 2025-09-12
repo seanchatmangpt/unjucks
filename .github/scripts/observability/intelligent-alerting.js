@@ -187,7 +187,7 @@ class IntelligentAlerting {
       level: alertLevel.toUpperCase(),
       emoji: template.emoji,
       color: template.color,
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       summary: this.generateSummary(alertLevel, reasons),
       details: {
         anomaly_confidence: `${(this.anomalyConfidence * 100).toFixed(1)}%`,
@@ -294,7 +294,7 @@ class IntelligentAlerting {
 
       if (suppressionData[suppressKey]) {
         const lastAlert = new Date(suppressionData[suppressKey]);
-        const timeSince = Date.now() - lastAlert.getTime();
+        const timeSince = this.getDeterministicTimestamp() - lastAlert.getTime();
         
         if (timeSince < suppressMs) {
           consola.info(`Alert suppressed (${suppressKey}), last alert ${Math.round(timeSince / 1000)}s ago`);
@@ -303,7 +303,7 @@ class IntelligentAlerting {
       }
 
       // Update suppression data
-      suppressionData[suppressKey] = new Date().toISOString();
+      suppressionData[suppressKey] = this.getDeterministicDate().toISOString();
       await fs.writeJson(suppressPath, suppressionData, { spaces: 2 });
 
       return false;
@@ -333,7 +333,7 @@ class IntelligentAlerting {
     const alertsPath = '.github/observability-data/alerts';
     await fs.ensureDir(alertsPath);
 
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const timestamp = this.getDeterministicDate().toISOString().replace(/[:.]/g, '-');
     const alertFile = path.join(alertsPath, `alert-${timestamp}.json`);
     
     await fs.writeJson(alertFile, alertMessage, { spaces: 2 });

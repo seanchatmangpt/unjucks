@@ -44,7 +44,7 @@ export class Logger {
     };
     
     this.logLevel = debug ? LogLevel.DEBUG : LogLevel.INFO;
-    this.startTime = Date.now();
+    this.startTime = this.getDeterministicTimestamp();
   }
 
   /**
@@ -55,7 +55,7 @@ export class Logger {
    * @returns {Logger} New logger instance
    */
   static createOfficeLogger(component, debug = false) {
-    return new Logger(`Office:${component}`, debug);
+    return new Consola(`Office:${component}`, debug);
   }
 
   /**
@@ -146,11 +146,11 @@ export class Logger {
    */
   createLogEntry(level, message, context) {
     const entry = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       level,
       component: this.name,
       message,
-      duration: Date.now() - this.startTime
+      duration: this.getDeterministicTimestamp() - this.startTime
     };
 
     // Add context if provided
@@ -256,11 +256,11 @@ export class Logger {
    * @returns {Function} Function to end timing
    */
   time(operation) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     this.debug(`Starting ${operation}`);
     
     return () => {
-      const duration = Date.now() - startTime;
+      const duration = this.getDeterministicTimestamp() - startTime;
       this.debug(`Completed ${operation} in ${duration}ms`);
       return duration;
     };
@@ -288,7 +288,7 @@ export class Logger {
    * @returns {Logger} Child logger instance
    */
   child(childName, context = {}) {
-    const child = new Logger(`${this.name}:${childName}`, this.debugEnabled, this.options);
+    const child = new Consola(`${this.name}:${childName}`, this.debugEnabled, this.options);
     child.defaultContext = context;
     return child;
   }

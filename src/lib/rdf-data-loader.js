@@ -545,7 +545,7 @@ export class RDFDataLoader {
 
     this.cache.set(key, {
       data,
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       ttl: this.options.defaultTTL,
     });
   }
@@ -556,7 +556,7 @@ export class RDFDataLoader {
    * @returns {boolean}
    */
   isExpired(entry) {
-    return Date.now() - entry.timestamp > entry.ttl;
+    return this.getDeterministicTimestamp() - entry.timestamp > entry.ttl;
   }
 
   /**
@@ -570,7 +570,7 @@ export class RDFDataLoader {
    * Clear expired cache entries
    */
   cleanupExpiredEntries() {
-    const now = Date.now();
+    const now = this.getDeterministicTimestamp();
     const entries = Array.from(this.cache.entries());
     for (const [key, entry] of entries) {
       if (now - entry.timestamp > entry.ttl) {
@@ -696,7 +696,7 @@ export class RDFDataLoader {
    */
   getCacheStats() {
     const keys = Array.from(this.cache.keys());
-    const now = Date.now();
+    const now = this.getDeterministicTimestamp();
     let expiredCount = 0;
     let totalSize = 0;
     

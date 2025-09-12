@@ -268,7 +268,7 @@ class RateLimitingManager {
 
   // Generic rate limit check using sliding window
   async checkRateLimit(key, windowMs, maxRequests, type) {
-    const now = Date.now();
+    const now = this.getDeterministicTimestamp();
     const window = Math.floor(now / windowMs);
     const windowKey = `${key}:${window}`;
     
@@ -373,7 +373,7 @@ class RateLimitingManager {
     console.warn(`DDoS protection triggered for IP: ${ip}`);
     
     // Could integrate with external services like Cloudflare
-    await this.notifySecurityTeam('ddos', { ip, timestamp: new Date().toISOString() });
+    await this.notifySecurityTeam('ddos', { ip, timestamp: this.getDeterministicDate().toISOString() });
   }
 
   // Circuit breaker for endpoints
@@ -414,7 +414,7 @@ class RateLimitingManager {
     const pattern = {
       ip: identifier.ip,
       endpoint,
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       userAgent: identifier.userAgent,
       method: req.method,
       size: req.get('content-length') || 0
@@ -431,7 +431,7 @@ class RateLimitingManager {
     
     // Keep only recent patterns (last hour)
     const recentPatterns = ipPatterns.filter(p => 
-      Date.now() - p.timestamp < 60 * 60 * 1000
+      this.getDeterministicTimestamp() - p.timestamp < 60 * 60 * 1000
     );
     
     this.requestPatterns.set(identifier.ip, recentPatterns);
@@ -483,7 +483,7 @@ class RateLimitingManager {
   handleBlocked(res, reason) {
     return res.status(429).json({
       error: reason,
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       retry_after: 60
     });
   }
@@ -529,7 +529,7 @@ class RateLimitingManager {
   setupCleanupIntervals() {
     // Clean up old circuit breaker data
     setInterval(() => {
-      const now = Date.now();
+      const now = this.getDeterministicTimestamp();
       for (const [endpoint, breaker] of this.circuitBreakers.entries()) {
         if (breaker.state === 'OPEN' && now > breaker.nextAttempt) {
           breaker.state = 'HALF_OPEN';
@@ -539,7 +539,7 @@ class RateLimitingManager {
 
     // Clean up request patterns
     setInterval(() => {
-      const cutoff = Date.now() - 60 * 60 * 1000; // 1 hour ago
+      const cutoff = this.getDeterministicTimestamp() - 60 * 60 * 1000; // 1 hour ago
       for (const [ip, patterns] of this.requestPatterns.entries()) {
         const recent = patterns.filter(p => p.timestamp > cutoff);
         if (recent.length === 0) {
@@ -602,7 +602,7 @@ class AnomalyDetector {
     this.patterns.push(pattern);
     
     // Keep only recent patterns
-    const cutoff = Date.now() - 24 * 60 * 60 * 1000; // 24 hours
+    const cutoff = this.getDeterministicTimestamp() - 24 * 60 * 60 * 1000; // 24 hours
     this.patterns = this.patterns.filter(p => p.timestamp > cutoff);
   }
 

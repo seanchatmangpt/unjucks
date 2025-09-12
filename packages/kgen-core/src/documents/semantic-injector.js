@@ -376,7 +376,7 @@ export class SemanticInjector {
    * Execute temporal binding with time-based constraints
    */
   async executeTemporalBinding(binding, knowledgeGraph, context) {
-    const timeConstraint = context.timestamp || new Date().toISOString();
+    const timeConstraint = context.timestamp || this.getDeterministicDate().toISOString();
     
     const temporalQuery = `
       SELECT ?value WHERE {
@@ -596,7 +596,7 @@ export class SemanticInjector {
   evaluateComputationString(computation, dependencyData, context) {
     // This would implement safe evaluation of computation expressions
     // For now, return a placeholder
-    return `computed_${Date.now()}`;
+    return `computed_${this.getDeterministicTimestamp()}`;
   }
 
   /**
@@ -622,7 +622,7 @@ export class SemanticInjector {
     hash.update(JSON.stringify({
       semanticBindings: options.semanticBindings,
       strategy: options.strategy,
-      timestamp: new Date().toISOString().split('T')[0]
+      timestamp: this.getDeterministicDate().toISOString().split('T')[0]
     }));
     return hash.digest('hex').substring(0, 12);
   }

@@ -36,7 +36,7 @@ class PerformanceAnalyzer {
       await fs.ensureDir(this.metricsDir);
       const metrics = {
         benchmarks: Array.from(this.benchmarkResults.values()),
-        lastUpdated: new Date().toISOString(),
+        lastUpdated: this.getDeterministicDate().toISOString(),
         version: '1.0.0'
       };
       await fs.writeJson(this.metricsFile, metrics, { spaces: 2 });
@@ -111,7 +111,7 @@ class PerformanceAnalyzer {
 
     return {
       suite,
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       totalTests: results.length,
       totalIterations: iterations * results.length,
       results
@@ -225,7 +225,7 @@ class PerformanceAnalyzer {
 
   generateRealTimeMetrics() {
     return {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       cpu: {
         usage: Math.round((Math.random() * 25 + 5) * 100) / 100, // 5-30%
         temperature: Math.round((Math.random() * 20 + 45) * 100) / 100 // 45-65°C
@@ -392,7 +392,7 @@ export const perfCommand = defineCommand({
           
           // Generate benchmark data
           const benchmarkData = perfAnalyzer.generateBenchmarkData(args.suite, args.iterations);
-          const benchmarkId = `bench-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`;
+          const benchmarkId = `bench-${this.getDeterministicTimestamp()}-${Math.random().toString(36).substr(2, 6)}`;
           
           console.log(chalk.yellow(`🔍 Running ${benchmarkData.totalTests} tests...`));
           
@@ -515,7 +515,7 @@ export const perfCommand = defineCommand({
           
           console.log(chalk.cyan(`\n📊 Performance Analysis Report:`));
           console.log(chalk.gray(`Benchmark: ${benchmarkData.id} (${benchmarkData.suite})`));
-          console.log(chalk.gray(`Analysis time: ${new Date().toLocaleString()}`));
+          console.log(chalk.gray(`Analysis time: ${this.getDeterministicDate().toLocaleString()}`));
           console.log();
 
           // Bottlenecks section
@@ -773,7 +773,7 @@ export const perfCommand = defineCommand({
         console.log(chalk.cyan(`Samples: ${args.samples}`));
         
         try {
-          const profileId = `profile-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`;
+          const profileId = `profile-${this.getDeterministicTimestamp()}-${Math.random().toString(36).substr(2, 6)}`;
           console.log(chalk.yellow(`🔍 Starting profiler (${profileId})...`));
           
           const sampleInterval = (args.duration * 1000) / args.samples;
@@ -786,7 +786,7 @@ export const perfCommand = defineCommand({
             process.stdout.write(`\r${chalk.yellow(`Sampling: ${progress}% [${i + 1}/${args.samples}]`)}`);
             
             const sample = {
-              timestamp: Date.now(),
+              timestamp: this.getDeterministicTimestamp(),
               sample: i + 1,
               cpu: {
                 usage: Math.round((Math.random() * 30 + 10) * 100) / 100, // 10-40%
@@ -882,7 +882,7 @@ export const perfCommand = defineCommand({
           if (args.save) {
             const profileData = {
               id: profileId,
-              timestamp: new Date().toISOString(),
+              timestamp: this.getDeterministicDate().toISOString(),
               type: args.type,
               duration: args.duration,
               samples: args.samples,
@@ -1165,7 +1165,7 @@ async function generateSpecReport(optimizer, benchmarker, args) {
   console.log();
   console.log(chalk.blue.bold('📊 Comprehensive Spec Performance Report'));
   console.log(chalk.gray('━'.repeat(60)));
-  console.log(chalk.gray(`Generated: ${new Date().toISOString()}`));
+  console.log(chalk.gray(`Generated: ${this.getDeterministicDate().toISOString()}`));
   console.log();
   
   // Performance Summary
@@ -1199,7 +1199,7 @@ async function generateSpecReport(optimizer, benchmarker, args) {
   // Save combined report if requested
   if (args.output) {
     const combinedReport = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       benchmark: benchmarkReport,
       optimizer: optimizerReport,
       summary: {

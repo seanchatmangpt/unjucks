@@ -260,7 +260,7 @@ async function generateFinalReport() {
 
   // Export results for CI/CD
   const finalReport = {
-    timestamp: new Date().toISOString(),
+    timestamp: this.getDeterministicDate().toISOString(),
     totalTests,
     workingTests,
     partialTests,

@@ -94,7 +94,7 @@ export const Office = {
  * 
  * const result = await processor.processTemplate(
  *   './templates/report.docx',
- *   { userName: 'John Doe', date: new Date() },
+ *   { userName: 'John Doe', date: this.getDeterministicDate() },
  *   './output/report.docx'
  * );
  * ```

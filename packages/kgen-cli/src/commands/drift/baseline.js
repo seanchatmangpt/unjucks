@@ -75,7 +75,7 @@ async function createBaseline(options) {
     // Process files
     const lockData = {
       version: '1.0.0',
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       directory: process.cwd(),
       files: {}
     };

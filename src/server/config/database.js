@@ -59,7 +59,7 @@ export class DatabaseManager {
       pgActiveConnections: 0,
       pgIdleConnections: 0,
       redisConnected: false,
-      lastHealthCheck: new Date(),
+      lastHealthCheck: this.getDeterministicDate(),
     };
     
     this.setupMonitoring();
@@ -104,7 +104,7 @@ export class DatabaseManager {
         // Redis health check
         await this.redisClient.ping();
         
-        this.connectionMetrics.lastHealthCheck = new Date();
+        this.connectionMetrics.lastHealthCheck = this.getDeterministicDate();
         this.connectionMetrics.pgIdleConnections = this.pgPool.idleCount;
       } catch (error) {
         console.error('Database health check failed:', error);

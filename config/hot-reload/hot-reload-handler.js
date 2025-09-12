@@ -391,7 +391,7 @@ export class HotReloadHandler extends EventEmitter {
    */
   createConfigBackup() {
     const backup = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       config: this.configManager.export(false)
     };
     

@@ -30,4 +30,98 @@ import { Logger } from './utils/logger.js';
  * 
  * Provides a unified interface for processing all supported Office document types
  * with comprehensive template capabilities, validation, and enterprise features.
- */\nexport class OfficeTemplateProcessor extends EventEmitter {\n  /**\n   * Creates a new Office template processor\n   * \n   * @param {ProcessingOptions} [options={}] - Processing configuration options\n   */\n  constructor(options = {}) {\n    super();\n    \n    /** @type {ProcessingOptions} */\n    this.options = {\n      syntax: VariableSyntax.NUNJUCKS,\n      mode: ProcessingMode.REPLACE,\n      debug: false,\n      dryRun: false,\n      force: false,\n      validation: {\n        enabled: true,\n        failFast: false,\n        level: 'moderate'\n      },\n      output: {\n        preserveFormatting: true,\n        extension: null,\n        directory: null,\n        naming: null\n      },\n      ...options\n    };\n    \n    /** @type {Logger} */\n    this.logger = Logger.createOfficeLogger('OfficeTemplateProcessor', this.options.debug);\n    \n    /** @type {FileFormatDetector} */\n    this.formatDetector = new FileFormatDetector();\n    \n    /** @type {Map<string, BaseOfficeProcessor>} */\n    this.processors = new Map();\n    \n    /** @type {ProcessingContext|undefined} */\n    this.currentContext = undefined;\n    \n    // Initialize document processors\n    this.initializeProcessors();\n  }\n\n  /**\n   * Initializes document processors for all supported formats\n   * @private\n   */\n  initializeProcessors() {\n    // Initialize Word processor\n    const wordProcessor = new WordProcessor(this.options);\n    this.processors.set(DocumentType.WORD, wordProcessor);\n    \n    // Initialize Excel processor\n    const excelProcessor = new ExcelProcessor(this.options);\n    this.processors.set(DocumentType.EXCEL, excelProcessor);\n    \n    // Initialize PowerPoint processor\n    const powerPointProcessor = new PowerPointProcessor(this.options);\n    this.processors.set(DocumentType.POWERPOINT, powerPointProcessor);\n    \n    this.logger.info(`Initialized ${this.processors.size} document processors`);\n  }\n\n  /**\n   * Processes a single Office template with provided data\n   * \n   * @param {string} templatePath - Path to the template file\n   * @param {Object} data - Data for variable replacement\n   * @param {string} [outputPath] - Optional output file path\n   * @returns {Promise<ProcessingResult>} Processing result\n   */\n  async process(templatePath, data, outputPath) {\n    this.logger.info(`Processing Office template: ${templatePath}`);\n    \n    try {\n      // Detect document format\n      const format = await this.formatDetector.detectFormat(templatePath);\n      this.logger.debug(`Detected document format: ${format}`);\n      \n      // Get appropriate processor\n      const processor = this.getProcessorForType(format);\n      if (!processor) {\n        throw new Error(`Unsupported document format: ${format}`);\n      }\n      \n      // Delegate to specific processor\n      const result = await processor.process(templatePath, data, outputPath);\n      \n      // Emit processing events\n      this.emit('templateProcessed', {\n        templatePath,\n        format,\n        success: result.success,\n        outputPath: result.outputPath\n      });\n      \n      if (result.success) {\n        this.logger.info(`Template processed successfully: ${templatePath}`);\n      } else {\n        this.logger.error(`Template processing failed: ${templatePath}`);\n      }\n      \n      return result;\n      \n    } catch (error) {\n      this.logger.error(`Template processing error: ${error.message}`);\n      this.emit('processingError', { templatePath, error });\n      \n      return {\n        success: false,\n        validation: {\n          valid: false,\n          errors: [{\n            message: error.message,\n            code: 'PROCESSING_ERROR',\n            severity: ErrorSeverity.ERROR\n          }],\n          warnings: []\n        },\n        stats: {\n          startTime: new Date(),\n          endTime: new Date(),\n          duration: 0,\n          variablesProcessed: 0,\n          injectionsPerformed: 0,\n          errors: 1,\n          warnings: 0\n        }\n      };\n    }\n  }\n\n  /**\n   * Processes multiple templates in batch\n   * \n   * @param {BatchProcessingConfig} config - Batch processing configuration\n   * @returns {Promise<BatchProcessingResult>} Batch processing results\n   */\n  async batchProcess(config) {\n    const {\n      templates = [],\n      data = [],\n      outputDir,\n      options = {},\n      parallel = false,\n      maxConcurrency = 3,\n      onProgress\n    } = config;\n    \n    this.logger.info(`Starting batch processing of ${templates.length} templates`);\n    \n    const results = {\n      total: templates.length,\n      completed: 0,\n      failed: 0,\n      results: [],\n      errors: []\n    };\n    \n    // Create processing tasks\n    const tasks = templates.map((template, index) => ({\n      templatePath: typeof template === 'string' ? template : template.templatePath,\n      data: Array.isArray(data) ? data[index] || {} : data,\n      outputPath: typeof template === 'object' ? template.outputPath : \n                  outputDir ? `${outputDir}/${this.generateOutputFilename(template, index)}` : undefined\n    }));\n    \n    if (parallel) {\n      // Process templates in parallel with concurrency limit\n      for (let i = 0; i < tasks.length; i += maxConcurrency) {\n        const batch = tasks.slice(i, i + maxConcurrency);\n        const batchPromises = batch.map(async (task, batchIndex) => {\n          const globalIndex = i + batchIndex;\n          return this.processTemplateWithProgress(task, globalIndex, results, onProgress);\n        });\n        \n        await Promise.allSettled(batchPromises);\n      }\n    } else {\n      // Process templates sequentially\n      for (let i = 0; i < tasks.length; i++) {\n        await this.processTemplateWithProgress(tasks[i], i, results, onProgress);\n      }\n    }\n    \n    this.logger.info(`Batch processing completed: ${results.completed} successful, ${results.failed} failed`);\n    \n    return results;\n  }\n\n  /**\n   * Processes a single template with progress tracking\n   * \n   * @param {Object} task - Processing task\n   * @param {number} index - Task index\n   * @param {Object} results - Results accumulator\n   * @param {Function} [onProgress] - Progress callback\n   * @private\n   */\n  async processTemplateWithProgress(task, index, results, onProgress) {\n    try {\n      const result = await this.process(task.templatePath, task.data, task.outputPath);\n      \n      if (result.success) {\n        results.completed++;\n      } else {\n        results.failed++;\n        results.errors.push({\n          templatePath: task.templatePath,\n          errors: result.validation?.errors || []\n        });\n      }\n      \n      results.results.push({\n        templatePath: task.templatePath,\n        outputPath: task.outputPath,\n        ...result\n      });\n      \n      // Call progress callback if provided\n      if (onProgress) {\n        onProgress({\n          total: results.total,\n          completed: results.completed + results.failed,\n          failed: results.failed,\n          current: task.templatePath,\n          percentage: Math.round(((results.completed + results.failed) / results.total) * 100)\n        });\n      }\n      \n    } catch (error) {\n      results.failed++;\n      results.errors.push({\n        templatePath: task.templatePath,\n        errors: [{ message: error.message, code: 'PROCESSING_ERROR' }]\n      });\n      \n      this.logger.error(`Batch processing error for ${task.templatePath}: ${error.message}`);\n    }\n  }\n\n  /**\n   * Extracts variables from a template\n   * \n   * @param {string} templatePath - Path to template file\n   * @returns {Promise<TemplateVariable[]>} Extracted template variables\n   */\n  async extractVariables(templatePath) {\n    const format = await this.formatDetector.detectFormat(templatePath);\n    const processor = this.getProcessorForType(format);\n    \n    if (!processor) {\n      throw new Error(`Unsupported document format: ${format}`);\n    }\n    \n    const template = await processor.loadTemplate(templatePath);\n    const frontmatter = await processor.parseFrontmatter(template);\n    const variables = await processor.extractVariables(template, frontmatter);\n    \n    return processor.variableExtractor.analyzeVariables(variables, frontmatter);\n  }\n\n  /**\n   * Validates template data against template requirements\n   * \n   * @param {Object} data - Data to validate\n   * @param {string} templatePath - Path to template file\n   * @returns {Promise<ValidationResult>} Validation result\n   */\n  async validateData(data, templatePath) {\n    const format = await this.formatDetector.detectFormat(templatePath);\n    const processor = this.getProcessorForType(format);\n    \n    if (!processor) {\n      throw new Error(`Unsupported document format: ${format}`);\n    }\n    \n    const template = await processor.loadTemplate(templatePath);\n    const frontmatter = await processor.parseFrontmatter(template);\n    \n    return processor.validateData(data, frontmatter);\n  }\n\n  /**\n   * Validates a template document structure\n   * \n   * @param {string} templatePath - Path to template file\n   * @returns {Promise<ValidationResult>} Validation result\n   */\n  async validateTemplate(templatePath) {\n    const format = await this.formatDetector.detectFormat(templatePath);\n    const processor = this.getProcessorForType(format);\n    \n    if (!processor) {\n      throw new Error(`Unsupported document format: ${format}`);\n    }\n    \n    const template = await processor.loadTemplate(templatePath);\n    return processor.validateTemplate(template);\n  }\n\n  /**\n   * Gets the processor for a specific document type\n   * \n   * @param {string} documentType - Document type\n   * @returns {BaseOfficeProcessor|null} Document processor or null\n   */\n  getProcessorForType(documentType) {\n    return this.processors.get(documentType) || null;\n  }\n\n  /**\n   * Gets all supported document types\n   * \n   * @returns {string[]} Array of supported document types\n   */\n  getSupportedTypes() {\n    return Array.from(this.processors.keys());\n  }\n\n  /**\n   * Registers a custom document processor\n   * \n   * @param {string} documentType - Document type\n   * @param {BaseOfficeProcessor} processor - Processor instance\n   */\n  registerProcessor(documentType, processor) {\n    this.processors.set(documentType, processor);\n    this.logger.info(`Registered custom processor for type: ${documentType}`);\n  }\n\n  /**\n   * Unregisters a document processor\n   * \n   * @param {string} documentType - Document type\n   */\n  unregisterProcessor(documentType) {\n    if (this.processors.delete(documentType)) {\n      this.logger.info(`Unregistered processor for type: ${documentType}`);\n    }\n  }\n\n  /**\n   * Updates processing options\n   * \n   * @param {ProcessingOptions} newOptions - New options to merge\n   */\n  updateOptions(newOptions) {\n    this.options = { ...this.options, ...newOptions };\n    \n    // Update all processor options\n    for (const processor of this.processors.values()) {\n      processor.options = { ...processor.options, ...newOptions };\n    }\n    \n    this.logger.debug('Processing options updated');\n  }\n\n  /**\n   * Gets current processing options\n   * \n   * @returns {ProcessingOptions} Current processing options\n   */\n  getOptions() {\n    return { ...this.options };\n  }\n\n  /**\n   * Gets processing statistics across all processors\n   * \n   * @returns {Object} Aggregated statistics\n   */\n  getStatistics() {\n    const stats = {\n      totalProcessors: this.processors.size,\n      supportedTypes: this.getSupportedTypes(),\n      processorStats: {}\n    };\n    \n    for (const [type, processor] of this.processors) {\n      stats.processorStats[type] = processor.getStats();\n    }\n    \n    return stats;\n  }\n\n  /**\n   * Resets statistics for all processors\n   */\n  resetStatistics() {\n    for (const processor of this.processors.values()) {\n      processor.resetStats();\n    }\n    this.logger.debug('All processor statistics reset');\n  }\n\n  /**\n   * Generates an output filename for batch processing\n   * \n   * @param {string|Object} template - Template path or object\n   * @param {number} index - Template index\n   * @returns {string} Generated filename\n   * @private\n   */\n  generateOutputFilename(template, index) {\n    const templatePath = typeof template === 'string' ? template : template.templatePath;\n    const baseName = templatePath.split('/').pop().split('.')[0];\n    const extension = templatePath.split('.').pop();\n    \n    // Use naming pattern if specified in options\n    if (this.options.output?.naming) {\n      return this.options.output.naming\n        .replace('{name}', baseName)\n        .replace('{index}', index)\n        .replace('{timestamp}', Date.now())\n        .replace('{ext}', extension);\n    }\n    \n    // Default naming: originalname_processed.ext\n    return `${baseName}_processed.${extension}`;\n  }\n\n  /**\n   * Discovers templates in a directory\n   * \n   * @param {string} directory - Directory to search\n   * @param {Object} [options] - Discovery options\n   * @returns {Promise<TemplateDiscoveryResult>} Discovery results\n   */\n  async discoverTemplates(directory, options = {}) {\n    const {\n      recursive = true,\n      extensions = ['.docx', '.xlsx', '.pptx'],\n      excludePatterns = []\n    } = options;\n    \n    const { promises: fs } = await import('fs');\n    const path = await import('path');\n    \n    const templates = [];\n    const errors = [];\n    let filesScanned = 0;\n    let directoriesSearched = 0;\n    \n    const scanDirectory = async (dirPath) => {\n      try {\n        directoriesSearched++;\n        const entries = await fs.readdir(dirPath, { withFileTypes: true });\n        \n        for (const entry of entries) {\n          const fullPath = path.join(dirPath, entry.name);\n          filesScanned++;\n          \n          if (entry.isDirectory() && recursive) {\n            await scanDirectory(fullPath);\n          } else if (entry.isFile()) {\n            const extension = path.extname(entry.name).toLowerCase();\n            \n            if (extensions.includes(extension)) {\n              // Check exclude patterns\n              const shouldExclude = excludePatterns.some(pattern => {\n                const regex = new RegExp(pattern);\n                return regex.test(fullPath) || regex.test(entry.name);\n              });\n              \n              if (!shouldExclude) {\n                try {\n                  const template = await this.getProcessorForType(\n                    await this.formatDetector.detectFormat(fullPath)\n                  )?.loadTemplate(fullPath);\n                  \n                  if (template) {\n                    templates.push(template);\n                  }\n                } catch (error) {\n                  errors.push({\n                    path: fullPath,\n                    error: error.message\n                  });\n                }\n              }\n            }\n          }\n        }\n      } catch (error) {\n        errors.push({\n          path: dirPath,\n          error: error.message\n        });\n      }\n    };\n    \n    const startTime = Date.now();\n    await scanDirectory(directory);\n    const duration = Date.now() - startTime;\n    \n    // Calculate type distribution\n    const typeDistribution = templates.reduce((acc, template) => {\n      acc[template.type] = (acc[template.type] || 0) + 1;\n      return acc;\n    }, {});\n    \n    return {\n      templates,\n      stats: {\n        filesScanned,\n        templatesFound: templates.length,\n        directoriesSearched,\n        duration,\n        typeDistribution\n      },\n      errors\n    };\n  }\n\n  /**\n   * Cleanup method - closes all processors and releases resources\n   */\n  async cleanup() {\n    this.logger.info('Cleaning up Office template processor');\n    \n    // Cleanup all processors\n    for (const [type, processor] of this.processors) {\n      try {\n        await processor.cleanup();\n        this.logger.debug(`Cleaned up ${type} processor`);\n      } catch (error) {\n        this.logger.warn(`Error cleaning up ${type} processor: ${error.message}`);\n      }\n    }\n    \n    // Clear processors map\n    this.processors.clear();\n    \n    // Remove all event listeners\n    this.removeAllListeners();\n    \n    this.logger.info('Office template processor cleanup completed');\n  }\n}
+ */
+export class OfficeTemplateProcessor extends EventEmitter {
+  /**
+   * Creates a new Office template processor
+   * 
+   * @param {ProcessingOptions} [options={}] - Processing configuration options
+   */
+  constructor(options = {}) {
+    super();
+    
+    /** @type {ProcessingOptions} */
+    this.options = {
+      syntax: VariableSyntax.NUNJUCKS,
+      mode: ProcessingMode.REPLACE,
+      debug: false,
+      dryRun: false,
+      force: false,
+      validation: {
+        enabled: true,
+        failFast: false,
+        level: 'moderate'
+      },
+      output: {
+        preserveFormatting: true,
+        extension: null,
+        directory: null,
+        naming: null
+      },
+      ...options
+    };
+    
+    /** @type {Logger} */
+    this.logger = Logger.createOfficeLogger('OfficeTemplateProcessor', this.options.debug);
+    
+    /** @type {FileFormatDetector} */
+    this.formatDetector = new FileFormatDetector();
+    
+    /** @type {Map<string, BaseOfficeProcessor>} */
+    this.processors = new Map();
+    
+    /** @type {ProcessingContext|undefined} */
+    this.currentContext = undefined;
+    
+    // Initialize document processors
+    this.initializeProcessors();
+  }
+
+  /**
+   * Initializes document processors for all supported formats
+   * @private
+   */
+  initializeProcessors() {
+    // Initialize Word processor
+    const wordProcessor = new WordProcessor(this.options);
+    this.processors.set(DocumentType.WORD, wordProcessor);
+    
+    // Initialize Excel processor
+    const excelProcessor = new ExcelProcessor(this.options);
+    this.processors.set(DocumentType.EXCEL, excelProcessor);
+    
+    // Initialize PowerPoint processor
+    const powerPointProcessor = new PowerPointProcessor(this.options);
+    this.processors.set(DocumentType.POWERPOINT, powerPointProcessor);
+    
+    this.logger.info(`Initialized ${this.processors.size} document processors`);
+  }
+
+  /**
+   * Gets the processor for a specific document type
+   * 
+   * @param {string} documentType - Document type
+   * @returns {BaseOfficeProcessor|null} Document processor or null
+   */
+  getProcessorForType(documentType) {
+    return this.processors.get(documentType) || null;
+  }
+
+  /**
+   * Gets all supported document types
+   * 
+   * @returns {string[]} Array of supported document types
+   */
+  getSupportedTypes() {
+    return Array.from(this.processors.keys());
+  }
+
+  /**
+   * Gets current processing options
+   * 
+   * @returns {ProcessingOptions} Current processing options
+   */
+  getOptions() {
+    return { ...this.options };
+  }
+}

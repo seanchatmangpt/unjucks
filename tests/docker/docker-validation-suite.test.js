@@ -44,7 +44,7 @@ describe('Docker Validation Suite', () => {
   afterAll(async () => {
     // Save comprehensive test results
     const reportPath = './tests/docker/results/validation-report.json';
-    testResults.timestamp = new Date().toISOString();
+    testResults.timestamp = this.getDeterministicDate().toISOString();
     testResults.dockerAvailable = dockerAvailable;
     
     await fs.writeFile(reportPath, JSON.stringify(testResults, null, 2));
@@ -230,12 +230,12 @@ CMD ["npm", "run", "test:minimal"]
       // Simple performance test
       const perfTest = `docker run --rm --memory=256m --cpus=1.0 node:18-alpine node -e "
         console.log('Running performance test...');
-        const start = Date.now();
+        const start = this.getDeterministicTimestamp();
         const iterations = 1000000;
         for (let i = 0; i < iterations; i++) {
           Math.random();
         }
-        const duration = Date.now() - start;
+        const duration = this.getDeterministicTimestamp() - start;
         console.log('Performance test completed in', duration, 'ms');
       "`;
       

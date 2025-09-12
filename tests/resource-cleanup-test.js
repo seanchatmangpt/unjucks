@@ -61,7 +61,7 @@ async function testResourceCleanup() {
     const testSystemDirs = [];
     
     for (let i = 0; i < 3; i++) {
-      const testDir = path.join(systemTempDir, `test-latex-cleanup-${Date.now()}-${i}`);
+      const testDir = path.join(systemTempDir, `test-latex-cleanup-${this.getDeterministicTimestamp()}-${i}`);
       await fs.mkdir(testDir, { recursive: true });
       await fs.writeFile(path.join(testDir, 'test.txt'), 'test content');
       testSystemDirs.push(testDir);

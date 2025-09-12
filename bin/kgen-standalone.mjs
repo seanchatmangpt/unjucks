@@ -266,7 +266,7 @@ class KGenCLIEngine {
         contentHash: artifact.contentHash,
         attestationPath: `${artifact.outputPath}.attest.json`,
         context: Object.keys(context),
-        timestamp: new Date().toISOString()
+        timestamp: this.getDeterministicDate().toISOString()
       };
       
       if (!artifact.success) {
@@ -281,7 +281,7 @@ class KGenCLIEngine {
         success: false,
         operation: 'artifact:generate',
         error: error.message,
-        timestamp: new Date().toISOString()
+        timestamp: this.getDeterministicDate().toISOString()
       };
       console.log(JSON.stringify(result, null, 2));
       return result;
@@ -300,7 +300,7 @@ class KGenCLIEngine {
       mode: 'fallback',
       status: 'Basic file system operations only - full KGEN engine not available',
       message: 'Install KGEN engine components for full semantic processing',
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     };
 
     if (graphFile && fs.existsSync(graphFile)) {
@@ -353,7 +353,7 @@ class KGenCLIEngine {
         operation: 'artifact:drift',
         error: error.message,
         exitCode: 1,
-        timestamp: new Date().toISOString()
+        timestamp: this.getDeterministicDate().toISOString()
       };
       console.log(JSON.stringify(result, null, 2));
       process.exitCode = 1;
@@ -372,7 +372,7 @@ class KGenCLIEngine {
       mode: 'fallback',
       status: 'Basic file system validation only - full drift detection not available',
       message: 'Install KGEN drift detector for semantic drift analysis',
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     };
     
     console.log(JSON.stringify(result, null, 2));
@@ -415,7 +415,7 @@ class KGenCLIEngine {
         riskLevel: impactAnalysis.riskAssessment.level,
         blastRadius: impactAnalysis.blastRadius.maxRadius,
         recommendations: impactAnalysis.recommendations,
-        timestamp: new Date().toISOString()
+        timestamp: this.getDeterministicDate().toISOString()
       };
       
       console.log(JSON.stringify(result, null, 2));
@@ -426,7 +426,7 @@ class KGenCLIEngine {
         success: false,
         operation: 'graph:diff',
         error: error.message,
-        timestamp: new Date().toISOString()
+        timestamp: this.getDeterministicDate().toISOString()
       };
       console.log(JSON.stringify(result, null, 2));
       return result;
@@ -474,7 +474,7 @@ class KGenCLIEngine {
         changes: differences.slice(0, 10), // First 10 changes
         identical: differences.length === 0,
         status: 'Basic line-by-line comparison - full semantic analysis not available',
-        timestamp: new Date().toISOString()
+        timestamp: this.getDeterministicDate().toISOString()
       };
 
       console.log(JSON.stringify(result, null, 2));
@@ -484,7 +484,7 @@ class KGenCLIEngine {
         success: false, 
         operation: 'graph:diff',
         error: error.message,
-        timestamp: new Date().toISOString()
+        timestamp: this.getDeterministicDate().toISOString()
       };
       console.log(JSON.stringify(result, null, 2));
       return result;
@@ -509,7 +509,7 @@ class KGenCLIEngine {
         file: filePath,
         hash: hash,
         size: content.length,
-        timestamp: new Date().toISOString()
+        timestamp: this.getDeterministicDate().toISOString()
       };
 
       console.log(JSON.stringify(result, null, 2));
@@ -560,7 +560,7 @@ class KGenCLIEngine {
           predicates: Array.from(predicates).slice(0, 10),
           objects: Array.from(objects).slice(0, 5)
         },
-        timestamp: new Date().toISOString()
+        timestamp: this.getDeterministicDate().toISOString()
       };
 
       console.log(JSON.stringify(result, null, 2));
@@ -583,7 +583,7 @@ class KGenCLIEngine {
       const rdfFiles = this.findRDFFiles(directory);
       const lockData = {
         version: '1.0.0',
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         directory: directory,
         files: {}
       };
@@ -817,7 +817,7 @@ const artifactCommand = defineCommand({
               nodeVersion: attestation.environment?.nodeVersion,
               reproducible: attestation.verification?.reproducible
             } : null,
-            timestamp: new Date().toISOString()
+            timestamp: this.getDeterministicDate().toISOString()
           };
           
           console.log(JSON.stringify(result, null, 2));
@@ -829,7 +829,7 @@ const artifactCommand = defineCommand({
             operation: 'artifact:explain',
             artifact: args.artifact,
             error: error.message,
-            timestamp: new Date().toISOString()
+            timestamp: this.getDeterministicDate().toISOString()
           };
           console.log(JSON.stringify(result, null, 2));
           return result;
@@ -882,7 +882,7 @@ const projectCommand = defineCommand({
           mode: 'basic',
           status: 'Basic cryptographic hashing completed - full provenance available with KGEN engine',
           message: 'Install KGEN engine for complete attestation features',
-          timestamp: new Date().toISOString()
+          timestamp: this.getDeterministicDate().toISOString()
         };
         
         console.log(JSON.stringify(result, null, 2));

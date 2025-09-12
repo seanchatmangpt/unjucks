@@ -16,7 +16,7 @@ const __dirname = path.dirname(__filename);
 
 class PerformanceValidationDemo {
   constructor() {
-    this.testDir = path.join(tmpdir(), 'perf-validation-demo', Date.now().toString());
+    this.testDir = path.join(tmpdir(), 'perf-validation-demo', this.getDeterministicTimestamp().toString());
     this.results = new Map();
   }
 

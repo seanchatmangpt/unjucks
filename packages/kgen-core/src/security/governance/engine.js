@@ -106,7 +106,7 @@ export class GovernanceEngine extends EventEmitter {
         policies: this.businessPolicies.size,
         qualityGates: this.qualityGates.size,
         workflows: this.approvalWorkflows.size,
-        timestamp: new Date()
+        timestamp: this.getDeterministicDate()
       });
       
       return {
@@ -147,7 +147,7 @@ export class GovernanceEngine extends EventEmitter {
       const governanceContext = {
         ...securityContext,
         validationId: this._generateValidationId(),
-        timestamp: new Date()
+        timestamp: this.getDeterministicDate()
       };
       
       // Apply governance rules by domain
@@ -237,7 +237,7 @@ export class GovernanceEngine extends EventEmitter {
         severity: ruleDefinition.severity || 'MEDIUM',
         enabled: ruleDefinition.enabled !== false,
         metadata: {
-          createdAt: new Date(),
+          createdAt: this.getDeterministicDate(),
           createdBy: ruleDefinition.createdBy,
           version: ruleDefinition.version || '1.0.0'
         }
@@ -277,11 +277,11 @@ export class GovernanceEngine extends EventEmitter {
         reason: waiverRequest.reason,
         justification: waiverRequest.justification,
         operationContext: waiverRequest.operationContext,
-        requestedAt: new Date(),
+        requestedAt: this.getDeterministicDate(),
         status: 'PENDING',
         approvedBy: null,
         approvedAt: null,
-        expiresAt: waiverRequest.expiresAt || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
+        expiresAt: waiverRequest.expiresAt || new Date(this.getDeterministicTimestamp() + 30 * 24 * 60 * 60 * 1000), // 30 days
       };
       
       // Auto-approve based on criteria
@@ -289,7 +289,7 @@ export class GovernanceEngine extends EventEmitter {
       if (autoApproval.approved) {
         waiver.status = 'APPROVED';
         waiver.approvedBy = 'AUTO_APPROVAL';
-        waiver.approvedAt = new Date();
+        waiver.approvedAt = this.getDeterministicDate();
         waiver.autoApprovalReason = autoApproval.reason;
       }
       
@@ -327,7 +327,7 @@ export class GovernanceEngine extends EventEmitter {
       
       waiver.status = decision; // APPROVED or REJECTED
       waiver.approvedBy = approver;
-      waiver.approvedAt = new Date();
+      waiver.approvedAt = this.getDeterministicDate();
       waiver.comments = comments;
       
       this.emit('governance:waiver_processed', {
@@ -356,7 +356,7 @@ export class GovernanceEngine extends EventEmitter {
       
       const report = {
         timeframe,
-        generatedAt: new Date(),
+        generatedAt: this.getDeterministicDate(),
         summary: {
           totalValidations: this.metrics.validationsPerformed,
           violations: this.metrics.violationsDetected,
@@ -538,7 +538,7 @@ export class GovernanceEngine extends EventEmitter {
         ...rule,
         enabled: true,
         metadata: {
-          createdAt: new Date(),
+          createdAt: this.getDeterministicDate(),
           createdBy: 'system',
           version: '1.0.0'
         }
@@ -901,7 +901,7 @@ export class GovernanceEngine extends EventEmitter {
       operationType: governanceContext.operationType,
       userId: governanceContext.user?.id,
       context: governanceContext.context,
-      requestedAt: new Date(),
+      requestedAt: this.getDeterministicDate(),
       status: 'PENDING',
       approvers: []
     };
@@ -911,7 +911,7 @@ export class GovernanceEngine extends EventEmitter {
     
     if (autoApproval.approved) {
       approvalRequest.status = 'AUTO_APPROVED';
-      approvalRequest.approvedAt = new Date();
+      approvalRequest.approvedAt = this.getDeterministicDate();
       approvalRequest.autoApprovalReason = autoApproval.reason;
       this.metrics.approvalsGranted++;
     }
@@ -968,7 +968,7 @@ export class GovernanceEngine extends EventEmitter {
         operationType: context.operationType,
         userId: context.user?.id,
         context: context.context,
-        timestamp: new Date()
+        timestamp: this.getDeterministicDate()
       });
     }
   }
@@ -999,7 +999,7 @@ export class GovernanceEngine extends EventEmitter {
   }
 
   _checkExpiredWaivers() {
-    const now = new Date();
+    const now = this.getDeterministicDate();
     
     for (const [waiverId, waiver] of this.waivers.entries()) {
       if (waiver.status === 'APPROVED' && waiver.expiresAt < now) {
@@ -1015,7 +1015,7 @@ export class GovernanceEngine extends EventEmitter {
   }
 
   _checkPendingApprovals() {
-    const now = new Date();
+    const now = this.getDeterministicDate();
     
     for (const [requestId, request] of this.approvalRequests.entries()) {
       if (request.status === 'PENDING') {
@@ -1037,8 +1037,8 @@ export class GovernanceEngine extends EventEmitter {
   async _generatePeriodicReport() {
     try {
       const timeframe = {
-        start: new Date(Date.now() - this.config.reportingInterval),
-        end: new Date()
+        start: new Date(this.getDeterministicTimestamp() - this.config.reportingInterval),
+        end: this.getDeterministicDate()
       };
       
       const report = await this.generateGovernanceReport(timeframe);
@@ -1146,23 +1146,23 @@ export class GovernanceEngine extends EventEmitter {
   }
 
   _generateValidationId() {
-    return `gov_val_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    return `gov_val_${this.getDeterministicTimestamp()}_${Math.random().toString(36).substr(2, 9)}`;
   }
 
   _generateRuleId() {
-    return `gov_rule_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    return `gov_rule_${this.getDeterministicTimestamp()}_${Math.random().toString(36).substr(2, 9)}`;
   }
 
   _generateWaiverId() {
-    return `gov_waiver_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    return `gov_waiver_${this.getDeterministicTimestamp()}_${Math.random().toString(36).substr(2, 9)}`;
   }
 
   _generateApprovalId() {
-    return `gov_approval_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    return `gov_approval_${this.getDeterministicTimestamp()}_${Math.random().toString(36).substr(2, 9)}`;
   }
 
   _generateViolationId() {
-    return `gov_violation_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    return `gov_violation_${this.getDeterministicTimestamp()}_${Math.random().toString(36).substr(2, 9)}`;
   }
 }
 

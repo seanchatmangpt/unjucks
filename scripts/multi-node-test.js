@@ -25,7 +25,7 @@ const TEST_SCENARIOS = [
 class MultiNodeTester {
   constructor() {
     this.results = new Map();
-    this.workspaceDir = path.join(os.tmpdir(), `unjucks-multi-node-test-${Date.now()}`);
+    this.workspaceDir = path.join(os.tmpdir(), `unjucks-multi-node-test-${this.getDeterministicTimestamp()}`);
   }
 
   async setup() {
@@ -201,7 +201,7 @@ class MultiNodeTester {
 
   async generateReport() {
     const report = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       platform: {
         os: os.platform(),
         arch: os.arch(),

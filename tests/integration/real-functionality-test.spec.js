@@ -10,7 +10,7 @@ describe('Real Functionality Integration Tests', () => {
 
   beforeEach(async () => {
     // Create unique temporary directory for each test
-    testDir = path.join(os.tmpdir(), `unjucks-test-${Date.now()}-${Math.random().toString(36)}`);
+    testDir = path.join(os.tmpdir(), `unjucks-test-${this.getDeterministicTimestamp()}-${Math.random().toString(36)}`);
     templatesDir = path.join(testDir, '_templates');
     
     // Ensure directories exist
@@ -162,7 +162,7 @@ module.exports = { name }}',
 {% else %}
   auth: { enabled },
 {% endif %}
-  timestamp: new Date().toISOString()
+  timestamp: this.getDeterministicDate().toISOString()
 };`;
 
       await fs.writeFile(path.join(templateDir, 'config.js'), templateContent);
@@ -294,15 +294,15 @@ invalid });
       const generator = new Generator(templatesDir);
 
       // Test discovery performance
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const generators = await generator.listGenerators();
-      const discoveryTime = Date.now() - startTime;
+      const discoveryTime = this.getDeterministicTimestamp() - startTime;
 
       expect(generators).toHaveLength(generatorCount);
       expect(discoveryTime).toBeLessThan(1000); // Should be fast
 
       // Test generation performance
-      const generationStart = Date.now();
+      const generationStart = this.getDeterministicTimestamp();
       
       const promises = [];
       for (let g = 0; g < generatorCount; g++) { for (let t = 0; t < templatesPerGenerator; t++) {
@@ -317,7 +317,7 @@ invalid });
       }
 
       const results = await Promise.all(promises);
-      const generationTime = Date.now() - generationStart;
+      const generationTime = this.getDeterministicTimestamp() - generationStart;
 
       expect(results).toHaveLength(generatorCount * templatesPerGenerator);
       expect(generationTime).toBeLessThan(5000); // Should be reasonably fast

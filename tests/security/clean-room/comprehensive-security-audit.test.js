@@ -20,7 +20,7 @@ describe("Comprehensive Security Audit - Clean Room Environment", () => {
   let injectionFilter;
 
   beforeEach(async () => {
-    testDir = path.join(__dirname, `security-test-${Date.now()}`);
+    testDir = path.join(__dirname, `security-test-${this.getDeterministicTimestamp()}`);
     await fs.ensureDir(testDir);
 
     // Initialize security components with test configurations
@@ -76,7 +76,7 @@ describe("Comprehensive Security Audit - Clean Room Environment", () => {
           request: {
             ip: "192.168.1.100",
             userAgent: "Mozilla/5.0 (legitimate browser)",
-            certificate: { verified: true, validTo: new Date(Date.now() + 86400000) }
+            certificate: { verified: true, validTo: new Date(this.getDeterministicTimestamp() + 86400000) }
           },
           shouldPass: true
         },
@@ -94,7 +94,7 @@ describe("Comprehensive Security Audit - Clean Room Environment", () => {
           request: {
             ip: "192.168.1.101",
             userAgent: "Mozilla/5.0",
-            certificate: { verified: true, validTo: new Date(Date.now() - 86400000) }
+            certificate: { verified: true, validTo: new Date(this.getDeterministicTimestamp() - 86400000) }
           },
           shouldPass: false
         }
@@ -142,7 +142,7 @@ describe("Comprehensive Security Audit - Clean Room Environment", () => {
       const normalRequest = {
         ip: "192.168.1.50",
         userAgent: "Mozilla/5.0 (normal user)",
-        certificate: { verified: true, validTo: new Date(Date.now() + 86400000) }
+        certificate: { verified: true, validTo: new Date(this.getDeterministicTimestamp() + 86400000) }
       };
 
       // Simulate normal behavior
@@ -478,14 +478,14 @@ describe("Comprehensive Security Audit - Clean Room Environment", () => {
 
   describe("Security Performance & Scalability", () => {
     it("should maintain security under high load", async () => {
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const concurrentRequests = 100;
       const promises = [];
 
       const testRequest = {
         ip: "192.168.1.150",
         userAgent: "Mozilla/5.0 (load test)",
-        certificate: { verified: true, validTo: new Date(Date.now() + 86400000) },
+        certificate: { verified: true, validTo: new Date(this.getDeterministicTimestamp() + 86400000) },
         query: { q: "legitimate search" },
         body: { data: "normal data" },
         headers: { "user-agent": "Mozilla/5.0 (load test)" }
@@ -499,7 +499,7 @@ describe("Comprehensive Security Audit - Clean Room Environment", () => {
       }
 
       const results = await Promise.all(promises);
-      const endTime = Date.now();
+      const endTime = this.getDeterministicTimestamp();
       const duration = endTime - startTime;
       
       const successfulRequests = results.filter(r => r).length;
@@ -536,7 +536,7 @@ describe("Comprehensive Security Audit - Clean Room Environment", () => {
         await zeroTrust.validateRequest({
           ip: req.ip,
           userAgent: "test",
-          certificate: req.valid ? { verified: true, validTo: new Date(Date.now() + 86400000) } : null
+          certificate: req.valid ? { verified: true, validTo: new Date(this.getDeterministicTimestamp() + 86400000) } : null
         });
       }
 

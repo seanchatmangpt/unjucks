@@ -419,9 +419,9 @@ describe('Graph Diff Edge Cases', () => {
       const graph1 = await processor.parseRDF(largeGraph1Ttl, 'text/turtle');
       const graph2 = await processor.parseRDF(largeGraph2Ttl, 'text/turtle');
       
-      const start = Date.now();
+      const start = this.getDeterministicTimestamp();
       const diff = await differ.computeDiff(graph1.graph, graph2.graph);
-      const duration = Date.now() - start;
+      const duration = this.getDeterministicTimestamp() - start;
       
       expect(diff.statistics.modifiedCount).toBe(1000); // All ages changed
       expect(duration).toBeLessThan(5000); // Should complete within 5 seconds

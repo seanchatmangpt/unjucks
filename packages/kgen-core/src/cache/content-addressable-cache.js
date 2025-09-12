@@ -58,7 +58,7 @@ export class ContentAddressedCache {
       gc_runs: 0,
       bytes_written: 0,
       bytes_read: 0,
-      start_time: Date.now()
+      start_time: this.getDeterministicTimestamp()
     };
 
     // Cache layers
@@ -118,7 +118,7 @@ export class ContentAddressedCache {
       content: normalizedContent,
       context: contextKey,
       version: '2.0', // Updated version for new implementation
-      timestamp: Math.floor(Date.now() / 1000) // Rounded timestamp for cache stability
+      timestamp: Math.floor(this.getDeterministicTimestamp() / 1000) // Rounded timestamp for cache stability
     }, Object.keys({ content: null, context: null, version: null, timestamp: null }).sort());
 
     return crypto
@@ -135,7 +135,7 @@ export class ContentAddressedCache {
 
     try {
       const contentKey = this.generateContentKey(content, context);
-      const timestamp = Date.now();
+      const timestamp = this.getDeterministicTimestamp();
       const size = this._calculateSize(content);
 
       const cacheEntry = {
@@ -227,7 +227,7 @@ export class ContentAddressedCache {
           entry = null;
         } else {
           // Update access metrics
-          entry.metadata.accessed_at = Date.now();
+          entry.metadata.accessed_at = this.getDeterministicTimestamp();
           entry.metadata.access_count++;
           this.metrics.hits++;
           this.metrics.bytes_read += entry.metadata.size;
@@ -282,7 +282,7 @@ export class ContentAddressedCache {
       const templateEntry = {
         content,
         path: templatePath,
-        timestamp: Date.now(),
+        timestamp: this.getDeterministicTimestamp(),
         size: Buffer.byteLength(content, 'utf8'),
         context_hash: this._hashContext(context),
         accessed: 1
@@ -569,7 +569,7 @@ export class ContentAddressedCache {
    * Show cache statistics and health
    */
   getStatistics() {
-    const now = Date.now();
+    const now = this.getDeterministicTimestamp();
     const uptime = now - this.metrics.start_time;
     const hitRate = this.metrics.hits + this.metrics.misses > 0 ? 
       this.metrics.hits / (this.metrics.hits + this.metrics.misses) : 0;
@@ -641,7 +641,7 @@ export class ContentAddressedCache {
     const templateEntry = {
       content: entry.content,
       path: context.templatePath,
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       size: entry.metadata.size,
       context_hash: this._hashContext(context),
       accessed: 1
@@ -659,7 +659,7 @@ export class ContentAddressedCache {
         content: entry.content,
         metadata: {
           size: entry.size,
-          accessed_at: Date.now(),
+          accessed_at: this.getDeterministicTimestamp(),
           access_count: entry.accessed
         }
       };
@@ -678,7 +678,7 @@ export class ContentAddressedCache {
   }
 
   _isValidTemplateCache(cached, templatePath) {
-    const now = Date.now();
+    const now = this.getDeterministicTimestamp();
     const expired = (now - cached.timestamp) > this.config.templateCacheOptions.ttl;
     
     if (expired) return false;
@@ -834,7 +834,7 @@ export class ContentAddressedCache {
   }
 
   async _expiredGC() {
-    const now = Date.now();
+    const now = this.getDeterministicTimestamp();
     let evicted = { memory: 0, disk: 0, templates: 0, bytes: 0 };
 
     // Memory cache
@@ -1300,7 +1300,7 @@ export class ContentAddressedCache {
   _shouldPurgeEntry(entryInfo, criteria) {
     const { olderThan, contentType, pattern, unused } = criteria;
     
-    if (olderThan && entryInfo.created_at > Date.now() - olderThan) return false;
+    if (olderThan && entryInfo.created_at > this.getDeterministicTimestamp() - olderThan) return false;
     if (contentType && entryInfo.content_type !== contentType) return false;
     if (unused && entryInfo.access_count > 1) return false;
     if (pattern) {
@@ -1314,7 +1314,7 @@ export class ContentAddressedCache {
   _shouldPurgeTemplateEntry(entry, criteria) {
     const { olderThan, pattern, unused } = criteria;
     
-    if (olderThan && entry.timestamp > Date.now() - olderThan) return false;
+    if (olderThan && entry.timestamp > this.getDeterministicTimestamp() - olderThan) return false;
     if (unused && entry.accessed > 1) return false;
     if (pattern) {
       const regex = new RegExp(pattern);

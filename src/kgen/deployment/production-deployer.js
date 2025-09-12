@@ -121,7 +121,7 @@ export class ProductionDeployer extends EventEmitter {
       
       const deployment = {
         id: this.deploymentId,
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         environment: this.config.environment,
         strategy: this.config.strategy,
         version: options.version || 'latest',
@@ -161,7 +161,7 @@ export class ProductionDeployer extends EventEmitter {
       deployment.rollbackPlan = await this._createRollbackPlan(deployment);
       
       deployment.status = 'completed';
-      deployment.completedAt = new Date().toISOString();
+      deployment.completedAt = this.getDeterministicDate().toISOString();
       
       this.logger.success(`✅ Platform deployment completed: ${this.deploymentId}`);
       
@@ -194,7 +194,7 @@ export class ProductionDeployer extends EventEmitter {
         resources: options.resources || this._getDefaultResources(),
         deployment: {
           status: 'pending',
-          startTime: Date.now()
+          startTime: this.getDeterministicTimestamp()
         }
       };
       
@@ -208,7 +208,7 @@ export class ProductionDeployer extends EventEmitter {
       const verification = await this._verifyComponentDeployment(component);
       
       component.deployment.status = verification.success ? 'completed' : 'failed';
-      component.deployment.endTime = Date.now();
+      component.deployment.endTime = this.getDeterministicTimestamp();
       component.deployment.duration = component.deployment.endTime - component.deployment.startTime;
       
       if (!verification.success) {
@@ -267,7 +267,7 @@ export class ProductionDeployer extends EventEmitter {
       const rollback = {
         id: this._generateRollbackId(),
         targetDeployment: deploymentId,
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         reason: options.reason || 'Manual rollback',
         strategy: options.strategy || 'immediate',
         status: 'in_progress'
@@ -286,7 +286,7 @@ export class ProductionDeployer extends EventEmitter {
       const verification = await this._verifyRollback(result);
       
       rollback.status = verification.success ? 'completed' : 'failed';
-      rollback.completedAt = new Date().toISOString();
+      rollback.completedAt = this.getDeterministicDate().toISOString();
       
       if (!verification.success) {
         throw new Error(`Rollback verification failed: ${verification.error}`);
@@ -309,7 +309,7 @@ export class ProductionDeployer extends EventEmitter {
     try {
       const status = {
         deployment: deploymentId,
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         overall: 'unknown',
         components: {},
         health: {},
@@ -353,7 +353,7 @@ export class ProductionDeployer extends EventEmitter {
       
       const documentation = {
         metadata: {
-          generated: new Date().toISOString(),
+          generated: this.getDeterministicDate().toISOString(),
           version: '1.0.0',
           environment: this.config.environment
         },
@@ -552,20 +552,20 @@ export class ProductionDeployer extends EventEmitter {
       deployment: deployment.id,
       strategy: 'immediate',
       targets: this.rollbackTargets,
-      created: new Date().toISOString()
+      created: this.getDeterministicDate().toISOString()
     };
   }
 
   _generateDeploymentId() {
-    return `deploy_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    return `deploy_${this.getDeterministicTimestamp()}_${Math.random().toString(36).substr(2, 9)}`;
   }
 
   _generateRollbackId() {
-    return `rollback_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    return `rollback_${this.getDeterministicTimestamp()}_${Math.random().toString(36).substr(2, 9)}`;
   }
 
   _generateRollbackPlanId() {
-    return `rollback_plan_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    return `rollback_plan_${this.getDeterministicTimestamp()}_${Math.random().toString(36).substr(2, 9)}`;
   }
 
   // Event handlers

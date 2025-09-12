@@ -354,9 +354,9 @@ describe('Filter Validation Tests', () => {
         name: `item number ${i} with a very long descriptive name`
       }));
 
-      const start = Date.now();
+      const start = this.getDeterministicTimestamp();
       const rendered = env.renderString(template, { items });
-      const duration = Date.now() - start;
+      const duration = this.getDeterministicTimestamp() - start;
 
       expect(duration).toBeLessThan(1000); // Should complete within 1 second
       expect(rendered.split('\n').length).toBeGreaterThan(900); // Most items rendered

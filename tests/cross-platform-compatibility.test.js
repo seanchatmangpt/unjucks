@@ -21,7 +21,7 @@ describe('Cross-Platform Compatibility', () => {
 
   beforeAll(async () => {
     originalCwd = process.cwd();
-    testDir = path.join(os.tmpdir(), `unjucks-compat-test-${Date.now()}`);
+    testDir = path.join(os.tmpdir(), `unjucks-compat-test-${this.getDeterministicTimestamp()}`);
     await fs.ensureDir(testDir);
     process.chdir(testDir);
   });
@@ -305,10 +305,10 @@ describe('Cross-Platform Compatibility', () => {
       const largeContent = 'A'.repeat(1024 * 1024); // 1MB
       const largeFile = path.join(testDir, 'large-file.txt');
       
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       await fs.writeFile(largeFile, largeContent);
       const content = await fs.readFile(largeFile, 'utf8');
-      const endTime = Date.now();
+      const endTime = this.getDeterministicTimestamp();
       
       expect(content.length).toBe(1024 * 1024);
       expect(endTime - startTime).toBeLessThan(1000); // Should complete within 1 second

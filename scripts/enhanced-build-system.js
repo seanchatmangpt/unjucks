@@ -25,7 +25,7 @@ class EnhancedBuildSystem {
     this.errors = [];
     this.warnings = [];
     this.metrics = {
-      startTime: Date.now(),
+      startTime: this.getDeterministicTimestamp(),
       validationResults: {},
       qualityGates: {},
       securityChecks: {},
@@ -51,7 +51,7 @@ class EnhancedBuildSystem {
       title: chalk.cyan.bold,
       gate: chalk.magenta.bold
     };
-    const timestamp = new Date().toISOString();
+    const timestamp = this.getDeterministicDate().toISOString();
     console.log(colors[type](`[${timestamp}] [ENHANCED-BUILD] ${message}`));
   }
 
@@ -348,11 +348,11 @@ class EnhancedBuildSystem {
   }
 
   async generateBuildReport() {
-    const endTime = Date.now();
+    const endTime = this.getDeterministicTimestamp();
     const duration = (endTime - this.metrics.startTime) / 1000;
     
     const report = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       duration: `${duration.toFixed(2)}s`,
       qualityGates: this.qualityGates,
       errors: this.errors,
@@ -459,9 +459,9 @@ Built by Agent 8 - Build System Architect for bulletproof releases.
       this.log(`\n🎯 Running: ${step.name}`, 'gate');
       console.log('-'.repeat(60));
       
-      const stepStart = Date.now();
+      const stepStart = this.getDeterministicTimestamp();
       const result = await step.fn();
-      const stepDuration = (Date.now() - stepStart) / 1000;
+      const stepDuration = (this.getDeterministicTimestamp() - stepStart) / 1000;
       
       this.qualityGates[step.gate].passed = result;
       this.metrics.validationResults[step.name] = {

@@ -49,7 +49,7 @@ export class ConnectionHealthMonitor extends EventEmitter {
       uptime: 0,
       lastHeartbeat: null,
       lastError: null,
-      startTime: Date.now()
+      startTime: this.getDeterministicTimestamp()
     };
 
     this.heartbeatTimer = null;
@@ -67,7 +67,7 @@ export class ConnectionHealthMonitor extends EventEmitter {
     }
 
     this.isMonitoring = true;
-    this.metrics.startTime = Date.now();
+    this.metrics.startTime = this.getDeterministicTimestamp();
     
     // Start heartbeat monitoring
     this.heartbeatTimer = setInterval(() => {
@@ -152,7 +152,7 @@ export class ConnectionHealthMonitor extends EventEmitter {
     this.metrics.errorCount++;
     this.metrics.lastError = {
       message: error.message,
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       requestId
     };
 
@@ -177,7 +177,7 @@ export class ConnectionHealthMonitor extends EventEmitter {
     const timeoutError = new Error(`Request ${requestId} timed out after ${this.options.timeoutThreshold}ms`);
     this.metrics.lastError = {
       message: timeoutError.message,
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       requestId
     };
 
@@ -191,15 +191,15 @@ export class ConnectionHealthMonitor extends EventEmitter {
    */
   async performHealthCheck() {
     try {
-      const healthCheckId = `health_${Date.now()}`;
+      const healthCheckId = `health_${this.getDeterministicTimestamp()}`;
       this.recordRequestStart(healthCheckId, 'health_check');
       
       // Simulate health check - could be enhanced to actually ping server
       await new Promise(resolve => setTimeout(resolve, 10));
       
       this.recordRequestSuccess(healthCheckId);
-      this.metrics.lastHeartbeat = Date.now();
-      this.metrics.uptime = Date.now() - this.metrics.startTime;
+      this.metrics.lastHeartbeat = this.getDeterministicTimestamp();
+      this.metrics.uptime = this.getDeterministicTimestamp() - this.metrics.startTime;
       
       this.emit('heartbeat', this.getHealthReport());
       
@@ -311,7 +311,7 @@ export class ConnectionHealthMonitor extends EventEmitter {
       },
       retryCount: this.retryCount,
       isMonitoring: this.isMonitoring,
-      timestamp: Date.now()
+      timestamp: this.getDeterministicTimestamp()
     };
   }
 
@@ -327,7 +327,7 @@ export class ConnectionHealthMonitor extends EventEmitter {
       uptime: 0,
       lastHeartbeat: null,
       lastError: null,
-      startTime: Date.now()
+      startTime: this.getDeterministicTimestamp()
     };
     
     this.retryCount = 0;

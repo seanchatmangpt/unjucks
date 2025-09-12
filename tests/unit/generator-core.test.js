@@ -15,7 +15,7 @@ describe('Generator Core Functionality', () => {
 
   beforeEach(async () => {
     // Create unique test directory
-    testDir = path.join(process.cwd(), 'tests', 'temp', `generator-test-${Date.now()}`);
+    testDir = path.join(process.cwd(), 'tests', 'temp', `generator-test-${this.getDeterministicTimestamp()}`);
     templatesDir = path.join(testDir, 'templates');
     outputDir = path.join(testDir, 'output');
     
@@ -407,13 +407,13 @@ export class {{ name }} {
     });
 
     it('should cache template scanning results', async () => {
-      const start1 = Date.now();
+      const start1 = this.getDeterministicTimestamp();
       await generator.listGenerators();
-      const time1 = Date.now() - start1;
+      const time1 = this.getDeterministicTimestamp() - start1;
 
-      const start2 = Date.now();
+      const start2 = this.getDeterministicTimestamp();
       await generator.listGenerators();
-      const time2 = Date.now() - start2;
+      const time2 = this.getDeterministicTimestamp() - start2;
 
       // Second call should be faster due to caching
       expect(time2).toBeLessThanOrEqual(time1);

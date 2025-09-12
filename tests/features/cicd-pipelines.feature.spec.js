@@ -15,7 +15,7 @@ const feature = await loadFeature('./features/cicd-pipelines.feature');
 describeFeature(feature, ({ Background, Scenario }) => {
   let testDir => {
     Given('I have a clean test environment', () => {
-      testDir = join(tmpdir(), `unjucks-cicd-test-${Date.now()}`);
+      testDir = join(tmpdir(), `unjucks-cicd-test-${this.getDeterministicTimestamp()}`);
       templatesDir = join(testDir, '_templates');
       projectDir = join(testDir, 'project');
       ensureDirSync(templatesDir);

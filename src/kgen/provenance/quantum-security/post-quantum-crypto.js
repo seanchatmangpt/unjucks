@@ -118,7 +118,7 @@ export class PostQuantumCryptography extends EventEmitter {
     try {
       this.logger.info(`Generating quantum-resistant key pair: ${keyId}`);
       
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
       // Generate lattice-based key pair using CRYSTALS-Dilithium
       const keyPair = await this._generateDilithiumKeyPair(options);
@@ -129,8 +129,8 @@ export class PostQuantumCryptography extends EventEmitter {
         algorithm: this.config.signatureScheme,
         securityLevel: this.config.securityLevel,
         quantumResistant: true,
-        generatedAt: new Date(),
-        generationTime: Date.now() - startTime,
+        generatedAt: this.getDeterministicDate(),
+        generationTime: this.getDeterministicTimestamp() - startTime,
         latticeParameters: this.config.latticeParameters,
         estimatedQuantumBreakTime: this._estimateQuantumBreakTime()
       };
@@ -172,7 +172,7 @@ export class PostQuantumCryptography extends EventEmitter {
     try {
       this.logger.info(`Creating quantum-resistant signature with key: ${keyId}`);
       
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
       // Get signing key
       const keyPair = this.keyPairs.get(keyId);
@@ -192,8 +192,8 @@ export class PostQuantumCryptography extends EventEmitter {
         algorithm: this.config.signatureScheme,
         keyId,
         dataHash: dataHash.toString('hex'),
-        timestamp: new Date(),
-        signingTime: Date.now() - startTime,
+        timestamp: this.getDeterministicDate(),
+        signingTime: this.getDeterministicTimestamp() - startTime,
         securityLevel: this.config.securityLevel,
         quantumResistant: true,
         nonce: crypto.randomBytes(32)
@@ -228,7 +228,7 @@ export class PostQuantumCryptography extends EventEmitter {
     try {
       this.logger.info(`Verifying quantum-resistant signature with key: ${keyId}`);
       
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
       // Check signature cache
       const cacheKey = this._generateSignatureCacheKey(data, keyId);
@@ -259,7 +259,7 @@ export class PostQuantumCryptography extends EventEmitter {
         return {
           verified: false,
           reason: 'Data hash mismatch',
-          verificationTime: Date.now() - startTime
+          verificationTime: this.getDeterministicTimestamp() - startTime
         };
       }
       
@@ -270,7 +270,7 @@ export class PostQuantumCryptography extends EventEmitter {
         publicKey
       );
       
-      const verificationTime = Date.now() - startTime;
+      const verificationTime = this.getDeterministicTimestamp() - startTime;
       
       this.metrics.signaturesVerified++;
       this.metrics.averageVerifyTime = (this.metrics.averageVerifyTime + verificationTime) / 2;
@@ -306,7 +306,7 @@ export class PostQuantumCryptography extends EventEmitter {
     try {
       this.logger.info(`Performing key encapsulation for recipient: ${recipientKeyId}`);
       
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
       // Get recipient's public key
       const publicKey = this.publicKeys.get(recipientKeyId);
@@ -322,8 +322,8 @@ export class PostQuantumCryptography extends EventEmitter {
         ciphertext,
         algorithm: this.config.keyEncapsulation,
         recipientKeyId,
-        timestamp: new Date(),
-        encapsulationTime: Date.now() - startTime,
+        timestamp: this.getDeterministicDate(),
+        encapsulationTime: this.getDeterministicTimestamp() - startTime,
         securityLevel: this.config.securityLevel,
         quantumResistant: true,
         sessionId: crypto.randomUUID()
@@ -371,7 +371,7 @@ export class PostQuantumCryptography extends EventEmitter {
     try {
       this.logger.info(`Decrypting encapsulated key with: ${keyId}`);
       
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
       // Get decryption key
       const keyPair = this.keyPairs.get(keyId);
@@ -382,7 +382,7 @@ export class PostQuantumCryptography extends EventEmitter {
       // Decrypt using CRYSTALS-Kyber
       const sharedSecret = await this._kyberDecapsulation(ciphertext, keyPair.privateKey);
       
-      const decryptionTime = Date.now() - startTime;
+      const decryptionTime = this.getDeterministicTimestamp() - startTime;
       
       this.logger.success(`Key decapsulation completed in ${decryptionTime}ms`);
       

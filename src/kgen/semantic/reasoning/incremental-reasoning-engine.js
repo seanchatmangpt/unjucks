@@ -153,7 +153,7 @@ export class IncrementalReasoningEngine extends EventEmitter {
    * @returns {Promise<Object>} Processing results
    */
   async processChanges(changes, rules, options = {}) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     const operationId = options.operationId || crypto.randomUUID();
     
     try {
@@ -208,11 +208,11 @@ export class IncrementalReasoningEngine extends EventEmitter {
       
       // Create snapshot if needed
       if (this._shouldCreateSnapshot()) {
-        await this._createSnapshot(`incremental-${Date.now()}`);
+        await this._createSnapshot(`incremental-${this.getDeterministicTimestamp()}`);
       }
       
       // Update metrics
-      const processingTime = Date.now() - startTime;
+      const processingTime = this.getDeterministicTimestamp() - startTime;
       this._updateMetrics(context, processingTime);
       
       const finalResults = {
@@ -222,7 +222,7 @@ export class IncrementalReasoningEngine extends EventEmitter {
         results,
         context: {
           ...context,
-          endTime: Date.now(),
+          endTime: this.getDeterministicTimestamp(),
           processingTime
         },
         metrics: { ...this.metrics }
@@ -237,7 +237,7 @@ export class IncrementalReasoningEngine extends EventEmitter {
       return finalResults;
       
     } catch (error) {
-      const processingTime = Date.now() - startTime;
+      const processingTime = this.getDeterministicTimestamp() - startTime;
       this.logger.error(`Incremental processing failed after ${processingTime}ms:`, error);
       this.emit('incremental:error', { operationId, error, processingTime });
       throw error;
@@ -260,7 +260,7 @@ export class IncrementalReasoningEngine extends EventEmitter {
    * @returns {Promise<Object>} Snapshot metadata
    */
   async createSnapshot(snapshotId = null) {
-    const id = snapshotId || `snapshot-${Date.now()}`;
+    const id = snapshotId || `snapshot-${this.getDeterministicTimestamp()}`;
     return await this._createSnapshot(id);
   }
 
@@ -289,12 +289,12 @@ export class IncrementalReasoningEngine extends EventEmitter {
       // Update current snapshot reference
       this.currentSnapshotId = snapshotId;
       
-      this.emit('snapshot:rollback', { snapshotId, restoredAt: new Date().toISOString() });
+      this.emit('snapshot:rollback', { snapshotId, restoredAt: this.getDeterministicDate().toISOString() });
       this.logger.success(`Rollback completed to snapshot: ${snapshotId}`);
       
       return {
         snapshotId,
-        restoredAt: new Date().toISOString(),
+        restoredAt: this.getDeterministicDate().toISOString(),
         triples: this.currentStore.size,
         inferences: this.inferenceStore.size
       };
@@ -519,7 +519,7 @@ export class IncrementalReasoningEngine extends EventEmitter {
           object: change.object,
           metadata: {
             index,
-            timestamp: Date.now(),
+            timestamp: this.getDeterministicTimestamp(),
             validated: true,
             ...change.metadata
           }
@@ -848,7 +848,7 @@ export class IncrementalReasoningEngine extends EventEmitter {
         // Update change index
         this.changeIndex.set(this._generateChangeKey(change), {
           change,
-          processedAt: Date.now()
+          processedAt: this.getDeterministicTimestamp()
         });
         
       } catch (error) {
@@ -880,7 +880,7 @@ export class IncrementalReasoningEngine extends EventEmitter {
   async _createSnapshot(snapshotId) {
     const snapshot = {
       id: snapshotId,
-      createdAt: new Date().toISOString(),
+      createdAt: this.getDeterministicDate().toISOString(),
       currentStoreData: this._serializeStore(this.currentStore),
       inferenceStoreData: this._serializeStore(this.inferenceStore),
       pendingChanges: [...this.pendingChanges],
@@ -1130,7 +1130,7 @@ export class IncrementalReasoningEngine extends EventEmitter {
       object: 'http://example.com/value',
       derivedFrom: rule.id,
       confidence: 1.0,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     };
   }
 

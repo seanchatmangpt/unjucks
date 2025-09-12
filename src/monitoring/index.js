@@ -34,7 +34,7 @@ class MonitoringOrchestrator extends EventEmitter {
     super();
     
     this.status = MonitoringStatus.INITIALIZING;
-    this.startTime = Date.now();
+    this.startTime = this.getDeterministicTimestamp();
     this.components = new Map();
     this.httpServer = null;
     
@@ -248,7 +248,7 @@ class MonitoringOrchestrator extends EventEmitter {
     this.emit('monitoring-started', {
       status: this.status,
       results,
-      uptime: Date.now() - this.startTime
+      uptime: this.getDeterministicTimestamp() - this.startTime
     });
     
     return results;
@@ -295,7 +295,7 @@ class MonitoringOrchestrator extends EventEmitter {
       severity: 'critical',
       message: `Critical health check failure: ${status.message}`,
       details: status,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     });
   }
   
@@ -311,7 +311,7 @@ class MonitoringOrchestrator extends EventEmitter {
       message: alert.message,
       metric: alert.metricName,
       value: alert.measurement.value,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     });
   }
   
@@ -326,7 +326,7 @@ class MonitoringOrchestrator extends EventEmitter {
       severity: alert.severity,
       message: alert.message,
       errorId: alert.errorId,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     });
   }
   
@@ -343,7 +343,7 @@ class MonitoringOrchestrator extends EventEmitter {
       sloName: compliance.sloName,
       actual: compliance.actual,
       target: compliance.target,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     });
   }
   
@@ -359,7 +359,7 @@ class MonitoringOrchestrator extends EventEmitter {
       message: alert.message,
       metric: alert.metricName,
       value: alert.value,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     });
   }
   
@@ -528,7 +528,7 @@ class MonitoringOrchestrator extends EventEmitter {
     return {
       status: this.status,
       healthy: overallHealthy,
-      uptime: Date.now() - this.startTime,
+      uptime: this.getDeterministicTimestamp() - this.startTime,
       version: process.env.npm_package_version || '1.0.0',
       environment: env.NODE_ENV,
       components: componentStatuses,
@@ -538,7 +538,7 @@ class MonitoringOrchestrator extends EventEmitter {
         unhealthy: totalComponents - healthyComponents,
         healthRatio: totalComponents > 0 ? (healthyComponents / totalComponents) * 100 : 100
       },
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     };
   }
   
@@ -583,7 +583,7 @@ class MonitoringOrchestrator extends EventEmitter {
    */
   storeMonitoringConfig() {
     const config = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       status: this.status,
       components: Object.fromEntries(
         Array.from(this.components.entries()).map(([name, component]) => [
@@ -674,7 +674,7 @@ class MonitoringOrchestrator extends EventEmitter {
     
     logger.info('✅ Monitoring systems stopped', {
       results,
-      uptime: Date.now() - this.startTime
+      uptime: this.getDeterministicTimestamp() - this.startTime
     });
     
     return results;
@@ -728,7 +728,7 @@ export function getMonitoring() {
  */
 export function createMonitoringMiddleware() {
   return (req, res, next) => {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     const correlationId = req.headers['x-correlation-id'] || req.correlationId;
     
     // Set correlation context for logging
@@ -752,7 +752,7 @@ export function createMonitoringMiddleware() {
     // Override res.end to capture metrics
     const originalEnd = res.end;
     res.end = function(chunk, encoding) {
-      const duration = Date.now() - startTime;
+      const duration = this.getDeterministicTimestamp() - startTime;
       
       // Record HTTP metrics
       if (metricsCollector) {

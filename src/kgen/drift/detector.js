@@ -34,7 +34,7 @@ export class DriftDetector extends EventEmitter {
         severity: 'none'
       },
       reportPath: null,
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       recommendations: []
     };
   }

@@ -1,0 +1,25 @@
+{
+  "filename": "/Users/sac/unjucks/.demo-audit/audit-2025-09-12T17-00-23-371Z-f9dc4746.jsonl",
+  "eventCount": 4,
+  "size": 7269,
+  "rotatedAt": "2025-09-12T17:00:23.474Z",
+  "checksums": [
+    [
+      0,
+      "4a82caeef5832a638a99101e8a8789bab042ad3937ce3655ce83776a26f76eda"
+    ],
+    [
+      1,
+      "e91ff2b79a46aa63f2251cc769708ae30ec33a224783c8d7123fc04ee220de20"
+    ],
+    [
+      2,
+      "8e2ca7431b2dc3a39ed96bd6418349a2d85b0fdf70106ff6127f7595f61f5308"
+    ],
+    [
+      3,
+      "d48d08f7439b7cb1d9ac4acb057a35eb4b57f96d1be5a3587c30fe234e1478df"
+    ]
+  ],
+  "integrity": "6e4537acf7a279f974da114052df6230a3a2b7a4d347c214de7d3ec9a9667939"
+}

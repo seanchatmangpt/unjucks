@@ -97,7 +97,7 @@ class MutationTester {
     console.log(`📋 Found ${sourceFiles.length} source files and ${testFiles.length} test files`);
     
     const results = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       sourceFiles: sourceFiles.length,
       testFiles: testFiles.length,
       mutations: [],
@@ -277,13 +277,13 @@ class MutationTester {
   }
 
   async runTests(testFiles) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       // Run the native test runner (lightweight)
       const result = await this.executeCommand('npm test', 10000); // 10 second timeout
       
-      const duration = Date.now() - startTime;
+      const duration = this.getDeterministicTimestamp() - startTime;
       
       // Parse test output to determine if tests failed
       const output = result.stdout + result.stderr;
@@ -300,7 +300,7 @@ class MutationTester {
       };
       
     } catch (error) {
-      const duration = Date.now() - startTime;
+      const duration = this.getDeterministicTimestamp() - startTime;
       
       if (error.message.includes('timeout')) {
         return {

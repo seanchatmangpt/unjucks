@@ -125,10 +125,10 @@ class APISmokeTest {
   }
 
   async testHealth() {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     try {
       const response = await this.client.get('/health');
-      const endTime = Date.now();
+      const endTime = this.getDeterministicTimestamp();
       
       return {
         success: response.status === 200,
@@ -150,10 +150,10 @@ class APISmokeTest {
   }
 
   async testEndpoint(endpoint, method = 'GET') {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     try {
       const response = await this.client[method.toLowerCase()](endpoint);
-      const endTime = Date.now();
+      const endTime = this.getDeterministicTimestamp();
       
       return {
         success: response.status < 500, // Any non-server error is acceptable

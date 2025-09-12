@@ -315,9 +315,9 @@ describe('TemplateScanner', () => {
       mockFs.stat.mockResolvedValue({ isDirectory: () => false });
       mockFs.readFile.mockResolvedValue(largeContent);
 
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const result = await scanner.scanTemplate('/test');
-      const endTime = Date.now();
+      const endTime = this.getDeterministicTimestamp();
 
       expect(result.variables).toBeDefined();
       expect(endTime - startTime).toBeLessThan(1000); // Should complete in under 1 second
@@ -353,11 +353,11 @@ describe('TemplateScanner', () => {
       mockFs.stat.mockResolvedValue({ isDirectory: () => false });
       mockFs.readFile.mockResolvedValue('{{ name }}');
 
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const results = await Promise.all(
         templatePaths.map(path => scanner.scanTemplate(path))
       );
-      const endTime = Date.now();
+      const endTime = this.getDeterministicTimestamp();
 
       expect(results).toHaveLength(10);
       results.forEach(result => {

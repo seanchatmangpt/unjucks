@@ -419,7 +419,7 @@
         "category": "Error Handling",
         "language": "javascript",
         "description": "Consistent error response format with structured error details",
-        "examples": "// Error response structure\nconst errorResponse = {\n  error: 'VALIDATION_ERROR',\n  message: 'Request validation failed',\n  details: [\n    {\n      field: 'email',\n      code: 'REQUIRED',\n      message: 'Email is required'\n    }\n  ],\n  timestamp: new Date().toISOString(),\n  requestId: req.id\n};"
+        "examples": "// Error response structure\nconst errorResponse = {\n  error: 'VALIDATION_ERROR',\n  message: 'Request validation failed',\n  details: [\n    {\n      field: 'email',\n      code: 'REQUIRED',\n      message: 'Email is required'\n    }\n  ],\n  timestamp: this.getDeterministicDate().toISOString(),\n  requestId: req.id\n};"
       },
       {
         "category": "Logging",

@@ -547,7 +547,7 @@ Examples:
    */
   generateReport() {
     const report = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       environment: {
         node: process.version,
         platform: process.platform,
@@ -568,7 +568,7 @@ Examples:
     const reportsDir = path.join(__dirname, '../reports');
     await fs.ensureDir(reportsDir);
     
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const timestamp = this.getDeterministicDate().toISOString().replace(/[:.]/g, '-');
     const filename = `integration-test-report-${timestamp}.json`;
     const filepath = path.join(reportsDir, filename);
     

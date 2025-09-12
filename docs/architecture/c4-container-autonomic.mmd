@@ -1,0 +1,71 @@
+```mermaid
+C4Container
+  title Container Diagram - KGEN Autonomic Daemon Workflow
+  
+  Person(devopsEngineer, "DevOps Engineer", "Configures and monitors autonomic operations")
+  
+  System_Boundary(kgen, "KGEN Autonomic Knowledge Engine") {
+    Container(daemon, "KGEN Daemon", "Node.js / Event Loop", "Long-running process for automated operations and monitoring")
+    
+    Container(scheduler, "Task Scheduler", "Node.js / Cron", "Schedules periodic operations, drift detection, and maintenance")
+    
+    Container(eventProcessor, "Event Processor", "Node.js / EventEmitter", "Processes file system events, Git hooks, and external triggers")
+    
+    Container(autonomicEngine, "Autonomic Engine", "JavaScript / Rule Engine", "Self-healing, auto-remediation, and adaptive configuration")
+    
+    Container(distributedCache, "Distributed Cache", "Redis-compatible", "Shared cache across multiple KGEN instances")
+    
+    Container(reasoningEngine, "Reasoning Engine", "N3.js / SWRL", "Semantic reasoning over knowledge graphs with rule inference")
+    
+    Container(policyEngine, "Policy Engine", "SHACL / JavaScript", "Enforces governance policies and compliance validation")
+    
+    Container(workflowOrchestrator, "Workflow Orchestrator", "Node.js / DAG", "Manages complex generation pipelines and dependencies")
+    
+    Container(metricsCollector, "Metrics Collector", "OpenTelemetry", "Real-time performance metrics and health monitoring")
+    
+    Container(alertManager, "Alert Manager", "Node.js / WebHooks", "Intelligent alerting based on anomaly detection")
+    
+    Container(apiGateway, "API Gateway", "Fastify / OpenAPI", "RESTful API for external integrations and status queries")
+    
+    ContainerDb(knowledgeBase, "Knowledge Base", "RDF Triple Store", "Centralized semantic knowledge with SPARQL endpoint")
+    ContainerDb(auditLog, "Audit Log", "Append-only Log", "Immutable audit trail of all operations and decisions")
+    ContainerDb(configStore, "Configuration Store", "Git / Database", "Versioned configuration with rollback capabilities")
+  }
+  
+  System_Ext(cicdPipeline, "CI/CD Pipeline", "Triggers on repository changes")
+  System_Ext(monitoring, "Monitoring System", "Receives metrics and alerts")
+  System_Ext(gitWebhooks, "Git Webhooks", "Repository change notifications")
+  System_Ext(externalSystems, "External Systems", "Third-party APIs and services")
+  
+  Rel(devopsEngineer, apiGateway, "Configures and monitors", "REST API")
+  Rel(devopsEngineer, daemon, "Controls daemon lifecycle", "System signals")
+  
+  Rel(daemon, scheduler, "Manages scheduled tasks", "Task registration")
+  Rel(daemon, eventProcessor, "Processes events", "Event handling")
+  Rel(daemon, autonomicEngine, "Executes autonomic decisions", "Policy enforcement")
+  
+  Rel(scheduler, workflowOrchestrator, "Triggers workflows", "Workflow execution")
+  Rel(eventProcessor, workflowOrchestrator, "Event-driven workflows", "Reactive execution")
+  
+  Rel(autonomicEngine, policyEngine, "Validates decisions", "Policy checking")
+  Rel(autonomicEngine, reasoningEngine, "Performs reasoning", "Inference queries")
+  Rel(autonomicEngine, alertManager, "Triggers alerts", "Alert generation")
+  
+  Rel(workflowOrchestrator, distributedCache, "Caches workflow state", "State persistence")
+  Rel(reasoningEngine, knowledgeBase, "Queries knowledge", "SPARQL")
+  Rel(policyEngine, knowledgeBase, "Validates against ontology", "SHACL validation")
+  
+  Rel(metricsCollector, auditLog, "Logs metrics", "Audit trail")
+  Rel(autonomicEngine, auditLog, "Logs decisions", "Decision trail")
+  Rel(daemon, configStore, "Loads configuration", "Config management")
+  
+  Rel(apiGateway, daemon, "Provides API access", "Internal API")
+  Rel(alertManager, monitoring, "Sends alerts", "Alert notifications")
+  Rel(metricsCollector, monitoring, "Exports metrics", "Telemetry data")
+  
+  Rel(gitWebhooks, eventProcessor, "Repository events", "Webhook payload")
+  Rel(cicdPipeline, apiGateway, "Pipeline integration", "API calls")
+  Rel(externalSystems, apiGateway, "System integration", "REST API")
+  
+  UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="1")
+```

@@ -77,7 +77,7 @@ class CircuitBreaker {
     this.requestCount++;
 
     if (this.state === 'OPEN') {
-      if (Date.now() - this.lastFailureTime >= this.resetTimeout) {
+      if (this.getDeterministicTimestamp() - this.lastFailureTime >= this.resetTimeout) {
         this.state = 'HALF_OPEN';
         this.successCount = 0;
       } else {
@@ -107,7 +107,7 @@ class CircuitBreaker {
 
   onFailure() {
     this.failureCount++;
-    this.lastFailureTime = Date.now();
+    this.lastFailureTime = this.getDeterministicTimestamp();
     
     if (this.failureCount >= this.failureThreshold) {
       this.state = 'OPEN';
@@ -234,13 +234,13 @@ class FallbackCompiler {
       if (!health) return true;
       
       // Recovery after 30 seconds
-      return Date.now() - health.lastFailure > 30000;
+      return this.getDeterministicTimestamp() - health.lastFailure > 30000;
     });
   }
 
   markUnhealthy(strategyName, error) {
     this.healthStatus.set(strategyName, {
-      lastFailure: Date.now(),
+      lastFailure: this.getDeterministicTimestamp(),
       error: error.message
     });
   }
@@ -590,7 +590,7 @@ describe('Error Recovery Validation', () => {
       let attemptCount = 0;
       mockEngine.setFailureMode('network', 200);
 
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
       try {
         await retryManager.execute(() => {
@@ -604,7 +604,7 @@ describe('Error Recovery Validation', () => {
         // Should succeed on 3rd attempt
       }
 
-      const endTime = Date.now();
+      const endTime = this.getDeterministicTimestamp();
       const totalTime = endTime - startTime;
 
       expect(attemptCount).toBe(3);
@@ -940,11 +940,11 @@ describe('Error Recovery Validation', () => {
 
     it('should maintain service availability during recovery', async () => {
       const serviceAvailability = [];
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
 
       // Simulate service with recovery
       const simulateService = async () => {
-        const elapsed = Date.now() - startTime;
+        const elapsed = this.getDeterministicTimestamp() - startTime;
         
         if (elapsed < 500) {
           // Initial failure period
@@ -959,19 +959,19 @@ describe('Error Recovery Validation', () => {
       };
 
       // Monitor service for 1.5 seconds
-      const monitoringEnd = Date.now() + 1500;
+      const monitoringEnd = this.getDeterministicTimestamp() + 1500;
       
-      while (Date.now() < monitoringEnd) {
+      while (this.getDeterministicTimestamp() < monitoringEnd) {
         try {
           const result = await simulateService();
           serviceAvailability.push({
-            timestamp: Date.now() - startTime,
+            timestamp: this.getDeterministicTimestamp() - startTime,
             status: 'available',
             mode: result.status
           });
         } catch (error) {
           serviceAvailability.push({
-            timestamp: Date.now() - startTime,
+            timestamp: this.getDeterministicTimestamp() - startTime,
             status: 'unavailable',
             error: error.message
           });

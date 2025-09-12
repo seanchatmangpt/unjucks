@@ -1,0 +1,58 @@
+# @title: Data Governance Rule  
+# @description: Validates data quality and governance compliance
+# @priority: high
+# @category: data-governance
+# @tags: data, quality, privacy, retention
+# @author: KGEN Dark-Matter Integration
+# @version: 1.0.0
+# @expectation: no-results
+# @created: 2024-09-12
+
+PREFIX kgen: <https://kgen.io/ontology#>
+PREFIX gov: <https://kgen.io/governance#>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+
+SELECT ?dataArtifact ?violation ?severity ?message
+WHERE {
+  # Find data artifacts with governance violations
+  ?dataArtifact a kgen:DataArtifact .
+  
+  {
+    # Missing schema validation
+    FILTER NOT EXISTS { ?dataArtifact gov:hasSchemaValidation ?schema }
+    BIND("Missing schema validation" AS ?violation)
+    BIND("HIGH" AS ?severity)
+    BIND("Data artifacts must have schema validation" AS ?message)
+  }
+  UNION
+  {
+    # Missing data retention policy
+    FILTER NOT EXISTS { ?dataArtifact gov:hasRetentionPolicy ?policy }
+    BIND("Missing retention policy" AS ?violation)
+    BIND("HIGH" AS ?severity)
+    BIND("Data artifacts must define retention policy" AS ?message)
+  }
+  UNION
+  {
+    # PII without protection
+    ?dataArtifact kgen:hasContent ?content .
+    FILTER(
+      REGEX(?content, "\\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}\\b") ||
+      REGEX(?content, "\\b\\d{3}-\\d{2}-\\d{4}\\b") ||
+      REGEX(?content, "\\b\\d{4}[\\s-]?\\d{4}[\\s-]?\\d{4}[\\s-]?\\d{4}\\b")
+    )
+    FILTER NOT EXISTS { ?dataArtifact gov:hasPIIProtection ?protection }
+    BIND("PII without protection" AS ?violation)
+    BIND("CRITICAL" AS ?severity)
+    BIND("Potential PII detected - implement data protection" AS ?message)
+  }
+  UNION
+  {
+    # Data quality score below threshold
+    ?dataArtifact gov:hasQualityScore ?score .
+    FILTER(?score < 0.8)
+    BIND("Low data quality score" AS ?violation)
+    BIND("MEDIUM" AS ?severity)
+    BIND(CONCAT("Data quality score ", STR(?score), " below 80% threshold") AS ?message)
+  }
+}

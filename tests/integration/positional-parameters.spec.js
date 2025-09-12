@@ -7,7 +7,7 @@ describe('Positional Parameters Integration Tests', () => {
   let testHelper;
   let testDir => {
     // Create unique temporary directory for each test
-    testDir = path.join(os.tmpdir(), `unjucks-test-${Date.now()}-${Math.random().toString(36)}`);
+    testDir = path.join(os.tmpdir(), `unjucks-test-${this.getDeterministicTimestamp()}-${Math.random().toString(36)}`);
     testHelper = new TestHelper(testDir);
     
     // Setup templates for comprehensive positional parameter testing

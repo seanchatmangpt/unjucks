@@ -102,7 +102,7 @@ class SarifConsolidator {
             properties: {
               ...run.tool?.driver?.properties,
               sourceFile: filePath,
-              processedAt: new Date().toISOString()
+              processedAt: this.getDeterministicDate().toISOString()
             }
           }
         }
@@ -300,7 +300,7 @@ class SarifConsolidator {
             version: "1.0.0",
             informationUri: "https://github.com/unjucks/unjucks",
             properties: {
-              consolidatedAt: new Date().toISOString(),
+              consolidatedAt: this.getDeterministicDate().toISOString(),
               totalRuns: this.consolidatedReport.runs.length,
               totalFindings: this.getTotalFindings(),
               severityBreakdown: this.getSeverityBreakdown(),

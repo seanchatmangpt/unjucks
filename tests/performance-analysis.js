@@ -26,7 +26,7 @@ class KGenPerformanceAnalyzer {
     await this.optimizer.initialize();
 
     const analysis = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       systemInfo: this._getSystemInfo(),
       bottlenecks: await this._identifyBottlenecks(),
       optimizations: await this._generateOptimizations(),

@@ -90,7 +90,7 @@ export class SelfHealingSystem extends EventEmitter {
     
     this.logger = consola.withTag('self-healing');
     this.isActive = false;
-    this.startTime = Date.now();
+    this.startTime = this.getDeterministicTimestamp();
     
     // Component managers
     this.errorClassifier = new ErrorClassifier();
@@ -230,7 +230,7 @@ export class SelfHealingSystem extends EventEmitter {
     const circuitBreaker = this._getCircuitBreaker(operationName);
     
     if (circuitBreaker.state === CircuitState.OPEN) {
-      const timeSinceOpened = Date.now() - circuitBreaker.lastFailure;
+      const timeSinceOpened = this.getDeterministicTimestamp() - circuitBreaker.lastFailure;
       
       if (timeSinceOpened < this.config.circuitBreakerTimeout) {
         throw new Error(`Circuit breaker open for operation: ${operationName}`);
@@ -255,7 +255,7 @@ export class SelfHealingSystem extends EventEmitter {
       
     } catch (error) {
       circuitBreaker.failures++;
-      circuitBreaker.lastFailure = Date.now();
+      circuitBreaker.lastFailure = this.getDeterministicTimestamp();
       
       if (circuitBreaker.failures >= this.config.circuitBreakerThreshold) {
         circuitBreaker.state = CircuitState.OPEN;
@@ -319,7 +319,7 @@ export class SelfHealingSystem extends EventEmitter {
    * Register operation for monitoring
    */
   registerOperation(operationId, operation) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     const timeout = setTimeout(() => {
       this._handleOperationTimeout(operationId);
     }, this.config.deadlockTimeout);
@@ -353,7 +353,7 @@ export class SelfHealingSystem extends EventEmitter {
     this.stats.healthChecksRun++;
     
     const healthReport = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       overall: 'healthy',
       components: {},
       issues: [],
@@ -369,7 +369,7 @@ export class SelfHealingSystem extends EventEmitter {
       
       // Check system metrics
       healthReport.metrics.memory = process.memoryUsage();
-      healthReport.metrics.uptime = Date.now() - this.startTime;
+      healthReport.metrics.uptime = this.getDeterministicTimestamp() - this.startTime;
       healthReport.metrics.activeOperations = this.activeOperations.size;
       healthReport.metrics.circuitBreakers = this.circuitBreakers.size;
       
@@ -407,7 +407,7 @@ export class SelfHealingSystem extends EventEmitter {
   getStatistics() {
     return {
       ...this.stats,
-      uptime: Date.now() - this.startTime,
+      uptime: this.getDeterministicTimestamp() - this.startTime,
       isActive: this.isActive,
       activeOperations: this.activeOperations.size,
       circuitBreakers: Array.from(this.circuitBreakers.entries()).map(([name, cb]) => ({
@@ -471,7 +471,7 @@ export class SelfHealingSystem extends EventEmitter {
   }
   
   async _executeRecovery(strategy, error, context) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       switch (strategy.type) {
@@ -496,7 +496,7 @@ export class SelfHealingSystem extends EventEmitter {
         success: false,
         strategy: strategy.type,
         error: recoveryError.message,
-        recoveryTime: Date.now() - startTime
+        recoveryTime: this.getDeterministicTimestamp() - startTime
       };
     }
   }
@@ -532,7 +532,7 @@ export class SelfHealingSystem extends EventEmitter {
   async _executeCircuitBreakRecovery(strategy, error, context) {
     const circuitBreaker = this._getCircuitBreaker(strategy.operationName);
     circuitBreaker.state = CircuitState.OPEN;
-    circuitBreaker.lastFailure = Date.now();
+    circuitBreaker.lastFailure = this.getDeterministicTimestamp();
     
     this.logger.info(`Circuit breaker opened for ${strategy.operationName}`);
     this.emit('circuit:opened', { operationName: strategy.operationName });
@@ -611,7 +611,7 @@ export class SelfHealingSystem extends EventEmitter {
   }
   
   _generateErrorId() {
-    return `err-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
+    return `err-${this.getDeterministicTimestamp()}-${Math.random().toString(36).substring(2, 8)}`;
   }
   
   async _sleep(ms) {
@@ -751,9 +751,9 @@ export class SelfHealingSystem extends EventEmitter {
   _handleOperationTimeout(operationId) {
     const operation = this.activeOperations.get(operationId);
     if (operation) {
-      this.logger.warn(`Operation ${operationId} timed out after ${Date.now() - operation.startTime}ms`);
+      this.logger.warn(`Operation ${operationId} timed out after ${this.getDeterministicTimestamp() - operation.startTime}ms`);
       this.unregisterOperation(operationId);
-      this.emit('operation:timeout', { operationId, duration: Date.now() - operation.startTime });
+      this.emit('operation:timeout', { operationId, duration: this.getDeterministicTimestamp() - operation.startTime });
     }
   }
 }
@@ -834,7 +834,7 @@ export class ErrorClassifier {
       isRetryable,
       isCircuitBreakable,
       message: error.message,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     };
   }
   
@@ -980,7 +980,7 @@ export class ResourceManager extends EventEmitter {
     const heapTotalMB = memUsage.heapTotal / 1024 / 1024;
     const usage = heapUsedMB / heapTotalMB;
     
-    this.memoryHistory.push({ timestamp: Date.now(), usage, heapUsedMB, heapTotalMB });
+    this.memoryHistory.push({ timestamp: this.getDeterministicTimestamp(), usage, heapUsedMB, heapTotalMB });
     
     // Keep only last 100 entries
     if (this.memoryHistory.length > 100) {
@@ -1035,7 +1035,7 @@ export class DeadlockDetector extends EventEmitter {
   
   checkForDeadlocks() {
     // Simple deadlock detection based on operation age
-    const now = Date.now();
+    const now = this.getDeterministicTimestamp();
     const suspiciousOps = [];
     
     for (const [opId, opData] of this.operationGraph) {
@@ -1047,7 +1047,7 @@ export class DeadlockDetector extends EventEmitter {
     if (suspiciousOps.length > 0) {
       this.emit('deadlock:detected', {
         suspiciousOperations: suspiciousOps,
-        timestamp: new Date().toISOString()
+        timestamp: this.getDeterministicDate().toISOString()
       });
     }
   }

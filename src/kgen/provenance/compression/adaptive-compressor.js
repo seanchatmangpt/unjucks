@@ -138,7 +138,7 @@ export class AdaptiveProvenanceCompressor extends EventEmitter {
     try {
       this.logger.info(`Compressing provenance data: ${provenanceData.operationId || 'unknown'}`);
       
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const compressionId = crypto.randomUUID();
       
       // Analyze content for optimal compression strategy
@@ -172,7 +172,7 @@ export class AdaptiveProvenanceCompressor extends EventEmitter {
         selectedAlgorithm
       );
       
-      const compressionTime = Date.now() - startTime;
+      const compressionTime = this.getDeterministicTimestamp() - startTime;
       
       // Calculate compression metrics
       const originalSize = JSON.stringify(provenanceData).length;
@@ -189,7 +189,7 @@ export class AdaptiveProvenanceCompressor extends EventEmitter {
         compressionTime,
         qualityScore: finalResult.qualityScore,
         contentAnalysis,
-        timestamp: new Date(),
+        timestamp: this.getDeterministicDate(),
         preservedSemantics: finalResult.preservedSemantics
       };
       
@@ -243,7 +243,7 @@ export class AdaptiveProvenanceCompressor extends EventEmitter {
     try {
       this.logger.info(`Decompressing provenance data: ${metadata.compressionId}`);
       
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
       // Check decompression cache
       const cacheKey = this._generateDecompressionCacheKey(compressedData, metadata);
@@ -280,7 +280,7 @@ export class AdaptiveProvenanceCompressor extends EventEmitter {
         metadata
       );
       
-      const decompressionTime = Date.now() - startTime;
+      const decompressionTime = this.getDeterministicTimestamp() - startTime;
       
       const result = {
         data: restoredData,
@@ -327,7 +327,7 @@ export class AdaptiveProvenanceCompressor extends EventEmitter {
     try {
       this.logger.info(`Batch compressing ${provenanceRecords.length} records`);
       
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const batchId = crypto.randomUUID();
       
       // Analyze batch for common patterns
@@ -352,7 +352,7 @@ export class AdaptiveProvenanceCompressor extends EventEmitter {
         batchMetadata: {
           totalOriginalSize: compressionResults.reduce((sum, r) => sum + r.metadata.originalSize, 0),
           totalCompressedSize: compressionResults.reduce((sum, r) => sum + r.metadata.compressedSize, 0),
-          batchCompressionTime: Date.now() - startTime,
+          batchCompressionTime: this.getDeterministicTimestamp() - startTime,
           averageCompressionRatio: compressionResults.reduce((sum, r) => sum + r.metadata.compressionRatio, 0) / compressionResults.length
         }
       };
@@ -674,9 +674,9 @@ export class AdaptiveProvenanceCompressor extends EventEmitter {
       throw new Error(`Compression engine not found: ${algorithm}`);
     }
     
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     const result = await engine.compress(data, options);
-    const compressionTime = Date.now() - startTime;
+    const compressionTime = this.getDeterministicTimestamp() - startTime;
     
     // Update algorithm metrics
     const metrics = this.algorithmMetrics.get(algorithm);
@@ -809,7 +809,7 @@ class StructuralCompressionEngine {
 
 class TemporalCompressionEngine {
   async initialize() {
-    this.timeBaseline = Date.now();
+    this.timeBaseline = this.getDeterministicTimestamp();
   }
   
   async compress(data, options) {

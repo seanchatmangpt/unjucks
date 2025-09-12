@@ -114,7 +114,7 @@ export class ParallelRDFProcessor extends EventEmitter {
         semanticHash: semanticHash, // Canonical semantic hash
         size: metadata.size,
         format: this._detectRDFFormat(filePath),
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         _semantic: {
           canonical: true,
           contentHash: semanticHash,
@@ -127,7 +127,7 @@ export class ParallelRDFProcessor extends EventEmitter {
         success: false,
         file: filePath,
         error: error.message,
-        timestamp: new Date().toISOString()
+        timestamp: this.getDeterministicDate().toISOString()
       };
     }
   }
@@ -154,7 +154,7 @@ export class ParallelRDFProcessor extends EventEmitter {
         objects: enhanced.objects,
         statistics: enhanced.statistics,
         index: enhanced.sampledIndex,
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         _semantic: enhanced.semanticMetadata
       };
       
@@ -163,7 +163,7 @@ export class ParallelRDFProcessor extends EventEmitter {
         success: false,
         file: filePath,
         error: error.message,
-        timestamp: new Date().toISOString()
+        timestamp: this.getDeterministicDate().toISOString()
       };
     }
   }
@@ -368,7 +368,7 @@ export class ParallelRDFProcessor extends EventEmitter {
         predicates: Array.from(predicates).slice(0, 10),
         objects: Array.from(objects).slice(0, 5)
       },
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     };
   }
   
@@ -382,7 +382,7 @@ export class ParallelRDFProcessor extends EventEmitter {
       objects: 0,
       size: fileStats.size,
       index: { subjects: [], predicates: [], objects: [] },
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     };
   }
   

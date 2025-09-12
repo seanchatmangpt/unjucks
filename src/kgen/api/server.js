@@ -113,12 +113,12 @@ export class APIServer extends EventEmitter {
     
     // Request metrics
     this.app.use((req, res, next) => {
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       this.metrics.requests++;
       this.metrics.activeConnections++;
       
       res.on('finish', () => {
-        const responseTime = Date.now() - startTime;
+        const responseTime = this.getDeterministicTimestamp() - startTime;
         this.metrics.responseTime.push(responseTime);
         this.metrics.activeConnections--;
         
@@ -144,7 +144,7 @@ export class APIServer extends EventEmitter {
     this.app.get('/health', (req, res) => {
       res.json({
         status: 'healthy',
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         uptime: process.uptime(),
         version: this.config.version || '2.0.8'
       });
@@ -324,7 +324,7 @@ export class APIServer extends EventEmitter {
           res.json({
             success: true,
             result,
-            executionTime: Date.now() // Would be calculated properly
+            executionTime: this.getDeterministicTimestamp() // Would be calculated properly
           });
         } catch (error) {
           next(error);
@@ -356,7 +356,7 @@ export class APIServer extends EventEmitter {
           res.json({
             success: true,
             result,
-            executionTime: Date.now()
+            executionTime: this.getDeterministicTimestamp()
           });
         } catch (error) {
           next(error);
@@ -497,7 +497,7 @@ export class APIServer extends EventEmitter {
       res.status(404).json({
         error: 'Not Found',
         message: `Route ${req.method} ${req.path} not found`,
-        timestamp: new Date().toISOString()
+        timestamp: this.getDeterministicDate().toISOString()
       });
     });
 
@@ -512,7 +512,7 @@ export class APIServer extends EventEmitter {
         error: error.name || 'Internal Server Error',
         message: error.message || 'An unexpected error occurred',
         ...(isDevelopment && { stack: error.stack }),
-        timestamp: new Date().toISOString()
+        timestamp: this.getDeterministicDate().toISOString()
       });
     });
   }

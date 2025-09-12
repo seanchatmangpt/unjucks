@@ -198,9 +198,9 @@ describe('E2E Integration Tests - Unjucks CLI Workflows', () => {
     });
 
     test('CLI startup time reasonable', () => {
-      const start = Date.now();
+      const start = this.getDeterministicTimestamp();
       runCLI('--version');
-      const duration = Date.now() - start;
+      const duration = this.getDeterministicTimestamp() - start;
       
       // Should start up in under 5 seconds
       expect(duration).toBeLessThan(5000);

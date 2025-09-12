@@ -62,7 +62,7 @@ describe('MCP-to-MCP Integration Validation', () => { beforeAll(async () => {
   });
 
   describe('Real MCP Communication', () => { it('should establish bidirectional MCP communication', async () => {
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
       // Test swarm MCP communication
       const swarmResponse = await sendSwarmMCPRequest({

@@ -32,7 +32,7 @@ export class GraphPartitioner {
    * Partition a knowledge graph using the specified strategy
    */
   async partitionGraph(graphData, strategy = 'subject-based', options = {}) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       if (this.config.debug) {
@@ -74,7 +74,7 @@ export class GraphPartitioner {
       // Post-process partitions for optimization
       partitions = await this.optimizePartitions(partitions, options);
       
-      const processingTime = Date.now() - startTime;
+      const processingTime = this.getDeterministicTimestamp() - startTime;
       
       // Update statistics
       this.updateStatistics({
@@ -102,7 +102,7 @@ export class GraphPartitioner {
       return {
         success: false,
         error: error.message,
-        processingTime: Date.now() - startTime
+        processingTime: this.getDeterministicTimestamp() - startTime
       };
     }
   }

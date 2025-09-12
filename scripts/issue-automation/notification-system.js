@@ -140,14 +140,14 @@ class NotificationSystem {
         results.channels[channel] = {
           success: true,
           result: channelResult,
-          timestamp: new Date().toISOString()
+          timestamp: this.getDeterministicDate().toISOString()
         };
       } catch (error) {
         results.success = false;
         results.channels[channel] = {
           success: false,
           error: error.message,
-          timestamp: new Date().toISOString()
+          timestamp: this.getDeterministicDate().toISOString()
         };
         results.errors.push(`${channel}: ${error.message}`);
       }
@@ -191,7 +191,7 @@ class NotificationSystem {
     return {
       type: 'github-issue',
       status: 'sent',
-      message_id: `issue-comment-${Date.now()}`
+      message_id: `issue-comment-${this.getDeterministicTimestamp()}`
     };
   }
 
@@ -205,7 +205,7 @@ class NotificationSystem {
     return {
       type: 'github-discussion',
       status: 'sent',
-      discussion_id: `discussion-${Date.now()}`
+      discussion_id: `discussion-${this.getDeterministicTimestamp()}`
     };
   }
 
@@ -216,7 +216,7 @@ class NotificationSystem {
     console.log(`📊 Action Summary notification: ${message.title}`);
     
     // Add to GitHub Actions job summary
-    const summary = `## ${message.title}\n\n${message.body}\n\n---\n*Automated notification sent at ${new Date().toISOString()}*`;
+    const summary = `## ${message.title}\n\n${message.body}\n\n---\n*Automated notification sent at ${this.getDeterministicDate().toISOString()}*`;
     
     try {
       execSync(`echo "${summary}" >> $GITHUB_STEP_SUMMARY`, { stdio: 'pipe' });
@@ -257,7 +257,7 @@ class NotificationSystem {
       title: this.generateNotificationTitle(plan),
       body: this.generateNotificationBody(plan),
       priority: plan.priority,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     };
 
     switch (channel) {
@@ -330,7 +330,7 @@ class NotificationSystem {
       body += `- Escalation threshold: ${plan.escalation_rules[0]?.escalation_threshold || 'Unknown'}\n\n`;
     }
     
-    body += `*Generated at: ${new Date().toISOString()}*`;
+    body += `*Generated at: ${this.getDeterministicDate().toISOString()}*`;
     
     return body;
   }
@@ -430,7 +430,7 @@ class NotificationSystem {
     return {
       issue_id: issueData.id,
       escalation_level: 1,
-      escalation_time: new Date().toISOString(),
+      escalation_time: this.getDeterministicDate().toISOString(),
       escalation_reason: 'Critical issue severity',
       immediate_actions: [
         'Send high-priority notifications',
@@ -480,9 +480,9 @@ class NotificationSystem {
     const trackingData = {
       ...escalationPlan,
       issue_data: issueData,
-      tracking_id: `escalation-${Date.now()}`,
+      tracking_id: `escalation-${this.getDeterministicTimestamp()}`,
       status: 'active',
-      created_at: new Date().toISOString()
+      created_at: this.getDeterministicDate().toISOString()
     };
     
     // Store escalation tracking data
@@ -533,7 +533,7 @@ class NotificationSystem {
    */
   async logNotificationResults(issueData, plan, results) {
     const logEntry = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       issue_id: issueData.id,
       notification_plan: plan,
       results: results,
@@ -541,7 +541,7 @@ class NotificationSystem {
       error_count: results.errors?.length || 0
     };
     
-    const logPath = `temp/notification-logs/${Date.now()}.json`;
+    const logPath = `temp/notification-logs/${this.getDeterministicTimestamp()}.json`;
     writeFileSync(logPath, JSON.stringify(logEntry, null, 2));
   }
 

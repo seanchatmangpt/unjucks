@@ -32,7 +32,7 @@ class ProductionValidator {
     };
     
     this.results = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       validationLevel: this.options.validationLevel,
       summary: {
         totalFiles: 0,

@@ -165,7 +165,7 @@ describe('Enterprise Governance Rules', () => {
         context: {
           targetResource: 'production_database',
           accessLevel: 'admin',
-          timeOfAccess: new Date().setHours(23) // 11 PM
+          timeOfAccess: this.getDeterministicDate().setHours(23) // 11 PM
         }
       };
       
@@ -297,7 +297,7 @@ describe('Enterprise Governance Rules', () => {
         operationType: 'disaster_recovery_test',
         user: dataOfficer,
         context: {
-          lastTestDate: new Date(Date.now() - 400 * 24 * 60 * 60 * 1000), // 400 days ago
+          lastTestDate: new Date(this.getDeterministicTimestamp() - 400 * 24 * 60 * 60 * 1000), // 400 days ago
           requiredFrequency: 'quarterly',
           backupVerified: true,
           recoveryTimeObjective: '2hours'
@@ -353,7 +353,7 @@ describe('Enterprise Governance Rules', () => {
         ruleId: 'test_rule',
         reason: 'maintenance',
         justification: 'Temporary override for system maintenance',
-        expiresAt: new Date(Date.now() + 60000) // 1 minute from now
+        expiresAt: new Date(this.getDeterministicTimestamp() + 60000) // 1 minute from now
       };
       
       const waiver = await securityFramework.governanceEngine.requestWaiver(tempWaiver);
@@ -412,8 +412,8 @@ describe('Enterprise Governance Rules', () => {
       });
       
       const timeframe = {
-        start: new Date(Date.now() - 24 * 60 * 60 * 1000),
-        end: new Date()
+        start: new Date(this.getDeterministicTimestamp() - 24 * 60 * 60 * 1000),
+        end: this.getDeterministicDate()
       };
       
       const report = await securityFramework.governanceEngine.generateGovernanceReport(timeframe);
@@ -498,8 +498,8 @@ describe('Enterprise Governance Rules', () => {
       
       // 3. Generate governance report
       const report = await securityFramework.governanceEngine.generateGovernanceReport({
-        start: new Date(Date.now() - 3600000),
-        end: new Date()
+        start: new Date(this.getDeterministicTimestamp() - 3600000),
+        end: this.getDeterministicDate()
       });
       
       expect(report.summary.violations).toBeGreaterThan(0);

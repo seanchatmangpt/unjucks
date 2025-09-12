@@ -1,0 +1,8031 @@
+# Timestamp Fix Report
+
+## Summary
+
+**Total Issues Found**: 9259
+**Issues Fixed**: 7936
+**Fix Success Rate**: 86%
+
+## Issue Breakdown
+
+- **Date.now() calls**: 4545
+- **new Date() calls**: 3261
+- **Timestamp strings**: 1323
+- **Lock file issues**: 130
+
+## Critical Issues
+
+- **kgen.lock.json:3** - Lock file contains non-deterministic timestamp
+
+## High Priority Issues
+
+- **.github/scripts/generate-matrix.js:411** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.github/scripts/monitoring/analyze-trends.js:40** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.github/scripts/monitoring/analyze-trends.js:43** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.github/scripts/monitoring/analyze-trends.js:44** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.github/scripts/monitoring/analyze-trends.js:76** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.github/scripts/monitoring/analyze-trends.js:270** - Date.now() call creates non-deterministic timestamp
+- **.github/scripts/monitoring/analyze-trends.js:276** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.github/scripts/monitoring/analyze-trends.js:384** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.github/scripts/monitoring/check-degradation.js:202** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.github/scripts/monitoring/check-degradation.js:241** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.github/scripts/monitoring/collect-metrics.js:44** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.github/scripts/monitoring/collect-metrics.js:46** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.github/scripts/monitoring/collect-metrics.js:50** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.github/scripts/monitoring/collect-metrics.js:287** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.github/scripts/monitoring/collect-metrics.js:302** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.github/scripts/monitoring/generate-dashboard.js:88** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.github/scripts/monitoring/generate-weekly-report.js:35** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.github/scripts/monitoring/generate-weekly-report.js:98** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.github/scripts/monitoring/generate-weekly-report.js:415** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.github/scripts/monitoring/generate-weekly-report.js:429** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.github/scripts/monitoring/send-slack-alert.js:105** - Date.now() call creates non-deterministic timestamp
+- **.github/scripts/monitoring/send-slack-alert.js:249** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.github/scripts/monitoring/send-slack-alert.js:254** - Date.now() call creates non-deterministic timestamp
+- **.github/scripts/monitoring/test-monitoring.js:114** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.github/scripts/monitoring/test-monitoring.js:142** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.github/scripts/monitoring/test-monitoring.js:199** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.github/scripts/observability/elk-logger.js:26** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.github/scripts/observability/elk-logger.js:26** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.github/scripts/observability/elk-logger.js:373** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.github/scripts/observability/grafana-dashboard-generator.js:1226** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.github/scripts/observability/intelligent-alerting.js:190** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.github/scripts/observability/intelligent-alerting.js:297** - Date.now() call creates non-deterministic timestamp
+- **.github/scripts/observability/intelligent-alerting.js:306** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.github/scripts/observability/intelligent-alerting.js:336** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.github/scripts/observability/otel-tracer.js:196** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.github/scripts/observability/otel-tracer.js:214** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.github/scripts/observability/otel-tracer.js:346** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.github/scripts/observability/prometheus-collector.js:76** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.github/scripts/observability/prometheus-collector.js:183** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.github/scripts/observability/prometheus-collector.js:256** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.github/scripts/observability/slo-calculator.js:47** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.github/scripts/observability/slo-calculator.js:75** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.github/scripts/observability/slo-calculator.js:93** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.github/scripts/observability/slo-calculator.js:114** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.github/scripts/observability/slo-calculator.js:150** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.github/scripts/observability/slo-calculator.js:168** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.github/scripts/observability/slo-calculator.js:202** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.github/scripts/observability/slo-calculator.js:220** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.github/scripts/observability/slo-calculator.js:248** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.github/scripts/observability/slo-calculator.js:325** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.github/scripts/observability/slo-calculator.js:331** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.github/scripts/observability/slo-calculator.js:419** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.lh/KGEN-PRD.md.json:22** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.lh/PRD.md.json:14** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.lh/src/commands/generate.ts.json:18** - Date.now() call creates non-deterministic timestamp
+- **.lh/src/commands/generate.ts.json:22** - Date.now() call creates non-deterministic timestamp
+- **.lh/src/commands/inject.ts.json:14** - Date.now() call creates non-deterministic timestamp
+- **.lh/src/commands/inject.ts.json:19** - Date.now() call creates non-deterministic timestamp
+- **.lh/src/commands/list.ts.json:14** - Date.now() call creates non-deterministic timestamp
+- **.lh/src/commands/list.ts.json:14** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.lh/src/commands/list.ts.json:14** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.lh/src/commands/list.ts.json:18** - Date.now() call creates non-deterministic timestamp
+- **.lh/src/commands/list.ts.json:18** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.lh/src/commands/list.ts.json:18** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.lh/src/commands/list.ts.json:18** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.lh/src/commands/list.ts.json:18** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.lh/src/lib/mcp-integration.ts.json:19** - Date.now() call creates non-deterministic timestamp
+- **.lh/src/lib/mcp-integration.ts.json:19** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.lh/src/lib/mcp-integration.ts.json:19** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.lh/src/lib/mcp-integration.ts.json:19** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.lh/src/lib/mcp-integration.ts.json:19** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.lh/src/lib/rdf-data-loader.ts.json:14** - Date.now() call creates non-deterministic timestamp
+- **.lh/src/lib/rdf-data-loader.ts.json:19** - Date.now() call creates non-deterministic timestamp
+- **.lh/src/lib/turtle-parser.ts.json:14** - Date.now() call creates non-deterministic timestamp
+- **.lh/src/lib/turtle-parser.ts.json:19** - Date.now() call creates non-deterministic timestamp
+- **.lh/src/lib/validation/ArgumentValidator.ts.json:14** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.lh/src/lib/validation/ArgumentValidator.ts.json:14** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.lh/src/lib/validation/ArgumentValidator.ts.json:14** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.lh/src/lib/validation/ArgumentValidator.ts.json:14** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.lh/src/lib/validation/ArgumentValidator.ts.json:14** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.lh/src/lib/validation/ArgumentValidator.ts.json:14** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.lh/src/lib/validation/ArgumentValidator.ts.json:14** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.lh/src/lib/validation/ArgumentValidator.ts.json:14** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.lh/src/lib/validation/ArgumentValidator.ts.json:14** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.lh/src/lib/validation/ArgumentValidator.ts.json:14** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.lh/src/lib/validation/ArgumentValidator.ts.json:14** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.lh/src/lib/validation/ArgumentValidator.ts.json:14** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.lh/src/lib/validation/ArgumentValidator.ts.json:14** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.lh/src/lib/validation/ArgumentValidator.ts.json:19** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.lh/src/lib/validation/ArgumentValidator.ts.json:19** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.lh/src/lib/validation/ArgumentValidator.ts.json:19** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.lh/src/lib/validation/ArgumentValidator.ts.json:19** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.lh/src/mcp/tools/unjucks-generate.ts.json:14** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.lh/src/mcp/tools/unjucks-generate.ts.json:14** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.lh/src/mcp/tools/unjucks-generate.ts.json:19** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.lh/tests/integration/fortune5-scenarios/doc-generation.test.ts.json:14** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.lh/tests/integration/fortune5-scenarios/doc-generation.test.ts.json:14** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.lh/tests/integration/fortune5-scenarios/doc-generation.test.ts.json:14** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.lh/tests/integration/fortune5-scenarios/doc-generation.test.ts.json:14** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.lh/tests/integration/fortune5-scenarios/doc-generation.test.ts.json:14** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.lh/tests/integration/fortune5-scenarios/doc-generation.test.ts.json:14** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.lh/tests/integration/fortune5-scenarios/doc-generation.test.ts.json:14** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.lh/tests/integration/fortune5-scenarios/doc-generation.test.ts.json:14** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.lh/tests/integration/fortune5-scenarios/doc-generation.test.ts.json:14** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.lh/tests/integration/fortune5-scenarios/doc-generation.test.ts.json:14** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.lh/tests/integration/fortune5-scenarios/doc-generation.test.ts.json:14** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.lh/tests/integration/fortune5-scenarios/doc-generation.test.ts.json:14** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.lh/tests/integration/fortune5-scenarios/doc-generation.test.ts.json:14** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.lh/tests/integration/fortune5-scenarios/doc-generation.test.ts.json:14** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.lh/tests/integration/fortune5-scenarios/doc-generation.test.ts.json:14** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.lh/tests/integration/fortune5-scenarios/doc-generation.test.ts.json:14** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.lh/tests/integration/fortune5-scenarios/doc-generation.test.ts.json:14** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.lh/tests/integration/fortune5-scenarios/doc-generation.test.ts.json:14** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.lh/tests/integration/fortune5-scenarios/doc-generation.test.ts.json:14** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.lh/tests/integration/fortune5-scenarios/doc-generation.test.ts.json:14** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.lh/tests/integration/fortune5-scenarios/doc-generation.test.ts.json:14** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.lh/tests/integration/fortune5-scenarios/doc-generation.test.ts.json:14** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.lh/tests/integration/fortune5-scenarios/doc-generation.test.ts.json:19** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.lh/tests/integration/fortune5-scenarios/doc-generation.test.ts.json:19** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.lh/tests/integration/fortune5-scenarios/doc-generation.test.ts.json:19** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.lh/tests/integration/fortune5-scenarios/doc-generation.test.ts.json:19** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.lh/tests/integration/fortune5-scenarios/doc-generation.test.ts.json:19** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.lh/tests/integration/fortune5-scenarios/doc-generation.test.ts.json:19** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.lh/tests/integration/fortune5-scenarios/doc-generation.test.ts.json:19** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.lh/tests/integration/fortune5-scenarios/doc-generation.test.ts.json:19** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.lh/tests/integration/fortune5-scenarios/doc-generation.test.ts.json:19** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.lh/tests/integration/fortune5-scenarios/doc-generation.test.ts.json:19** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.lh/tests/integration/fortune5-scenarios/doc-generation.test.ts.json:19** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.lh/tests/integration/fortune5-scenarios/doc-generation.test.ts.json:19** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **.lh/tests/security/attack-simulation.test.ts.json:14** - Date.now() call creates non-deterministic timestamp
+- **.lh/tests/security/attack-simulation.test.ts.json:19** - Date.now() call creates non-deterministic timestamp
+- **_templates/interview-simulator/api-route/{{ routeName | kebabCase }}.test.js:150** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **_templates/interview-simulator/api-route/{{ routeName | kebabCase }}.test.js:151** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **_templates/model/sequelize/prompt.js:61** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **_templates/test/api/{{routeName}}.test.js:283** - Date.now() call creates non-deterministic timestamp
+- **_templates/test/api/{{routeName}}.test.js:292** - Date.now() call creates non-deterministic timestamp
+- **_templates/test/e2e/{{featureName}}.spec.js:134** - Date.now() call creates non-deterministic timestamp
+- **_templates/test/e2e/{{featureName}}.spec.js:278** - Date.now() call creates non-deterministic timestamp
+- **_templates/test/e2e/{{featureName}}.spec.js:283** - Date.now() call creates non-deterministic timestamp
+- **advanced-demo/advanced-kgen-showcase.js:20** - Date.now() call creates non-deterministic timestamp
+- **advanced-demo/advanced-kgen-showcase.js:409** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **advanced-demo/advanced-kgen-showcase.js:423** - Date.now() call creates non-deterministic timestamp
+- **advanced-demo/advanced-kgen-showcase.js:449** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **advanced-demo/advanced-kgen-showcase.js:470** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **advanced-demo/advanced-kgen-showcase.js:498** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **advanced-demo/advanced-kgen-showcase.js:545** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **advanced-demo/advanced-kgen-showcase.js:555** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **advanced-demo/advanced-kgen-showcase.js:638** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **advanced-demo/advanced-kgen-showcase.js:693** - Date.now() call creates non-deterministic timestamp
+- **advanced-demo/compliance-validation-demo.js:206** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **advanced-demo/compliance-validation-demo.js:228** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **advanced-demo/compliance-validation-demo.js:243** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **advanced-demo/enterprise-audit-trail.js:51** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **advanced-demo/enterprise-audit-trail.js:82** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **advanced-demo/enterprise-audit-trail.js:125** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **advanced-demo/enterprise-audit-trail.js:170** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **advanced-demo/enterprise-audit-trail.js:173** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **advanced-demo/enterprise-audit-trail.js:220** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **advanced-demo/enterprise-audit-trail.js:223** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **advanced-demo/enterprise-audit-trail.js:279** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **advanced-demo/enterprise-audit-trail.js:288** - Date.now() call creates non-deterministic timestamp
+- **advanced-demo/enterprise-audit-trail.js:345** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **advanced-demo/enterprise-audit-trail.js:376** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **advanced-demo/enterprise-audit-trail.js:417** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **advanced-demo/enterprise-audit-trail.js:424** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **advanced-demo/enterprise-audit-trail.js:436** - Date.now() call creates non-deterministic timestamp
+- **advanced-demo/kgen-final-showcase.js:26** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **advanced-demo/kgen-final-showcase.js:212** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **bin/kgen-enhanced.mjs:156** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **bin/kgen-enhanced.mjs:182** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **bin/kgen-enhanced.mjs:208** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **bin/kgen-enhanced.mjs:241** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **bin/kgen-enhanced.mjs:252** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **bin/kgen-enhanced.mjs:278** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **bin/kgen-enhanced.mjs:289** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **bin/kgen-enhanced.mjs:313** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **bin/kgen-enhanced.mjs:324** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **bin/kgen-enhanced.mjs:384** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **bin/kgen-enhanced.mjs:450** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **bin/kgen-enhanced.mjs:481** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **bin/kgen-enhanced.mjs:512** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **bin/kgen-enhanced.mjs:532** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **bin/kgen-enhanced.mjs:542** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **bin/kgen-hybrid.mjs:142** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **bin/kgen-hybrid.mjs:231** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **bin/kgen-json.mjs:37** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **bin/kgen-json.mjs:59** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **bin/kgen-json.mjs:77** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **bin/kgen-json.mjs:1133** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **bin/kgen-standalone.mjs:269** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **bin/kgen-standalone.mjs:284** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **bin/kgen-standalone.mjs:303** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **bin/kgen-standalone.mjs:356** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **bin/kgen-standalone.mjs:375** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **bin/kgen-standalone.mjs:418** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **bin/kgen-standalone.mjs:429** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **bin/kgen-standalone.mjs:477** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **bin/kgen-standalone.mjs:487** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **bin/kgen-standalone.mjs:512** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **bin/kgen-standalone.mjs:563** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **bin/kgen-standalone.mjs:586** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **bin/kgen-standalone.mjs:820** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **bin/kgen-standalone.mjs:832** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **bin/kgen-standalone.mjs:885** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **bin/kgen.mjs:293** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **bin/kgen.mjs:420** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **bin/kgen.mjs:561** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **bin/kgen.mjs:576** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **bin/kgen.mjs:594** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **bin/kgen.mjs:951** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **bin/kgen.mjs:1008** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **bin/kgen.mjs:1019** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **bin/kgen.mjs:1135** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **bin/kgen.mjs:1194** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **bin/kgen.mjs:1206** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **bin/kgen.mjs:1258** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **bin/kgen.mjs:1287** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **bin/kgen.mjs:1353** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **bin/kgen.mjs:1397** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **bin/kgen.mjs:1408** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **bin/kgen.mjs:1440** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **bin/kgen.mjs:1452** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **bin/kgen.mjs:1489** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **bin/kgen.mjs:1500** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **bin/kgen.mjs:1532** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **bin/kgen.mjs:1544** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **bin/kgen.mjs:1616** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **bin/kgen.mjs:1633** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **bin/kgen.mjs:1684** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **bin/kgen.mjs:1701** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **bin/kgen.mjs:1737** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **bin/kgen.mjs:1749** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **bin/kgen.mjs:1793** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **bin/kgen.mjs:1805** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **bin/kgen.mjs:1833** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **bin/kgen.mjs:1844** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **bin/kgen.mjs:1931** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **bin/kgen.mjs:1969** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **bin/kgen.mjs:2010** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **bin/kgen.mjs:2053** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **bin/kgen.mjs:2090** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **bin/kgen.mjs:2117** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **bin/kgen.mjs:2140** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **bin/kgen.mjs:2189** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **bin/kgen.mjs:2234** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **bin/kgen.mjs:2331** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/ccpa/fixed-privacy-controller.js:5** - Date.now() call creates non-deterministic timestamp
+- **compliance/ccpa/fixed-privacy-controller.js:40** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/ccpa/fixed-privacy-controller.js:525** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/ccpa/privacy-controller.js:33** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/ccpa/privacy-controller.js:34** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/ccpa/privacy-controller.js:45** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/ccpa/privacy-controller.js:95** - Date.now() call creates non-deterministic timestamp
+- **compliance/ccpa/privacy-controller.js:138** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/ccpa/privacy-controller.js:151** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/ccpa/privacy-controller.js:161** - Date.now() call creates non-deterministic timestamp
+- **compliance/ccpa/privacy-controller.js:195** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/ccpa/privacy-controller.js:207** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/ccpa/privacy-controller.js:217** - Date.now() call creates non-deterministic timestamp
+- **compliance/ccpa/privacy-controller.js:227** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/ccpa/privacy-controller.js:236** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/ccpa/privacy-controller.js:246** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/ccpa/privacy-controller.js:256** - Date.now() call creates non-deterministic timestamp
+- **compliance/ccpa/privacy-controller.js:274** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/ccpa/privacy-controller.js:280** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/ccpa/privacy-controller.js:291** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/ccpa/privacy-controller.js:311** - Date.now() call creates non-deterministic timestamp
+- **compliance/ccpa/privacy-controller.js:319** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/ccpa/privacy-controller.js:331** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/ccpa/privacy-controller.js:349** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/ccpa/privacy-controller.js:442** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/ccpa/privacy-controller.js:493** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/ccpa/privacy-controller.js:523** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/ccpa/privacy-controller.js:557** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/dashboards/compliance-dashboard.js:186** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/dashboards/compliance-dashboard.js:270** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/dashboards/compliance-dashboard.js:279** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/dashboards/compliance-dashboard.js:288** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/dashboards/compliance-dashboard.js:359** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/dashboards/compliance-dashboard.js:535** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/dashboards/compliance-dashboard.js:548** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/dashboards/compliance-dashboard.js:549** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/dashboards/compliance-dashboard.js:569** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/dashboards/compliance-dashboard.js:626** - Date.now() call creates non-deterministic timestamp
+- **compliance/dashboards/compliance-dashboard.js:635** - Date.now() call creates non-deterministic timestamp
+- **compliance/dashboards/compliance-dashboard.js:668** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/dashboards/compliance-dashboard.js:704** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/dashboards/compliance-dashboard.js:730** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/dashboards/compliance-dashboard.js:782** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/gdpr/data-controller.js:33** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/gdpr/data-controller.js:40** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/gdpr/data-controller.js:50** - Date.now() call creates non-deterministic timestamp
+- **compliance/gdpr/data-controller.js:56** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/gdpr/data-controller.js:72** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/gdpr/data-controller.js:78** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/gdpr/data-controller.js:84** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/gdpr/data-controller.js:100** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/gdpr/data-controller.js:107** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/gdpr/data-controller.js:120** - Date.now() call creates non-deterministic timestamp
+- **compliance/gdpr/data-controller.js:143** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/gdpr/data-controller.js:153** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/gdpr/data-controller.js:163** - Date.now() call creates non-deterministic timestamp
+- **compliance/gdpr/data-controller.js:173** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/gdpr/data-controller.js:186** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/gdpr/data-controller.js:196** - Date.now() call creates non-deterministic timestamp
+- **compliance/gdpr/data-controller.js:220** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/gdpr/data-controller.js:233** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/gdpr/data-controller.js:255** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/gdpr/data-controller.js:364** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/gdpr/data-controller.js:374** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/gdpr/data-controller.js:397** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/index.js:153** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/index.js:177** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/index.js:210** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/index.js:464** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/index.js:544** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/reports/compliance-reporter.js:217** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/reports/compliance-reporter.js:236** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/reports/compliance-reporter.js:712** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/reports/compliance-reporter.js:736** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/reports/compliance-reporter.js:767** - Date.now() call creates non-deterministic timestamp
+- **compliance/reports/compliance-reporter.js:803** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/retention/data-retention-manager.js:168** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/retention/data-retention-manager.js:169** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/retention/data-retention-manager.js:194** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/retention/data-retention-manager.js:246** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/retention/data-retention-manager.js:254** - Date.now() call creates non-deterministic timestamp
+- **compliance/retention/data-retention-manager.js:264** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/retention/data-retention-manager.js:302** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/retention/data-retention-manager.js:333** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/retention/data-retention-manager.js:387** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/retention/data-retention-manager.js:416** - Date.now() call creates non-deterministic timestamp
+- **compliance/retention/data-retention-manager.js:422** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/retention/data-retention-manager.js:429** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/retention/data-retention-manager.js:468** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/retention/data-retention-manager.js:504** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/retention/data-retention-manager.js:548** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/retention/data-retention-manager.js:549** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/retention/data-retention-manager.js:596** - Date.now() call creates non-deterministic timestamp
+- **compliance/retention/data-retention-manager.js:601** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/retention/data-retention-manager.js:653** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/retention/data-retention-manager.js:675** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/retention/data-retention-manager.js:691** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/risk-assessment/compliance-risk-assessor.js:251** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/risk-assessment/compliance-risk-assessor.js:263** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/risk-assessment/compliance-risk-assessor.js:276** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/risk-assessment/compliance-risk-assessor.js:302** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/risk-assessment/compliance-risk-assessor.js:384** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/risk-assessment/compliance-risk-assessor.js:777** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/risk-assessment/compliance-risk-assessor.js:787** - Date.now() call creates non-deterministic timestamp
+- **compliance/risk-assessment/compliance-risk-assessor.js:890** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/risk-assessment/compliance-risk-assessor.js:900** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/risk-assessment/compliance-risk-assessor.js:910** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/scripts/compliance-automation.js:160** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/scripts/compliance-automation.js:225** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/scripts/compliance-automation.js:238** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/scripts/compliance-automation.js:244** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/scripts/compliance-automation.js:254** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/scripts/compliance-automation.js:255** - Date.now() call creates non-deterministic timestamp
+- **compliance/scripts/compliance-automation.js:282** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/scripts/compliance-automation.js:283** - Date.now() call creates non-deterministic timestamp
+- **compliance/scripts/compliance-automation.js:455** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/scripts/compliance-automation.js:498** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/scripts/compliance-automation.js:546** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/scripts/compliance-automation.js:582** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/scripts/compliance-automation.js:589** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/scripts/compliance-automation.js:616** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/scripts/compliance-automation.js:833** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/scripts/compliance-automation.js:839** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/scripts/compliance-automation.js:871** - Date.now() call creates non-deterministic timestamp
+- **compliance/soc2/controls-framework.js:124** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/soc2/controls-framework.js:125** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/soc2/controls-framework.js:142** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/soc2/controls-framework.js:144** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/soc2/controls-framework.js:153** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/soc2/controls-framework.js:166** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/soc2/controls-framework.js:190** - Date.now() call creates non-deterministic timestamp
+- **compliance/soc2/controls-framework.js:204** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/soc2/controls-framework.js:230** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/soc2/controls-framework.js:254** - Date.now() call creates non-deterministic timestamp
+- **compliance/soc2/controls-framework.js:266** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/soc2/controls-framework.js:269** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/soc2/controls-framework.js:279** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/soc2/controls-framework.js:289** - Date.now() call creates non-deterministic timestamp
+- **compliance/soc2/controls-framework.js:303** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/soc2/controls-framework.js:304** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/soc2/controls-framework.js:315** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/soc2/controls-framework.js:332** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/soc2/controls-framework.js:336** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/soc2/controls-framework.js:345** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/soc2/controls-framework.js:355** - Date.now() call creates non-deterministic timestamp
+- **compliance/soc2/controls-framework.js:365** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/soc2/controls-framework.js:379** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/soc2/controls-framework.js:389** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/soc2/controls-framework.js:418** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/soc2/controls-framework.js:460** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/soc2/controls-framework.js:595** - Date.now() call creates non-deterministic timestamp
+- **compliance/soc2/controls-framework.js:621** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **compliance/soc2/controls-framework.js:640** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **config/hot-reload/hot-reload-handler.js:394** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **config/manager/config-manager.js:138** - Date.now() call creates non-deterministic timestamp
+- **config/manager/config-manager.js:441** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **config/manager/secrets-manager.js:150** - Date.now() call creates non-deterministic timestamp
+- **config/manager/secrets-manager.js:168** - Date.now() call creates non-deterministic timestamp
+- **config/security/headers/security-headers.js:170** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **config/security/headers/security-headers.js:193** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **config/security/headers/security-headers.js:327** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **config/security/monitoring/security-scanner.js:142** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **config/security/monitoring/security-scanner.js:153** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **config/security/monitoring/security-scanner.js:177** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **config/security/monitoring/security-scanner.js:184** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **config/security/monitoring/security-scanner.js:201** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **config/security/monitoring/security-scanner.js:208** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **config/security/monitoring/security-scanner.js:268** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **config/security/monitoring/security-scanner.js:276** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **config/security/monitoring/security-scanner.js:293** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **config/security/monitoring/security-scanner.js:300** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **config/security/monitoring/security-scanner.js:333** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **config/security/monitoring/security-scanner.js:351** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **config/security/monitoring/security-scanner.js:395** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **config/security/monitoring/security-scanner.js:412** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **config/security/monitoring/security-scanner.js:419** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **config/security/monitoring/security-scanner.js:459** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **config/security/monitoring/security-scanner.js:466** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **config/security/monitoring/security-scanner.js:489** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **config/security/monitoring/security-scanner.js:696** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **config/security/monitoring/security-scanner.js:782** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **config/security/policies/rate-limiting.js:271** - Date.now() call creates non-deterministic timestamp
+- **config/security/policies/rate-limiting.js:376** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **config/security/policies/rate-limiting.js:417** - Date.now() call creates non-deterministic timestamp
+- **config/security/policies/rate-limiting.js:434** - Date.now() call creates non-deterministic timestamp
+- **config/security/policies/rate-limiting.js:486** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **config/security/policies/rate-limiting.js:532** - Date.now() call creates non-deterministic timestamp
+- **config/security/policies/rate-limiting.js:542** - Date.now() call creates non-deterministic timestamp
+- **config/security/policies/rate-limiting.js:605** - Date.now() call creates non-deterministic timestamp
+- **config/security/secrets/vault-manager.js:299** - Date.now() call creates non-deterministic timestamp
+- **config/security/secrets/vault-manager.js:329** - Date.now() call creates non-deterministic timestamp
+- **config/security/secrets/vault-manager.js:361** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **config/security/secrets/vault-manager.js:386** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **config/security/security-config.js:176** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **config/security/security-config.js:198** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **config/security/security-config.js:216** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **config/security/security-config.js:245** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **config/security/security-config.js:273** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **config/security/security-config.js:297** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **config/security/security-config.js:346** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **config/security/security-config.js:365** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **config/security/security-config.js:443** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **config/security/security-config.js:451** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **config/security/security-config.js:488** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **config/security/security-config.js:517** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **docker/database/mongo-init/01-init-test-db.js:184** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **docker/database/mongo-init/01-init-test-db.js:296** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **docker/health/healthcheck.js:29** - Date.now() call creates non-deterministic timestamp
+- **docker/health/healthcheck.js:32** - Date.now() call creates non-deterministic timestamp
+- **docker/health/healthcheck.js:61** - Date.now() call creates non-deterministic timestamp
+- **docker/health/healthcheck.js:382** - Date.now() call creates non-deterministic timestamp
+- **docker/health/healthcheck.js:388** - Date.now() call creates non-deterministic timestamp
+- **docker/health/healthcheck.js:414** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **docker/monitoring/metrics-collector.js:35** - Date.now() call creates non-deterministic timestamp
+- **docs/book/book/html/book.js:620** - Date.now() call creates non-deterministic timestamp
+- **docs/book/book/html/book.js:631** - Date.now() call creates non-deterministic timestamp
+- **docs/book/book/html/searchindex.js:1** - Date.now() call creates non-deterministic timestamp
+- **docs/book/book/html/searchindex.js:1** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **docs/book/book/html/searchindex.js:1** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **docs/book/book/html/searchindex.js:1** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **docs/book/book/html/searchindex.js:1** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **docs/book/book/html/searchindex.js:1** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **docs/book/book/html/searchindex.js:1** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **docs/book/book/html/searchindex.js:1** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **docs/book/book/html/searchindex.js:1** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **docs/book/book/html/searchindex.js:1** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **docs/book/book/html/searchindex.js:1** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **docs/book/book/html/searchindex.js:1** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **docs/book/book/html/searchindex.js:1** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **docs/book/book/html/searchindex.js:1** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **docs/book/book/html/searchindex.js:1** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **docs/book/book/html/searchindex.js:1** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **docs/book/book/html/searchindex.js:1** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **docs/book/book/html/searchindex.js:1** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **docs/book/book/html/searchindex.js:1** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **docs/book/book/html/searchindex.js:1** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **docs/book/book/html/searchindex.js:1** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **docs/book/book/html/searchindex.js:1** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **docs/book/book/html/searchindex.js:1** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **docs/book/book/html/searchindex.js:1** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **docs/book/book/html/searchindex.js:1** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **docs/book/book/html/searchindex.js:1** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **docs/book/book/html/searchindex.js:1** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **docs/book/book/html/searchindex.js:1** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **docs/book/book/html/searchindex.js:1** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **docs/book/book/html/searchindex.js:1** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **docs/book/book/html/searchindex.js:1** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **docs/book/examples/03-plugin-system-implementation.js:696** - Date.now() call creates non-deterministic timestamp
+- **docs/book/examples/03-plugin-system-implementation.js:735** - Date.now() call creates non-deterministic timestamp
+- **docs/book/examples/03-plugin-system-implementation.js:779** - Date.now() call creates non-deterministic timestamp
+- **docs/book/examples/03-plugin-system-implementation.js:956** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **docs/book/examples/03-plugin-system-implementation.js:1032** - Date.now() call creates non-deterministic timestamp
+- **docs/book/examples/04-ai-swarm-coordination.js:135** - Date.now() call creates non-deterministic timestamp
+- **docs/book/examples/04-ai-swarm-coordination.js:150** - Date.now() call creates non-deterministic timestamp
+- **docs/book/examples/04-ai-swarm-coordination.js:365** - Date.now() call creates non-deterministic timestamp
+- **docs/book/examples/04-ai-swarm-coordination.js:384** - Date.now() call creates non-deterministic timestamp
+- **docs/book/examples/04-ai-swarm-coordination.js:777** - Date.now() call creates non-deterministic timestamp
+- **docs/book/examples/04-ai-swarm-coordination.js:782** - Date.now() call creates non-deterministic timestamp
+- **docs/book/examples/04-ai-swarm-coordination.js:787** - Date.now() call creates non-deterministic timestamp
+- **docs/book/examples/06-performance-optimization.js:42** - Date.now() call creates non-deterministic timestamp
+- **docs/book/examples/06-performance-optimization.js:113** - Date.now() call creates non-deterministic timestamp
+- **docs/book/examples/06-performance-optimization.js:186** - Date.now() call creates non-deterministic timestamp
+- **docs/book/examples/06-performance-optimization.js:196** - Date.now() call creates non-deterministic timestamp
+- **docs/book/examples/06-performance-optimization.js:353** - Date.now() call creates non-deterministic timestamp
+- **docs/book/examples/06-performance-optimization.js:472** - Date.now() call creates non-deterministic timestamp
+- **docs/book/examples/06-performance-optimization.js:663** - Date.now() call creates non-deterministic timestamp
+- **docs/book/examples/06-performance-optimization.js:686** - Date.now() call creates non-deterministic timestamp
+- **docs/book/examples/06-performance-optimization.js:702** - Date.now() call creates non-deterministic timestamp
+- **docs/book/examples/06-performance-optimization.js:725** - Date.now() call creates non-deterministic timestamp
+- **docs/book/examples/06-performance-optimization.js:1079** - Date.now() call creates non-deterministic timestamp
+- **docs/book/examples/06-performance-optimization.js:1088** - Date.now() call creates non-deterministic timestamp
+- **docs/book/examples/06-performance-optimization.js:1103** - Date.now() call creates non-deterministic timestamp
+- **docs/book/examples/07-migration-scripts.js:38** - Date.now() call creates non-deterministic timestamp
+- **docs/book/examples/07-migration-scripts.js:91** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **docs/book/examples/07-migration-scripts.js:250** - Date.now() call creates non-deterministic timestamp
+- **docs/book/examples/07-migration-scripts.js:279** - Date.now() call creates non-deterministic timestamp
+- **docs/book/examples/07-migration-scripts.js:291** - Date.now() call creates non-deterministic timestamp
+- **docs/book/examples/07-migration-scripts.js:724** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **docs/book/examples/07-migration-scripts.js:1045** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **docs/book/examples/12-context-engineering-patterns.js:366** - Date.now() call creates non-deterministic timestamp
+- **docs/book/examples/12-context-engineering-patterns.js:374** - Date.now() call creates non-deterministic timestamp
+- **docs/book/examples/13-agent-context-management.js:61** - Date.now() call creates non-deterministic timestamp
+- **docs/book/examples/13-agent-context-management.js:81** - Date.now() call creates non-deterministic timestamp
+- **docs/book/examples/13-agent-context-management.js:210** - Date.now() call creates non-deterministic timestamp
+- **docs/book/examples/13-agent-context-management.js:225** - Date.now() call creates non-deterministic timestamp
+- **docs/book/examples/13-agent-context-management.js:448** - Date.now() call creates non-deterministic timestamp
+- **docs/book/examples/13-agent-context-management.js:482** - Date.now() call creates non-deterministic timestamp
+- **docs/book/examples/13-agent-context-management.js:522** - Date.now() call creates non-deterministic timestamp
+- **docs/book/examples/13-agent-context-management.js:644** - Date.now() call creates non-deterministic timestamp
+- **docs/book/examples/15-context-performance-monitoring.js:50** - Date.now() call creates non-deterministic timestamp
+- **docs/book/examples/15-context-performance-monitoring.js:74** - Date.now() call creates non-deterministic timestamp
+- **docs/book/examples/15-context-performance-monitoring.js:87** - Date.now() call creates non-deterministic timestamp
+- **docs/book/examples/15-context-performance-monitoring.js:131** - Date.now() call creates non-deterministic timestamp
+- **docs/book/examples/15-context-performance-monitoring.js:143** - Date.now() call creates non-deterministic timestamp
+- **docs/book/examples/15-context-performance-monitoring.js:164** - Date.now() call creates non-deterministic timestamp
+- **docs/book/examples/15-context-performance-monitoring.js:198** - Date.now() call creates non-deterministic timestamp
+- **docs/book/examples/15-context-performance-monitoring.js:229** - Date.now() call creates non-deterministic timestamp
+- **docs/book/examples/15-context-performance-monitoring.js:288** - Date.now() call creates non-deterministic timestamp
+- **docs/book/examples/15-context-performance-monitoring.js:386** - Date.now() call creates non-deterministic timestamp
+- **docs/book/examples/15-context-performance-monitoring.js:411** - Date.now() call creates non-deterministic timestamp
+- **docs/book/examples/15-context-performance-monitoring.js:435** - Date.now() call creates non-deterministic timestamp
+- **docs/book/examples/15-context-performance-monitoring.js:499** - Date.now() call creates non-deterministic timestamp
+- **docs/book/examples/15-context-performance-monitoring.js:512** - Date.now() call creates non-deterministic timestamp
+- **docs/book/examples/15-context-performance-monitoring.js:516** - Date.now() call creates non-deterministic timestamp
+- **docs/book/examples/15-context-performance-monitoring.js:531** - Date.now() call creates non-deterministic timestamp
+- **docs/book/examples/15-context-performance-monitoring.js:536** - Date.now() call creates non-deterministic timestamp
+- **docs/book/examples/15-context-performance-monitoring.js:564** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **docs/book/examples/15-context-performance-monitoring.js:567** - Date.now() call creates non-deterministic timestamp
+- **docs/book/examples/15-context-performance-monitoring.js:634** - Date.now() call creates non-deterministic timestamp
+- **docs/book/examples/15-context-performance-monitoring.js:642** - Date.now() call creates non-deterministic timestamp
+- **docs/book/examples/15-context-performance-monitoring.js:714** - Date.now() call creates non-deterministic timestamp
+- **docs/book/examples/15-context-performance-monitoring.js:774** - Date.now() call creates non-deterministic timestamp
+- **docs/book/examples/15-context-performance-monitoring.js:805** - Date.now() call creates non-deterministic timestamp
+- **docs/book/theme/custom.js:312** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **docs/book/theme/js/custom.js:372** - Date.now() call creates non-deterministic timestamp
+- **docs/book/theme/js/custom.js:380** - Date.now() call creates non-deterministic timestamp
+- **docs/book/theme/js/custom.js:387** - Date.now() call creates non-deterministic timestamp
+- **examples/document-data/technical-spec.json:422** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **examples/faker-test/examples/<%= name %>/fake-data-examples.js:210** - Date.now() call creates non-deterministic timestamp
+- **examples/office/word-processor-examples.js:35** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **examples/office/word-processor-examples.js:317** - Date.now() call creates non-deterministic timestamp
+- **examples/office/word-processor-examples.js:329** - Date.now() call creates non-deterministic timestamp
+- **examples/office/word-processor-examples.js:340** - Date.now() call creates non-deterministic timestamp
+- **examples/office/word-processor-examples.js:539** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **examples/office/word-processor-examples.js:542** - Date.now() call creates non-deterministic timestamp
+- **examples/office/word-processor-examples.js:557** - Date.now() call creates non-deterministic timestamp
+- **examples/powerpoint-examples.js:594** - Date.now() call creates non-deterministic timestamp
+- **examples/powerpoint-examples.js:600** - Date.now() call creates non-deterministic timestamp
+- **examples/test-document-generation.js:154** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **final-validation.js:324** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **infrastructure/serverless/aws-lambda/template-processor.js:137** - Date.now() call creates non-deterministic timestamp
+- **infrastructure/serverless/aws-lambda/template-processor.js:177** - Date.now() call creates non-deterministic timestamp
+- **infrastructure/serverless/aws-lambda/template-processor.js:188** - Date.now() call creates non-deterministic timestamp
+- **infrastructure/serverless/aws-lambda/template-processor.js:194** - Date.now() call creates non-deterministic timestamp
+- **infrastructure/serverless/aws-lambda/template-processor.js:204** - Date.now() call creates non-deterministic timestamp
+- **infrastructure/serverless/aws-lambda/template-processor.js:213** - Date.now() call creates non-deterministic timestamp
+- **infrastructure/serverless/aws-lambda/template-processor.js:225** - Date.now() call creates non-deterministic timestamp
+- **infrastructure/serverless/aws-lambda/template-processor.js:311** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **infrastructure/serverless/aws-lambda/template-processor.js:372** - Date.now() call creates non-deterministic timestamp
+- **infrastructure/serverless/aws-lambda/template-processor.js:525** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **infrastructure/serverless/aws-lambda/template-processor.js:540** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **infrastructure/serverless/aws-lambda/template-processor.js:576** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **infrastructure/serverless/aws-lambda/template-processor.js:623** - Date.now() call creates non-deterministic timestamp
+- **infrastructure/serverless/aws-lambda/template-processor.js:642** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **infrastructure/serverless/aws-lambda/template-processor.js:686** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **infrastructure/serverless/aws-lambda/template-processor.js:713** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **kgen.config.js:22** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **monitoring/alerting/alert-manager.js:1** - Date.now() call creates non-deterministic timestamp
+- **monitoring/alerting/alert-manager.js:1** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **monitoring/alerting/alert-manager.js:1** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **monitoring/alerting/alert-manager.js:1** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **monitoring/alerting/alert-manager.js:1** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **monitoring/alerting/alert-manager.js:1** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **monitoring/alerting/alert-manager.js:1** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **monitoring/alerting/alert-manager.js:1** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **monitoring/alerting/alert-manager.js:1** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **monitoring/alerting/alert-manager.js:1** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **monitoring/alerting/alert-manager.js:1** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **monitoring/alerting/alert-manager.js:1** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **monitoring/alerting/alert-manager.js:1** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **monitoring/alerting/alert-manager.js:1** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **monitoring/alerting/alert-manager.js:1** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **monitoring/alerting/alert-manager.js:1** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **monitoring/health-checks/health-monitor.js:1** - Date.now() call creates non-deterministic timestamp
+- **monitoring/health-checks/health-monitor.js:1** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **monitoring/health-checks/health-monitor.js:1** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **monitoring/health-checks/health-monitor.js:1** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **monitoring/index.js:1** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **monitoring/logging/structured-logger.js:63** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **monitoring/logging/structured-logger.js:174** - Date.now() call creates non-deterministic timestamp
+- **monitoring/logging/structured-logger.js:177** - Date.now() call creates non-deterministic timestamp
+- **monitoring/metrics-api/business-metrics.js:25** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **monitoring/metrics-api/business-metrics.js:86** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **monitoring/metrics-api/business-metrics.js:106** - Date.now() call creates non-deterministic timestamp
+- **monitoring/metrics-api/business-metrics.js:106** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **monitoring/metrics-api/business-metrics.js:106** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **monitoring/sli-slo/sli-slo-tracker.js:1** - Date.now() call creates non-deterministic timestamp
+- **monitoring/sli-slo/sli-slo-tracker.js:1** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **monitoring/sli-slo/sli-slo-tracker.js:1** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **monitoring/sli-slo/sli-slo-tracker.js:1** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **monitoring/sli-slo/sli-slo-tracker.js:1** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **monitoring/sli-slo/sli-slo-tracker.js:1** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **monitoring/sli-slo/sli-slo-tracker.js:1** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **monitoring/sli-slo/sli-slo-tracker.js:1** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **monitoring/sli-slo/sli-slo-tracker.js:1** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **monitoring/sli-slo/sli-slo-tracker.js:1** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **monitoring/tracing/distributed-tracer.js:145** - Date.now() call creates non-deterministic timestamp
+- **monitoring/tracing/distributed-tracer.js:153** - Date.now() call creates non-deterministic timestamp
+- **monitoring/tracing/distributed-tracer.js:174** - Date.now() call creates non-deterministic timestamp
+- **monitoring/tracing/distributed-tracer.js:213** - Date.now() call creates non-deterministic timestamp
+- **monitoring/tracing/distributed-tracer.js:236** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/src/cli.js:17** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/artifact/drift-detect.js:79** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/artifact/drift-detect.js:134** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/artifact/drift-detect.js:135** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/artifact/drift-detect.js:305** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/artifact/drift-detect.js:416** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/artifact/drift-detect.js:422** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/artifact/drift.js:59** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/artifact/drift.js:130** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/artifact/drift.js:332** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/artifact/drift.js:403** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/artifact/drift.js:408** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/artifact/explain.js:46** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/artifact/explain.js:217** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/artifact/generate.js:185** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/artifact/generate.js:293** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/artifact/generate.js:420** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/artifact/index.js:57** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/artifact/semantic-drift.js:104** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/artifact/semantic-drift.js:125** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/artifact/semantic-drift.js:159** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/artifact/semantic-drift.js:165** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/artifact-explain.js:87** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/artifact-explain.js:92** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/cache/gc.js:52** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/cache/gc.js:107** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/cache/index.js:36** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/cache/ls.js:64** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/cache/ls.js:110** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/cache/ls.js:111** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/cache/ls.js:196** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/cache/purge.js:60** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/cache/purge.js:111** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/cache/purge.js:195** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/cache/show.js:65** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/cache/show.js:141** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/cache/stats.js:39** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/cache.js:36** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/deterministic/generate.js:63** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/deterministic/generate.js:124** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/deterministic/generate.js:140** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/deterministic/generate.js:158** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/deterministic/generate.js:172** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/deterministic/render.js:58** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/deterministic/render.js:107** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/deterministic/render.js:149** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/deterministic/status.js:59** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/deterministic/status.js:102** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/deterministic/status.js:104** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/deterministic/status.js:124** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/deterministic/status.js:578** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/deterministic/status.js:586** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/deterministic/status.js:601** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/deterministic/status.js:611** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/deterministic/status.js:626** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/deterministic/status.js:637** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/deterministic/status.js:656** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/deterministic/validate.js:63** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/deterministic/validate.js:104** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/deterministic/validate.js:114** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/deterministic/validate.js:140** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/deterministic/validate.js:216** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/deterministic/validate.js:316** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/deterministic/verify.js:74** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/deterministic/verify.js:83** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/deterministic/verify.js:135** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/deterministic/verify.js:169** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/deterministic/verify.js:224** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/deterministic/verify.js:251** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/deterministic/verify.js:261** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/deterministic/verify.js:471** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/deterministic.js:69** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/drift/baseline.js:78** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/drift/ci-helper.js:203** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/drift/ci-helper.js:1258** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/drift/citty-index.js:75** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/drift/citty-index.js:130** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/drift/citty-index.js:199** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/drift/detect.js:62** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/drift/index.js:131** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/drift/index.js:179** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/drift/index.js:232** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/drift/index.js:306** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/drift/report.js:17** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/drift/report.js:386** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/graph/diff-new.js:104** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/graph/diff.js:115** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/graph/hash.js:123** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/graph/hash.js:180** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/graph/index-cmd.js:54** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/graph/index-cmd.js:164** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/graph/index-cmd.js:188** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/graph/index.js:43** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/lint.js:95** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/lint.js:166** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/lint.js:348** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/metrics/baseline.js:77** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/metrics/baseline.js:88** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/metrics/baseline.js:134** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/metrics/baseline.js:271** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/metrics/baseline.js:281** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/metrics/baseline.js:299** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/metrics/baseline.js:373** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/metrics/baseline.js:383** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/metrics/baseline.js:401** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/metrics/baseline.js:446** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/metrics/baseline.js:480** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/metrics/baseline.js:484** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/metrics/export.js:59** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/metrics/export.js:103** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/metrics/export.js:136** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/metrics/export.js:192** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/metrics/export.js:302** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/metrics/index.js:30** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/metrics/report.js:66** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/metrics/report.js:174** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/metrics/report.js:181** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/project/attest.js:82** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/project/attest.js:151** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/project/attest.js:165** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/project/attest.js:193** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/project/attest.js:238** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/project/attest.js:252** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/project/attest.js:261** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/project/attest.js:267** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/project/lock.js:58** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/project/lock.js:69** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/project/lock.js:174** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/project/verify.js:41** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/project/verify.js:59** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/project/verify.js:104** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/provenance/supply-chain.js:862** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/provenance/supply-chain.js:922** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/provenance/supply-chain.js:1012** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/provenance/supply-chain.js:1094** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/query/index.js:27** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/query/sparql.js:120** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/query/sparql.js:224** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/query.js:27** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/rules/index.js:40** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/rules/ls.js:64** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/rules/ls.js:188** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/rules/show.js:55** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/rules/show.js:111** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/rules.js:72** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/templates/index.js:52** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/templates/ls.js:64** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/templates/ls.js:183** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/templates/show-enhanced.js:88** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/templates/show-enhanced.js:197** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/templates/show.js:56** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/templates/show.js:109** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/templates/validate.js:67** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/templates/validate.js:204** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/templates.js:89** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/templates.js:101** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/validate/artifacts.js:22** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/validate/citty-index.js:66** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/validate/citty-index.js:114** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/validate/citty-index.js:156** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/validate/citty-index.js:203** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/validate/citty-index.js:252** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/validate/config.js:548** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/validate/graph.js:373** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/validate/index.js:35** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/validate/index.js:57** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/validate/index.js:83** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/validate/provenance.js:244** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-cli/src/commands/validate/templates.js:640** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-cli/src/index-updated.js:122** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-cli/src/index.js:113** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-cli/src/lib/output.js:22** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-cli/src/lib/output.js:42** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-cli/src/lib/output.js:105** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-cli/src/lib/output.js:123** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-cli/src/lib/template-linter.js:160** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/src/lib/template-linter.js:172** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/src/lib/template-linter.js:214** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/src/lib/template-linter.js:240** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/src/lib/template-linter.js:247** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/src/lib/utils.js:181** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-cli/src/lib/utils.js:296** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-cli/src/lib/validation-integration.js:133** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/src/lib/validation-integration.js:179** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/src/utils/output.js:33** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-cli/src/utils/output.js:52** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-cli/src/utils/output.js:69** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-cli/src/utils/output.js:83** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-cli/src/utils/output.js:144** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-cli/src/utils/output.js:165** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-cli/test/cli-integration.test.js:14** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/test/setup/cli-setup.js:253** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/test/setup/cli-setup.js:256** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/test/setup/cli-setup.js:293** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-cli/test/setup/cli-setup.js:294** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-cli/test-cli-structure.js:32** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-cli/test-cli-structure.js:61** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/analysis/performance-validation.js:214** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/artifacts/document-generator.js:196** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/artifacts/document-generator.js:250** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/artifacts/document-generator.js:251** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/artifacts/document-generator.js:286** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/artifacts/document-generator.js:287** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/artifacts/generator.js:578** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/attestation/generator.js:111** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/attestation/generator.js:248** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/attestation/generator.js:379** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/attestation/generator.js:427** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/attestation/generator.js:446** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/attestation/generator.js:542** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/attestation/verifier.js:36** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/attestation/verifier.js:46** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/attestation/verifier.js:67** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/attestation/verifier.js:73** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/attestation/verifier.js:86** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/attestation/verifier.js:98** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/attestation/verifier.js:121** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/attestation/verifier.js:131** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/audit/immutable-trail.js:104** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/audit/immutable-trail.js:260** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/audit/immutable-trail.js:265** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/audit/immutable-trail.js:318** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/audit/immutable-trail.js:319** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/audit/immutable-trail.js:341** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/audit/immutable-trail.js:342** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/audit/immutable-trail.js:361** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/audit/immutable-trail.js:482** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/audit/immutable-trail.js:514** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/audit/immutable-trail.js:605** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/audit/immutable-trail.js:687** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/audit/immutable-trail.js:704** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/cache/content-addressable-cache.js:61** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/cache/content-addressable-cache.js:121** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/cache/content-addressable-cache.js:138** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/cache/content-addressable-cache.js:230** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/cache/content-addressable-cache.js:285** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/cache/content-addressable-cache.js:572** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/cache/content-addressable-cache.js:644** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/cache/content-addressable-cache.js:662** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/cache/content-addressable-cache.js:681** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/cache/content-addressable-cache.js:837** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/cache/content-addressable-cache.js:1303** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/cache/content-addressable-cache.js:1317** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/cache/garbage-collector.js:105** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/cache/garbage-collector.js:188** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/cache/garbage-collector.js:204** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/cache/garbage-collector.js:248** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/cache/garbage-collector.js:331** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/cache/garbage-collector.js:341** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/cache/garbage-collector.js:342** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/cache/garbage-collector.js:369** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/cache/garbage-collector.js:393** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/cache/garbage-collector.js:436** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/cache/garbage-collector.js:530** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/cache/garbage-collector.js:594** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/cache/garbage-collector.js:595** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/cache/garbage-collector.js:625** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/cache/garbage-collector.js:626** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/cache/garbage-collector.js:637** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/cache/garbage-collector.js:789** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/cache/garbage-collector.js:839** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/cache/gc.js:94** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/cache/gc.js:111** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/cache/gc.js:125** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/cache/gc.js:172** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/cache/gc.js:214** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/cache/gc.js:255** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/cache/gc.js:276** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/cache/gc.js:369** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/cache/index.js:84** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/cache/index.js:85** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/cache/index.js:109** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/cache/index.js:139** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/cli/sparql-command.js:94** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/cli/sparql-command.js:102** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/commands/artifact.js:555** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/compiler/integration/semantic-processor-bridge.js:103** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/compiler/integration/semantic-processor-bridge.js:134** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/compiler/integration/semantic-processor-bridge.js:166** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/compiler/integration/semantic-processor-bridge.js:283** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/compiler/knowledge-compiler-minimal.js:61** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/compiler/knowledge-compiler-minimal.js:92** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/compiler/knowledge-compiler-minimal.js:355** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/compiler/knowledge-compiler-v2.js:109** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/compiler/knowledge-compiler-v2.js:147** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/compiler/knowledge-compiler-v2.js:450** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/compiler/knowledge-compiler.js:61** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/compiler/knowledge-compiler.js:92** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/compiler/knowledge-compiler.js:355** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/config/defaults.js:66** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/config/examples/index.js:59** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/config/examples/index.js:170** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/config/kgen.config.js:58** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/config/kgen.config.js:61** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/config/loader.js:147** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/documents/document-attestation.js:175** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/documents/document-attestation.js:302** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/documents/document-attestation.js:342** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/documents/document-attestation.js:392** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/documents/document-attestation.js:470** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/documents/document-attestation.js:501** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/documents/document-attestation.js:547** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/documents/document-attestation.js:587** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/documents/document-attestation.js:600** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/documents/document-attestation.js:611** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/documents/document-engine.js:486** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/documents/document-engine.js:522** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/documents/document-engine.js:611** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/documents/index.js:201** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/documents/integration-example.js:104** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/documents/semantic-injector.js:379** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/documents/semantic-injector.js:599** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/documents/semantic-injector.js:625** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/drift/cli.js:656** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/drift/detector.js:128** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/drift/detector.js:205** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/drift/detector.js:244** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/drift/detector.js:283** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/drift/detector.js:640** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/drift/detector.js:692** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/drift/integration-example.js:345** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/drift/integration-example.js:351** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/drift/integration-example.js:355** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/git/git-operations.js:309** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/git/git-operations.js:359** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/git/git-operations.js:384** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/git/git-operations.js:557** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/git/git-provenance.js:117** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/git/git-provenance.js:122** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/git/git-provenance.js:263** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/git/git-provenance.js:327** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/git/index.js:78** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/graph/diff-analyzer.js:40** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/graph/diff-analyzer.js:67** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/graph/hash-calculator.js:39** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/graph/hash-calculator.js:58** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/graph/hash-calculator.js:93** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/graph/hash-calculator.js:106** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/graph/hash-calculator.js:226** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/graph/impact-calculator.js:50** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/graph/impact-calculator.js:91** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/graph/impact-calculator.js:115** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/graph/impact-calculator.js:297** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/graph/index-builder.js:42** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/graph/index-builder.js:70** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/graph/index-builder.js:78** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/graph/index-builder.js:162** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/integration/artifact-sparql-integration.js:76** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/integration/artifact-sparql-integration.js:122** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/integration/artifact-sparql-integration.js:326** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/integration/artifact-sparql-integration.js:457** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/integration/provenance-engine.js:164** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/integration/provenance-engine.js:281** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/integration/provenance-engine.js:338** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/integration/provenance-engine.js:461** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/kgen/core/engine.js:129** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/kgen/core/engine.js:273** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/kgen/core/engine.js:450** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/kgen/core/engine.js:502** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/kgen/core/engine.js:702** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/kgen/core/engine.js:705** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/kgen/core/simple-engine.js:109** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/kgen/core/simple-engine.js:241** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/kgen/core/simple-engine.js:266** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/kgen/core/simple-engine.js:374** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/kgen/core/simple-engine.js:423** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/kgen/core/simple-engine.js:508** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/kgen/core/simple-engine.js:511** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/latex/compiler.js:261** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/latex/compiler.js:296** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/latex/compiler.js:387** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/latex/compiler.js:720** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/latex/index.js:156** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/latex/index.js:239** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/latex/parser.js:962** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/latex/renderers/nunjucks.js:377** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/latex/renderers/nunjucks.js:378** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/latex/renderers/nunjucks.js:382** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/latex/renderers/nunjucks.js:410** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/latex/renderers/nunjucks.js:437** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/latex/renderers/nunjucks.js:438** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/latex/renderers/nunjucks.js:442** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/latex/renderers/nunjucks.js:464** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/latex/selector.js:303** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/latex/validator.js:335** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/latex/validator.js:361** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/latex/validator.js:405** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/latex/validators/syntax.js:711** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/latex/workflows/academic.js:184** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/latex/workflows/academic.js:358** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/latex/workflows/academic.js:506** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/latex/workflows/academic.js:609** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/lib/cache/content-addressed-cache.js:34** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/lib/cache/content-addressed-cache.js:97** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/lib/cache/content-addressed-cache.js:142** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/lib/cache/content-addressed-cache.js:161** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/lib/cache/content-addressed-cache.js:240** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/lib/cache/content-addressed-cache.js:259** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/lib/index.js:188** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/lib/index.js:302** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/lib/index.js:328** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/lib/index.js:438** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/lib/index.js:459** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/lib/optimization/graph-optimizer.js:119** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/lib/optimization/graph-optimizer.js:146** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/lib/optimization/graph-optimizer.js:170** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/lib/optimization/graph-optimizer.js:202** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/lib/optimization/graph-optimizer.js:230** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/lib/optimization/graph-optimizer.js:255** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/lib/optimization/graph-optimizer.js:360** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/lib/optimization/graph-optimizer.js:381** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/lib/optimization/graph-optimizer.js:385** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/lib/optimization/graph-optimizer.js:394** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/lib/optimization/graph-optimizer.js:401** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/lib/optimization/graph-optimizer.js:405** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/lib/optimization/incremental-generator.js:155** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/lib/optimization/incremental-generator.js:178** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/lib/optimization/incremental-generator.js:180** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/lib/optimization/incremental-generator.js:187** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/lib/optimization/incremental-generator.js:213** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/lib/optimization/incremental-generator.js:219** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/lib/performance/metrics-collector.js:173** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/lib/performance/metrics-collector.js:242** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/lib/performance/metrics-collector.js:264** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/lib/performance/metrics-collector.js:282** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/lib/performance/metrics-collector.js:308** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/lib/performance/metrics-collector.js:388** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/lib/performance/parallel-renderer.js:96** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/lib/performance/parallel-renderer.js:129** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/lib/performance/parallel-renderer.js:223** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/lib/performance/parallel-renderer.js:294** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/lib/performance/parallel-renderer.js:303** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/lib/performance/parallel-renderer.js:357** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/lib/performance/parallel-renderer.js:365** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/lib/performance/parallel-renderer.js:380** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/lib/performance/parallel-renderer.js:388** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/lib/performance/parallel-renderer.js:391** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/lib/performance/parallel-renderer.js:399** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/lib/performance/parallel-renderer.js:433** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/lib/performance/parallel-renderer.js:467** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/lib/performance/parallel-renderer.js:471** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/lib/performance/parallel-renderer.js:548** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/lib/performance/parallel-renderer.js:562** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/lib/streaming/memory-efficient-streaming.js:75** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/lib/streaming/memory-efficient-streaming.js:130** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/lib/streaming/memory-efficient-streaming.js:160** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/lib/streaming/memory-efficient-streaming.js:202** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/lib/streaming/memory-efficient-streaming.js:232** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/lib/streaming/memory-efficient-streaming.js:265** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/lib/streaming/memory-efficient-streaming.js:401** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/lib/streaming/memory-efficient-streaming.js:422** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/lib/streaming/memory-efficient-streaming.js:427** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/metrics/export-formatter.js:144** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/metrics/export-formatter.js:170** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/metrics/export-formatter.js:206** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/metrics/export-formatter.js:231** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/metrics/export-formatter.js:263** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/metrics/export-formatter.js:298** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/metrics/export-formatter.js:315** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/metrics/export-formatter.js:382** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/metrics/export-formatter.js:405** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/metrics/export-formatter.js:428** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/metrics/export-formatter.js:504** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/metrics/export-formatter.js:584** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/metrics/export-formatter.js:598** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/metrics/export-formatter.js:620** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/metrics/export-formatter.js:625** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/metrics/export-formatter.js:687** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/metrics/export-formatter.js:750** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/metrics/export-formatter.js:794** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/metrics/export-formatter.js:826** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/metrics/export-formatter.js:838** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/metrics/export-formatter.js:901** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/metrics/export-formatter.js:1049** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/metrics/performance-tracker.js:105** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/metrics/performance-tracker.js:162** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/metrics/performance-tracker.js:179** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/metrics/performance-tracker.js:215** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/metrics/performance-tracker.js:221** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/metrics/performance-tracker.js:301** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/metrics/performance-tracker.js:447** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/metrics/performance-tracker.js:510** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/metrics/performance-tracker.js:620** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/metrics/performance-tracker.js:694** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/metrics/performance-tracker.js:731** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/metrics/performance-tracker.js:772** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/metrics/performance-tracker.js:782** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/metrics/performance-tracker.js:828** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/metrics/performance-tracker.js:904** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/metrics/performance-tracker.js:909** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/metrics/performance-tracker.js:917** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/metrics/performance-tracker.js:926** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/metrics/performance-tracker.js:930** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/metrics/performance-tracker.js:938** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/metrics/performance-tracker.js:964** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/metrics/performance-tracker.js:1085** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/office/core/base-processor.js:62** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/office/core/base-processor.js:389** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/office/core/base-processor.js:401** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/office/deterministic-processor.js:81** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/office/deterministic-processor.js:108** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/office/deterministic-processor.js:120** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/office/deterministic-processor.js:173** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/office/deterministic-processor.js:202** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/office/deterministic-processor.js:216** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/office/deterministic-processor.js:222** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/office/deterministic-processor.js:276** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/office/deterministic-processor.js:286** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/office/deterministic-processor.js:327** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/office/deterministic-processor.js:387** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/office/deterministic-processor.js:405** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/office/deterministic-processor.js:437** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/office/deterministic-processor.js:466** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/office/excel-processor.js:798** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/office/index.js:97** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/office/injectors/office-injector.js:265** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/office/injectors/office-injector.js:266** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/office/integrated-office-processor.js:85** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/office/integrated-office-processor.js:112** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/office/integrated-office-processor.js:179** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/office/integration/cas-integration.js:138** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/office/integration/cas-integration.js:177** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/office/integration/cas-integration.js:259** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/office/integration/cas-integration.js:433** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/office/integration/git-integration.js:82** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/office/integration/git-integration.js:145** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/office/integration/git-integration.js:169** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/office/integration/git-integration.js:178** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/office/integration/git-integration.js:357** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/office/latex-office-processor.js:227** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/office/latex-office-processor.js:228** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/office/latex-office-processor.js:628** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/office/latex-office-processor.js:707** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/office/latex-office-processor.js:709** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/office/normalization/template-linter.js:85** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/office/powerpoint-processor.js:200** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/office/powerpoint-processor.js:237** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/office/powerpoint-processor.js:481** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/office/powerpoint-processor.js:1125** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/office/powerpoint-processor.js:1303** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/office/powerpoint-processor.js:1345** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/office/processors/excel-processor.js:373** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/office/processors/excel-processor.js:374** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/office/processors/latex-beamer-processor.js:459** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/office/processors/latex-table-processor.js:402** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/office/processors/powerpoint-processor.js:354** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/office/processors/powerpoint-processor.js:355** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/office/processors/word-processor.js:457** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/office/utils/logger.js:47** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/office/utils/logger.js:149** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/office/utils/logger.js:153** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/office/utils/logger.js:259** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/office/utils/logger.js:263** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/office/word-processor.js:222** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/office/word-processor.js:273** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/office/word-processor.js:799** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/office/word-processor.js:853** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/office/word-processor.js:862** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/office/word-processor.js:872** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/project/attestation-bundler.js:56** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/project/attestation-bundler.js:61** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/project/attestation-bundler.js:136** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/project/attestation-bundler.js:169** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/project/attestation-bundler.js:210** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/project/attestation-bundler.js:460** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/project/attestation-bundler.js:560** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/project/attestation-bundler.js:584** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/project/index.js:103** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/project/lockfile-generator.js:49** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/project/lockfile-generator.js:182** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/project/lockfile-generator.js:317** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/project/lockfile-generator.js:421** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/project/lockfile.js:28** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/project/lockfile.js:32** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/project/lockfile.js:71** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/project/lockfile.js:243** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/project/lockfile.js:450** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/project/reproducibility-verifier.js:69** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/project/reproducibility-verifier.js:136** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/project/reproducibility-verifier.js:180** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/project/reproducibility-verifier.js:248** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/project/reproducibility-verifier.js:292** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/project/reproducibility-verifier.js:410** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/project/reproducibility-verifier.js:471** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/project/reproducibility-verifier.js:690** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/project/reproducibility-verifier.js:766** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/project/reproducibility-verifier.js:795** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/project/reproducibility-verifier.js:820** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/project/version-manager.js:92** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/project/version-manager.js:110** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/project/version-manager.js:176** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/project/version-manager.js:245** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/project/version-manager.js:532** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/project/version-manager.js:553** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/project/version-manager.js:572** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/artifact-explainer.js:66** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/artifact-explainer.js:102** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/artifact-explainer.js:133** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/artifact-explainer.js:658** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/artifact-explainer.js:676** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/artifact-explainer.js:808** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/artifact-explainer.js:809** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/artifact-explainer.js:822** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/attestation/generator.js:85** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/attestation/generator.js:86** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/attestation/generator.js:115** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/attestation/generator.js:143** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/attestation/pipeline.js:391** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/attestation/pipeline.js:392** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/attestation/pipeline.js:467** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/attestation.js:56** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/attestation.js:69** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/attestation.js:89** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/attestation.js:116** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/attestation.js:121** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/attestation.js:182** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/attestation.js:191** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/attestation.js:192** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/attestation.js:236** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/attestation.js:247** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/attestation.js:258** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/attestation.js:293** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/attestation.js:331** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/blockchain/anchor.js:81** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/blockchain/anchor.js:144** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/blockchain/anchor.js:308** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/blockchain/anchor.js:315** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/blockchain/anchor.js:464** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/compliance/attestor.js:108** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/compliance/attestor.js:183** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/compliance/attestor.js:188** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/compliance/attestor.js:189** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/compliance/attestor.js:604** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/compliance/attestor.js:651** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/compliance/attestor.js:720** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/compliance/attestor.js:778** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/compliance/attestor.js:810** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/compliance/attestor.js:882** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/compliance/logger.js:93** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/compliance/logger.js:139** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/compliance/logger.js:154** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/compliance/logger.js:168** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/compliance/logger.js:184** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/compliance/logger.js:199** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/compliance/logger.js:227** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/compliance/logger.js:252** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/compliance/logger.js:501** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/compliance/logger.js:533** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/compliance/logger.js:564** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/crypto/manager.js:255** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/crypto/manager.js:392** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/crypto/manager.js:412** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/crypto/manager.js:564** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/crypto/manager.js:689** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/examples/basic-demo.js:118** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/examples/basic-demo.js:119** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/examples/comprehensive-demo.js:283** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/examples/comprehensive-demo.js:284** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/git-integration.js:130** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/git-integration.js:290** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/git-integration.js:367** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/git-integration.js:396** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/lineage/tracker.js:126** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/lineage/tracker.js:207** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/lineage/tracker.js:233** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/lineage/tracker.js:349** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/lineage/tracker.js:404** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/lineage/tracker.js:475** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/lineage/tracker.js:482** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/lineage/tracker.js:510** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/lineage/tracker.js:573** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/queries/enhanced-sparql.js:204** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/queries/enhanced-sparql.js:225** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/queries/explainer.js:81** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/queries/interface.js:519** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/queries/sparql.js:245** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/queries/sparql.js:283** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/queries/sparql.js:655** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/storage/index.js:84** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/storage/index.js:199** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/storage/index.js:257** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/tracker.js:191** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/tracker.js:246** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/tracker.js:352** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/tracker.js:358** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/tracker.js:392** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/tracker.js:486** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/tracker.js:1169** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/tracker.js:1214** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/tracker.js:1312** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/tracker.js:1337** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/tracker.js:1423** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/tracker.js:1431** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/unified-provenance.js:152** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/unified-provenance.js:184** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/unified-provenance.js:227** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/unified-provenance.js:247** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/unified-provenance.js:294** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/unified-provenance.js:410** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/unified-provenance.js:434** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/unified-provenance.js:462** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/unified-provenance.js:506** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/unified-provenance.js:528** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/unified-provenance.js:542** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/unified-provenance.js:742** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/unified-provenance.js:955** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/unified-provenance.js:1038** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/verification.js:83** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/verification.js:107** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/verification.js:153** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/verification.js:178** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/verification.js:183** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/verification.js:196** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/verification.js:239** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/verification.js:253** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/verification.js:303** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/verification.js:341** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/verification.js:589** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/verification.js:590** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/provenance/verification.js:605** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/query/cache/QueryCache.ts:40** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/query/cache/QueryCache.ts:51** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/query/cache/QueryCache.ts:64** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/query/cache/QueryCache.ts:67** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/query/cache/QueryCache.ts:229** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/query/cache/QueryCache.ts:246** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/query/cache/QueryCache.ts:307** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/query/context/ContextExtractor.ts:78** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/query/context/ContextExtractor.ts:113** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/query/context/ContextExtractor.ts:560** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/query/context/ContextExtractor.ts:764** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/query/engine/QueryEngine.ts:219** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/query/engine/QueryEngine.ts:305** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/query/engine/QueryEngine.ts:323** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/query/engine/QueryEngine.ts:459** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/query/engine/QueryEngine.ts:501** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/query/engine/QueryEngine.ts:722** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/query/engine/QueryEngine.ts:738** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/query/engine/QueryEngine.ts:760** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/query/engine/QueryEngine.ts:837** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/query/engine/QueryEngine.ts:864** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/query/engine/QueryEngine.ts:1069** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/query/engine.js:149** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/query/engine.js:200** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/query/engine.js:216** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/query/engine.js:692** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/query/engine.js:711** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/query/engine.js:737** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/query/engine.js:844** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/query/engine.js:854** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/query/engine.js:881** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/query/engine.js:926** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/query/engine.js:945** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/query/engine.js:954** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/query/engine.js:1621** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/query/enhanced-query-methods.js:272** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/query/optimization/QueryOptimizer.ts:49** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/query/optimization/QueryOptimizer.ts:107** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/query/optimization/QueryOptimizer.ts:148** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/query/patterns/TriplePatternMatcher.ts:64** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/query/patterns/TriplePatternMatcher.ts:77** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/query/patterns/TriplePatternMatcher.ts:164** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/query/patterns/TriplePatternMatcher.ts:178** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/query/patterns/TriplePatternMatcher.ts:725** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/query/results/QueryResultFormatter.ts:62** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/query/results/QueryResultFormatter.ts:113** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/bridge.js:56** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/bridge.js:76** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/bridge.js:113** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/bridge.js:170** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/bridge.js:187** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/bridge.js:208** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/bridge.js:230** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/bridge.js:360** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/canonical-processor.js:103** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/canonical-processor.js:146** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/canonical-processor.js:171** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/canonical-processor.js:186** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/canonical-processor.js:187** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/canonical-processor.js:216** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/canonical-processor.js:217** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/canonical-processor.js:231** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/canonical-processor.js:465** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/canonical-processor.js:484** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/canonical-processor.js:535** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/content-addressed-cache.js:111** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/content-addressed-cache.js:124** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/content-addressed-cache.js:125** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/content-addressed-cache.js:201** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/content-addressed-cache.js:346** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/content-addressed-cache.js:467** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/contextual-graph-manager.js:135** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/contextual-graph-manager.js:160** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/contextual-graph-manager.js:181** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/contextual-graph-manager.js:220** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/contextual-graph-manager.js:237** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/contextual-graph-manager.js:263** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/contextual-graph-manager.js:308** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/contextual-graph-manager.js:329** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/contextual-graph-manager.js:395** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/contextual-graph-manager.js:445** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/contextual-graph-manager.js:495** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/contextual-graph-manager.js:569** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/contextual-graph-manager.js:599** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/contextual-graph-manager.js:630** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/contextual-graph-manager.js:733** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/contextual-graph-manager.js:912** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/contextual-graph-manager.js:935** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/contextual-graph-manager.js:950** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/contextual-graph-manager.js:978** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/contextual-graph-manager.js:991** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/contextual-graph-manager.js:1007** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/contextual-graph-manager.js:1024** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/contextual-graph-manager.js:1036** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/enhanced-processor.js:89** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/enhanced-processor.js:123** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/enhanced-processor.js:124** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/enhanced-processor.js:151** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/enhanced-processor.js:163** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/enhanced-processor.js:209** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/enhanced-processor.js:211** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/enhanced-processor.js:237** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/enhanced-processor.js:249** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/enhanced-processor.js:280** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/enhanced-processor.js:290** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/enhanced-processor.js:328** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/enhanced-processor.js:435** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/enterprise-audit-trail.js:128** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/enterprise-audit-trail.js:269** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/enterprise-audit-trail.js:313** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/enterprise-audit-trail.js:331** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/enterprise-audit-trail.js:468** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/enterprise-audit-trail.js:491** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/enterprise-audit-trail.js:588** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/enterprise-audit-trail.js:633** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/enterprise-audit-trail.js:674** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/enterprise-audit-trail.js:912** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/enterprise-audit-trail.js:948** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/enterprise-audit-trail.js:1007** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/enterprise-audit-trail.js:1094** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/enterprise-audit-trail.js:1119** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/enterprise-audit-trail.js:1160** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/enterprise-audit-trail.js:1182** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/enterprise-audit-trail.js:1216** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/graph-compression.js:129** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/graph-compression.js:184** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/graph-compression.js:193** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/graph-compression.js:226** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/graph-compression.js:268** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/graph-compression.js:345** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/graph-compression.js:689** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/graph-diff-engine.js:45** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/graph-diff-engine.js:68** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/graph-diff-engine.js:69** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/graph-diff-engine.js:70** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/graph-diff-engine.js:204** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/graph-indexer.js:73** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/graph-indexer.js:101** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/graph-indexer.js:569** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/graph-processor.js:46** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/graph-processor.js:67** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/graph-processor.js:302** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/graph-processor.js:323** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/graph-processor.js:324** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/graph-processor.js:325** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/index.js:96** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/index.js:122** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/index.js:151** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/index.js:157** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/index.js:163** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/index.js:202** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/index.js:205** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/index.js:211** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/index.js:249** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/index.js:256** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/index.js:303** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/index.old.js:203** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/index.old.js:245** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/index.old.js:300** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/index.old.js:381** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/index.old.js:424** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/rdf-star-processor.js:113** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/rdf-star-processor.js:158** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/rdf-star-processor.js:189** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/rdf-star-processor.js:394** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/serializers.js:352** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/sparql-interface.js:45** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/sparql-interface.js:72** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/sparql-interface.js:94** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/sparql-interface.js:106** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/sparql-interface.js:128** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/sparql-interface.js:140** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/sparql-interface.js:162** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/sparql-interface.js:174** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/streaming-processor.js:57** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/streaming-processor.js:58** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/streaming-processor.js:192** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/streaming-processor.js:233** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/streaming-processor.js:235** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/streaming-processor.js:269** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/streaming-processor.js:271** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/streaming-processor.js:299** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/streaming-processor.js:328** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/streaming-processor.js:399** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/streaming-processor.js:531** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/streaming-processor.js:543** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/streaming-processor.js:552** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/streaming-processor.js:801** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/streaming-processor.js:808** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/rdf/streaming-processor.js:849** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/resolvers/git-uri-resolver.js:101** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/resolvers/git-uri-resolver.js:244** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/resolvers/git-uri-resolver.js:422** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/audit/logger.js:117** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/audit/logger.js:138** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/audit/logger.js:153** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/audit/logger.js:168** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/audit/logger.js:183** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/audit/logger.js:198** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/audit/logger.js:212** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/audit/logger.js:227** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/audit/logger.js:241** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/audit/logger.js:255** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/audit/logger.js:295** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/audit/logger.js:324** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/audit/logger.js:381** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/audit/logger.js:425** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/audit/logger.js:454** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/audit/logger.js:527** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/audit/logger.js:570** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/audit/logger.js:722** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/compliance/framework.js:93** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/compliance/framework.js:169** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/compliance/framework.js:247** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/compliance/framework.js:293** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/compliance/framework.js:326** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/compliance/framework.js:328** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/compliance/framework.js:329** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/compliance/framework.js:626** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/compliance/framework.js:1030** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/compliance/framework.js:1115** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/consensus/attack-detector.js:101** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/consensus/attack-detector.js:144** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/consensus/attack-detector.js:152** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/consensus/attack-detector.js:166** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/consensus/attack-detector.js:171** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/consensus/attack-detector.js:179** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/consensus/attack-detector.js:244** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/consensus/attack-detector.js:258** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/consensus/attack-detector.js:307** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/consensus/attack-detector.js:329** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/consensus/attack-detector.js:337** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/consensus/attack-detector.js:463** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/consensus/attack-detector.js:468** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/consensus/attack-detector.js:487** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/consensus/attack-detector.js:500** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/consensus/attack-detector.js:531** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/consensus/attack-detector.js:599** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/consensus/attack-detector.js:619** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/consensus/attack-detector.js:654** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/consensus/attack-detector.js:664** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/consensus/attack-detector.js:682** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/consensus/attack-detector.js:709** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/consensus/security-manager.js:108** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/consensus/security-manager.js:130** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/consensus/security-manager.js:146** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/consensus/security-manager.js:169** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/consensus/security-manager.js:176** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/consensus/security-manager.js:196** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/consensus/security-manager.js:199** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/consensus/security-manager.js:203** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/consensus/security-manager.js:245** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/consensus/security-manager.js:253** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/consensus/security-manager.js:287** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/consensus/security-manager.js:290** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/consensus/security-manager.js:295** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/consensus/security-manager.js:359** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/consensus/security-manager.js:367** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/consensus/security-manager.js:386** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/consensus/security-manager.js:393** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/consensus/security-manager.js:415** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/consensus/security-manager.js:422** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/consensus/security-manager.js:453** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/consensus/security-manager.js:454** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/consensus/security-manager.js:529** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/consensus/security-manager.js:550** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/consensus/security-manager.js:565** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/consensus/security-manager.js:573** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/consensus/security-manager.js:593** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/consensus/security-manager.js:613** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/consensus/security-manager.js:729** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/consensus/security-manager.js:740** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/consensus/threshold-crypto.js:122** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/consensus/threshold-crypto.js:161** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/consensus/threshold-crypto.js:197** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/consensus/zero-knowledge.js:73** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/consensus/zero-knowledge.js:95** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/consensus/zero-knowledge.js:104** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/consensus/zero-knowledge.js:108** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/consensus/zero-knowledge.js:126** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/consensus/zero-knowledge.js:151** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/consensus/zero-knowledge.js:155** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/consensus/zero-knowledge.js:160** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/consensus/zero-knowledge.js:161** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/consensus/zero-knowledge.js:181** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/consensus/zero-knowledge.js:213** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/consensus/zero-knowledge.js:217** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/consensus/zero-knowledge.js:222** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/consensus/zero-knowledge.js:240** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/consensus/zero-knowledge.js:269** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/consensus/zero-knowledge.js:274** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/consensus/zero-knowledge.js:280** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/consensus/zero-knowledge.js:281** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/consensus/zero-knowledge.js:297** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/consensus/zero-knowledge.js:308** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/consensus/zero-knowledge.js:313** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/consensus/zero-knowledge.js:331** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/consensus/zero-knowledge.js:337** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/consensus/zero-knowledge.js:341** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/consensus/zero-knowledge.js:346** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/consensus/zero-knowledge.js:347** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/consensus/zero-knowledge.js:425** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/consensus/zero-knowledge.js:471** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/consensus/zero-knowledge.js:557** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/consensus/zero-knowledge.js:869** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/core/security-manager.js:130** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/core/security-manager.js:246** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/core/security-manager.js:314** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/core/security-manager.js:337** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/core/security-manager.js:338** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/core/security-manager.js:339** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/core/security-manager.js:379** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/core/security-manager.js:401** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/core/security-manager.js:431** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/core/security-manager.js:546** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/core/security-manager.js:557** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/core/security-manager.js:566** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/core/security-manager.js:629** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/core/security-manager.js:656** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/core/security-manager.js:657** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/core/security-manager.js:658** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/core/security-manager.js:683** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/core/security-manager.js:689** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/core/security-manager.js:734** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/core/security-manager.js:761** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/core/security-manager.js:767** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/core/security-manager.js:769** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/core/security-manager.js:786** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/core/security-manager.js:801** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/core/security-manager.js:831** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/core/security-manager.js:840** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/core/security-manager.js:849** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/crypto/service.js:101** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/crypto/service.js:155** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/crypto/service.js:174** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/crypto/service.js:195** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/crypto/service.js:278** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/crypto/service.js:444** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/crypto/service.js:470** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/crypto/service.js:471** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/crypto/service.js:527** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/crypto/service.js:538** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/crypto/service.js:618** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/crypto/service.js:725** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/crypto/service.js:918** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/crypto/service.js:922** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/governance/engine.js:109** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/governance/engine.js:150** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/governance/engine.js:240** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/governance/engine.js:280** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/governance/engine.js:284** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/governance/engine.js:292** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/governance/engine.js:330** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/governance/engine.js:359** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/governance/engine.js:541** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/governance/engine.js:904** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/governance/engine.js:914** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/governance/engine.js:971** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/governance/engine.js:1002** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/governance/engine.js:1018** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/governance/engine.js:1040** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/governance/engine.js:1041** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/governance/engine.js:1149** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/governance/engine.js:1153** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/governance/engine.js:1157** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/governance/engine.js:1161** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/governance/engine.js:1165** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/index.js:176** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/index.js:177** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/index.js:178** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/index.js:206** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/index.js:238** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/index.js:474** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/index.js:475** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/index.js:483** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/index.js:485** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/index.js:572** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/index.js:607** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/manager.js:383** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/manager.js:467** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/manager.js:559** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/manager.js:820** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/manager.js:840** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/manager.js:850** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/manager.js:851** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/manager.js:852** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/manager.js:866** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/manager.js:934** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/policies/engine.js:100** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/policies/engine.js:138** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/policies/engine.js:139** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/policies/engine.js:175** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/policies/engine.js:184** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/policies/engine.js:191** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/policies/engine.js:231** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/policies/engine.js:235** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/policies/engine.js:274** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/policies/engine.js:313** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/policies/engine.js:529** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/policies/engine.js:530** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/policies/engine.js:677** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/policies/engine.js:886** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/policies/engine.js:890** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/policies/engine.js:894** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/policies/engine.js:910** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/policies/engine.js:920** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/rbac/manager.js:87** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/rbac/manager.js:120** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/rbac/manager.js:121** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/rbac/manager.js:170** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/rbac/manager.js:230** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/rbac/manager.js:315** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/rbac/manager.js:322** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/rbac/manager.js:340** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/rbac/manager.js:410** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/rbac/manager.js:416** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/rbac/manager.js:433** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/rbac/manager.js:465** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/rbac/manager.js:479** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/rbac/manager.js:510** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/rbac/manager.js:511** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/rbac/manager.js:635** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/rbac/manager.js:636** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/rbac/manager.js:678** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/rbac/manager.js:726** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/rbac/manager.js:730** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/rbac/manager.js:734** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/rbac/manager.js:760** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/rbac/manager.js:926** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/rbac/manager.js:960** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/rbac/manager.js:981** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/rbac/manager.js:999** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/security-manager.js:172** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/security-manager.js:265** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/security-manager.js:358** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/security-manager.js:451** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/validation/engine.js:105** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/validation/engine.js:127** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/validation/engine.js:136** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/validation/engine.js:198** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/validation/engine.js:432** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/security/validation/engine.js:1080** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/security/validation/engine.js:1086** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/semantic/processor.js:70** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/semantic/processor.js:84** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/semantic/processor.js:106** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/sparql-engine.js:66** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/sparql-engine.js:118** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/sparql-engine.js:540** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/templating/context.js:286** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/templating/context.js:287** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/templating/context.js:329** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/templating/context.js:330** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/templating/dependency-graph.js:635** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/templating/dependency-graph.js:648** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/templating/dependency-graph.js:775** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/templating/frontmatter-parser.js:554** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/templating/frontmatter-parser.js:578** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/templating/frontmatter-parser.js:618** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/templating/hot-reloader.js:235** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/templating/hot-reloader.js:262** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/templating/hot-reloader.js:547** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/templating/hot-reloader.js:580** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/templating/hot-reloader.js:605** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/templating/hot-reloader.js:701** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/templating/hot-reloader.js:716** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/templating/hot-reloader.js:723** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/templating/hot-reloader.js:764** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/templating/incremental-processor.js:362** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/templating/incremental-processor.js:631** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/templating/inheritance-optimizer.js:877** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/templating/memoization-system.js:230** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/templating/memoization-system.js:232** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/templating/memoization-system.js:466** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/templating/memoization-system.js:592** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/templating/memoization-system.js:621** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/templating/memoization-system.js:730** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/templating/memoization-system.js:734** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/templating/memoization-system.js:763** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/templating/optimization-engine.js:398** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/templating/optimization-engine.js:596** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/templating/optimization-engine.js:603** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/templating/optimization-engine.js:746** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/templating/optimization-engine.js:761** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/templating/renderer.js:139** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/templating/renderer.js:140** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/templating/template-compiler.js:213** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/templating/template-compiler.js:939** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/templating/template-engine.js:177** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/templating/template-engine.js:464** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/validation/ArtifactRegenerationEngine.ts:1** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/validation/ArtifactRegenerationEngine.ts:1** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/validation/ArtifactRegenerationEngine.ts:1** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/validation/ArtifactRegenerationEngine.ts:1** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/validation/DriftDetectionEngine.ts:181** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/validation/DriftDetectionEngine.ts:186** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/validation/DriftDetectionEngine.ts:265** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/validation/DriftDetectionEngine.ts:274** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/validation/cli.js:416** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/validation/drift-helpers.js:334** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/validation/drift-helpers.js:375** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/validation/drift-integration.js:129** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/validation/drift-integration.js:162** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/validation/drift-integration.js:184** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/validation/drift-integration.js:197** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/validation/drift-integration.js:335** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/validation/drift-integration.js:339** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/validation/drift-integration.js:358** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/validation/drift-integration.js:371** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/validation/drift-integration.js:379** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/validation/drift-integration.js:409** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/validation/drift-integration.js:412** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/validation/drift-integration.js:420** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/validation/drift-integration.js:477** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/validation/drift-integration.js:481** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/validation/drift-integration.js:489** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/validation/drift-integration.js:505** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/validation/drift-integration.js:509** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/validation/drift-integration.js:517** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/validation/drift-integration.js:544** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/validation/drift-integration.js:547** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/validation/index.js:209** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/validation/index.js:295** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/validation/index.js:374** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/validation/index.js:401** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/validation/index.js:431** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/validation/index.js:443** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/validation/index.js:463** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/validation/index.js:465** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/validation/index.js:496** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/validation/index.js:513** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/validation/index.js:535** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/validation/index.js:556** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/validation/index.js:562** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/validation/index.js:871** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/validation/index.js:1168** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/validation/index.js:1172** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/validation/index.js:1238** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/validation/index.js:1252** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/validation/index.js:1272** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/validation/index.js:1340** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/validation/index.js:1385** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/validation/index.js:1389** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/validation/index.js:1434** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/validation/index.js:1439** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/validation/owl-validators.js:214** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/validation/owl-validators.js:216** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/validation/report-generator.js:22** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/validation/report-generator.js:34** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/validation/semantic-drift-analyzer.js:95** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/validation/semantic-drift-analyzer.js:125** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/validation/semantic-drift-analyzer.js:229** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/validation/semantic-drift-analyzer.js:247** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/validation/semantic-drift-analyzer.js:647** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/src/validation/semantic-validator.js:235** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/versioning/template-tracker.js:527** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/versioning/template-tracker.js:541** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/versioning/template-tracker.js:612** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/src/versioning/template-tracker.js:646** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/test/compliance/security.test.js:261** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/test/compliance/security.test.js:261** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/test/compliance/security.test.js:301** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/test/compliance/security.test.js:301** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/test/compliance/security.test.js:454** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/test/compliance/security.test.js:603** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/test/compliance/security.test.js:603** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/test/compliance/security.test.js:614** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/test/compliance/security.test.js:614** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/test/compliance/security.test.js:627** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/test/compliance/security.test.js:627** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/test/integration/kgen-system.test.js:19** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/test/integration/kgen-system.test.js:294** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/test/integration/kgen-system.test.js:296** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/test/integration/kgen-system.test.js:299** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/test/integration/kgen-system.test.js:301** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/test/performance/benchmark-suite.test.js:80** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/test/performance/benchmark-suite.test.js:96** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/test/performance/benchmark-suite.test.js:121** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/test/performance/benchmark-suite.test.js:125** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/test/performance/benchmark-suite.test.js:136** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/test/performance/benchmark-suite.test.js:167** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/test/performance/benchmark-suite.test.js:174** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/test/performance/benchmark-suite.test.js:177** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/test/performance/benchmark-suite.test.js:184** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/test/performance/benchmark-suite.test.js:240** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/test/performance/benchmark-suite.test.js:251** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/test/performance/benchmark-suite.test.js:273** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/test/performance/benchmark-suite.test.js:275** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/test/performance/benchmark-suite.test.js:281** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/test/performance/benchmark-suite.test.js:283** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/test/performance/benchmark-suite.test.js:315** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/test/performance/benchmark-suite.test.js:317** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/test/performance/benchmark-suite.test.js:320** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/test/performance/benchmark-suite.test.js:322** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/test/performance/benchmark-suite.test.js:383** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/test/performance/benchmark-suite.test.js:396** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/test/performance/benchmark-suite.test.js:421** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/test/performance/benchmark-suite.test.js:436** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/test/performance/benchmark-suite.test.js:458** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/test/performance/benchmark-suite.test.js:460** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/test/performance/benchmark-suite.test.js:463** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/test/performance/benchmark-suite.test.js:468** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/test/performance/benchmark-suite.test.js:491** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/test/performance/benchmark-suite.test.js:507** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/test/performance/benchmark-suite.test.js:533** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/test/performance/benchmark-suite.test.js:665** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/test/performance/benchmark-suite.test.js:716** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/test/performance/benchmark-suite.test.js:728** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/test/performance/benchmarks.test.js:476** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/test/performance/benchmarks.test.js:545** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/test/performance/benchmarks.test.js:549** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/test/test-runner.js:53** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/test/test-runner.js:97** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/test/test-runner.js:105** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/test/test-runner.js:126** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/test/test-runner.js:182** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/test/test-runner.js:215** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/test/utils/test-helpers.js:343** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/test/utils/test-helpers.js:352** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/test/utils/test-helpers.js:358** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/test/utils/test-helpers.js:362** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/test/utils/test-helpers.js:363** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/test/utils/test-helpers.js:372** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/test/utils/test-logger.js:19** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/test/utils/test-logger.js:34** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/test/utils/test-logger.js:49** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/test/utils/test-logger.js:64** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/tests/office/deterministic-processing.test.js:35** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/tests/setup.js:24** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/tests/unit/cache.test.js:94** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/tests/unit/cache.test.js:244** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/tests/unit/cache.test.js:246** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/tests/unit/cache.test.js:252** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/tests/unit/cache.test.js:254** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/tests/unit/cache.test.js:270** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/tests/unit/cache.test.js:277** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/tests/unit/cache.test.js:279** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/tests/unit/cache.test.js:285** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/tests/unit/cache.test.js:287** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/tests/unit/documents.test.js:609** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/tests/unit/documents.test.js:611** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/tests/unit/documents.test.js:636** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/tests/unit/documents.test.js:638** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/tests/unit/graph/processor.test.js:327** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/tests/unit/graph/processor.test.js:329** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/tests/unit/graph-diff.test.js:422** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/tests/unit/graph-diff.test.js:424** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/tests/unit/provenance.test.js:60** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-core/tests/unit/provenance.test.js:465** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-core/tests/unit/provenance.test.js:471** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-templates/src/discovery.js:395** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-templates/src/discovery.js:419** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-templates/src/loader.js:125** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-templates/src/loader.js:438** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-templates/src/loader.js:448** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-templates/src/renderer.js:91** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-templates/src/renderer.js:92** - Date.now() call creates non-deterministic timestamp
+- **packages/kgen-templates/src/renderer.js:209** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-templates/src/renderer.js:259** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **packages/kgen-templates/src/utils/logger.js:44** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/act-testing/act-test-runner.js:337** - Date.now() call creates non-deterministic timestamp
+- **scripts/act-testing/act-test-runner.js:354** - Date.now() call creates non-deterministic timestamp
+- **scripts/act-testing/act-test-runner.js:377** - Date.now() call creates non-deterministic timestamp
+- **scripts/act-testing/act-test-runner.js:425** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/act-testing/comprehensive-act-tester.js:50** - Date.now() call creates non-deterministic timestamp
+- **scripts/act-testing/comprehensive-act-tester.js:237** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/act-testing/comprehensive-act-tester.js:238** - Date.now() call creates non-deterministic timestamp
+- **scripts/act-testing/comprehensive-act-tester.js:439** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/act-testing/comprehensive-act-tester.js:475** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/act-testing/comprehensive-act-tester.js:554** - Date.now() call creates non-deterministic timestamp
+- **scripts/act-testing/matrix-tester.js:268** - Date.now() call creates non-deterministic timestamp
+- **scripts/act-testing/matrix-tester.js:284** - Date.now() call creates non-deterministic timestamp
+- **scripts/act-testing/matrix-tester.js:292** - Date.now() call creates non-deterministic timestamp
+- **scripts/act-testing/service-container-tester.js:185** - Date.now() call creates non-deterministic timestamp
+- **scripts/act-testing/service-container-tester.js:201** - Date.now() call creates non-deterministic timestamp
+- **scripts/act-testing/service-container-tester.js:219** - Date.now() call creates non-deterministic timestamp
+- **scripts/act-testing/service-container-tester.js:227** - Date.now() call creates non-deterministic timestamp
+- **scripts/act-testing/service-container-tester.js:238** - Date.now() call creates non-deterministic timestamp
+- **scripts/act-testing/service-container-tester.js:256** - Date.now() call creates non-deterministic timestamp
+- **scripts/act-testing/service-container-tester.js:269** - Date.now() call creates non-deterministic timestamp
+- **scripts/act-testing/service-container-tester.js:279** - Date.now() call creates non-deterministic timestamp
+- **scripts/act-testing/service-container-tester.js:296** - Date.now() call creates non-deterministic timestamp
+- **scripts/act-testing/service-container-tester.js:307** - Date.now() call creates non-deterministic timestamp
+- **scripts/act-testing/service-container-tester.js:350** - Date.now() call creates non-deterministic timestamp
+- **scripts/act-testing/service-container-tester.js:362** - Date.now() call creates non-deterministic timestamp
+- **scripts/act-testing/service-container-tester.js:370** - Date.now() call creates non-deterministic timestamp
+- **scripts/architecture-test.js:23** - Date.now() call creates non-deterministic timestamp
+- **scripts/architecture-test.js:332** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/auto-version.js:14** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/auto-version.js:56** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/auto-version.js:90** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/auto-version.js:95** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/benchmarks/benchmark.mjs:28** - Date.now() call creates non-deterministic timestamp
+- **scripts/benchmarks/benchmark.mjs:63** - Date.now() call creates non-deterministic timestamp
+- **scripts/benchmarks/benchmark.mjs:89** - Date.now() call creates non-deterministic timestamp
+- **scripts/benchmarks/benchmark.mjs:152** - Date.now() call creates non-deterministic timestamp
+- **scripts/benchmarks/benchmark.mjs:250** - Date.now() call creates non-deterministic timestamp
+- **scripts/benchmarks/benchmark.mjs:264** - Date.now() call creates non-deterministic timestamp
+- **scripts/benchmarks/benchmark.mjs:310** - Date.now() call creates non-deterministic timestamp
+- **scripts/benchmarks/benchmark.mjs:323** - Date.now() call creates non-deterministic timestamp
+- **scripts/benchmarks/benchmark.mjs:324** - Date.now() call creates non-deterministic timestamp
+- **scripts/benchmarks/benchmark.mjs:451** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/benchmarks/performance-analysis.mjs:395** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/benchmarks/run-performance-tests.js:30** - Date.now() call creates non-deterministic timestamp
+- **scripts/benchmarks/run-performance-tests.js:67** - Date.now() call creates non-deterministic timestamp
+- **scripts/benchmarks/run-performance-tests.js:271** - Date.now() call creates non-deterministic timestamp
+- **scripts/benchmarks/run-performance-tests.js:322** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/benchmarks/simple-benchmark.js:59** - Date.now() call creates non-deterministic timestamp
+- **scripts/benchmarks/simple-benchmark.js:210** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/ci-test-runner.js:61** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/ci-test-runner.js:100** - Date.now() call creates non-deterministic timestamp
+- **scripts/ci-test-runner.js:172** - Date.now() call creates non-deterministic timestamp
+- **scripts/ci-test-runner.js:201** - Date.now() call creates non-deterministic timestamp
+- **scripts/ci-test-runner.js:203** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/ci-test-runner.js:268** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/clean-room-deployment-test.js:18** - Date.now() call creates non-deterministic timestamp
+- **scripts/clean-room-deployment-test.js:341** - Date.now() call creates non-deterministic timestamp
+- **scripts/clean-room-deployment-test.js:426** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/cli-test-suite.js:21** - Date.now() call creates non-deterministic timestamp
+- **scripts/cli-test-suite.js:228** - Date.now() call creates non-deterministic timestamp
+- **scripts/cli-test-suite.js:242** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/compliance-reporter.js:27** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/compliance-reporter.js:53** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/compliance-reporter.js:77** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/compliance-reporter.js:89** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/compliance-reporter.js:162** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/compliance-reporter.js:230** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/compliance-reporter.js:283** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/compliance-reporter.js:369** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/compliance-reporter.js:438** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/compliance-reporter.js:694** - Date.now() call creates non-deterministic timestamp
+- **scripts/compliance-reporter.js:790** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/compliance-reporter.js:849** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/demo-attestation-system.js:27** - Date.now() call creates non-deterministic timestamp
+- **scripts/demo-lock-free-performance.js:30** - Date.now() call creates non-deterministic timestamp
+- **scripts/demo-lock-free-performance.js:38** - Date.now() call creates non-deterministic timestamp
+- **scripts/demo-lock-free-performance.js:56** - Date.now() call creates non-deterministic timestamp
+- **scripts/demo-lock-free-performance.js:88** - Date.now() call creates non-deterministic timestamp
+- **scripts/demo-lock-free-performance.js:127** - Date.now() call creates non-deterministic timestamp
+- **scripts/demo-project-workflow.js:87** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/demo-project-workflow.js:96** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/demo-project-workflow.js:106** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/demo-project-workflow.js:136** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/dependency-scan.js:344** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/deployment/monitoring-setup.js:18** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/deployment/monitoring-setup.js:35** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/deployment/monitoring-setup.js:117** - Date.now() call creates non-deterministic timestamp
+- **scripts/deployment/monitoring-setup.js:123** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/deployment/monitoring-setup.js:124** - Date.now() call creates non-deterministic timestamp
+- **scripts/deployment/monitoring-setup.js:149** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/deployment/monitoring-setup.js:172** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/deployment/monitoring-setup.js:173** - Date.now() call creates non-deterministic timestamp
+- **scripts/deployment/monitoring-setup.js:362** - Date.now() call creates non-deterministic timestamp
+- **scripts/deployment/monitoring-setup.js:384** - Date.now() call creates non-deterministic timestamp
+- **scripts/deployment/monitoring-setup.js:403** - Date.now() call creates non-deterministic timestamp
+- **scripts/deployment/monitoring-setup.js:408** - Date.now() call creates non-deterministic timestamp
+- **scripts/deployment/monitoring-setup.js:420** - Date.now() call creates non-deterministic timestamp
+- **scripts/deployment/monitoring-setup.js:440** - Date.now() call creates non-deterministic timestamp
+- **scripts/deployment/monitoring-setup.js:445** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/deployment/monitoring-setup.js:446** - Date.now() call creates non-deterministic timestamp
+- **scripts/deployment/production-validation.js:16** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/deployment/production-validation.js:25** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/deployment/production-validation.js:173** - Date.now() call creates non-deterministic timestamp
+- **scripts/deployment/production-validation.js:175** - Date.now() call creates non-deterministic timestamp
+- **scripts/deployment/rollback-automation.js:19** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/deployment/rollback-automation.js:28** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/deployment/rollback-automation.js:75** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/deployment/rollback-automation.js:79** - Date.now() call creates non-deterministic timestamp
+- **scripts/deployment/rollback-automation.js:84** - Date.now() call creates non-deterministic timestamp
+- **scripts/deployment/rollback-automation.js:346** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/deployment/rollback-automation.js:358** - Date.now() call creates non-deterministic timestamp
+- **scripts/deployment/rollback-automation.js:360** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/docker/aggregate-test-results.js:44** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/docker/aggregate-test-results.js:95** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/docker/aggregate-test-results.js:131** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/docker/aggregate-test-results.js:153** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/docker/aggregate-test-results.js:192** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/docker/aggregate-test-results.js:206** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/docker/aggregate-test-results.js:220** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/docker/aggregate-test-results.js:235** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/docker/aggregate-test-results.js:244** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/docker/aggregate-test-results.js:307** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/docker/docker-health-check.js:29** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/docker/docker-health-check.js:125** - Date.now() call creates non-deterministic timestamp
+- **scripts/docker/docker-health-check.js:235** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/docker/docker-health-check.js:249** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/docker/docker-test-runner.js:58** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/docker/docker-test-runner.js:198** - Date.now() call creates non-deterministic timestamp
+- **scripts/docker/docker-test-runner.js:200** - Date.now() call creates non-deterministic timestamp
+- **scripts/docker/docker-test-runner.js:203** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/docker/docker-test-runner.js:221** - Date.now() call creates non-deterministic timestamp
+- **scripts/docker/docker-test-runner.js:223** - Date.now() call creates non-deterministic timestamp
+- **scripts/docker/docker-test-runner.js:226** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/docker/docker-test-runner.js:337** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/docker/docker-test-runner.js:402** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/docker/docker-validation-simple.js:15** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/docker/docker-validation-simple.js:23** - Date.now() call creates non-deterministic timestamp
+- **scripts/docker/docker-validation-simple.js:27** - Date.now() call creates non-deterministic timestamp
+- **scripts/docker/docker-validation-simple.js:39** - Date.now() call creates non-deterministic timestamp
+- **scripts/docker/docker-validation-simple.js:93** - Date.now() call creates non-deterministic timestamp
+- **scripts/docker/docker-validation-simple.js:95** - Date.now() call creates non-deterministic timestamp
+- **scripts/docker-test-runner.js:30** - Date.now() call creates non-deterministic timestamp
+- **scripts/docker-test-runner.js:220** - Date.now() call creates non-deterministic timestamp
+- **scripts/docker-test-runner.js:239** - Date.now() call creates non-deterministic timestamp
+- **scripts/docker-test-runner.js:251** - Date.now() call creates non-deterministic timestamp
+- **scripts/docker-test-runner.js:311** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/docker-test-runner.js:312** - Date.now() call creates non-deterministic timestamp
+- **scripts/docker-test-runner.js:483** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/docker-test-runner.js:488** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/docker-validation-report.js:19** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/enhanced-build-system.js:28** - Date.now() call creates non-deterministic timestamp
+- **scripts/enhanced-build-system.js:54** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/enhanced-build-system.js:351** - Date.now() call creates non-deterministic timestamp
+- **scripts/enhanced-build-system.js:355** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/enhanced-build-system.js:462** - Date.now() call creates non-deterministic timestamp
+- **scripts/enhanced-build-system.js:464** - Date.now() call creates non-deterministic timestamp
+- **scripts/esm-commonjs-compatibility-test.js:18** - Date.now() call creates non-deterministic timestamp
+- **scripts/esm-commonjs-compatibility-test.js:383** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/final-performance-analysis.js:9** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/flaky-test-detector.js:48** - Date.now() call creates non-deterministic timestamp
+- **scripts/flaky-test-detector.js:79** - Date.now() call creates non-deterministic timestamp
+- **scripts/flaky-test-detector.js:85** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/flaky-test-detector.js:112** - Date.now() call creates non-deterministic timestamp
+- **scripts/flaky-test-detector.js:115** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/flaky-test-detector.js:128** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/flaky-test-detector.js:223** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/generate-validation-summary.js:15** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/health-check.js:30** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/health-check.js:376** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/issue-automation/analyze-failure.js:24** - Date.now() call creates non-deterministic timestamp
+- **scripts/issue-automation/analyze-failure.js:25** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/issue-automation/collect-performance-metrics.js:23** - Date.now() call creates non-deterministic timestamp
+- **scripts/issue-automation/collect-performance-metrics.js:24** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/issue-automation/collect-performance-metrics.js:84** - Date.now() call creates non-deterministic timestamp
+- **scripts/issue-automation/collect-performance-metrics.js:97** - Date.now() call creates non-deterministic timestamp
+- **scripts/issue-automation/collect-performance-metrics.js:133** - Date.now() call creates non-deterministic timestamp
+- **scripts/issue-automation/collect-performance-metrics.js:170** - Date.now() call creates non-deterministic timestamp
+- **scripts/issue-automation/collect-performance-metrics.js:196** - Date.now() call creates non-deterministic timestamp
+- **scripts/issue-automation/collect-performance-metrics.js:207** - Date.now() call creates non-deterministic timestamp
+- **scripts/issue-automation/collect-performance-metrics.js:338** - Date.now() call creates non-deterministic timestamp
+- **scripts/issue-automation/collect-performance-metrics.js:340** - Date.now() call creates non-deterministic timestamp
+- **scripts/issue-automation/collect-performance-metrics.js:471** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/issue-automation/collect-performance-metrics.js:472** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/issue-automation/intelligent-automation-engine.js:17** - Date.now() call creates non-deterministic timestamp
+- **scripts/issue-automation/intelligent-automation-engine.js:81** - Date.now() call creates non-deterministic timestamp
+- **scripts/issue-automation/intelligent-automation-engine.js:82** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/issue-automation/intelligent-automation-engine.js:247** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/issue-automation/intelligent-automation-engine.js:277** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/issue-automation/intelligent-automation-engine.js:288** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/issue-automation/intelligent-automation-engine.js:301** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/issue-automation/intelligent-automation-engine.js:315** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/issue-automation/intelligent-automation-engine.js:423** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/issue-automation/intelligent-automation-engine.js:588** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/issue-automation/intelligent-automation-engine.js:607** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/issue-automation/intelligent-automation-engine.js:680** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/issue-automation/intelligent-automation-engine.js:696** - Date.now() call creates non-deterministic timestamp
+- **scripts/issue-automation/notification-system.js:143** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/issue-automation/notification-system.js:150** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/issue-automation/notification-system.js:194** - Date.now() call creates non-deterministic timestamp
+- **scripts/issue-automation/notification-system.js:208** - Date.now() call creates non-deterministic timestamp
+- **scripts/issue-automation/notification-system.js:219** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/issue-automation/notification-system.js:260** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/issue-automation/notification-system.js:333** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/issue-automation/notification-system.js:433** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/issue-automation/notification-system.js:483** - Date.now() call creates non-deterministic timestamp
+- **scripts/issue-automation/notification-system.js:485** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/issue-automation/notification-system.js:536** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/issue-automation/notification-system.js:544** - Date.now() call creates non-deterministic timestamp
+- **scripts/issue-automation/swarm-coordination-hooks.js:13** - Date.now() call creates non-deterministic timestamp
+- **scripts/issue-automation/swarm-coordination-hooks.js:27** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/issue-automation/swarm-coordination-hooks.js:84** - Date.now() call creates non-deterministic timestamp
+- **scripts/issue-automation/swarm-coordination-hooks.js:89** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/issue-automation/swarm-coordination-hooks.js:135** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/issue-automation/swarm-coordination-hooks.js:180** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/issue-automation/swarm-coordination-hooks.js:253** - Date.now() call creates non-deterministic timestamp
+- **scripts/issue-automation/swarm-coordination-hooks.js:257** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/issue-automation/swarm-coordination-hooks.js:388** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/issue-automation/swarm-coordination-hooks.js:392** - Date.now() call creates non-deterministic timestamp
+- **scripts/issue-automation/swarm-coordination-hooks.js:425** - Date.now() call creates non-deterministic timestamp
+- **scripts/issue-automation/swarm-coordination-hooks.js:429** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/issue-automation/swarm-coordination-hooks.js:434** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/issue-automation/swarm-coordination-hooks.js:474** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/issue-automation/swarm-coordination-hooks.js:477** - Date.now() call creates non-deterministic timestamp
+- **scripts/issue-automation/swarm-coordination-hooks.js:516** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/issue-automation/swarm-coordination-hooks.js:517** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/issue-automation/test-automation-system.js:558** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/issue-automation/test-automation-system.js:573** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/issue-automation/test-automation-system.js:593** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/issue-automation/test-intelligent-automation.js:131** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/issue-automation/test-intelligent-automation.js:239** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/issue-automation/test-intelligent-automation.js:246** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/issue-automation/test-intelligent-automation.js:271** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/issue-automation/test-intelligent-automation.js:297** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/latex-template-validator.js:60** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/latex-template-validator.js:384** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/migrate-secrets.js:20** - Date.now() call creates non-deterministic timestamp
+- **scripts/migrate-secrets.js:209** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/migrate-secrets.js:249** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/migrate-secrets.js:289** - Date.now() call creates non-deterministic timestamp
+- **scripts/migrate-secrets.js:293** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/multi-node-test.js:28** - Date.now() call creates non-deterministic timestamp
+- **scripts/multi-node-test.js:204** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/office/demonstrate-enhanced-opc.js:113** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/office/demonstrate-enhanced-opc.js:114** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/office/demonstrate-enhanced-opc.js:292** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/office/demonstrate-enhanced-opc.js:293** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/office/demonstrate-enhanced-opc.js:623** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/pdf-quality-checker.js:483** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/performance/aggregate-metrics.js:26** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/performance/coordination-hooks.js:24** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/performance/coordination-hooks.js:46** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/performance/coordination-hooks.js:113** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/performance/coordination-hooks.js:173** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/performance/coordination-hooks.js:249** - Date.now() call creates non-deterministic timestamp
+- **scripts/performance/coordination-hooks.js:335** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/performance/coordination-hooks.js:413** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/performance/coordination-hooks.js:440** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/performance/coordination-hooks.js:556** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/performance/coordination-hooks.js:571** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/performance/coordination-hooks.js:615** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/performance/coordination-hooks.js:619** - Date.now() call creates non-deterministic timestamp
+- **scripts/performance/load-tester.js:35** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/performance/load-tester.js:63** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/performance/load-tester.js:116** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/performance/load-tester.js:123** - Date.now() call creates non-deterministic timestamp
+- **scripts/performance/load-tester.js:182** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/performance/load-tester.js:305** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/performance/load-tester.js:307** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/performance/load-tester.js:334** - Date.now() call creates non-deterministic timestamp
+- **scripts/performance/load-tester.js:354** - Date.now() call creates non-deterministic timestamp
+- **scripts/performance/load-tester.js:369** - Date.now() call creates non-deterministic timestamp
+- **scripts/performance/load-tester.js:387** - Date.now() call creates non-deterministic timestamp
+- **scripts/performance/load-tester.js:398** - Date.now() call creates non-deterministic timestamp
+- **scripts/performance/load-tester.js:416** - Date.now() call creates non-deterministic timestamp
+- **scripts/performance/load-tester.js:434** - Date.now() call creates non-deterministic timestamp
+- **scripts/performance/load-tester.js:454** - Date.now() call creates non-deterministic timestamp
+- **scripts/performance/load-tester.js:465** - Date.now() call creates non-deterministic timestamp
+- **scripts/performance/load-tester.js:482** - Date.now() call creates non-deterministic timestamp
+- **scripts/performance/load-tester.js:509** - Date.now() call creates non-deterministic timestamp
+- **scripts/performance/load-tester.js:526** - Date.now() call creates non-deterministic timestamp
+- **scripts/performance/load-tester.js:709** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/performance/load-tester.js:725** - Date.now() call creates non-deterministic timestamp
+- **scripts/performance/load-tester.js:735** - Date.now() call creates non-deterministic timestamp
+- **scripts/performance/memory-profiler.js:59** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/performance/memory-profiler.js:68** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/performance/memory-profiler.js:92** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/performance/memory-profiler.js:111** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/performance/memory-profiler.js:150** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/performance/memory-profiler.js:151** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/performance/memory-profiler.js:246** - Date.now() call creates non-deterministic timestamp
+- **scripts/performance/memory-profiler.js:258** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/performance/memory-profiler.js:274** - Date.now() call creates non-deterministic timestamp
+- **scripts/performance/memory-profiler.js:293** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/performance/memory-profiler.js:311** - Date.now() call creates non-deterministic timestamp
+- **scripts/performance/memory-profiler.js:339** - Date.now() call creates non-deterministic timestamp
+- **scripts/performance/memory-profiler.js:359** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/performance/memory-profiler.js:452** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/performance/regression-detector.js:423** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/performance/send-alerts.js:27** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/performance/send-alerts.js:209** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/performance/send-alerts.js:271** - Date.now() call creates non-deterministic timestamp
+- **scripts/performance/send-alerts.js:426** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/performance/store-metrics.js:24** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/performance/store-metrics.js:35** - Date.now() call creates non-deterministic timestamp
+- **scripts/performance/template-benchmarks.js:34** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/performance/template-benchmarks.js:277** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/performance/template-benchmarks.js:289** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/performance/template-benchmarks.js:305** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/performance/template-benchmarks.js:328** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/performance/template-benchmarks.js:353** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/performance/template-benchmarks.js:380** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/performance/template-benchmarks.js:421** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/performance/template-benchmarks.js:422** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/performance/template-benchmarks.js:423** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/performance/template-benchmarks.js:458** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/performance/template-benchmarks.js:459** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/performance/template-benchmarks.js:500** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/performance/template-benchmarks.js:501** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/performance/validate-caching.js:28** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/performance/validate-caching.js:64** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/performance/validate-caching.js:131** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/performance/validate-improvements.js:278** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/performance-benchmark.js:21** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/production-readiness-check.js:33** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/production-test-runner.js:54** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/production-test-runner.js:80** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/production-test-runner.js:88** - Date.now() call creates non-deterministic timestamp
+- **scripts/production-test-runner.js:104** - Date.now() call creates non-deterministic timestamp
+- **scripts/production-test-runner.js:117** - Date.now() call creates non-deterministic timestamp
+- **scripts/production-test-runner.js:211** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/production-validation.js:36** - Date.now() call creates non-deterministic timestamp
+- **scripts/quality/complexity-analyzer.js:413** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/quality/coverage-analyzer.js:134** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/quality/coverage-analyzer.js:330** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/quality/production-validator.js:35** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/quality/quality-dashboard.js:20** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/quality/quality-dashboard.js:224** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/quality/quality-dashboard.js:301** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/quality/quality-dashboard.js:523** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/regression-detector.js:119** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/regression-detector.js:165** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/regression-detector.js:189** - Date.now() call creates non-deterministic timestamp
+- **scripts/regression-detector.js:220** - Date.now() call creates non-deterministic timestamp
+- **scripts/regression-detector.js:221** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/run-mcp-validation.js:222** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/run-performance-validation.js:19** - Date.now() call creates non-deterministic timestamp
+- **scripts/scalability-test.js:14** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/security/check-security-thresholds.js:304** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/security/consolidate-sarif-reports.js:105** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/security/consolidate-sarif-reports.js:303** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/security/generate-security-dashboard.js:287** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/security/generate-security-dashboard.js:355** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/security-analysis.js:300** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/security-audit.js:16** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/security-audit.js:29** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/security-scanner.js:25** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/security-scanner.js:61** - Date.now() call creates non-deterministic timestamp
+- **scripts/simple-cross-platform-test.js:221** - Date.now() call creates non-deterministic timestamp
+- **scripts/test-mcp-integration.js:324** - Date.now() call creates non-deterministic timestamp
+- **scripts/test-mcp-integration.js:326** - Date.now() call creates non-deterministic timestamp
+- **scripts/test-mcp-integration.js:410** - Date.now() call creates non-deterministic timestamp
+- **scripts/test-workflows-locally.js:25** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/test-workflows-locally.js:313** - Date.now() call creates non-deterministic timestamp
+- **scripts/test-workflows-locally.js:315** - Date.now() call creates non-deterministic timestamp
+- **scripts/test-workflows-locally.js:376** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/trigger-build.js:100** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/validate-build.js:20** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/validate-build.js:299** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/validate-latex.js:385** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/validate-workflows.js:25** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/validation/clean-room-test.js:20** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/validation/compatibility-matrix.js:18** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/validation-checklist.js:35** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/validation-checklist.js:66** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/validation-checklist.js:70** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/validation-checklist.js:74** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/validation-checklist.js:78** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/validation-checklist.js:82** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/validation-checklist.js:112** - Date.now() call creates non-deterministic timestamp
+- **scripts/validation-checklist.js:133** - Date.now() call creates non-deterministic timestamp
+- **scripts/validation-checklist.js:154** - Date.now() call creates non-deterministic timestamp
+- **scripts/validation-checklist.js:467** - Date.now() call creates non-deterministic timestamp
+- **scripts/validation-checklist.js:469** - Date.now() call creates non-deterministic timestamp
+- **scripts/validation-dashboard.js:46** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **scripts/verify-cache.js:16** - Date.now() call creates non-deterministic timestamp
+- **src/api/routes/latex.js:27** - Date.now() call creates non-deterministic timestamp
+- **src/api/routes/latex.js:52** - Date.now() call creates non-deterministic timestamp
+- **src/api/routes/latex.js:60** - Date.now() call creates non-deterministic timestamp
+- **src/api/routes/latex.js:81** - Date.now() call creates non-deterministic timestamp
+- **src/api/routes/latex.js:85** - Date.now() call creates non-deterministic timestamp
+- **src/api/routes/latex.js:105** - Date.now() call creates non-deterministic timestamp
+- **src/api/routes/latex.js:129** - Date.now() call creates non-deterministic timestamp
+- **src/api/routes/latex.js:139** - Date.now() call creates non-deterministic timestamp
+- **src/api/routes/latex.js:169** - Date.now() call creates non-deterministic timestamp
+- **src/api/routes/latex.js:196** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/api/routes/templates.js:166** - Date.now() call creates non-deterministic timestamp
+- **src/api/server.js:61** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/api/services/templateService.js:386** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/api/utils/logger.js:17** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/attestation/environment-stamper.js:138** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/attestation/environment-stamper.js:153** - Date.now() call creates non-deterministic timestamp
+- **src/attestation/environment-stamper.js:185** - Date.now() call creates non-deterministic timestamp
+- **src/attestation/environment-stamper.js:369** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/attestation/environment-stamper.js:453** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/audit/audit-trail-generator.js:78** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/audit/audit-trail-generator.js:157** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/audit/audit-trail-generator.js:194** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/audit/audit-trail-generator.js:364** - Date.now() call creates non-deterministic timestamp
+- **src/audit/audit-trail-generator.js:460** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/audit/audit-trail-generator.js:666** - Date.now() call creates non-deterministic timestamp
+- **src/audit/audit-trail-generator.js:673** - Date.now() call creates non-deterministic timestamp
+- **src/audit/audit-trail-generator.js:680** - Date.now() call creates non-deterministic timestamp
+- **src/audit/audit-trail-generator.js:688** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/audit/enterprise-audit-enhancements.js:94** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/audit/enterprise-audit-enhancements.js:132** - Date.now() call creates non-deterministic timestamp
+- **src/audit/enterprise-audit-enhancements.js:292** - Date.now() call creates non-deterministic timestamp
+- **src/audit/enterprise-audit-enhancements.js:304** - Date.now() call creates non-deterministic timestamp
+- **src/audit/enterprise-audit-enhancements.js:331** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/audit/enterprise-audit-enhancements.js:346** - Date.now() call creates non-deterministic timestamp
+- **src/audit/enterprise-audit-enhancements.js:374** - Date.now() call creates non-deterministic timestamp
+- **src/audit/enterprise-audit-enhancements.js:389** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/audit/enterprise-audit-enhancements.js:486** - Date.now() call creates non-deterministic timestamp
+- **src/audit/enterprise-audit-enhancements.js:510** - Date.now() call creates non-deterministic timestamp
+- **src/audit/enterprise-audit-enhancements.js:523** - Date.now() call creates non-deterministic timestamp
+- **src/audit/enterprise-audit-enhancements.js:572** - Date.now() call creates non-deterministic timestamp
+- **src/audit/enterprise-audit-enhancements.js:602** - Date.now() call creates non-deterministic timestamp
+- **src/audit/enterprise-audit-enhancements.js:622** - Date.now() call creates non-deterministic timestamp
+- **src/audit/enterprise-audit-enhancements.js:633** - Date.now() call creates non-deterministic timestamp
+- **src/cli/commands/office.js:147** - Date.now() call creates non-deterministic timestamp
+- **src/cli/commands/office.js:156** - Date.now() call creates non-deterministic timestamp
+- **src/cli/commands/office.js:439** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/cli/commands/office.js:577** - Date.now() call creates non-deterministic timestamp
+- **src/cli/commands/specify/init.js:63** - Date.now() call creates non-deterministic timestamp
+- **src/cli/commands/specify/init.js:132** - Date.now() call creates non-deterministic timestamp
+- **src/cli/commands/specify/init.js:176** - Date.now() call creates non-deterministic timestamp
+- **src/cli/commands/specify/init.js:224** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/cli/commands/specify/plan.js:76** - Date.now() call creates non-deterministic timestamp
+- **src/cli/commands/specify/plan.js:155** - Date.now() call creates non-deterministic timestamp
+- **src/cli/commands/specify/plan.js:169** - Date.now() call creates non-deterministic timestamp
+- **src/cli/commands/specify/plan.js:436** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/cli/commands/specify/tasks.js:94** - Date.now() call creates non-deterministic timestamp
+- **src/cli/commands/specify/tasks.js:192** - Date.now() call creates non-deterministic timestamp
+- **src/cli/commands/specify/tasks.js:206** - Date.now() call creates non-deterministic timestamp
+- **src/cli/commands/specify/tasks.js:324** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/cli/commands/specify/tasks.js:493** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/cli/commands/specify/validate.js:75** - Date.now() call creates non-deterministic timestamp
+- **src/cli/commands/specify/validate.js:194** - Date.now() call creates non-deterministic timestamp
+- **src/cli/commands/specify/validate.js:286** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/cli/commands/specify/validate.js:405** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/commands/export.js:107** - Date.now() call creates non-deterministic timestamp
+- **src/commands/export.js:157** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/commands/export.js:198** - Date.now() call creates non-deterministic timestamp
+- **src/commands/export.js:242** - Date.now() call creates non-deterministic timestamp
+- **src/commands/export.js:281** - Date.now() call creates non-deterministic timestamp
+- **src/commands/export.js:317** - Date.now() call creates non-deterministic timestamp
+- **src/commands/export.js:331** - Date.now() call creates non-deterministic timestamp
+- **src/commands/export.js:345** - Date.now() call creates non-deterministic timestamp
+- **src/commands/export.js:359** - Date.now() call creates non-deterministic timestamp
+- **src/commands/export.js:373** - Date.now() call creates non-deterministic timestamp
+- **src/commands/export.js:395** - Date.now() call creates non-deterministic timestamp
+- **src/commands/export.js:624** - Date.now() call creates non-deterministic timestamp
+- **src/commands/export.js:662** - Date.now() call creates non-deterministic timestamp
+- **src/commands/export.js:755** - Date.now() call creates non-deterministic timestamp
+- **src/commands/export.js:894** - Date.now() call creates non-deterministic timestamp
+- **src/commands/export.js:929** - Date.now() call creates non-deterministic timestamp
+- **src/commands/generate-safe.js:151** - Date.now() call creates non-deterministic timestamp
+- **src/commands/generate-safe.js:331** - Date.now() call creates non-deterministic timestamp
+- **src/commands/generate-unified.js:469** - Date.now() call creates non-deterministic timestamp
+- **src/commands/generate-unified.js:595** - Date.now() call creates non-deterministic timestamp
+- **src/commands/generate.js:684** - Date.now() call creates non-deterministic timestamp
+- **src/commands/generate.js:878** - Date.now() call creates non-deterministic timestamp
+- **src/commands/init.js:385** - Date.now() call creates non-deterministic timestamp
+- **src/commands/init.js:624** - Date.now() call creates non-deterministic timestamp
+- **src/commands/inject.js:157** - Date.now() call creates non-deterministic timestamp
+- **src/commands/inject.js:353** - Date.now() call creates non-deterministic timestamp
+- **src/commands/knowledge-graph.js:212** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/commands/knowledge-graph.js:392** - Date.now() call creates non-deterministic timestamp
+- **src/commands/knowledge.js:841** - Date.now() call creates non-deterministic timestamp
+- **src/commands/knowledge.js:844** - Date.now() call creates non-deterministic timestamp
+- **src/commands/knowledge.js:1008** - Date.now() call creates non-deterministic timestamp
+- **src/commands/knowledge.js:1022** - Date.now() call creates non-deterministic timestamp
+- **src/commands/knowledge.js:1035** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/commands/knowledge.js:1329** - Date.now() call creates non-deterministic timestamp
+- **src/commands/knowledge.js:1331** - Date.now() call creates non-deterministic timestamp
+- **src/commands/knowledge.js:1353** - Date.now() call creates non-deterministic timestamp
+- **src/commands/knowledge.js:1356** - Date.now() call creates non-deterministic timestamp
+- **src/commands/knowledge.js:1361** - Date.now() call creates non-deterministic timestamp
+- **src/commands/knowledge.js:1483** - Date.now() call creates non-deterministic timestamp
+- **src/commands/knowledge.js:1493** - Date.now() call creates non-deterministic timestamp
+- **src/commands/knowledge.js:1495** - Date.now() call creates non-deterministic timestamp
+- **src/commands/knowledge.js:1506** - Date.now() call creates non-deterministic timestamp
+- **src/commands/list-safe.js:193** - Date.now() call creates non-deterministic timestamp
+- **src/commands/list-safe.js:254** - Date.now() call creates non-deterministic timestamp
+- **src/commands/list-safe.js:328** - Date.now() call creates non-deterministic timestamp
+- **src/commands/list.js:317** - Date.now() call creates non-deterministic timestamp
+- **src/commands/list.js:392** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/commands/list.js:393** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/commands/list.js:407** - Date.now() call creates non-deterministic timestamp
+- **src/commands/list.js:507** - Date.now() call creates non-deterministic timestamp
+- **src/commands/neural.js:38** - Date.now() call creates non-deterministic timestamp
+- **src/commands/neural.js:51** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/commands/neural.js:88** - Date.now() call creates non-deterministic timestamp
+- **src/commands/neural.js:140** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/commands/neural.js:144** - Date.now() call creates non-deterministic timestamp
+- **src/commands/neural.js:175** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/commands/neural.js:223** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/commands/neural.js:296** - Date.now() call creates non-deterministic timestamp
+- **src/commands/neural.js:377** - Date.now() call creates non-deterministic timestamp
+- **src/commands/neural.js:393** - Date.now() call creates non-deterministic timestamp
+- **src/commands/neural.js:519** - Date.now() call creates non-deterministic timestamp
+- **src/commands/neural.js:521** - Date.now() call creates non-deterministic timestamp
+- **src/commands/neural.js:564** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/commands/neural.js:778** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/commands/neural.js:824** - Date.now() call creates non-deterministic timestamp
+- **src/commands/neural.js:831** - Date.now() call creates non-deterministic timestamp
+- **src/commands/neural.js:837** - Date.now() call creates non-deterministic timestamp
+- **src/commands/neural.js:844** - Date.now() call creates non-deterministic timestamp
+- **src/commands/neural.js:1046** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/commands/new.js:328** - Date.now() call creates non-deterministic timestamp
+- **src/commands/new.js:349** - Date.now() call creates non-deterministic timestamp
+- **src/commands/perf.js:39** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/commands/perf.js:114** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/commands/perf.js:228** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/commands/perf.js:395** - Date.now() call creates non-deterministic timestamp
+- **src/commands/perf.js:518** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/commands/perf.js:776** - Date.now() call creates non-deterministic timestamp
+- **src/commands/perf.js:789** - Date.now() call creates non-deterministic timestamp
+- **src/commands/perf.js:885** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/commands/perf.js:1168** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/commands/perf.js:1202** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/commands/semantic.js:677** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/commands/semantic.js:682** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/commands/swarm.js:43** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/commands/swarm.js:54** - Date.now() call creates non-deterministic timestamp
+- **src/commands/swarm.js:55** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/commands/swarm.js:82** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/commands/swarm.js:97** - Date.now() call creates non-deterministic timestamp
+- **src/commands/swarm.js:102** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/commands/swarm.js:182** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/commands/swarm.js:262** - Date.now() call creates non-deterministic timestamp
+- **src/commands/swarm.js:376** - Date.now() call creates non-deterministic timestamp
+- **src/commands/swarm.js:384** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/commands/swarm.js:608** - Date.now() call creates non-deterministic timestamp
+- **src/commands/swarm.js:620** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/commands/swarm.js:629** - Date.now() call creates non-deterministic timestamp
+- **src/commands/swarm.js:902** - Date.now() call creates non-deterministic timestamp
+- **src/commands/swarm.js:944** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/commands/swarm.js:977** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/commands/swarm.js:1045** - Date.now() call creates non-deterministic timestamp
+- **src/commands/swarm.js:1053** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/commands/swarm.js:1102** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/commands/swarm.js:1104** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/commands/swarm.js:1264** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/commands/swarm.js:1352** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/commands/validate-templates.js:64** - Date.now() call creates non-deterministic timestamp
+- **src/commands/validate-templates.js:106** - Date.now() call creates non-deterministic timestamp
+- **src/commands/validate-templates.js:246** - Date.now() call creates non-deterministic timestamp
+- **src/commands/workflow.js:52** - Date.now() call creates non-deterministic timestamp
+- **src/commands/workflow.js:61** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/commands/workflow.js:147** - Date.now() call creates non-deterministic timestamp
+- **src/commands/workflow.js:148** - Date.now() call creates non-deterministic timestamp
+- **src/commands/workflow.js:156** - Date.now() call creates non-deterministic timestamp
+- **src/commands/workflow.js:170** - Date.now() call creates non-deterministic timestamp
+- **src/commands/workflow.js:172** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/commands/workflow.js:181** - Date.now() call creates non-deterministic timestamp
+- **src/compliance/compliance-marketplace.js:294** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/compliance/compliance-marketplace.js:301** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/compliance/compliance-marketplace.js:464** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/compliance/compliance-marketplace.js:588** - Date.now() call creates non-deterministic timestamp
+- **src/compliance/compliance-marketplace.js:597** - Date.now() call creates non-deterministic timestamp
+- **src/compliance/gdpr-compliance-checker.ts:296** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/compliance/gdpr-compliance-checker.ts:344** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/compliance/gdpr-compliance-checker.ts:382** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/compliance/gdpr-compliance-checker.ts:384** - Date.now() call creates non-deterministic timestamp
+- **src/compliance/gdpr-compliance-checker.ts:385** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/compliance/gdpr-compliance-checker.ts:408** - Date.now() call creates non-deterministic timestamp
+- **src/compliance/gdpr-compliance-checker.ts:427** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/compliance/gdpr-compliance-checker.ts:453** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/compliance/gdpr-compliance-checker.ts:479** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/compliance/gdpr-compliance-checker.ts:505** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/compliance/gdpr-compliance-checker.ts:528** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/compliance/gdpr-compliance-checker.ts:544** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/compliance/gdpr-compliance-checker.ts:573** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/compliance/gdpr-compliance-checker.ts:596** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/compliance/gdpr-compliance-checker.ts:609** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/compliance/gdpr-compliance-checker.ts:638** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/compliance/gdpr-compliance-checker.ts:669** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/compliance/gdpr-compliance-checker.ts:714** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/compliance/gdpr-compliance-checker.ts:756** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/compliance/gdpr-compliance-checker.ts:767** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/compliance/gdpr-compliance-checker.ts:802** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/compliance/gdpr-compliance-checker.ts:913** - Date.now() call creates non-deterministic timestamp
+- **src/compliance/gdpr-compliance-checker.ts:923** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/compliance/gdpr-compliance-checker.ts:987** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/compliance/gdpr-compliance-checker.ts:1035** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/compliance/gdpr-compliance-checker.ts:1042** - Date.now() call creates non-deterministic timestamp
+- **src/compliance/pci-dss-validator.ts:408** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/compliance/pci-dss-validator.ts:438** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/compliance/pci-dss-validator.ts:440** - Date.now() call creates non-deterministic timestamp
+- **src/compliance/pci-dss-validator.ts:441** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/compliance/pci-dss-validator.ts:466** - Date.now() call creates non-deterministic timestamp
+- **src/compliance/pci-dss-validator.ts:499** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/compliance/pci-dss-validator.ts:528** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/compliance/pci-dss-validator.ts:554** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/compliance/pci-dss-validator.ts:585** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/compliance/pci-dss-validator.ts:620** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/compliance/pci-dss-validator.ts:671** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/compliance/pci-dss-validator.ts:805** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/compliance/pci-dss-validator.ts:836** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/compliance/pci-dss-validator.ts:1103** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/compliance/pci-dss-validator.ts:1110** - Date.now() call creates non-deterministic timestamp
+- **src/compliance/sox-compliance-auditor.ts:272** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/compliance/sox-compliance-auditor.ts:286** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/compliance/sox-compliance-auditor.ts:288** - Date.now() call creates non-deterministic timestamp
+- **src/compliance/sox-compliance-auditor.ts:289** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/compliance/sox-compliance-auditor.ts:315** - Date.now() call creates non-deterministic timestamp
+- **src/compliance/sox-compliance-auditor.ts:339** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/compliance/sox-compliance-auditor.ts:352** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/compliance/sox-compliance-auditor.ts:405** - Date.now() call creates non-deterministic timestamp
+- **src/compliance/sox-compliance-auditor.ts:470** - Date.now() call creates non-deterministic timestamp
+- **src/compliance/sox-compliance-auditor.ts:804** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/compliance/sox-compliance-auditor.ts:811** - Date.now() call creates non-deterministic timestamp
+- **src/compliance/sox-compliance-auditor.ts:927** - Date.now() call creates non-deterministic timestamp
+- **src/compliance/sox-compliance-auditor.ts:928** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/compliance/sox-compliance-auditor.ts:956** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/composables/useRealTime.js:56** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/composables/useRealTime.js:57** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/composables/useWebSocket.js:134** - Date.now() call creates non-deterministic timestamp
+- **src/composables/useWebSocket.js:187** - Date.now() call creates non-deterministic timestamp
+- **src/composables/useWebSocket.js:188** - Date.now() call creates non-deterministic timestamp
+- **src/composables/useWebSocket.js:250** - Date.now() call creates non-deterministic timestamp
+- **src/context-hooks.js:83** - Date.now() call creates non-deterministic timestamp
+- **src/context-hooks.js:115** - Date.now() call creates non-deterministic timestamp
+- **src/context-hooks.js:121** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/context-hooks.js:143** - Date.now() call creates non-deterministic timestamp
+- **src/context-hooks.js:163** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/context-hooks.js:222** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/context-hooks.js:363** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/context-hooks.js:444** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/context-hooks.js:468** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/context-hooks.js:491** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/context-hooks.js:515** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/context-hooks.js:537** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/context-hooks.js:548** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/context-hooks.js:614** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/context-hooks.js:740** - Date.now() call creates non-deterministic timestamp
+- **src/context-hooks.js:755** - Date.now() call creates non-deterministic timestamp
+- **src/context-hooks.js:763** - Date.now() call creates non-deterministic timestamp
+- **src/context-hooks.js:791** - Date.now() call creates non-deterministic timestamp
+- **src/dashboard/compliance-dashboard.js:173** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/dashboard/compliance-dashboard.js:194** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/dashboard/compliance-dashboard.js:288** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/dashboard/compliance-dashboard.js:373** - Date.now() call creates non-deterministic timestamp
+- **src/dashboard/compliance-dashboard.js:374** - Date.now() call creates non-deterministic timestamp
+- **src/dashboard/compliance-dashboard.js:415** - Date.now() call creates non-deterministic timestamp
+- **src/dashboard/compliance-dashboard.js:475** - Date.now() call creates non-deterministic timestamp
+- **src/dashboard/compliance-dashboard.js:505** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/dashboard/compliance-dashboard.js:527** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/dashboard/compliance-dashboard.js:553** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/dashboard/compliance-dashboard.js:670** - Date.now() call creates non-deterministic timestamp
+- **src/dashboard/compliance-dashboard.js:677** - Date.now() call creates non-deterministic timestamp
+- **src/dashboard/compliance-dashboard.js:684** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/docs/audit-logger.ts:149** - Date.now() call creates non-deterministic timestamp
+- **src/docs/audit-logger.ts:151** - Date.now() call creates non-deterministic timestamp
+- **src/docs/audit-logger.ts:300** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/docs/audit-logger.ts:330** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/docs/audit-logger.ts:364** - Date.now() call creates non-deterministic timestamp
+- **src/docs/audit-logger.ts:453** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/docs/audit-logger.ts:476** - Date.now() call creates non-deterministic timestamp
+- **src/docs/audit-logger.ts:505** - Date.now() call creates non-deterministic timestamp
+- **src/docs/audit-logger.ts:521** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/docs/audit-logger.ts:531** - Date.now() call creates non-deterministic timestamp
+- **src/docs/audit-logger.ts:554** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/docs/audit-logger.ts:559** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/docs/audit-logger.ts:621** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/docs/audit-logger.ts:831** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/docs/audit-logger.ts:942** - Date.now() call creates non-deterministic timestamp
+- **src/docs/knowledge-base.ts:643** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/docs/knowledge-base.ts:709** - Date.now() call creates non-deterministic timestamp
+- **src/docs/knowledge-base.ts:759** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/docs/knowledge-base.ts:914** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/docs/knowledge-base.ts:925** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/docs/knowledge-base.ts:973** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/docs/training-materials-generator.ts:552** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/docs/training-materials-generator.ts:553** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/docs/training-materials-generator.ts:590** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/docs/training-materials-generator.ts:591** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/docs/training-materials-generator.ts:632** - Date.now() call creates non-deterministic timestamp
+- **src/docs/training-materials-generator.ts:647** - Date.now() call creates non-deterministic timestamp
+- **src/docs/training-materials-generator.ts:1308** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/docs/training-materials-generator.ts:1404** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/document/document-processor.js:112** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/enterprise/api/server.js:156** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/enterprise/api/server.js:182** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/enterprise/auth/auth-providers.js:245** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/enterprise/auth/auth-providers.js:268** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/enterprise/auth/auth-providers.js:314** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/enterprise/auth/auth-providers.js:338** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/enterprise/auth/auth-providers.js:448** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/enterprise/auth/auth-providers.js:560** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/enterprise/auth/auth-providers.js:755** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/enterprise/auth/auth-providers.js:812** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/enterprise/auth/auth-providers.js:817** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/enterprise/auth/auth-providers.js:847** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/enterprise/auth/auth-providers.js:866** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/enterprise/auth/auth-providers.js:1067** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/enterprise/auth/auth-providers.js:1068** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/enterprise/auth/auth-providers.js:1099** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/enterprise/connectors/connector-framework.js:108** - Date.now() call creates non-deterministic timestamp
+- **src/enterprise/etl/etl-pipeline.js:130** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/enterprise/etl/etl-pipeline.js:153** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/enterprise/etl/etl-pipeline.js:168** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/enterprise/etl/etl-pipeline.js:172** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/enterprise/etl/etl-pipeline.js:242** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/enterprise/etl/etl-pipeline.js:285** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/enterprise/etl/etl-pipeline.js:290** - Date.now() call creates non-deterministic timestamp
+- **src/enterprise/etl/etl-pipeline.js:1125** - Date.now() call creates non-deterministic timestamp
+- **src/enterprise/etl/etl-pipeline.js:1135** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/enterprise/etl/etl-pipeline.js:1146** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/enterprise/gateway/api-gateway.js:155** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/enterprise/gateway/api-gateway.js:226** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/enterprise/gateway/api-gateway.js:326** - Date.now() call creates non-deterministic timestamp
+- **src/enterprise/gateway/api-gateway.js:353** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/enterprise/gateway/api-gateway.js:479** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/enterprise/gateway/api-gateway.js:563** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/enterprise/gateway/api-gateway.js:657** - Date.now() call creates non-deterministic timestamp
+- **src/enterprise/gateway/api-gateway.js:661** - Date.now() call creates non-deterministic timestamp
+- **src/enterprise/gateway/api-gateway.js:824** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/enterprise/gateway/api-gateway.js:865** - Date.now() call creates non-deterministic timestamp
+- **src/enterprise/gateway/api-gateway.js:885** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/enterprise/gateway/api-gateway.js:908** - Date.now() call creates non-deterministic timestamp
+- **src/enterprise/graphql/resolvers.js:256** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/enterprise/queue/message-queue.js:212** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/enterprise/queue/message-queue.js:246** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/enterprise/queue/message-queue.js:459** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/enterprise/queue/message-queue.js:469** - Date.now() call creates non-deterministic timestamp
+- **src/enterprise/webhooks/webhook-manager.js:121** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/enterprise/webhooks/webhook-manager.js:160** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/enterprise/webhooks/webhook-manager.js:197** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/enterprise/webhooks/webhook-manager.js:232** - Date.now() call creates non-deterministic timestamp
+- **src/enterprise/webhooks/webhook-manager.js:262** - Date.now() call creates non-deterministic timestamp
+- **src/enterprise/webhooks/webhook-manager.js:275** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/enterprise/webhooks/webhook-manager.js:290** - Date.now() call creates non-deterministic timestamp
+- **src/enterprise/webhooks/webhook-manager.js:304** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/enterprise/webhooks/webhook-manager.js:324** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/enterprise/webhooks/webhook-manager.js:500** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/enterprise/webhooks/webhook-manager.js:579** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/error-handling/kgen-error-patches.js:81** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/error-handling/kgen-error-patches.js:461** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/error-handling/kgen-error-patches.js:557** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/error-handling/kgen-error-patches.js:650** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/error-handling/kgen-error-patches.js:670** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/error-handling/kgen-error-patches.js:902** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/error-handling/robust-error-system.js:27** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/error-handling/robust-error-system.js:555** - Date.now() call creates non-deterministic timestamp
+- **src/error-handling/robust-error-system.js:574** - Date.now() call creates non-deterministic timestamp
+- **src/error-handling/robust-error-system.js:693** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/error-handling/robust-error-system.js:720** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/error-handling/robust-error-system.js:728** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/error-handling/robust-error-system.js:800** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/error-handling/robust-error-system.js:973** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/error-handling/robust-error-system.js:1016** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/error-handling/robust-error-system.js:1062** - Date.now() call creates non-deterministic timestamp
+- **src/error-handling/robust-error-system.js:1073** - Date.now() call creates non-deterministic timestamp
+- **src/examples/audit-streaming-example.js:233** - Date.now() call creates non-deterministic timestamp
+- **src/examples/audit-streaming-example.js:249** - Date.now() call creates non-deterministic timestamp
+- **src/examples/dark-matter-demo.js:149** - Date.now() call creates non-deterministic timestamp
+- **src/examples/dark-matter-demo.js:444** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/formatters/legal-formatter.js:312** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/integrations/api/graphql-federation.js:410** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/integrations/api/graphql-federation.js:411** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/integrations/api/graphql-federation.js:428** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/integrations/api/graphql-federation.js:429** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/integrations/api/graphql-federation.js:444** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/integrations/api/graphql-federation.js:445** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/integrations/api/graphql-federation.js:453** - Date.now() call creates non-deterministic timestamp
+- **src/integrations/api/graphql-federation.js:458** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/integrations/api/graphql-federation.js:474** - Date.now() call creates non-deterministic timestamp
+- **src/integrations/api/graphql-federation.js:478** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/integrations/api/graphql-federation.js:479** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/integrations/api/graphql-federation.js:489** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/integrations/api/graphql-federation.js:502** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/integrations/api/graphql-federation.js:503** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/integrations/api/graphql-federation.js:518** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/integrations/api/graphql-federation.js:519** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/integrations/api/graphql-federation.js:532** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/integrations/api/graphql-federation.js:533** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/integrations/api/rest-api-versioning.js:118** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/integrations/api/rest-api-versioning.js:254** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/integrations/api/rest-api-versioning.js:256** - Date.now() call creates non-deterministic timestamp
+- **src/integrations/auth/sso-provider.js:72** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/integrations/auth/sso-provider.js:174** - Date.now() call creates non-deterministic timestamp
+- **src/integrations/auth/sso-provider.js:180** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/integrations/auth/sso-provider.js:182** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/integrations/auth/sso-provider.js:220** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/integrations/auth/sso-provider.js:225** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/integrations/auth/sso-provider.js:325** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/integrations/events/webhook-streaming.js:68** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/integrations/events/webhook-streaming.js:88** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/integrations/events/webhook-streaming.js:115** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/integrations/events/webhook-streaming.js:136** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/integrations/events/webhook-streaming.js:168** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/integrations/events/webhook-streaming.js:173** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/integrations/events/webhook-streaming.js:207** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/integrations/events/webhook-streaming.js:276** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/integrations/events/webhook-streaming.js:302** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/integrations/events/webhook-streaming.js:303** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/integrations/events/webhook-streaming.js:457** - Date.now() call creates non-deterministic timestamp
+- **src/integrations/events/webhook-streaming.js:473** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/integrations/index.js:35** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/integrations/index.js:208** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/integrations/index.js:225** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/integrations/index.js:240** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/integrations/index.js:241** - Date.now() call creates non-deterministic timestamp
+- **src/integrations/index.js:282** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/integrations/index.js:285** - Date.now() call creates non-deterministic timestamp
+- **src/integrations/index.js:301** - Date.now() call creates non-deterministic timestamp
+- **src/integrations/index.js:346** - Date.now() call creates non-deterministic timestamp
+- **src/integrations/kgen-bridge.js:142** - Date.now() call creates non-deterministic timestamp
+- **src/integrations/kgen-bridge.js:574** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/integrations/kgen-bridge.js:593** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/integrations/kgen-bridge.js:618** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/integrations/kgen-bridge.js:638** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/integrations/messaging/message-queue.js:84** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/integrations/messaging/message-queue.js:103** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/integrations/messaging/message-queue.js:345** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/integrations/messaging/message-queue.js:399** - Date.now() call creates non-deterministic timestamp
+- **src/integrations/messaging/message-queue.js:427** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/integrations/messaging/message-queue.js:601** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/api/rest/graphs.js:128** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/api/rest/graphs.js:175** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/api/rest/graphs.js:181** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/api/rest/graphs.js:191** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/api/rest/graphs.js:209** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/api/rest/graphs.js:235** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/api/rest/graphs.js:251** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/api/rest/graphs.js:267** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/api/rest/graphs.js:316** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/api/rest/graphs.js:326** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/api/rest/graphs.js:342** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/api/rest/graphs.js:374** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/api/rest/graphs.js:407** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/api/rest/graphs.js:417** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/api/rest/graphs.js:435** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/api/rest/graphs.js:464** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/api/rest/graphs.js:476** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/api/rest/graphs.js:494** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/api/rest/graphs.js:526** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/api/rest/graphs.js:536** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/api/rest/graphs.js:593** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/api/rest/semantic-api.js:262** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/api/rest/semantic-api.js:287** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/api/rest/semantic-api.js:288** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/api/rest/semantic-api.js:318** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/api/rest/semantic-api.js:433** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/api/rest/semantic-api.js:434** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/api/rest/semantic-api.js:611** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/api/rest/semantic-api.js:625** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/api/rest/semantic-api.js:634** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/api/rest/semantic-api.js:645** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/api/rest/semantic-api.js:653** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/api/rest/semantic-api.js:694** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/api/rest/semantic-api.js:697** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/api/rest/semantic-api.js:710** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/api/rest/semantic-api.js:753** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/api/semantic-orchestrator.js:407** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/api/semantic-orchestrator.js:451** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/api/server.js:116** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/api/server.js:121** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/api/server.js:147** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/api/server.js:327** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/api/server.js:359** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/api/server.js:500** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/api/server.js:515** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/attestation/attest-resolver.js:203** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/attestation/attest-resolver.js:321** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/attestation/attest-resolver.js:368** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/attestation/attest-resolver.js:441** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/attestation/enhanced-methods.js:202** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/attestation/enhanced-methods.js:228** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/attestation/enhanced-methods.js:241** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/attestation/enhanced-methods.js:258** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/attestation/enhanced-methods.js:259** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/attestation/enhanced-methods.js:260** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/attestation/enhanced-methods.js:324** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/attestation/enhanced-methods.js:507** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/attestation/generator.js:128** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/attestation/generator.js:417** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/attestation/generator.js:474** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/attestation/jwt-handler.js:88** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/attestation/jwt-handler.js:156** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/attestation/jwt-handler.js:200** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/attestation/jwt-handler.js:208** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/attestation/key-manager.js:89** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/attestation/key-manager.js:159** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/attestation/key-manager.js:184** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/attestation/key-manager.js:223** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/attestation/key-manager.js:257** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/attestation/key-manager.js:433** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/attestation/key-manager.js:504** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/attestation/key-manager.js:525** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/attestation/key-manager.js:625** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/benchmarks/cas-benchmarks.js:55** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/benchmarks/drift-uri-benchmarks.js:300** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/benchmarks/drift-uri-benchmarks.js:353** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/benchmarks/drift-uri-benchmarks.js:369** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/benchmarks/drift-uri-benchmarks.js:391** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/benchmarks/drift-uri-benchmarks.js:464** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/benchmarks/performance-benchmark.js:400** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/benchmarks/performance-benchmark.js:422** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/cache/index.js:188** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/cache/index.js:448** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/cache/index.js:465** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/cache/index.js:474** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/cache/index.js:601** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/cache/index.js:604** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/cache/index.js:660** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/cache/lru-cache.js:64** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/cache/lru-cache.js:82** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/cache/lru-cache.js:83** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/cache/lru-cache.js:203** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/cache/lru-cache.js:274** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/cache/lru-cache.js:295** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/cache/lru-cache.js:343** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/cache/lru-cache.js:366** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/cache/lru-cache.js:412** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/cas/atomic-storage-engine.js:332** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/cas/atomic-storage-engine.js:334** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/cas/atomic-storage-engine.js:471** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/cas/cas-core-simple.js:45** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/cas/cas-core-simple.js:164** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/cas/cas-core-simple.js:219** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/cas/cas-core-simple.js:233** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/cas/cas-core.js:57** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/cas/cas-core.js:201** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/cas/cas-core.js:285** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/cas/cas-core.js:300** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/cas/cas-engine-optimized.js:68** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/cas/cas-engine-optimized.js:69** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/cas/cas-engine-optimized.js:152** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/cas/cas-engine-optimized.js:154** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/cas/cas-engine-optimized.js:285** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/cas/cas-engine-optimized.js:361** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/cas/cas-engine-optimized.js:461** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/cas/cas-engine-optimized.js:464** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/cas/cas-engine-optimized.js:483** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/cas/cas-engine-optimized.js:537** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/cas/content-uri-resolver.js:157** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/cas/content-uri-resolver.js:158** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/cas/content-uri-resolver.js:202** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/cas/content-uri-resolver.js:341** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/cas/content-uri-resolver.js:815** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/cas/provenance-integration.js:90** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/cas/provenance-integration.js:140** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/cas/provenance-integration.js:161** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/cas/provenance-integration.js:189** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/cas/provenance-integration.js:205** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/cas/provenance-integration.js:216** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/cas/provenance-integration.js:398** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/cas/provenance-integration.js:422** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/cas/provenance-integration.js:482** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/cas/provenance-integration.js:539** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/ci/semantic-pipeline.js:106** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/ci/semantic-pipeline.js:149** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/ci/semantic-pipeline.js:168** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/ci/semantic-pipeline.js:190** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/ci/semantic-pipeline.js:212** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/ci/semantic-pipeline.js:228** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/ci/semantic-pipeline.js:257** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/ci/semantic-pipeline.js:276** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/ci/semantic-pipeline.js:292** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/ci/semantic-pipeline.js:325** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/ci/semantic-pipeline.js:345** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/ci/semantic-pipeline.js:501** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/ci/semantic-pipeline.js:534** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/ci/semantic-pipeline.js:546** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/ci/semantic-pipeline.js:577** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/ci/semantic-pipeline.js:578** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/ci/semantic-pipeline.js:640** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/ci/semantic-pipeline.js:665** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/cli/commands/artifact-dependencies.js:156** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/cli/commands/artifact-dependencies.js:186** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/cli/commands/graph-diff.js:138** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/cli/commands/graph-diff.js:148** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/cli/commands/graph-index.js:142** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/cli/commands/graph-index.js:150** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/cli/kgen-cli-bridge.js:63** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/cli/kgen-cli-bridge.js:110** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/cli/kgen-cli-bridge.js:156** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/cli/kgen-cli-bridge.js:229** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/cli/kgen-cli-bridge.js:285** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/cli/kgen-cli-bridge.js:363** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/cli/kgen-cli-bridge.js:424** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/cli/kgen-cli-bridge.js:459** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/cli/kgen-cli-bridge.js:496** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/cli/kgen-cli-bridge.js:571** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/cli/kgen-cli-bridge.js:662** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/cli/kgen-cli-bridge.js:697** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/cli/simple-sparql-adapter.js:98** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/cli/simple-sparql-adapter.js:108** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/cli/simple-sparql-adapter.js:128** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/cli/simple-sparql-adapter.js:159** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/cli/sparql-adapter.js:159** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/cli/sparql-adapter.js:170** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/cli/sparql-adapter.js:202** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/cli/sparql-adapter.js:256** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/cli/sparql-adapter.js:304** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/cli/sparql-adapter.js:345** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/cli/sparql-adapter.js:403** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/cli/working-sparql-adapter.js:106** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/cli/working-sparql-adapter.js:116** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/cli/working-sparql-adapter.js:142** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/cli/working-sparql-adapter.js:177** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/cli/working-sparql-adapter.js:219** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/core/engine.js:139** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/core/engine.js:236** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/core/engine.js:266** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/core/engine.js:339** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/core/engine.js:357** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/core/engine.js:430** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/core/engine.js:467** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/core/engine.js:536** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/core/engine.js:654** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/core/engine.js:706** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/core/engine.js:736** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/core/engine.js:781** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/core/engine.js:800** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/core/engine.js:820** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/core/engine.js:848** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/core/engine.js:850** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/core/engine.js:862** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/core/engine.js:876** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/core/frontmatter/conditional-processor.js:41** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/core/frontmatter/conditional-processor.js:56** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/core/frontmatter/conditional-processor.js:92** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/core/frontmatter/conditional-processor.js:117** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/core/frontmatter/conditional-processor.js:138** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/core/frontmatter/conditional-processor.js:575** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/core/frontmatter/metadata-extractor.js:40** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/core/frontmatter/metadata-extractor.js:109** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/core/frontmatter/metadata-extractor.js:113** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/core/frontmatter/metadata-extractor.js:126** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/core/frontmatter/metadata-extractor.js:441** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/core/frontmatter/metadata-extractor.js:1008** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/core/frontmatter/operation-engine.js:89** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/core/frontmatter/operation-engine.js:108** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/core/frontmatter/operation-engine.js:138** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/core/frontmatter/operation-engine.js:153** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/core/frontmatter/operation-engine.js:182** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/core/frontmatter/operation-engine.js:199** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/core/frontmatter/operation-engine.js:243** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/core/frontmatter/operation-engine.js:296** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/core/frontmatter/operation-engine.js:317** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/core/frontmatter/operation-engine.js:326** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/core/frontmatter/operation-engine.js:476** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/core/frontmatter/operation-engine.js:547** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/core/frontmatter/operation-engine.js:595** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/core/frontmatter/operation-engine.js:643** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/core/frontmatter/operation-engine.js:689** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/core/frontmatter/operation-engine.js:823** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/core/frontmatter/operation-engine.js:847** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/core/frontmatter/operation-engine.js:898** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/core/frontmatter/parser.js:73** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/core/frontmatter/parser.js:85** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/core/frontmatter/parser.js:114** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/core/frontmatter/parser.js:151** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/core/frontmatter/parser.js:170** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/core/frontmatter/parser.js:182** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/core/frontmatter/path-resolver.js:53** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/core/frontmatter/path-resolver.js:68** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/core/frontmatter/path-resolver.js:100** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/core/frontmatter/path-resolver.js:119** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/core/frontmatter/path-resolver.js:138** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/core/frontmatter/path-resolver.js:170** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/core/frontmatter/path-resolver.js:189** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/core/frontmatter/path-resolver.js:208** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/core/frontmatter/path-resolver.js:266** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/core/frontmatter/path-resolver.js:503** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/core/frontmatter/path-resolver.js:615** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/core/frontmatter/schema-validator.js:62** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/core/frontmatter/schema-validator.js:88** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/core/frontmatter/schema-validator.js:102** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/core/frontmatter/schema-validator.js:130** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/core/frontmatter/schema-validator.js:158** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/core/frontmatter/workflow-engine.js:143** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/core/frontmatter/workflow-engine.js:321** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/core/frontmatter/workflow-engine.js:502** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/core/frontmatter/workflow-engine.js:556** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/core/frontmatter/workflow-engine.js:566** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/core/frontmatter/workflow-engine.js:568** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/db/index.js:499** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/deployment/production-deployer.js:124** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/deployment/production-deployer.js:164** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/deployment/production-deployer.js:197** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/deployment/production-deployer.js:211** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/deployment/production-deployer.js:270** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/deployment/production-deployer.js:289** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/deployment/production-deployer.js:312** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/deployment/production-deployer.js:356** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/deployment/production-deployer.js:555** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/deployment/production-deployer.js:560** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/deployment/production-deployer.js:564** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/deployment/production-deployer.js:568** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/deterministic/artifact-generator.js:70** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/deterministic/artifact-generator.js:80** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/deterministic/artifact-generator.js:162** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/deterministic/artifact-generator.js:174** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/deterministic/artifact-generator.js:188** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/deterministic/artifact-generator.js:207** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/deterministic/artifact-generator.js:252** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/deterministic/artifact-generator.js:327** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/deterministic/artifact-generator.js:352** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/deterministic/artifact-generator.js:393** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/deterministic/core-renderer.js:374** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/deterministic/core-renderer.js:552** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/deterministic/core-renderer.js:553** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/deterministic/error-handler.js:55** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/deterministic/error-handler.js:71** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/deterministic/error-handler.js:83** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/deterministic/error-handler.js:122** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/deterministic/error-handler.js:137** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/deterministic/error-handler.js:236** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/deterministic/error-handler.js:271** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/deterministic/error-handler.js:597** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/deterministic/index.js:61** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/deterministic/index.js:124** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/deterministic/index.js:186** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/deterministic/index.js:195** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/deterministic/index.js:224** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/deterministic/index.js:338** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/deterministic/index.js:385** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/deterministic/index.js:454** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/deterministic/index.js:475** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/deterministic/index.js:477** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/deterministic/index.js:518** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/circuit-breaker.js:65** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/circuit-breaker.js:70** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/circuit-breaker.js:86** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/circuit-breaker.js:101** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/circuit-breaker.js:151** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/circuit-breaker.js:170** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/circuit-breaker.js:179** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/circuit-breaker.js:240** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/circuit-breaker.js:269** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/circuit-breaker.js:277** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/circuit-breaker.js:290** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/circuit-breaker.js:320** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/circuit-breaker.js:335** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/consistent-hash.js:48** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/consistent-hash.js:75** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/consistent-hash.js:114** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/consistent-hash.js:295** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/consistent-hash.js:307** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/consistent-hash.js:317** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/distributed-cache.js:147** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/distributed-cache.js:163** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/distributed-cache.js:164** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/distributed-cache.js:221** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/distributed-cache.js:232** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/distributed-cache.js:233** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/distributed-cache.js:271** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/distributed-cache.js:279** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/distributed-cache.js:292** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/distributed-cache.js:298** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/distributed-cache.js:320** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/distributed-cache.js:342** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/distributed-cache.js:476** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/distributed-cache.js:495** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/distributed-cache.js:496** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/distributed-cache.js:507** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/distributed-cache.js:619** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/distributed-cache.js:620** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/distributed-cache.js:720** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/distributed-cache.js:741** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/distributed-cache.js:776** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/distributed-cache.js:814** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/distributed-cache.js:815** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/distributed-lock.js:102** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/distributed-lock.js:111** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/distributed-lock.js:112** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/distributed-lock.js:123** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/distributed-lock.js:149** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/distributed-lock.js:150** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/distributed-lock.js:173** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/distributed-lock.js:180** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/distributed-lock.js:181** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/distributed-lock.js:199** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/distributed-lock.js:200** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/distributed-lock.js:218** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/distributed-lock.js:224** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/distributed-lock.js:225** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/distributed-lock.js:243** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/distributed-lock.js:258** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/distributed-lock.js:280** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/distributed-lock.js:283** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/distributed-lock.js:296** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/distributed-lock.js:297** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/distributed-lock.js:329** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/distributed-lock.js:403** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/distributed-lock.js:463** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/distributed-lock.js:607** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/distributed-lock.js:651** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/gossip-protocol.js:43** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/gossip-protocol.js:89** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/gossip-protocol.js:90** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/gossip-protocol.js:178** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/gossip-protocol.js:206** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/gossip-protocol.js:207** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/gossip-protocol.js:246** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/gossip-protocol.js:277** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/gossip-protocol.js:326** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/gossip-protocol.js:398** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/gossip-protocol.js:459** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/gossip-protocol.js:538** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/gossip-protocol.js:576** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/gossip-protocol.js:597** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/gossip-protocol.js:607** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/gossip-protocol.js:623** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/gossip-protocol.js:631** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/gossip-protocol.js:641** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/gossip-protocol.js:655** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/gossip-protocol.js:663** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/gossip-protocol.js:676** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/gossip-protocol.js:681** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/gossip-protocol.js:729** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/gossip-protocol.js:774** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/gossip-protocol.js:812** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/gossip-protocol.js:886** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/graph-partitioner.js:35** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/graph-partitioner.js:77** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/graph-partitioner.js:105** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/index.js:86** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/index.js:325** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/index.js:367** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/index.js:390** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/index.js:703** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/index.js:749** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/master-coordinator.js:76** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/master-coordinator.js:226** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/master-coordinator.js:245** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/master-coordinator.js:270** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/master-coordinator.js:502** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/distributed/master-coordinator.js:642** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/master-coordinator.js:643** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/master-coordinator.js:697** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/master-coordinator.js:714** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/master-coordinator.js:738** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/message-queue.js:279** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/message-queue.js:360** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/message-queue.js:472** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/message-queue.js:494** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/message-queue.js:519** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/message-queue.js:596** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/message-queue.js:623** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/spark-processor.js:156** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/spark-processor.js:186** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/spark-processor.js:220** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/spark-processor.js:262** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/spark-processor.js:662** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/distributed/spark-processor.js:706** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/drift/detector.js:37** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/drift/drift-detector.js:70** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/drift/drift-detector.js:156** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/drift/drift-uri-resolver.js:147** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/drift/drift-uri-resolver.js:268** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/drift/drift-uri-resolver.js:586** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/drift/drift-uri-resolver.js:595** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/drift/rdf-canonical-drift.js:139** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/drift/rdf-canonical-drift.js:301** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/drift/rdf-canonical-drift.js:373** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/federation/core/auth-manager.js:138** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/federation/core/auth-manager.js:155** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/federation/core/auth-manager.js:211** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/federation/core/auth-manager.js:212** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/federation/core/auth-manager.js:276** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/federation/core/auth-manager.js:359** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/federation/core/auth-manager.js:399** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/federation/core/auth-manager.js:400** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/federation/core/auth-manager.js:498** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/federation/core/auth-manager.js:540** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/federation/core/auth-manager.js:541** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/federation/core/auth-manager.js:626** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/federation/core/auth-manager.js:639** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/federation/core/auth-manager.js:648** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/federation/core/auth-manager.js:677** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/federation/core/auth-manager.js:758** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/federation/core/auth-manager.js:759** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/federation/core/auth-manager.js:834** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/federation/core/auth-manager.js:849** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/federation/core/cache-manager.js:181** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/federation/core/cache-manager.js:200** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/federation/core/cache-manager.js:229** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/federation/core/cache-manager.js:261** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/federation/core/cache-manager.js:271** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/federation/core/cache-manager.js:412** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/federation/core/cache-manager.js:597** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/federation/core/cache-manager.js:599** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/federation/core/cache-manager.js:602** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/federation/core/cache-manager.js:603** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/federation/core/cache-manager.js:750** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/federation/core/cache-manager.js:804** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/federation/core/cache-manager.js:844** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/federation/core/cache-manager.js:963** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/federation/core/cache-manager.js:973** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/federation/core/conflict-resolution.js:159** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/federation/core/conflict-resolution.js:181** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/federation/core/conflict-resolution.js:217** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/federation/core/conflict-resolution.js:226** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/federation/core/conflict-resolution.js:243** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/federation/core/conflict-resolution.js:398** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/federation/core/conflict-resolution.js:413** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/federation/core/conflict-resolution.js:427** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/federation/core/conflict-resolution.js:428** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/federation/core/conflict-resolution.js:915** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/federation/core/conflict-resolution.js:1103** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/federation/core/conflict-resolution.js:1186** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/federation/core/event-streaming.js:154** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/federation/core/event-streaming.js:346** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/federation/core/event-streaming.js:397** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/federation/core/federation-manager.js:157** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/federation/core/federation-manager.js:202** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/federation/core/federation-manager.js:220** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/federation/core/federation-manager.js:229** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/federation/core/federation-manager.js:243** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/federation/core/federation-manager.js:300** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/federation/core/federation-manager.js:305** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/federation/core/federation-manager.js:310** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/federation/core/federation-manager.js:318** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/federation/core/federation-manager.js:330** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/federation/core/federation-manager.js:386** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/federation/core/federation-manager.js:577** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/federation/core/federation-manager.js:596** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/federation/core/federation-manager.js:605** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/federation/core/graphql-federation.js:115** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/federation/core/graphql-federation.js:138** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/federation/core/graphql-federation.js:152** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/federation/core/graphql-federation.js:196** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/federation/core/graphql-federation.js:201** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/federation/core/graphql-federation.js:212** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/federation/core/graphql-federation.js:222** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/federation/core/graphql-federation.js:314** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/federation/core/graphql-federation.js:342** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/federation/core/graphql-federation.js:353** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/federation/core/graphql-federation.js:363** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/federation/core/graphql-federation.js:502** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/federation/core/graphql-federation.js:510** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/federation/core/graphql-federation.js:521** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/federation/core/graphql-federation.js:544** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/federation/core/graphql-federation.js:550** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/federation/core/graphql-federation.js:879** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/federation/core/provenance-tracker.js:162** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/federation/core/provenance-tracker.js:172** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/federation/core/provenance-tracker.js:185** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/federation/core/provenance-tracker.js:234** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/federation/core/provenance-tracker.js:243** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/federation/core/provenance-tracker.js:255** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/federation/core/provenance-tracker.js:292** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/federation/core/provenance-tracker.js:335** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/federation/core/provenance-tracker.js:368** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/federation/core/provenance-tracker.js:377** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/federation/core/provenance-tracker.js:492** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/federation/core/provenance-tracker.js:579** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/federation/core/provenance-tracker.js:619** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/federation/core/provenance-tracker.js:631** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/federation/core/provenance-tracker.js:669** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/federation/core/provenance-tracker.js:711** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/federation/core/provenance-tracker.js:1022** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/federation/core/provenance-tracker.js:1076** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/federation/core/rest-federation.js:139** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/federation/core/rest-federation.js:142** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/federation/core/rest-federation.js:162** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/federation/core/rest-federation.js:176** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/federation/core/rest-federation.js:214** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/federation/core/rest-federation.js:219** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/federation/core/rest-federation.js:229** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/federation/core/rest-federation.js:240** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/federation/core/rest-federation.js:444** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/federation/core/rest-federation.js:486** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/federation/core/rest-federation.js:532** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/federation/core/rest-federation.js:594** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/federation/core/rest-federation.js:609** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/federation/core/rest-federation.js:873** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/federation/core/rest-federation.js:881** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/federation/core/rest-federation.js:952** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/federation/core/rest-federation.js:967** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/federation/core/rest-federation.js:986** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/federation/core/rest-federation.js:1050** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/federation/core/result-merger.js:133** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/federation/core/result-merger.js:181** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/federation/core/result-merger.js:192** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/federation/core/result-merger.js:203** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/federation/core/result-merger.js:210** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/federation/core/result-merger.js:946** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/federation/core/result-merger.js:1157** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/federation/core/result-merger.js:1294** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/federation/core/result-merger.js:1382** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/federation/core/result-merger.js:1427** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/federation/core/schema-alignment.js:168** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/federation/core/schema-alignment.js:248** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/federation/core/schema-alignment.js:289** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/federation/core/schema-alignment.js:298** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/federation/core/schema-alignment.js:314** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/federation/core/schema-alignment.js:356** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/federation/core/schema-alignment.js:1199** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/federation/core/sparql-federation.js:81** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/federation/core/sparql-federation.js:119** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/federation/core/sparql-federation.js:124** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/federation/core/sparql-federation.js:136** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/federation/core/sparql-federation.js:145** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/federation/core/sparql-federation.js:232** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/federation/core/sparql-federation.js:253** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/federation/core/sparql-federation.js:271** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/federation/core/sparql-federation.js:657** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/git-commands.js:65** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/git-commands.js:95** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/git-commands.js:117** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/git-commands.js:128** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/git-commands.js:179** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/git-commands.js:191** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/git-commands.js:241** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/git-commands.js:253** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/git-commands.js:337** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/git-commands.js:348** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/git-commands.js:412** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/git-commands.js:423** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/git-commands.js:490** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/git-commands.js:501** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/git-commands.js:553** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/git-commands.js:564** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/index.js:237** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/index.js:368** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/index.js:370** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/ingestion/pipeline.js:203** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/ingestion/pipeline.js:236** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/ingestion/pipeline.js:408** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/ingestion/pipeline.js:461** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/ingestion/pipeline.js:472** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/ingestion/pipeline.js:541** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/ingestion/pipeline.js:555** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/ingestion/pipeline.js:678** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/integration/deterministic-generation-engine.js:152** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/integration/deterministic-generation-engine.js:174** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/integration/deterministic-generation-engine.js:223** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/integration/deterministic-generation-engine.js:233** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/integration/deterministic-generation-engine.js:278** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/integration/deterministic-generation-engine.js:316** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/integration/deterministic-generation-engine.js:330** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/integration/deterministic-generation-engine.js:335** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/integration/deterministic-generation-engine.js:372** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/integration/deterministic-generation-engine.js:511** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/integration/deterministic-generation-engine.js:517** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/integration/deterministic-generation-engine.js:645** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/integration/deterministic-generation-engine.js:707** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/integration/deterministic-generation-engine.js:778** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/integration/deterministic-generation-engine.js:994** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/integration/deterministic-generation-engine.js:1009** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/integration/deterministic-generation-engine.js:1011** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/integration/enhanced-artifact-generator.js:165** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/integration/enhanced-artifact-generator.js:187** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/integration/enhanced-artifact-generator.js:230** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/integration/enhanced-artifact-generator.js:240** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/integration/enhanced-artifact-generator.js:284** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/integration/enhanced-artifact-generator.js:337** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/integration/enhanced-artifact-generator.js:350** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/integration/enhanced-artifact-generator.js:392** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/integration/enhanced-artifact-generator.js:511** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/integration/enhanced-artifact-generator.js:743** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/integration/enhanced-artifact-generator.js:783** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/integration/enhanced-artifact-generator.js:785** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/integration/index.js:152** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/integration/index.js:365** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/integration/index.js:524** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/integration/index.js:530** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/integration/index.js:541** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/integration/index.js:561** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/integration/index.js:755** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/integration/index.js:757** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/integration/kgen-self-healing-integration.js:70** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/integration/kgen-self-healing-integration.js:209** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/integration/kgen-self-healing-integration.js:270** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/integration/kgen-self-healing-integration.js:294** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/integration/kgen-self-healing-integration.js:319** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/integration/kgen-self-healing-integration.js:345** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/integration/kgen-self-healing-integration.js:359** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/integration/kgen-self-healing-integration.js:374** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/integration/template-semantic-bridge.js:546** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/integration/template-semantic-bridge.js:557** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/integration/template-semantic-bridge.js:568** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/integration/template-semantic-bridge.js:684** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/integration/template-semantic-bridge.js:728** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/integration/template-semantic-bridge.js:801** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/integration/unjucks-template-bridge.js:171** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/integration/unjucks-template-bridge.js:184** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/integration/unjucks-template-bridge.js:252** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/integration/unjucks-template-bridge.js:265** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/integration/unjucks-template-bridge.js:333** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/integration/unjucks-template-bridge.js:484** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/integration/unjucks-template-bridge.js:588** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/integration/unjucks-template-bridge.js:776** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/integration/unjucks-template-bridge.js:799** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/integration/variable-resolution-system.js:208** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/integration/variable-resolution-system.js:237** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/integration/variable-resolution-system.js:330** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/integration/variable-resolution-system.js:348** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/integration/variable-resolution-system.js:386** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/integration/variable-resolution-system.js:459** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/integration/variable-resolution-system.js:468** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/integration/variable-resolution-system.js:851** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/integration/variable-resolution-system.js:852** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/integration/variable-resolution-system.js:972** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/integration/variable-resolution-system.js:978** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/integration/variable-resolution-system.js:984** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/monitoring/index.js:369** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/monitoring/index.js:512** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/monitoring/index.js:577** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/monitoring/semantic-analytics-dashboard.js:127** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/monitoring/semantic-analytics-dashboard.js:158** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/monitoring/semantic-analytics-dashboard.js:172** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/monitoring/semantic-analytics-dashboard.js:187** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/monitoring/semantic-analytics-dashboard.js:191** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/monitoring/semantic-analytics-dashboard.js:223** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/monitoring/semantic-analytics-dashboard.js:454** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/monitoring/semantic-analytics-dashboard.js:500** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/monitoring/semantic-analytics-dashboard.js:501** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/monitoring/semantic-analytics-dashboard.js:526** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/monitoring/semantic-analytics-dashboard.js:581** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/monitoring/semantic-analytics-dashboard.js:616** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/monitoring/semantic-analytics-dashboard.js:636** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/monitoring/semantic-analytics-dashboard.js:689** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/optimized/parallel-rdf-processor.js:117** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/optimized/parallel-rdf-processor.js:130** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/optimized/parallel-rdf-processor.js:157** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/optimized/parallel-rdf-processor.js:166** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/optimized/parallel-rdf-processor.js:371** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/optimized/parallel-rdf-processor.js:385** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/optimized/production-cache.js:129** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/optimized/production-cache.js:181** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/optimized/production-cache.js:198** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/optimized/production-cache.js:353** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/optimized/production-cache.js:441** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/optimized/production-cache.js:447** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/performance/bottleneck-analyzer.js:120** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/performance/bottleneck-analyzer.js:151** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/performance/bottleneck-analyzer.js:152** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/performance/bottleneck-analyzer.js:189** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/performance/bottleneck-analyzer.js:216** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/performance/bottleneck-analyzer.js:217** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/performance/bottleneck-analyzer.js:250** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/performance/bottleneck-analyzer.js:278** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/performance/bottleneck-analyzer.js:409** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/performance/bottleneck-analyzer.js:636** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/performance/bottleneck-analyzer.js:642** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/performance/bottleneck-analyzer.js:741** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/performance/concurrent-processor.js:158** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/performance/concurrent-processor.js:182** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/performance/concurrent-processor.js:231** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/performance/concurrent-processor.js:264** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/performance/concurrent-processor.js:420** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/performance/concurrent-processor.js:424** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/performance/concurrent-processor.js:428** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/performance/concurrent-processor.js:464** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/performance/concurrent-processor.js:469** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/performance/concurrent-processor.js:539** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/performance/concurrent-processor.js:540** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/performance/concurrent-processor.js:547** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/performance/concurrent-processor.js:621** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/performance/concurrent-processor.js:679** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/performance/concurrent-processor.js:816** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/performance/concurrent-processor.js:844** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/performance/concurrent-processor.js:859** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/performance/concurrent-processor.js:878** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/performance/concurrent-processor.js:887** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/performance/concurrent-processor.js:898** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/performance/concurrent-processor.js:907** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/performance/concurrent-processor.js:916** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/performance/concurrent-processor.js:925** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/performance/concurrent-processor.js:982** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/performance/index.js:157** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/performance/index.js:163** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/performance/index.js:179** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/performance/index.js:235** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/performance/index.js:245** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/performance/index.js:257** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/performance/index.js:305** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/performance/index.js:625** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/performance/index.js:638** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/performance/memory-optimizer.js:233** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/performance/memory-optimizer.js:272** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/performance/memory-optimizer.js:386** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/performance/memory-optimizer.js:497** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/performance/memory-optimizer.js:536** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/performance/memory-optimizer.js:586** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/performance/memory-optimizer.js:770** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/performance/memory-optimizer.js:792** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/performance/memory-optimizer.js:798** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/performance/memory-optimizer.js:799** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/performance/memory-optimizer.js:838** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/performance/memory-optimizer.js:963** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/performance/memory-optimizer.js:966** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/performance/memory-optimizer.js:968** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/performance/memory-optimizer.js:996** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/performance/memory-optimizer.js:1003** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/performance/memory-optimizer.js:1024** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/performance/memory-optimizer.js:1026** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/performance/memory-optimizer.js:1056** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/performance/memory-optimizer.js:1130** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/performance/memory-optimizer.js:1161** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/performance/memory-optimizer.js:1210** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/performance/memory-optimizer.js:1214** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/performance/memory-optimizer.js:1228** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/performance/memory-optimizer.js:1242** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/performance/memory-optimizer.js:1248** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/performance/performance-monitor.js:187** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/performance/performance-monitor.js:239** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/performance/performance-monitor.js:262** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/performance/performance-monitor.js:270** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/performance/performance-monitor.js:363** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/performance/performance-monitor.js:456** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/performance/performance-monitor.js:540** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/performance/performance-monitor.js:565** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/performance/performance-monitor.js:687** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/performance/performance-monitor.js:733** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/performance/performance-monitor.js:779** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/performance/performance-monitor.js:1066** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/performance/performance-monitor.js:1151** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/performance/performance-monitor.js:1166** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/performance/rdf-stream-optimizer.js:88** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/performance/rdf-stream-optimizer.js:142** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/performance/rdf-stream-optimizer.js:172** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/performance/rdf-stream-optimizer.js:202** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/performance/rdf-stream-optimizer.js:231** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/performance/rdf-stream-optimizer.js:300** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/performance/rdf-stream-optimizer.js:320** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/performance/rdf-stream-optimizer.js:363** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/performance/rdf-stream-optimizer.js:454** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/performance/rdf-stream-optimizer.js:458** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/performance/rdf-stream-optimizer.js:462** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/performance/rdf-stream-optimizer.js:687** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/performance/rdf-stream-optimizer.js:693** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/performance/rdf-stream-optimizer.js:742** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/performance/rdf-stream-optimizer.js:757** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/performance/rdf-stream-optimizer.js:942** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/performance/template-cache-optimizer.js:121** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/performance/template-cache-optimizer.js:156** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/performance/template-cache-optimizer.js:157** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/performance/template-cache-optimizer.js:201** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/performance/template-cache-optimizer.js:232** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/performance/template-cache-optimizer.js:443** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/performance/template-cache-optimizer.js:452** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/performance/template-cache-optimizer.js:469** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/performance/template-cache-optimizer.js:470** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/performance/template-cache-optimizer.js:598** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/performance/template-cache-optimizer.js:633** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/performance/template-cache-optimizer.js:685** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/performance/template-cache-optimizer.js:736** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/autonomous-repair/self-healing-engine.js:65** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/provenance/autonomous-repair/self-healing-engine.js:152** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/autonomous-repair/self-healing-engine.js:189** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/autonomous-repair/self-healing-engine.js:224** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/autonomous-repair/self-healing-engine.js:249** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/autonomous-repair/self-healing-engine.js:277** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/provenance/autonomous-repair/self-healing-engine.js:302** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/autonomous-repair/self-healing-engine.js:321** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/autonomous-repair/self-healing-engine.js:329** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/provenance/autonomous-repair/self-healing-engine.js:478** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/provenance/autonomous-repair/self-healing-engine.js:519** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/provenance/autonomous-repair/self-healing-engine.js:534** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/provenance/blockchain/anchor.js:131** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/provenance/blockchain/anchor.js:223** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/provenance/blockchain/anchor.js:374** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/provenance/blockchain/anchor.js:488** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/provenance/compliance/logger.js:127** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/provenance/compliance/logger.js:194** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/provenance/compliance/logger.js:209** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/provenance/compliance/logger.js:223** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/provenance/compliance/logger.js:239** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/provenance/compliance/logger.js:254** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/provenance/compliance/logger.js:282** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/provenance/compliance/logger.js:323** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/provenance/compliance/logger.js:591** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/provenance/compliance/logger.js:623** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/provenance/compliance/logger.js:654** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/provenance/compression/adaptive-compressor.js:141** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/compression/adaptive-compressor.js:175** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/compression/adaptive-compressor.js:192** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/provenance/compression/adaptive-compressor.js:246** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/compression/adaptive-compressor.js:283** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/compression/adaptive-compressor.js:330** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/compression/adaptive-compressor.js:355** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/compression/adaptive-compressor.js:677** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/compression/adaptive-compressor.js:679** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/compression/adaptive-compressor.js:812** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/consensus/distributed-consensus.js:132** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/consensus/distributed-consensus.js:141** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/provenance/consensus/distributed-consensus.js:190** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/consensus/distributed-consensus.js:211** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/consensus/distributed-consensus.js:305** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/provenance/consensus/distributed-consensus.js:343** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/provenance/consensus/distributed-consensus.js:386** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/provenance/consensus/distributed-consensus.js:471** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/provenance/consensus/distributed-consensus.js:577** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/provenance/consensus/distributed-consensus.js:590** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/provenance/consensus/distributed-consensus.js:680** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/provenance/consensus/distributed-consensus.js:713** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/provenance/consensus/distributed-consensus.js:771** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/examples/basic-demo.js:118** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/examples/basic-demo.js:119** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/provenance/examples/comprehensive-demo.js:283** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/examples/comprehensive-demo.js:284** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/provenance/integration/enhanced-tracker.js:142** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/integration/enhanced-tracker.js:152** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/provenance/integration/enhanced-tracker.js:184** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/integration/enhanced-tracker.js:212** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/integration/enhanced-tracker.js:233** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/integration/enhanced-tracker.js:250** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/integration/enhanced-tracker.js:278** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/integration/enhanced-tracker.js:337** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/integration/enhanced-tracker.js:342** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/provenance/integration/enhanced-tracker.js:663** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/provenance/integration/enhanced-tracker.js:676** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/provenance/integration/enhanced-tracker.js:687** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/provenance/integration/enhanced-tracker.js:698** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/provenance/integration/enhanced-tracker.js:709** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/provenance/integration/enhanced-tracker.js:900** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/integration/enhanced-tracker.js:903** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/multi-chain/cross-chain-verifier.js:139** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/multi-chain/cross-chain-verifier.js:192** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/multi-chain/cross-chain-verifier.js:253** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/provenance/multi-chain/cross-chain-verifier.js:370** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/provenance/multi-chain/cross-chain-verifier.js:440** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/provenance/multi-chain/cross-chain-verifier.js:463** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/provenance/multi-chain/cross-chain-verifier.js:510** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/provenance/multi-chain/cross-chain-verifier.js:538** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/multi-chain/cross-chain-verifier.js:549** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/multi-chain/cross-chain-verifier.js:587** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/provenance/multi-chain/cross-chain-verifier.js:602** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/provenance/multi-chain/cross-chain-verifier.js:640** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/provenance/multi-chain/cross-chain-verifier.js:748** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/provenance/multi-chain/cross-chain-verifier.js:769** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/performance/compliance-optimizer.js:108** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/performance/compliance-optimizer.js:142** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/performance/compliance-optimizer.js:148** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/performance/compliance-optimizer.js:168** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/performance/compliance-optimizer.js:181** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/performance/compliance-optimizer.js:372** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/performance/compliance-optimizer.js:387** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/performance/compliance-optimizer.js:756** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/performance/graph-diff-optimizer.js:73** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/performance/graph-diff-optimizer.js:82** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/performance/graph-diff-optimizer.js:131** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/performance/graph-diff-optimizer.js:150** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/performance/graph-diff-optimizer.js:151** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/performance/graph-diff-optimizer.js:718** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/performance/metrics-collector.js:197** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/performance/metrics-collector.js:238** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/performance/metrics-collector.js:295** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/performance/metrics-collector.js:359** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/performance/metrics-collector.js:424** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/performance/metrics-collector.js:479** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/performance/metrics-collector.js:582** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/performance/metrics-collector.js:681** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/performance/metrics-collector.js:686** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/performance/metrics-collector.js:769** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/performance/metrics-collector.js:787** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/performance/metrics-collector.js:849** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/performance/metrics-collector.js:858** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/performance/metrics-collector.js:872** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/performance/metrics-collector.js:891** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/performance/rdf-stream-processor.js:115** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/performance/rdf-stream-processor.js:157** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/performance/rdf-stream-processor.js:182** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/performance/rdf-stream-processor.js:189** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/performance/rdf-stream-processor.js:332** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/performance/rdf-stream-processor.js:341** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/performance/rdf-stream-processor.js:442** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/performance/rdf-stream-processor.js:448** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/performance/rdf-stream-processor.js:876** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/predictive/impact-analyzer.js:140** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/predictive/impact-analyzer.js:168** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/provenance/predictive/impact-analyzer.js:169** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/predictive/impact-analyzer.js:206** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/predictive/impact-analyzer.js:239** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/provenance/predictive/impact-analyzer.js:240** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/predictive/impact-analyzer.js:270** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/predictive/impact-analyzer.js:302** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/provenance/predictive/impact-analyzer.js:314** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/predictive/impact-analyzer.js:316** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/provenance/predictive/impact-analyzer.js:341** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/predictive/impact-analyzer.js:374** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/predictive/impact-analyzer.js:375** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/provenance/predictive/impact-analyzer.js:431** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/provenance/predictive/impact-analyzer.js:635** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/quantum-security/post-quantum-crypto.js:121** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/quantum-security/post-quantum-crypto.js:132** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/provenance/quantum-security/post-quantum-crypto.js:133** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/quantum-security/post-quantum-crypto.js:175** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/quantum-security/post-quantum-crypto.js:195** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/provenance/quantum-security/post-quantum-crypto.js:196** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/quantum-security/post-quantum-crypto.js:231** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/quantum-security/post-quantum-crypto.js:262** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/quantum-security/post-quantum-crypto.js:273** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/quantum-security/post-quantum-crypto.js:309** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/quantum-security/post-quantum-crypto.js:325** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/provenance/quantum-security/post-quantum-crypto.js:326** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/quantum-security/post-quantum-crypto.js:374** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/quantum-security/post-quantum-crypto.js:385** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/queries/sparql.js:101** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/queries/sparql.js:109** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/queries/sparql.js:165** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/queries/sparql.js:360** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/provenance/queries/sparql.js:398** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/provenance/queries/sparql.js:972** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/provenance/real-time-network/instant-verifier.js:147** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/real-time-network/instant-verifier.js:161** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/real-time-network/instant-verifier.js:188** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/real-time-network/instant-verifier.js:241** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/real-time-network/instant-verifier.js:291** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/real-time-network/instant-verifier.js:300** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/real-time-network/instant-verifier.js:317** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/real-time-network/instant-verifier.js:327** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/provenance/real-time-network/instant-verifier.js:356** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/real-time-network/instant-verifier.js:418** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/provenance/real-time-network/instant-verifier.js:419** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/real-time-network/instant-verifier.js:564** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/real-time-network/instant-verifier.js:569** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/real-time-network/instant-verifier.js:787** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/real-time-network/instant-verifier.js:797** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/real-time-network/instant-verifier.js:804** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/real-time-network/instant-verifier.js:841** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/provenance/storage/index.js:84** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/provenance/storage/index.js:199** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/provenance/storage/index.js:257** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/provenance/storage/memory-store.js:54** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/storage/memory-store.js:96** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/tracker.js:170** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/provenance/tracker.js:225** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/provenance/tracker.js:331** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/provenance/tracker.js:337** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/provenance/tracker.js:371** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/provenance/tracker.js:465** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/provenance/tracker.js:1148** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/tracker.js:1193** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/provenance/tracker.js:1291** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/provenance/tracker.js:1316** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/provenance/tracker.js:1402** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/tracker.js:1410** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/provenance/zk-proofs/zero-knowledge-engine.js:105** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/zk-proofs/zero-knowledge-engine.js:123** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/provenance/zk-proofs/zero-knowledge-engine.js:124** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/zk-proofs/zero-knowledge-engine.js:137** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/provenance/zk-proofs/zero-knowledge-engine.js:170** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/zk-proofs/zero-knowledge-engine.js:197** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/zk-proofs/zero-knowledge-engine.js:201** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/provenance/zk-proofs/zero-knowledge-engine.js:231** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/zk-proofs/zero-knowledge-engine.js:263** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/provenance/zk-proofs/zero-knowledge-engine.js:264** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/zk-proofs/zero-knowledge-engine.js:308** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/provenance/zk-proofs/zero-knowledge-engine.js:344** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/provenance/zk-proofs/zero-knowledge-engine.js:456** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/zk-proofs/zero-knowledge-engine.js:493** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/provenance/zk-proofs/zero-knowledge-engine.js:734** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/provenance/zk-proofs/zero-knowledge-engine.js:741** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/advanced-query-optimizer.js:344** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/advanced-query-optimizer.js:910** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/advanced-query-optimizer.js:937** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/advanced-query-optimizer.js:1168** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/approximate-query.js:124** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/approximate-query.js:181** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/approximate-query.js:182** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/engine.js:157** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/engine.js:234** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/engine.js:250** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/engine.js:662** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/engine.js:681** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/engine.js:707** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/engine.js:806** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/engine.js:816** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/engine.js:843** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/engine.js:888** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/engine.js:907** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/engine.js:916** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/engine.js:1174** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/enhanced-engine.js:212** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/enhanced-engine.js:282** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/enhanced-engine.js:293** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/enhanced-engine.js:317** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/enhanced-engine.js:388** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/enhanced-engine.js:603** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/enhanced-engine.js:648** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/enhanced-engine.js:657** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/enhanced-engine.js:703** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/enhanced-engine.js:710** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/enhanced-engine.js:825** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/enhanced-engine.js:923** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/enhanced-engine.js:928** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/enhanced-engine.js:1024** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/enhanced-engine.js:1025** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/federated-optimizer.js:135** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/federated-optimizer.js:136** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/federated-optimizer.js:180** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/federated-optimizer.js:260** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/federated-optimizer.js:286** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/federated-optimizer.js:471** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/federated-optimizer.js:477** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/federated-optimizer.js:561** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/federated-optimizer.js:566** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/federated-optimizer.js:592** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/federated-optimizer.js:607** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/federated-optimizer.js:667** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/federated-optimizer.js:668** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/federated-optimizer.js:677** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/federated-optimizer.js:954** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/federated-optimizer.js:965** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/indexing/bloom-filter-index.js:522** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/indexing/btree-index.js:293** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/indexing/btree-index.js:341** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/indexing/btree-index.js:355** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/indexing/btree-index.js:779** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/indexing/btree-index.js:819** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/indexing/hash-index.js:137** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/indexing/hash-index.js:522** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/indexing/hash-index.js:543** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/neural-cache.js:82** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/neural-cache.js:126** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/neural-cache.js:136** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/neural-cache.js:146** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/neural-cache.js:152** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/neural-cache.js:188** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/neural-cache.js:191** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/neural-cache.js:285** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/neural-cache.js:349** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/neural-cache.js:358** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/neural-cache.js:410** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/neural-cache.js:412** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/neural-cache.js:414** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/neural-cache.js:439** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/neural-cache.js:460** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/nl-to-sparql.js:136** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/nl-to-sparql.js:236** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/nl-to-sparql.js:267** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/nl-to-sparql.js:294** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/nl-to-sparql.js:460** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/nl-to-sparql.js:502** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/nl-to-sparql.js:507** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/nl-to-sparql.js:710** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/optimization/cost-based-optimizer.js:158** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/optimization/cost-based-optimizer.js:630** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/quantum-optimizer.js:101** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/quantum-optimizer.js:133** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/quantum-optimizer.js:289** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/quantum-optimizer.js:395** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/quantum-optimizer.js:399** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/streaming-sparql.js:64** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/streaming-sparql.js:131** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/streaming-sparql.js:167** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/streaming-sparql.js:184** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/streaming-sparql.js:227** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/streaming-sparql.js:228** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/streaming-sparql.js:283** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/streaming-sparql.js:408** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/streaming-sparql.js:412** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/streaming-sparql.js:434** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/streaming-sparql.js:455** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/streaming-sparql.js:547** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/streaming-sparql.js:554** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/streaming-sparql.js:569** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/streaming-sparql.js:574** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/streaming-sparql.js:614** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/streaming-sparql.js:656** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/streaming-sparql.js:657** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/query/streaming-sparql.js:671** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/rdf/canonical-processor-cas.js:166** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/rdf/canonical-processor.js:103** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/rdf/canonical-processor.js:146** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/rdf/canonical-processor.js:171** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/rdf/canonical-processor.js:186** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/rdf/canonical-processor.js:187** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/rdf/canonical-processor.js:216** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/rdf/canonical-processor.js:217** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/rdf/canonical-processor.js:231** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/rdf/canonical-processor.js:465** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/rdf/canonical-processor.js:483** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/rdf/canonical-processor.js:534** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/rdf/content-addressed-semantic-store.js:142** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/rdf/enhanced-processor.js:52** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/rdf/enhanced-processor.js:127** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/rdf/graph-indexer.js:73** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/rdf/graph-indexer.js:101** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/rdf/graph-indexer.js:569** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/rdf/semantic-hash-engine.js:125** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/rdf/semantic-hash-engine.js:209** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/rdf/semantic-hash-engine.js:266** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/rdf/semantic-hash-engine.js:323** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/rdf/semantic-integration.js:134** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/rdf/semantic-integration.js:184** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/rdf/semantic-integration.js:330** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/rdf/semantic-integration.js:481** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/rdf/standalone-bridge.js:116** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/rdf/standalone-bridge.js:147** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/rdf/standalone-bridge.js:245** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/reasoning/audit-provenance.js:159** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/reasoning/audit-provenance.js:251** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/reasoning/audit-provenance.js:356** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/reasoning/audit-provenance.js:438** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/reasoning/audit-provenance.js:469** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/reasoning/audit-provenance.js:599** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/reasoning/audit-provenance.js:603** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/reasoning/audit-provenance.js:607** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/reasoning/audit-provenance.js:612** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/reasoning/cache-synchronizer.js:147** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/reasoning/cache-synchronizer.js:191** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/reasoning/cache-synchronizer.js:218** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/reasoning/cache-synchronizer.js:516** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/reasoning/cache-synchronizer.js:520** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/reasoning/cache-synchronizer.js:524** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/reasoning/collaborative-engine.js:157** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/reasoning/collaborative-engine.js:158** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/reasoning/collaborative-engine.js:233** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/reasoning/collaborative-engine.js:293** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/reasoning/collaborative-engine.js:320** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/reasoning/collaborative-engine.js:397** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/reasoning/collaborative-engine.js:399** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/reasoning/collaborative-engine.js:558** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/reasoning/collaborative-engine.js:562** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/reasoning/collaborative-engine.js:566** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/reasoning/collaborative-engine.js:570** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/reasoning/collaborative-engine.js:587** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/reasoning/collaborative-engine.js:604** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/reasoning/collaborative-engine.js:605** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/reasoning/collaborative-engine.js:606** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/reasoning/collaborative-engine.js:640** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/reasoning/consensus-engine.js:132** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/reasoning/consensus-engine.js:183** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/reasoning/consensus-engine.js:210** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/reasoning/consensus-engine.js:288** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/reasoning/consensus-engine.js:491** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/reasoning/distributed-engine.js:201** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/reasoning/distributed-engine.js:252** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/reasoning/distributed-engine.js:279** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/reasoning/distributed-engine.js:391** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/reasoning/distributed-engine.js:417** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/reasoning/distributed-engine.js:559** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/reasoning/distributed-engine.js:563** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/reasoning/distributed-engine.js:610** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/reasoning/federated-coordinator.js:148** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/reasoning/federated-coordinator.js:157** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/reasoning/federated-coordinator.js:191** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/reasoning/federated-coordinator.js:218** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/reasoning/federated-coordinator.js:258** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/reasoning/federated-coordinator.js:294** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/reasoning/federated-coordinator.js:320** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/reasoning/federated-coordinator.js:341** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/reasoning/federated-coordinator.js:539** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/reasoning/federated-coordinator.js:543** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/reasoning/federated-coordinator.js:547** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/reasoning/governance-controller.js:145** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/reasoning/governance-controller.js:156** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/reasoning/governance-controller.js:185** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/reasoning/governance-controller.js:186** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/reasoning/governance-controller.js:187** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/reasoning/governance-controller.js:198** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/reasoning/governance-controller.js:241** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/reasoning/governance-controller.js:263** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/reasoning/governance-controller.js:269** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/reasoning/governance-controller.js:275** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/reasoning/governance-controller.js:337** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/reasoning/governance-controller.js:385** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/reasoning/governance-controller.js:394** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/reasoning/governance-controller.js:443** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/reasoning/governance-controller.js:646** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/reasoning/governance-controller.js:673** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/reasoning/governance-controller.js:838** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/reasoning/governance-controller.js:859** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/reasoning/topology-optimizer.js:210** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/reasoning/topology-optimizer.js:264** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/reasoning/topology-optimizer.js:293** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/reasoning/topology-optimizer.js:482** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/reasoning/validation-suite.js:154** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/reasoning/validation-suite.js:202** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/reasoning/validation-suite.js:221** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/reasoning/validation-suite.js:251** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/reasoning/validation-suite.js:303** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/reasoning/validation-suite.js:358** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/reasoning/validation-suite.js:568** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/reasoning/validation-suite.js:572** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/reasoning/validation-suite.js:576** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/reasoning/validation-suite.js:580** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/reasoning/workflow-orchestrator.js:155** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/reasoning/workflow-orchestrator.js:189** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/reasoning/workflow-orchestrator.js:222** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/reasoning/workflow-orchestrator.js:257** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/reasoning/workflow-orchestrator.js:665** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/reasoning/workflow-orchestrator.js:669** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/chaos-engineer.js:181** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/chaos-engineer.js:400** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/chaos-engineer.js:438** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/chaos-engineer.js:440** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/chaos-engineer.js:459** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/chaos-engineer.js:471** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/chaos-engineer.js:609** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/chaos-engineer.js:611** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/chaos-engineer.js:665** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/resilience/chaos-engineer.js:677** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/circuit-breaker.js:73** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/circuit-breaker.js:110** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/circuit-breaker.js:126** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/circuit-breaker.js:128** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/circuit-breaker.js:134** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/circuit-breaker.js:163** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/circuit-breaker.js:167** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/circuit-breaker.js:171** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/circuit-breaker.js:189** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/circuit-breaker.js:239** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/circuit-breaker.js:254** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/circuit-breaker.js:264** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/circuit-breaker.js:267** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/circuit-breaker.js:268** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/circuit-breaker.js:283** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/circuit-breaker.js:332** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/circuit-breaker.js:338** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/circuit-breaker.js:347** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/circuit-breaker.js:360** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/circuit-breaker.js:370** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/circuit-breaker.js:382** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/circuit-breaker.js:393** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/circuit-breaker.js:434** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/circuit-breaker.js:446** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/circuit-breaker.js:456** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/circuit-breaker.js:464** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/circuit-breaker.js:473** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/circuit-breaker.js:477** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/circuit-breaker.js:506** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/circuit-breaker.js:514** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/circuit-breaker.js:521** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/circuit-breaker.js:560** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/circuit-breaker.js:586** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/circuit-breaker.js:655** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/circuit-breaker.js:671** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/circuit-breaker.js:683** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/circuit-breaker.js:691** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/circuit-breaker.js:748** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/resilience/corruption-detector.js:64** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/corruption-detector.js:65** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/corruption-detector.js:103** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/corruption-detector.js:104** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/corruption-detector.js:134** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/corruption-detector.js:146** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/corruption-detector.js:150** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/corruption-detector.js:156** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/corruption-detector.js:161** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/corruption-detector.js:192** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/corruption-detector.js:203** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/corruption-detector.js:207** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/corruption-detector.js:213** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/corruption-detector.js:218** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/corruption-detector.js:255** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/corruption-detector.js:286** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/corruption-detector.js:310** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/corruption-detector.js:316** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/corruption-detector.js:327** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/corruption-detector.js:338** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/corruption-detector.js:372** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/corruption-detector.js:379** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/corruption-detector.js:390** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/corruption-detector.js:454** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/corruption-detector.js:469** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/corruption-detector.js:491** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/corruption-detector.js:632** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/corruption-detector.js:633** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/corruption-detector.js:657** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/corruption-detector.js:663** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/deadlock-detector.js:51** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/deadlock-detector.js:52** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/deadlock-detector.js:67** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/deadlock-detector.js:112** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/deadlock-detector.js:149** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/deadlock-detector.js:170** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/deadlock-detector.js:199** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/deadlock-detector.js:223** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/deadlock-detector.js:326** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/deadlock-detector.js:337** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/deadlock-detector.js:432** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/deadlock-detector.js:470** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/deadlock-detector.js:474** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/graceful-degradation.js:162** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/resilience/graceful-degradation.js:209** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/graceful-degradation.js:234** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/graceful-degradation.js:260** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/graceful-degradation.js:307** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/resilience/graceful-degradation.js:557** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/health-monitor.js:79** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/health-monitor.js:119** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/health-monitor.js:302** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/resilience/health-monitor.js:338** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/resilience/health-monitor.js:341** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/health-monitor.js:350** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/health-monitor.js:382** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/resilience/health-monitor.js:383** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/resilience/health-monitor.js:386** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/resilience/health-monitor.js:409** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/resilience/health-monitor.js:413** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/resilience/health-monitor.js:534** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/resilience/health-monitor.js:594** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/health-monitor.js:601** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/health-monitor.js:635** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/resilience/self-healing-system.js:93** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/self-healing-system.js:233** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/self-healing-system.js:258** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/self-healing-system.js:322** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/self-healing-system.js:356** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/resilience/self-healing-system.js:372** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/self-healing-system.js:410** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/self-healing-system.js:474** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/self-healing-system.js:499** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/self-healing-system.js:535** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/self-healing-system.js:614** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/self-healing-system.js:754** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/self-healing-system.js:756** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/self-healing-system.js:837** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/resilience/self-healing-system.js:983** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/self-healing-system.js:1038** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/resilience/self-healing-system.js:1050** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/security/access-control.js:127** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/security/access-control.js:140** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/security/access-control.js:244** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/security/access-control.js:274** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/security/access-control.js:275** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/security/access-control.js:322** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/security/access-control.js:334** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/security/access-control.js:389** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/security/access-control.js:401** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/security/access-control.js:467** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/security/access-control.js:479** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/security/access-control.js:497** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/security/access-control.js:866** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/security/access-control.js:874** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/security/access-control.js:894** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/security/access-control.js:916** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/security/access-control.js:932** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/security/index.js:176** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/security/index.js:177** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/security/index.js:178** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/security/index.js:206** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/security/index.js:238** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/security/index.js:474** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/security/index.js:475** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/security/index.js:483** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/security/index.js:485** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/security/index.js:572** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/security/index.js:607** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/security/input-validator.js:63** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/security/input-validator.js:78** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/security/input-validator.js:169** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/security/input-validator.js:174** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/security/input-validator.js:187** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/security/input-validator.js:207** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/security/input-validator.js:291** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/security/input-validator.js:296** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/security/input-validator.js:319** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/security/input-validator.js:378** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/security/input-validator.js:408** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/security/input-validator.js:476** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/security/input-validator.js:490** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/security/integrated-security-manager.js:131** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/security/integrated-security-manager.js:145** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/security/integrated-security-manager.js:234** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/security/integrated-security-manager.js:272** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/security/integrated-security-manager.js:273** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/security/integrated-security-manager.js:408** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/security/integrated-security-manager.js:588** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/security/integrated-security-manager.js:645** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/security/integrated-security-manager.js:821** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/security/integrated-security-manager.js:850** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/security/integrated-security-manager.js:915** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/security/integrated-security-manager.js:924** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/security/integrated-security-manager.js:954** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/security/integrated-security-manager.js:1047** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/security/integrated-security-manager.js:1092** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/security/integrity-verifier.js:98** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/security/integrity-verifier.js:105** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/security/integrity-verifier.js:142** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/security/integrity-verifier.js:147** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/security/integrity-verifier.js:173** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/security/integrity-verifier.js:183** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/security/integrity-verifier.js:252** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/security/integrity-verifier.js:284** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/security/integrity-verifier.js:285** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/security/integrity-verifier.js:327** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/security/integrity-verifier.js:439** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/security/integrity-verifier.js:458** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/security/integrity-verifier.js:632** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/security/integrity-verifier.js:703** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/security/integrity-verifier.js:737** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/security/manager.js:383** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/security/manager.js:467** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/security/manager.js:559** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/security/manager.js:820** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/security/manager.js:840** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/security/manager.js:850** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/security/manager.js:851** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/security/manager.js:852** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/security/manager.js:866** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/security/manager.js:934** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/security/rate-limiter.js:50** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/security/rate-limiter.js:120** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/security/rate-limiter.js:136** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/security/rate-limiter.js:139** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/security/rate-limiter.js:150** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/security/rate-limiter.js:153** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/security/rate-limiter.js:242** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/security/rate-limiter.js:271** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/security/rate-limiter.js:291** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/security/rate-limiter.js:292** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/security/rate-limiter.js:308** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/security/rate-limiter.js:309** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/security/rate-limiter.js:440** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/security/rate-limiter.js:472** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/security/rate-limiter.js:497** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/security/rate-limiter.js:531** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/security/rate-limiter.js:572** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/security/rate-limiter.js:635** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/security/rate-limiter.js:641** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/security/rate-limiter.js:649** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/security/rate-limiter.js:658** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/security/rate-limiter.js:704** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/security/rate-limiter.js:739** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/security/rate-limiter.js:776** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/security/sandbox-manager.js:112** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/security/sandbox-manager.js:140** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/security/sandbox-manager.js:172** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/security/sandbox-manager.js:180** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/security/sandbox-manager.js:194** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/security/sandbox-manager.js:217** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/security/sandbox-manager.js:241** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/security/sandbox-manager.js:254** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/security/sandbox-manager.js:280** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/security/sandbox-manager.js:297** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/security/sandbox-manager.js:527** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/security/sandbox-manager.js:633** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/security/sandbox-manager.js:663** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/security/sandbox-manager.js:732** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/security/sandbox-manager.js:759** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/security/threat-detector.js:117** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/security/threat-detector.js:127** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/security/threat-detector.js:135** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/security/threat-detector.js:144** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/security/threat-detector.js:182** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/security/threat-detector.js:190** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/security/threat-detector.js:229** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/security/threat-detector.js:231** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/security/threat-detector.js:402** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/security/threat-detector.js:593** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/security/threat-detector.js:613** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/security/threat-detector.js:628** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/security/threat-detector.js:652** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/security/threat-detector.js:665** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/security/threat-detector.js:679** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/security/threat-detector.js:814** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/security/threat-detector.js:815** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/security/threat-detector.js:827** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/security/threat-detector.js:875** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/security/threat-detector.js:887** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/security/threat-detector.js:909** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/semantic/cache/inference-cache.js:194** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/semantic/cache/inference-cache.js:251** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/semantic/cache/inference-cache.js:287** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/semantic/cache/inference-cache.js:343** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/semantic/cache/inference-cache.js:525** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/semantic/cache/inference-cache.js:556** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/semantic/cache/inference-cache.js:835** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/semantic/cache/inference-cache.js:867** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/semantic/cache/inference-cache.js:868** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/semantic/cache/inference-cache.js:908** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/semantic/cache/inference-cache.js:916** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/semantic/cache/inference-cache.js:920** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/semantic/cache/inference-cache.js:933** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/semantic/enhanced-processor.js:208** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/semantic/enhanced-processor.js:264** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/semantic/enhanced-processor.js:270** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/semantic/enhanced-processor.js:430** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/semantic/enhanced-processor.js:480** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/semantic/explanation/explanation-tracer.js:23** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/semantic/explanation/explanation-tracer.js:23** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/semantic/explanation/explanation-tracer.js:23** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/semantic/explanation/explanation-tracer.js:23** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/semantic/explanation/explanation-tracer.js:23** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/semantic/explanation/explanation-tracer.js:23** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/semantic/explanation/explanation-tracer.js:23** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/semantic/learning/rule-learning-system.js:29** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/semantic/learning/rule-learning-system.js:29** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/semantic/learning/rule-learning-system.js:29** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/semantic/learning/rule-learning-system.js:29** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/semantic/learning/rule-learning-system.js:29** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/semantic/learning/rule-learning-system.js:29** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/semantic/probabilistic/probabilistic-inference-engine.js:36** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/semantic/probabilistic/probabilistic-inference-engine.js:36** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/semantic/processor.js:145** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/semantic/processor.js:217** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/semantic/processor.js:258** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/semantic/processor.js:271** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/semantic/processor.js:306** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/semantic/processor.js:1024** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/semantic/processor.js:1048** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/semantic/processor.js:1049** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/semantic/processor.js:1061** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/semantic/processor.js:1114** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/semantic/processor.js:1997** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/semantic/quantum/quantum-reasoning-engine.js:109** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/semantic/quantum/quantum-reasoning-engine.js:142** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/semantic/quantum/quantum-reasoning-engine.js:142** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/semantic/reasoning/demo-n3-reasoning.js:82** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/semantic/reasoning/demo-n3-reasoning.js:90** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/semantic/reasoning/incremental-reasoning-engine.js:156** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/semantic/reasoning/incremental-reasoning-engine.js:211** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/semantic/reasoning/incremental-reasoning-engine.js:215** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/semantic/reasoning/incremental-reasoning-engine.js:225** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/semantic/reasoning/incremental-reasoning-engine.js:240** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/semantic/reasoning/incremental-reasoning-engine.js:263** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/semantic/reasoning/incremental-reasoning-engine.js:292** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/semantic/reasoning/incremental-reasoning-engine.js:297** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/semantic/reasoning/incremental-reasoning-engine.js:522** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/semantic/reasoning/incremental-reasoning-engine.js:851** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/semantic/reasoning/incremental-reasoning-engine.js:883** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/semantic/reasoning/incremental-reasoning-engine.js:1133** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/semantic/reasoning/n3-reasoning-engine.js:143** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/semantic/reasoning/n3-reasoning-engine.js:192** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/semantic/reasoning/n3-reasoning-engine.js:203** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/semantic/reasoning/n3-reasoning-engine.js:228** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/semantic/reasoning/n3-reasoning-engine.js:259** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/semantic/reasoning/n3-reasoning-engine.js:302** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/semantic/reasoning/n3-reasoning-engine.js:502** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/semantic/reasoning/n3-reasoning-engine.js:620** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/semantic/reasoning/n3-reasoning-engine.js:648** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/semantic/reasoning/n3-reasoning-engine.js:649** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/semantic/reasoning/n3-reasoning-engine.js:658** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/semantic/reasoning/n3-reasoning-engine.js:722** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/semantic/reasoning/n3-reasoning-engine.js:769** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/semantic/reasoning/n3-reasoning-engine.js:788** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/semantic/reasoning/n3-reasoning-engine.js:798** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/semantic/reasoning/n3-reasoning-engine.js:1304** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/semantic/reasoning/n3-reasoning-engine.js:1365** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/semantic/reasoning/n3-reasoning-engine.js:1391** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/semantic/reasoning/n3-reasoning-engine.js:1416** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/semantic/reasoning/n3-reasoning-engine.js:1803** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/semantic/reasoning/n3-reasoning-engine.js:1817** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/semantic/reasoning/owl-reasoner.js:283** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/semantic/reasoning/owl-reasoner.js:319** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/semantic/reasoning/owl-reasoner.js:325** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/semantic/reasoning/owl-reasoner.js:348** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/semantic/reasoning/owl-reasoner.js:362** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/semantic/reasoning/owl-reasoner.js:386** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/semantic/reasoning/owl-reasoner.js:1470** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/semantic/reasoning/owl-reasoner.js:1495** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/semantic/reasoning/owl-reasoner.js:1785** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/semantic/reasoning/owl-reasoner.js:1794** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/semantic/rules/rule-pack-manager.js:209** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/semantic/rules/rule-pack-manager.js:424** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/semantic/rules/rule-pack-manager.js:768** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/semantic/rules/rule-pack-manager.js:798** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/semantic/rules/rule-pack-manager.js:807** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/semantic/semantic-reasoning-engine.js:197** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/semantic/semantic-reasoning-engine.js:307** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/semantic/semantic-reasoning-engine.js:320** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/semantic/semantic-reasoning-engine.js:350** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/semantic/semantic-reasoning-engine.js:406** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/semantic/semantic-reasoning-engine.js:695** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/semantic/semantic-reasoning-engine.js:714** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/semantic/semantic-reasoning-engine.js:729** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/semantic/semantic-reasoning-engine.js:749** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/semantic/semantic-reasoning-engine.js:764** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/semantic/semantic-reasoning-engine.js:775** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/semantic/semantic-reasoning-engine.js:790** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/semantic/semantic-reasoning-engine.js:808** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/semantic/semantic-reasoning-engine.js:823** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/semantic/semantic-reasoning-engine.js:836** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/semantic/semantic-reasoning-engine.js:850** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/semantic/semantic-reasoning-engine.js:872** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/semantic/semantic-reasoning-engine.js:930** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/semantic/semantic-reasoning-engine.js:960** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/semantic/semantic-reasoning-engine.js:979** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/semantic/semantic-reasoning-engine.js:1050** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/semantic/semantic-reasoning-engine.js:1060** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/semantic/semantic-reasoning-engine.js:1062** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/semantic/validation/shacl-validator.js:257** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/semantic/validation/shacl-validator.js:292** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/semantic/validation/shacl-validator.js:293** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/semantic/validation/shacl-validator.js:303** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/semantic/validation/shacl-validator.js:320** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/semantic/validation/shacl-validator.js:338** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/semantic/validation/shacl-validator.js:357** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/semantic/validation/shacl-validator.js:817** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/semantic/validation/shacl-validator.js:837** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/serialization/canonical-turtle-serializer.js:123** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/serialization/canonical-turtle-serializer.js:133** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/serialization/canonical-turtle-serializer.js:169** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/serialization/canonical-turtle-serializer.js:289** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/serialization/canonical-turtle-serializer.js:633** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/serialization/canonical-turtle-serializer.js:651** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/serialization/compression-optimizer.js:95** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/serialization/compression-optimizer.js:122** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/serialization/compression-optimizer.js:141** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/serialization/compression-optimizer.js:182** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/serialization/index.js:99** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/serialization/index.js:111** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/serialization/index.js:119** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/serialization/index.js:120** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/serialization/index.js:187** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/serialization/index.js:217** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/serialization/index.js:286** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/serialization/index.js:290** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/serialization/index.js:311** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/serialization/index.js:488** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/serialization/index.js:494** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/serialization/index.js:496** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/serialization/integration.js:217** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/serialization/integration.js:410** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/serialization/integration.js:496** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/serialization/integration.js:544** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/serialization/self-documenting-serializer.js:90** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/serialization/self-documenting-serializer.js:91** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/serialization/self-documenting-serializer.js:111** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/serialization/streaming-serializer.js:73** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/serialization/streaming-serializer.js:85** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/serialization/streaming-serializer.js:104** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/testing/semantic-test-framework.js:110** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/testing/semantic-test-framework.js:171** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/testing/semantic-test-framework.js:186** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/testing/semantic-test-framework.js:200** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/testing/semantic-test-framework.js:239** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/testing/semantic-test-framework.js:278** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/testing/semantic-test-framework.js:317** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/testing/semantic-test-framework.js:364** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/testing/semantic-test-framework.js:654** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/tests/frontmatter/workflow-engine.test.js:19** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/tests/frontmatter/workflow-engine.test.js:492** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/tests/frontmatter/workflow-engine.test.js:494** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/utils/error-handler.js:38** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/utils/error-handler.js:200** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/utils/error-handler.js:390** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/utils/error-handler.js:397** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/validation/cicd-integration.js:453** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/validation/cli-validator.js:180** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/validation/cli-validator.js:185** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/validation/drift-analyzer.js:100** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/validation/drift-analyzer.js:104** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/validation/drift-analyzer.js:788** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/validation/governance-orchestrator.js:247** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/validation/governance-orchestrator.js:446** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/validation/governance-orchestrator.js:462** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/validation/governance-orchestrator.js:691** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/validation/governance-orchestrator.js:722** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/validation/governance-orchestrator.js:944** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/validation/index.js:167** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/validation/index.js:221** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/validation/index.js:310** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/validation/index.js:479** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/validation/index.js:487** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/validation/performance-optimizer.js:188** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/validation/performance-optimizer.js:373** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/validation/performance-optimizer.js:387** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/validation/performance-optimizer.js:544** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/validation/policy-cli-simple.js:91** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/validation/policy-cli-simple.js:111** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/validation/policy-cli-simple.js:141** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/validation/policy-cli-simple.js:151** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/validation/policy-cli-simple.js:193** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/validation/policy-cli-simple.js:206** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/validation/policy-cli-simple.js:221** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/validation/policy-cli.js:106** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/validation/policy-cli.js:126** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/validation/policy-cli.js:263** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/validation/policy-cli.js:304** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/validation/policy-cli.js:318** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/validation/policy-cli.js:335** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/validation/policy-cli.js:349** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/validation/policy-cli.js:413** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/validation/policy-cli.js:431** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/validation/policy-cli.js:449** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/validation/policy-cli.js:464** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/validation/policy-cli.js:538** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/validation/policy-cli.js:551** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/validation/policy-gates.js:186** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/validation/policy-gates.js:245** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/validation/policy-gates.js:360** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/validation/policy-gates.js:387** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/validation/policy-gates.js:399** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/validation/policy-gates.js:405** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/validation/policy-gates.js:565** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/validation/policy-gates.js:576** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/validation/policy-resolver-simple.js:111** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/validation/policy-resolver-simple.js:125** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/validation/policy-resolver-simple.js:144** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/validation/policy-resolver-simple.js:399** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/validation/policy-resolver-simple.js:403** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/validation/policy-resolver.js:151** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/validation/policy-resolver.js:165** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/validation/policy-resolver.js:184** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/validation/policy-resolver.js:488** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/validation/policy-resolver.js:492** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/validation/shacl-cli-integration.js:113** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/validation/shacl-cli-integration.js:133** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/validation/shacl-cli-integration.js:347** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/validation/shacl-cli-integration.js:354** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/validation/shacl-cli-integration.js:375** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/validation/shacl-cli-integration.js:381** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/validation/shacl-cli-integration.js:401** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/validation/shacl-cli-integration.js:407** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/validation/shacl-gates.js:100** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/validation/shacl-gates.js:121** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/validation/shacl-gates.js:138** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/validation/shacl-gates.js:206** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/validation/shacl-gates.js:293** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/validation/shacl-gates.js:307** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/validation/shacl-gates.js:336** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/validation/shacl-validation-engine.js:307** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/validation/shacl-validation-engine.js:585** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/validation/sparql-rule-engine.js:202** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/validation/sparql-rule-engine.js:356** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/validation/sparql-rule-engine.js:359** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/validation/sparql-rule-engine.js:452** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/validation/sparql-rule-engine.js:484** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/validation/sparql-rule-engine.js:495** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/validation/sparql-rule-engine.js:535** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/validation/sparql-rule-engine.js:556** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/kgen/validation/sparql-rule-engine.js:576** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/validation/sparql-rule-engine.js:694** - Date.now() call creates non-deterministic timestamp
+- **src/kgen/validation/validation-test.mjs:39** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/lib/cli-response-formatter.js:90** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/lib/cli-response-formatter.js:148** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/lib/generator.js:54** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/lib/generator.js:55** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/lib/generator.js:102** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/lib/generator.js:103** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/lib/generator.js:114** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/lib/generator.js:115** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/lib/json-schema-validator.js:276** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/lib/json-schema-validator.js:298** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/lib/json-schema-validator.js:345** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/lib/kgen-template-scanner.js:123** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/lib/kgen-template-scanner.js:124** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/lib/kgen-template-scanner.js:178** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/lib/kgen-template-scanner.js:179** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/lib/kgen-template-scanner.js:277** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/lib/kgen-template-scanner.js:278** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/lib/mcp-integration.js:357** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/lib/mcp-integration.js:414** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/lib/mcp-integration.js:421** - Date.now() call creates non-deterministic timestamp
+- **src/lib/mcp-integration.js:459** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/lib/mcp-integration.js:1080** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/lib/nunjucks-filters.js:286** - Date.now() call creates non-deterministic timestamp
+- **src/lib/nunjucks-filters.js:295** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/lib/ontology-standards.js:597** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/lib/ontology-standards.js:809** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/lib/ontology-standards.js:888** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/lib/rdf-data-loader.js:548** - Date.now() call creates non-deterministic timestamp
+- **src/lib/rdf-data-loader.js:559** - Date.now() call creates non-deterministic timestamp
+- **src/lib/rdf-data-loader.js:573** - Date.now() call creates non-deterministic timestamp
+- **src/lib/rdf-data-loader.js:699** - Date.now() call creates non-deterministic timestamp
+- **src/lib/semantic-validator.js:142** - Date.now() call creates non-deterministic timestamp
+- **src/lib/semantic-validator.js:190** - Date.now() call creates non-deterministic timestamp
+- **src/lib/semantic-validator.js:740** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/lib/simple-formatter.js:63** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/lib/simple-formatter.js:95** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/lib/template-engine-perfect.js:216** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/lib/template-engine-perfect.js:323** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/lib/template-engine-perfect.js:657** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/lib/template-engine.js:226** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/lib/template-engine.js:285** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/lib/unified-template-engine-final.js:145** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/lib/unified-template-engine-final.js:173** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/lib/unified-template-engine-final.js:488** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/lib/unified-template-engine-simple.js:98** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/lib/unified-template-engine-simple.js:410** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/lib/unified-template-engine.js:284** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/lib/unified-template-engine.js:596** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/math/cache/equation-cache.js:163** - Date.now() call creates non-deterministic timestamp
+- **src/math/cache/equation-cache.js:165** - Date.now() call creates non-deterministic timestamp
+- **src/math/cache/equation-cache.js:194** - Date.now() call creates non-deterministic timestamp
+- **src/mcp/connection-health.js:52** - Date.now() call creates non-deterministic timestamp
+- **src/mcp/connection-health.js:70** - Date.now() call creates non-deterministic timestamp
+- **src/mcp/connection-health.js:155** - Date.now() call creates non-deterministic timestamp
+- **src/mcp/connection-health.js:180** - Date.now() call creates non-deterministic timestamp
+- **src/mcp/connection-health.js:194** - Date.now() call creates non-deterministic timestamp
+- **src/mcp/connection-health.js:201** - Date.now() call creates non-deterministic timestamp
+- **src/mcp/connection-health.js:202** - Date.now() call creates non-deterministic timestamp
+- **src/mcp/connection-health.js:314** - Date.now() call creates non-deterministic timestamp
+- **src/mcp/connection-health.js:330** - Date.now() call creates non-deterministic timestamp
+- **src/mcp/enhanced-server.js:211** - Date.now() call creates non-deterministic timestamp
+- **src/mcp/handlers/enhanced-request-handler.js:447** - Date.now() call creates non-deterministic timestamp
+- **src/mcp/handlers/enhanced-request-handler.js:485** - Date.now() call creates non-deterministic timestamp
+- **src/mcp/handlers/enhanced-request-handler.js:586** - Date.now() call creates non-deterministic timestamp
+- **src/mcp/handlers/enhanced-request-handler.js:598** - Date.now() call creates non-deterministic timestamp
+- **src/mcp/handlers/enhanced-request-handler.js:660** - Date.now() call creates non-deterministic timestamp
+- **src/mcp/latex-server-integration.js:316** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/mcp/tools/latex-coordination.js:175** - Date.now() call creates non-deterministic timestamp
+- **src/mcp/tools/latex-coordination.js:250** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/mcp/tools/latex-coordination.js:282** - Date.now() call creates non-deterministic timestamp
+- **src/mcp/tools/latex-coordination.js:332** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/mcp/tools/latex-coordination.js:354** - Date.now() call creates non-deterministic timestamp
+- **src/mcp/tools/latex-coordination.js:404** - Date.now() call creates non-deterministic timestamp
+- **src/mcp/tools/latex-coordination.js:407** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/mcp/tools/latex-coordination.js:420** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/mcp/tools/latex-coordination.js:434** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/mcp/tools/latex-coordination.js:441** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/mcp/tools/latex-coordination.js:466** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/mcp/tools/latex-tools.js:321** - Date.now() call creates non-deterministic timestamp
+- **src/mcp/tools/latex-tools.js:366** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/mcp/tools/latex-tools.js:439** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/mcp/tools/latex-tools.js:538** - Date.now() call creates non-deterministic timestamp
+- **src/mcp/tools/latex-tools.js:578** - Date.now() call creates non-deterministic timestamp
+- **src/mcp/tools/latex-tools.js:587** - Date.now() call creates non-deterministic timestamp
+- **src/mcp/tools/safe-unjucks-list.js:152** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/mcp/tools/safe-unjucks-list.js:181** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/mcp/tools/unjucks-dry-run.js:210** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/mcp/tools/unjucks-generate.js:181** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/mcp/tools/unjucks-help.js:182** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/mcp/tools/unjucks-inject.js:221** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/microservices/api-gateway/server.js:216** - Date.now() call creates non-deterministic timestamp
+- **src/microservices/api-gateway/server.js:227** - Date.now() call creates non-deterministic timestamp
+- **src/microservices/api-gateway/server.js:449** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/microservices/api-gateway/server.js:458** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/microservices/api-gateway/server.js:468** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/microservices/api-gateway/server.js:474** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/microservices/api-gateway/server.js:482** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/ml-query/caching/predictive-cache.js:120** - Date.now() call creates non-deterministic timestamp
+- **src/ml-query/caching/predictive-cache.js:123** - Date.now() call creates non-deterministic timestamp
+- **src/ml-query/caching/predictive-cache.js:215** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/ml-query/caching/predictive-cache.js:216** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/ml-query/caching/predictive-cache.js:334** - Date.now() call creates non-deterministic timestamp
+- **src/ml-query/caching/predictive-cache.js:352** - Date.now() call creates non-deterministic timestamp
+- **src/ml-query/caching/predictive-cache.js:370** - Date.now() call creates non-deterministic timestamp
+- **src/ml-query/caching/predictive-cache.js:393** - Date.now() call creates non-deterministic timestamp
+- **src/ml-query/caching/predictive-cache.js:395** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/ml-query/caching/predictive-cache.js:396** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/ml-query/caching/predictive-cache.js:405** - Date.now() call creates non-deterministic timestamp
+- **src/ml-query/caching/predictive-cache.js:689** - Date.now() call creates non-deterministic timestamp
+- **src/ml-query/caching/predictive-cache.js:702** - Date.now() call creates non-deterministic timestamp
+- **src/ml-query/caching/predictive-cache.js:711** - Date.now() call creates non-deterministic timestamp
+- **src/ml-query/caching/predictive-cache.js:722** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/ml-query/intent/intent-analyzer.js:586** - Date.now() call creates non-deterministic timestamp
+- **src/ml-query/intent/intent-analyzer.js:635** - Date.now() call creates non-deterministic timestamp
+- **src/ml-query/intent/intent-analyzer.js:1082** - Date.now() call creates non-deterministic timestamp
+- **src/ml-query/intent/intent-analyzer.js:1131** - Date.now() call creates non-deterministic timestamp
+- **src/ml-query/intent/intent-analyzer.js:1144** - Date.now() call creates non-deterministic timestamp
+- **src/ml-query/intent/intent-analyzer.js:1304** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/ml-query/ml-query-engine.js:207** - Date.now() call creates non-deterministic timestamp
+- **src/ml-query/ml-query-engine.js:323** - Date.now() call creates non-deterministic timestamp
+- **src/ml-query/ml-query-engine.js:402** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/ml-query/ml-query-engine.js:452** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/ml-query/ml-query-engine.js:506** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/ml-query/ml-query-engine.js:557** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/ml-query/ml-query-engine.js:569** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/ml-query/neural/query-optimizer.js:463** - Date.now() call creates non-deterministic timestamp
+- **src/ml-query/nlp/nl-to-sparql.js:770** - Date.now() call creates non-deterministic timestamp
+- **src/ml-query/nlp/nl-to-sparql.js:913** - Date.now() call creates non-deterministic timestamp
+- **src/ml-query/nlp/nl-to-sparql.js:959** - Date.now() call creates non-deterministic timestamp
+- **src/ml-query/similarity/query-similarity.js:204** - Date.now() call creates non-deterministic timestamp
+- **src/monitoring/error-tracker.js:46** - Date.now() call creates non-deterministic timestamp
+- **src/monitoring/error-tracker.js:47** - Date.now() call creates non-deterministic timestamp
+- **src/monitoring/error-tracker.js:164** - Date.now() call creates non-deterministic timestamp
+- **src/monitoring/error-tracker.js:415** - Date.now() call creates non-deterministic timestamp
+- **src/monitoring/error-tracker.js:500** - Date.now() call creates non-deterministic timestamp
+- **src/monitoring/error-tracker.js:562** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/monitoring/error-tracker.js:591** - Date.now() call creates non-deterministic timestamp
+- **src/monitoring/error-tracker.js:617** - Date.now() call creates non-deterministic timestamp
+- **src/monitoring/error-tracker.js:649** - Date.now() call creates non-deterministic timestamp
+- **src/monitoring/error-tracker.js:668** - Date.now() call creates non-deterministic timestamp
+- **src/monitoring/error-tracker.js:684** - Date.now() call creates non-deterministic timestamp
+- **src/monitoring/error-tracker.js:690** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/monitoring/health-checks.js:55** - Date.now() call creates non-deterministic timestamp
+- **src/monitoring/health-checks.js:71** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/monitoring/health-checks.js:78** - Date.now() call creates non-deterministic timestamp
+- **src/monitoring/health-checks.js:118** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/monitoring/health-checks.js:164** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/monitoring/health-checks.js:175** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/monitoring/health-checks.js:186** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/monitoring/health-checks.js:204** - Date.now() call creates non-deterministic timestamp
+- **src/monitoring/health-checks.js:273** - Date.now() call creates non-deterministic timestamp
+- **src/monitoring/health-checks.js:293** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/monitoring/health-checks.js:377** - Date.now() call creates non-deterministic timestamp
+- **src/monitoring/health-checks.js:480** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/monitoring/health-checks.js:493** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/monitoring/health-checks.js:503** - Date.now() call creates non-deterministic timestamp
+- **src/monitoring/health-checks.js:519** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/monitoring/health-checks.js:531** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/monitoring/index.js:37** - Date.now() call creates non-deterministic timestamp
+- **src/monitoring/index.js:251** - Date.now() call creates non-deterministic timestamp
+- **src/monitoring/index.js:298** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/monitoring/index.js:314** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/monitoring/index.js:329** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/monitoring/index.js:346** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/monitoring/index.js:362** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/monitoring/index.js:531** - Date.now() call creates non-deterministic timestamp
+- **src/monitoring/index.js:541** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/monitoring/index.js:586** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/monitoring/index.js:677** - Date.now() call creates non-deterministic timestamp
+- **src/monitoring/index.js:731** - Date.now() call creates non-deterministic timestamp
+- **src/monitoring/index.js:755** - Date.now() call creates non-deterministic timestamp
+- **src/monitoring/metrics-collector.js:96** - Date.now() call creates non-deterministic timestamp
+- **src/monitoring/metrics-collector.js:399** - Date.now() call creates non-deterministic timestamp
+- **src/monitoring/metrics-collector.js:534** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/monitoring/metrics-collector.js:550** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/monitoring/metrics-collector.js:635** - Date.now() call creates non-deterministic timestamp
+- **src/monitoring/metrics-collector.js:666** - Date.now() call creates non-deterministic timestamp
+- **src/monitoring/metrics-collector.js:676** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/monitoring/metrics-collector.js:748** - Date.now() call creates non-deterministic timestamp
+- **src/monitoring/performance-monitor.js:76** - Date.now() call creates non-deterministic timestamp
+- **src/monitoring/performance-monitor.js:173** - Date.now() call creates non-deterministic timestamp
+- **src/monitoring/performance-monitor.js:213** - Date.now() call creates non-deterministic timestamp
+- **src/monitoring/performance-monitor.js:403** - Date.now() call creates non-deterministic timestamp
+- **src/monitoring/performance-monitor.js:509** - Date.now() call creates non-deterministic timestamp
+- **src/monitoring/performance-monitor.js:540** - Date.now() call creates non-deterministic timestamp
+- **src/monitoring/performance-monitor.js:549** - Date.now() call creates non-deterministic timestamp
+- **src/monitoring/performance-monitor.js:588** - Date.now() call creates non-deterministic timestamp
+- **src/monitoring/performance-monitor.js:623** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/monitoring/performance-monitor.js:631** - Date.now() call creates non-deterministic timestamp
+- **src/monitoring/performance-monitor.js:633** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/monitoring/performance-monitor.js:711** - Date.now() call creates non-deterministic timestamp
+- **src/monitoring/semantic-monitor.js:169** - Date.now() call creates non-deterministic timestamp
+- **src/monitoring/semantic-monitor.js:201** - Date.now() call creates non-deterministic timestamp
+- **src/monitoring/semantic-monitor.js:304** - Date.now() call creates non-deterministic timestamp
+- **src/monitoring/semantic-monitor.js:338** - Date.now() call creates non-deterministic timestamp
+- **src/monitoring/semantic-monitor.js:356** - Date.now() call creates non-deterministic timestamp
+- **src/monitoring/semantic-monitor.js:373** - Date.now() call creates non-deterministic timestamp
+- **src/monitoring/semantic-monitor.js:479** - Date.now() call creates non-deterministic timestamp
+- **src/monitoring/semantic-monitor.js:480** - Date.now() call creates non-deterministic timestamp
+- **src/monitoring/sli-slo-tracker.js:82** - Date.now() call creates non-deterministic timestamp
+- **src/monitoring/sli-slo-tracker.js:132** - Date.now() call creates non-deterministic timestamp
+- **src/monitoring/sli-slo-tracker.js:139** - Date.now() call creates non-deterministic timestamp
+- **src/monitoring/sli-slo-tracker.js:346** - Date.now() call creates non-deterministic timestamp
+- **src/monitoring/sli-slo-tracker.js:368** - Date.now() call creates non-deterministic timestamp
+- **src/monitoring/sli-slo-tracker.js:478** - Date.now() call creates non-deterministic timestamp
+- **src/monitoring/sli-slo-tracker.js:484** - Date.now() call creates non-deterministic timestamp
+- **src/monitoring/sli-slo-tracker.js:756** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/monitoring/sli-slo-tracker.js:801** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/observability/audit-integration.js:186** - Date.now() call creates non-deterministic timestamp
+- **src/observability/audit-integration.js:195** - Date.now() call creates non-deterministic timestamp
+- **src/observability/audit-integration.js:197** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/observability/audit-integration.js:230** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/observability/audit-integration.js:261** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/observability/audit-integration.js:290** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/observability/audit-integration.js:307** - Date.now() call creates non-deterministic timestamp
+- **src/observability/audit-integration.js:370** - Date.now() call creates non-deterministic timestamp
+- **src/observability/audit-integration.js:402** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/observability/audit-integration.js:430** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/observability/audit-integration.js:474** - Date.now() call creates non-deterministic timestamp
+- **src/observability/audit-integration.js:492** - Date.now() call creates non-deterministic timestamp
+- **src/observability/audit-integration.js:499** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/observability/audit-integration.js:593** - Date.now() call creates non-deterministic timestamp
+- **src/observability/audit-integration.js:594** - Date.now() call creates non-deterministic timestamp
+- **src/observability/audit-integration.js:597** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/observability/audit-integration.js:685** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/observability/audit-integration.js:800** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/observability/audit-stream-coordinator.js:217** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/observability/audit-stream-coordinator.js:335** - Date.now() call creates non-deterministic timestamp
+- **src/observability/audit-stream-coordinator.js:369** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/observability/audit-stream-coordinator.js:392** - Date.now() call creates non-deterministic timestamp
+- **src/observability/audit-stream-coordinator.js:417** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/observability/audit-stream-coordinator.js:429** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/observability/audit-stream-coordinator.js:514** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/observability/audit-stream-coordinator.js:551** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/observability/audit-stream-coordinator.js:565** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/observability/audit-stream-coordinator.js:598** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/observability/audit-stream-coordinator.js:642** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/observability/audit-stream-coordinator.js:649** - Date.now() call creates non-deterministic timestamp
+- **src/observability/audit-stream-coordinator.js:681** - Date.now() call creates non-deterministic timestamp
+- **src/observability/audit-stream-coordinator.js:726** - Date.now() call creates non-deterministic timestamp
+- **src/observability/audit-stream-coordinator.js:754** - Date.now() call creates non-deterministic timestamp
+- **src/observability/audit-stream-coordinator.js:779** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/observability/audit-stream-coordinator.js:815** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/observability/audit-stream-coordinator.js:1207** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/observability/audit-stream-coordinator.js:1282** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/observability/audit-stream-coordinator.js:1408** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/observability/audit-stream-coordinator.js:1567** - Date.now() call creates non-deterministic timestamp
+- **src/observability/audit-stream-coordinator.js:1568** - Date.now() call creates non-deterministic timestamp
+- **src/observability/audit-stream-coordinator.js:1596** - Date.now() call creates non-deterministic timestamp
+- **src/observability/audit-stream-coordinator.js:1638** - Date.now() call creates non-deterministic timestamp
+- **src/observability/audit-stream-coordinator.js:1652** - Date.now() call creates non-deterministic timestamp
+- **src/observability/audit-stream-coordinator.js:1670** - Date.now() call creates non-deterministic timestamp
+- **src/observability/audit-stream-coordinator.js:1731** - Date.now() call creates non-deterministic timestamp
+- **src/observability/kgen-tracer.js:25** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/observability/kgen-tracer.js:80** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/observability/kgen-tracer.js:355** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/observability/performance-validator.js:279** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/observability/performance-validator.js:393** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/office/core/base-processor.ts:64** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/office/core/base-processor.ts:374** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/office/core/base-processor.ts:386** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/office/example.js:249** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/office/example.js:309** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/office/injectors/office-injector.js:249** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/office/injectors/office-injector.js:250** - Date.now() call creates non-deterministic timestamp
+- **src/office/io/batch-processor.ts:195** - Date.now() call creates non-deterministic timestamp
+- **src/office/io/batch-processor.ts:224** - Date.now() call creates non-deterministic timestamp
+- **src/office/io/batch-processor.ts:250** - Date.now() call creates non-deterministic timestamp
+- **src/office/io/batch-processor.ts:259** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/office/io/batch-processor.ts:290** - Date.now() call creates non-deterministic timestamp
+- **src/office/io/batch-processor.ts:300** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/office/io/batch-processor.ts:328** - Date.now() call creates non-deterministic timestamp
+- **src/office/io/batch-processor.ts:356** - Date.now() call creates non-deterministic timestamp
+- **src/office/io/batch-processor.ts:384** - Date.now() call creates non-deterministic timestamp
+- **src/office/io/batch-processor.ts:439** - Date.now() call creates non-deterministic timestamp
+- **src/office/io/batch-processor.ts:751** - Date.now() call creates non-deterministic timestamp
+- **src/office/io/batch-processor.ts:753** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/office/io/batch-processor.ts:774** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/office/io/batch-processor.ts:777** - Date.now() call creates non-deterministic timestamp
+- **src/office/io/batch-processor.ts:802** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/office/io/batch-processor.ts:805** - Date.now() call creates non-deterministic timestamp
+- **src/office/io/batch-processor.ts:927** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/office/office-template-processor.ts:171** - Date.now() call creates non-deterministic timestamp
+- **src/office/office-template-processor.ts:192** - Date.now() call creates non-deterministic timestamp
+- **src/office/parsers/office-parser.js:462** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/office/parsers/office-parser.js:463** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/office/parsers/office-parser.js:485** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/office/parsers/office-parser.js:486** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/office/processors/excel-processor.js:798** - Date.now() call creates non-deterministic timestamp
+- **src/office/processors/excel-processor.ts:682** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/office/processors/excel-processor.ts:683** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/office/processors/powerpoint-processor.js:199** - Date.now() call creates non-deterministic timestamp
+- **src/office/processors/powerpoint-processor.js:236** - Date.now() call creates non-deterministic timestamp
+- **src/office/processors/powerpoint-processor.js:480** - Date.now() call creates non-deterministic timestamp
+- **src/office/processors/powerpoint-processor.js:1116** - Date.now() call creates non-deterministic timestamp
+- **src/office/processors/powerpoint-processor.js:1367** - Date.now() call creates non-deterministic timestamp
+- **src/office/processors/powerpoint-processor.js:1432** - Date.now() call creates non-deterministic timestamp
+- **src/office/processors/powerpoint-processor.js:1474** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/office/processors/powerpoint-processor.ts:868** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/office/processors/powerpoint-processor.ts:869** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/office/processors/word-processor.js:222** - Date.now() call creates non-deterministic timestamp
+- **src/office/processors/word-processor.js:273** - Date.now() call creates non-deterministic timestamp
+- **src/office/processors/word-processor.js:799** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/office/processors/word-processor.js:853** - Date.now() call creates non-deterministic timestamp
+- **src/office/processors/word-processor.js:862** - Date.now() call creates non-deterministic timestamp
+- **src/office/processors/word-processor.js:872** - Date.now() call creates non-deterministic timestamp
+- **src/office/processors/word-processor.ts:509** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/office/processors/word-processor.ts:510** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/office/templates/syntax-converter.ts:163** - Date.now() call creates non-deterministic timestamp
+- **src/office/templates/syntax-converter.ts:192** - Date.now() call creates non-deterministic timestamp
+- **src/office/templates/syntax-converter.ts:240** - Date.now() call creates non-deterministic timestamp
+- **src/office/utils/logger.ts:239** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/office/utils/logger.ts:475** - Date.now() call creates non-deterministic timestamp
+- **src/office/utils/logger.ts:480** - Date.now() call creates non-deterministic timestamp
+- **src/office/utils/logger.ts:484** - Date.now() call creates non-deterministic timestamp
+- **src/ontology/alignment/multi-modal-alignment.js:51** - Date.now() call creates non-deterministic timestamp
+- **src/ontology/alignment/multi-modal-alignment.js:100** - Date.now() call creates non-deterministic timestamp
+- **src/ontology/discovery/concept-discovery-engine.js:52** - Date.now() call creates non-deterministic timestamp
+- **src/ontology/discovery/concept-discovery-engine.js:95** - Date.now() call creates non-deterministic timestamp
+- **src/ontology/discovery/concept-discovery-engine.js:620** - Date.now() call creates non-deterministic timestamp
+- **src/ontology/discovery/concept-discovery-engine.js:621** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/ontology/discovery/concept-discovery-engine.js:631** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/ontology/evolution/autonomous-evolution-engine.js:296** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/ontology/evolution/autonomous-evolution-engine.js:377** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/ontology/evolution/autonomous-evolution-engine.js:439** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/ontology/reasoning/owl2-reasoning-engine.js:58** - Date.now() call creates non-deterministic timestamp
+- **src/ontology/reasoning/owl2-reasoning-engine.js:100** - Date.now() call creates non-deterministic timestamp
+- **src/ontology/reasoning/owl2-reasoning-engine.js:107** - Date.now() call creates non-deterministic timestamp
+- **src/ontology/reasoning/owl2-reasoning-engine.js:134** - Date.now() call creates non-deterministic timestamp
+- **src/ontology/reasoning/owl2-reasoning-engine.js:156** - Date.now() call creates non-deterministic timestamp
+- **src/ontology/reasoning/owl2-reasoning-engine.js:269** - Date.now() call creates non-deterministic timestamp
+- **src/ontology/reasoning/owl2-reasoning-engine.js:294** - Date.now() call creates non-deterministic timestamp
+- **src/ontology/reasoning/owl2-reasoning-engine.js:308** - Date.now() call creates non-deterministic timestamp
+- **src/ontology/reasoning/owl2-reasoning-engine.js:338** - Date.now() call creates non-deterministic timestamp
+- **src/ontology/reasoning/owl2-reasoning-engine.js:348** - Date.now() call creates non-deterministic timestamp
+- **src/ontology/reasoning/owl2-reasoning-engine.js:353** - Date.now() call creates non-deterministic timestamp
+- **src/ontology/reasoning/owl2-reasoning-engine.js:363** - Date.now() call creates non-deterministic timestamp
+- **src/ontology/repair/ontology-repair-engine.js:50** - Date.now() call creates non-deterministic timestamp
+- **src/ontology/repair/ontology-repair-engine.js:62** - Date.now() call creates non-deterministic timestamp
+- **src/ontology/repair/ontology-repair-engine.js:81** - Date.now() call creates non-deterministic timestamp
+- **src/ontology/repair/ontology-repair-engine.js:281** - Date.now() call creates non-deterministic timestamp
+- **src/ontology/repair/ontology-repair-engine.js:287** - Date.now() call creates non-deterministic timestamp
+- **src/ontology/repair/ontology-repair-engine.js:326** - Date.now() call creates non-deterministic timestamp
+- **src/ontology/repair/ontology-repair-engine.js:737** - Date.now() call creates non-deterministic timestamp
+- **src/ontology/repair/ontology-repair-engine.js:738** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/ontology/repair/ontology-repair-engine.js:750** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/ontology/ultimate-ontology-orchestrator.js:88** - Date.now() call creates non-deterministic timestamp
+- **src/ontology/ultimate-ontology-orchestrator.js:115** - Date.now() call creates non-deterministic timestamp
+- **src/ontology/ultimate-ontology-orchestrator.js:229** - Date.now() call creates non-deterministic timestamp
+- **src/ontology/ultimate-ontology-orchestrator.js:233** - Date.now() call creates non-deterministic timestamp
+- **src/ontology/ultimate-ontology-orchestrator.js:584** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/ontology/ultimate-ontology-orchestrator.js:600** - Date.now() call creates non-deterministic timestamp
+- **src/ontology/views/multi-perspective-views.js:47** - Date.now() call creates non-deterministic timestamp
+- **src/ontology/views/multi-perspective-views.js:97** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/ontology/views/multi-perspective-views.js:98** - Date.now() call creates non-deterministic timestamp
+- **src/ontology/views/multi-perspective-views.js:112** - Date.now() call creates non-deterministic timestamp
+- **src/ontology/views/multi-perspective-views.js:188** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/ontology/views/multi-perspective-views.js:374** - Date.now() call creates non-deterministic timestamp
+- **src/ontology/views/multi-perspective-views.js:379** - Date.now() call creates non-deterministic timestamp
+- **src/ontology/views/multi-perspective-views.js:383** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/ontology/views/multi-perspective-views.js:392** - Date.now() call creates non-deterministic timestamp
+- **src/ontology/views/multi-perspective-views.js:429** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/optimizations/performance-optimizer.js:203** - Date.now() call creates non-deterministic timestamp
+- **src/optimizations/performance-optimizer.js:417** - Date.now() call creates non-deterministic timestamp
+- **src/optimizations/performance-optimizer.js:421** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/optimizations/performance-optimizer.js:500** - Date.now() call creates non-deterministic timestamp
+- **src/performance/benchmarker.js:395** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/performance/cli-optimizer.js:322** - Date.now() call creates non-deterministic timestamp
+- **src/performance/cli-optimizer.js:327** - Date.now() call creates non-deterministic timestamp
+- **src/performance/fast-startup-loader.js:191** - Date.now() call creates non-deterministic timestamp
+- **src/performance/fast-startup-loader.js:300** - Date.now() call creates non-deterministic timestamp
+- **src/performance/fast-startup-loader.js:365** - Date.now() call creates non-deterministic timestamp
+- **src/performance/kgen-performance-optimizer.js:51** - Date.now() call creates non-deterministic timestamp
+- **src/performance/kgen-performance-optimizer.js:489** - Date.now() call creates non-deterministic timestamp
+- **src/performance/kgen-performance-optimizer.js:505** - Date.now() call creates non-deterministic timestamp
+- **src/performance/kgen-performance-optimizer.js:515** - Date.now() call creates non-deterministic timestamp
+- **src/performance/kgen-performance-optimizer.js:523** - Date.now() call creates non-deterministic timestamp
+- **src/performance/memory-optimizer.js:51** - Date.now() call creates non-deterministic timestamp
+- **src/performance/optimized-kgen-cli.js:103** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/performance/optimized-kgen-cli.js:131** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/performance/optimized-kgen-cli.js:228** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/performance/optimized-kgen-cli.js:242** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/performance/optimized-kgen-cli.js:324** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/performance/optimized-kgen-cli.js:356** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/performance/optimized-kgen-cli.js:421** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/performance/optimized-kgen-cli.js:480** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/performance/optimized-kgen-cli.js:494** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/performance/optimized-kgen-cli.js:556** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/performance/optimized-kgen-cli.js:573** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/performance/optimized-kgen-cli.js:613** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/performance/optimized-kgen-cli.js:633** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/performance/optimized-kgen-cli.js:643** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/performance/optimized-kgen-cli.js:670** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/performance/optimized-kgen-cli.js:681** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/performance/performance-test-suite.js:52** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/performance/spec-benchmarker.js:673** - Date.now() call creates non-deterministic timestamp
+- **src/performance/spec-benchmarker.js:683** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/performance/spec-benchmarker.js:819** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/performance/spec-performance-optimizer.js:71** - Date.now() call creates non-deterministic timestamp
+- **src/performance/spec-performance-optimizer.js:147** - Date.now() call creates non-deterministic timestamp
+- **src/performance/spec-performance-optimizer.js:172** - Date.now() call creates non-deterministic timestamp
+- **src/performance/spec-performance-optimizer.js:173** - Date.now() call creates non-deterministic timestamp
+- **src/performance/spec-performance-optimizer.js:576** - Date.now() call creates non-deterministic timestamp
+- **src/performance/spec-performance-optimizer.js:614** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/performance-benchmark.mjs:146** - Date.now() call creates non-deterministic timestamp
+- **src/performance-benchmark.mjs:164** - Date.now() call creates non-deterministic timestamp
+- **src/performance-benchmark.mjs:195** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/performance-benchmark.mjs:351** - Date.now() call creates non-deterministic timestamp
+- **src/performance-benchmark.mjs:515** - Date.now() call creates non-deterministic timestamp
+- **src/performance-benchmark.mjs:659** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/pipeline/dark-matter-integration.js:506** - Date.now() call creates non-deterministic timestamp
+- **src/pipeline/dark-matter-integration.js:514** - Date.now() call creates non-deterministic timestamp
+- **src/pipeline/dark-matter-integration.js:538** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/pipeline/dark-matter-integration.js:560** - Date.now() call creates non-deterministic timestamp
+- **src/pipeline/dark-matter-integration.js:663** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/pipeline/idempotent-pipeline-wrapper.js:200** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/pipeline/idempotent-pipeline-wrapper.js:224** - Date.now() call creates non-deterministic timestamp
+- **src/pipeline/idempotent-pipeline-wrapper.js:344** - Date.now() call creates non-deterministic timestamp
+- **src/pipeline/idempotent-pipeline-wrapper.js:356** - Date.now() call creates non-deterministic timestamp
+- **src/pipeline/idempotent-pipeline-wrapper.js:522** - Date.now() call creates non-deterministic timestamp
+- **src/pipeline/idempotent-pipeline-wrapper.js:616** - Date.now() call creates non-deterministic timestamp
+- **src/pipeline/idempotent-pipeline-wrapper.js:738** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/pipeline/pure-functional-core.js:289** - Date.now() call creates non-deterministic timestamp
+- **src/pipeline/pure-functional-core.js:310** - Date.now() call creates non-deterministic timestamp
+- **src/pipeline/pure-functional-core.js:337** - Date.now() call creates non-deterministic timestamp
+- **src/pipeline/pure-functional-core.js:618** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/reproducibility/deterministic-engine.js:194** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/reproducibility/deterministic-engine.js:205** - Date.now() call creates non-deterministic timestamp
+- **src/resolver.mjs:112** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/resolver.mjs:185** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/resolver.mjs:264** - Date.now() call creates non-deterministic timestamp
+- **src/resolver.mjs:338** - Date.now() call creates non-deterministic timestamp
+- **src/resolver.mjs:345** - Date.now() call creates non-deterministic timestamp
+- **src/resolver.mjs:359** - Date.now() call creates non-deterministic timestamp
+- **src/resolver.mjs:361** - Date.now() call creates non-deterministic timestamp
+- **src/resolver.mjs:366** - Date.now() call creates non-deterministic timestamp
+- **src/resolver.mjs:431** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/resolver.mjs:508** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/resolver.mjs:683** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/resolver.mjs:1490** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/resolver.mjs:1545** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/resolver.mjs:1594** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/resolver.mjs:1659** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/resolver.mjs:1713** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/resolver.mjs:1724** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/result-formatter.js:93** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/result-formatter.js:386** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/result-formatter.js:512** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/runtime/compatibility-checker.js:574** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/runtime/compatibility-checker.js:722** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/runtime/compatibility-checker.js:771** - Date.now() call creates non-deterministic timestamp
+- **src/runtime/compatibility-checker.js:792** - Date.now() call creates non-deterministic timestamp
+- **src/runtime/compatibility-checker.js:820** - Date.now() call creates non-deterministic timestamp
+- **src/runtime/hermetic-environment.js:82** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/runtime/hermetic-environment.js:134** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/runtime/hermetic-environment.js:135** - Date.now() call creates non-deterministic timestamp
+- **src/runtime/hermetic-environment.js:482** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/runtime/hermetic-environment.js:529** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/runtime/hermetic-environment.js:647** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/runtime/hermetic-environment.js:658** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/runtime/hermetic-environment.js:747** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/runtime/hermetic-validator.js:433** - Date.now() call creates non-deterministic timestamp
+- **src/runtime/hermetic-validator.js:433** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/runtime/hermetic-wrapper.js:131** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/runtime/hermetic-wrapper.js:146** - Date.now() call creates non-deterministic timestamp
+- **src/runtime/hermetic-wrapper.js:232** - Date.now() call creates non-deterministic timestamp
+- **src/runtime/hermetic-wrapper.js:236** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/runtime/hermetic-wrapper.js:327** - Date.now() call creates non-deterministic timestamp
+- **src/runtime/hermetic-wrapper.js:332** - Date.now() call creates non-deterministic timestamp
+- **src/runtime/hermetic-wrapper.js:337** - Date.now() call creates non-deterministic timestamp
+- **src/runtime/hermetic-wrapper.js:385** - Date.now() call creates non-deterministic timestamp
+- **src/runtime/hermetic-wrapper.js:398** - Date.now() call creates non-deterministic timestamp
+- **src/runtime/hermetic-wrapper.js:409** - Date.now() call creates non-deterministic timestamp
+- **src/runtime/hermetic-wrapper.js:472** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/runtime/hermetic-wrapper.js:480** - Date.now() call creates non-deterministic timestamp
+- **src/runtime/hermetic-wrapper.js:491** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/runtime/hermetic-wrapper.js:634** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/auth/mtls.js:155** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/auth/mtls.js:290** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/auth/mtls.js:313** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/auth/mtls.js:314** - Date.now() call creates non-deterministic timestamp
+- **src/security/auth/mtls.js:370** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/auth/session-manager.js:91** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/auth/session-manager.js:92** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/auth/session-manager.js:132** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/auth/session-manager.js:210** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/auth/session-manager.js:211** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/auth/session-manager.js:285** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/auth/session-manager.js:355** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/auth/session-manager.js:356** - Date.now() call creates non-deterministic timestamp
+- **src/security/auth/session-manager.js:429** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/auth/session-manager.js:466** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/auth/session-manager.js:485** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/auth/zero-trust.js:110** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/auth/zero-trust.js:132** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/auth/zero-trust.js:182** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/auth/zero-trust.js:247** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/auth/zero-trust.js:306** - Date.now() call creates non-deterministic timestamp
+- **src/security/auth/zero-trust.js:351** - Date.now() call creates non-deterministic timestamp
+- **src/security/auth/zero-trust.js:352** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/compliance/compliance-engine.js:185** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/compliance/compliance-engine.js:211** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/compliance/compliance-engine.js:259** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/compliance/compliance-engine.js:321** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/compliance/compliance-engine.js:360** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/compliance/compliance-engine.js:423** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/compliance/compliance-engine.js:506** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/compliance/compliance-engine.js:583** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/compliance/compliance-engine.js:594** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/compliance/compliance-engine.js:906** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/compliance/compliance-engine.js:923** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/compliance/compliance-engine.js:940** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/compliance/compliance-engine.js:957** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/compliance/compliance-engine.js:1086** - Date.now() call creates non-deterministic timestamp
+- **src/security/compliance/compliance-engine.js:1091** - Date.now() call creates non-deterministic timestamp
+- **src/security/compliance/compliance-engine.js:1096** - Date.now() call creates non-deterministic timestamp
+- **src/security/compliance/compliance-engine.js:1251** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/crypto/encryption.js:76** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/crypto/fips-compliant.js:360** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/crypto/fips-compliant.js:369** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/crypto/fips-compliant.js:378** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/crypto/fips-compliant.js:384** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/cryptographic-security.js:271** - Date.now() call creates non-deterministic timestamp
+- **src/security/cryptographic-security.js:277** - Date.now() call creates non-deterministic timestamp
+- **src/security/cryptographic-security.js:313** - Date.now() call creates non-deterministic timestamp
+- **src/security/cryptographic-security.js:325** - Date.now() call creates non-deterministic timestamp
+- **src/security/cryptographic-security.js:393** - Date.now() call creates non-deterministic timestamp
+- **src/security/cryptographic-security.js:457** - Date.now() call creates non-deterministic timestamp
+- **src/security/cryptographic-security.js:488** - Date.now() call creates non-deterministic timestamp
+- **src/security/cryptographic-security.js:511** - Date.now() call creates non-deterministic timestamp
+- **src/security/cryptographic-security.js:541** - Date.now() call creates non-deterministic timestamp
+- **src/security/cryptographic-security.js:610** - Date.now() call creates non-deterministic timestamp
+- **src/security/cryptographic-security.js:611** - Date.now() call creates non-deterministic timestamp
+- **src/security/cryptographic-security.js:635** - Date.now() call creates non-deterministic timestamp
+- **src/security/cryptographic-security.js:641** - Date.now() call creates non-deterministic timestamp
+- **src/security/cryptographic-security.js:646** - Date.now() call creates non-deterministic timestamp
+- **src/security/cryptographic-security.js:690** - Date.now() call creates non-deterministic timestamp
+- **src/security/dependency-security.js:105** - Date.now() call creates non-deterministic timestamp
+- **src/security/dependency-security.js:121** - Date.now() call creates non-deterministic timestamp
+- **src/security/dependency-security.js:612** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/enterprise-hardening/api-security.js:445** - Date.now() call creates non-deterministic timestamp
+- **src/security/enterprise-hardening/api-security.js:463** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/enterprise-hardening/api-security.js:464** - Date.now() call creates non-deterministic timestamp
+- **src/security/enterprise-hardening/api-security.js:509** - Date.now() call creates non-deterministic timestamp
+- **src/security/enterprise-hardening/api-security.js:514** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/enterprise-hardening/api-security.js:543** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/enterprise-hardening/api-security.js:616** - Date.now() call creates non-deterministic timestamp
+- **src/security/enterprise-hardening/api-security.js:680** - Date.now() call creates non-deterministic timestamp
+- **src/security/enterprise-hardening/api-security.js:713** - Date.now() call creates non-deterministic timestamp
+- **src/security/enterprise-hardening/api-security.js:747** - Date.now() call creates non-deterministic timestamp
+- **src/security/enterprise-hardening/api-security.js:820** - Date.now() call creates non-deterministic timestamp
+- **src/security/enterprise-hardening/api-security.js:852** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/enterprise-hardening/api-security.js:899** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/enterprise-hardening/api-security.js:982** - Date.now() call creates non-deterministic timestamp
+- **src/security/enterprise-hardening/input-validation.js:149** - Date.now() call creates non-deterministic timestamp
+- **src/security/enterprise-hardening/input-validation.js:213** - Date.now() call creates non-deterministic timestamp
+- **src/security/enterprise-hardening/input-validation.js:1002** - Date.now() call creates non-deterministic timestamp
+- **src/security/enterprise-hardening/input-validation.js:1003** - Date.now() call creates non-deterministic timestamp
+- **src/security/enterprise-hardening/input-validation.js:1015** - Date.now() call creates non-deterministic timestamp
+- **src/security/enterprise-hardening/multi-factor-auth.js:117** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/enterprise-hardening/multi-factor-auth.js:199** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/enterprise-hardening/multi-factor-auth.js:315** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/enterprise-hardening/multi-factor-auth.js:316** - Date.now() call creates non-deterministic timestamp
+- **src/security/enterprise-hardening/multi-factor-auth.js:385** - Date.now() call creates non-deterministic timestamp
+- **src/security/enterprise-hardening/multi-factor-auth.js:432** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/enterprise-hardening/multi-factor-auth.js:453** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/enterprise-hardening/multi-factor-auth.js:527** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/enterprise-hardening/multi-factor-auth.js:609** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/enterprise-hardening/multi-factor-auth.js:644** - Date.now() call creates non-deterministic timestamp
+- **src/security/enterprise-hardening/multi-factor-auth.js:772** - Date.now() call creates non-deterministic timestamp
+- **src/security/enterprise-hardening/multi-factor-auth.js:787** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/enterprise-hardening/multi-factor-auth.js:788** - Date.now() call creates non-deterministic timestamp
+- **src/security/enterprise-hardening/multi-factor-auth.js:804** - Date.now() call creates non-deterministic timestamp
+- **src/security/enterprise-hardening/multi-factor-auth.js:810** - Date.now() call creates non-deterministic timestamp
+- **src/security/enterprise-hardening/multi-factor-auth.js:857** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/enterprise-hardening/multi-factor-auth.js:875** - Date.now() call creates non-deterministic timestamp
+- **src/security/enterprise-hardening/multi-factor-auth.js:885** - Date.now() call creates non-deterministic timestamp
+- **src/security/enterprise-hardening/secrets-management.js:173** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/enterprise-hardening/secrets-management.js:174** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/enterprise-hardening/secrets-management.js:186** - Date.now() call creates non-deterministic timestamp
+- **src/security/enterprise-hardening/secrets-management.js:190** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/enterprise-hardening/secrets-management.js:191** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/enterprise-hardening/secrets-management.js:227** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/enterprise-hardening/secrets-management.js:247** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/enterprise-hardening/secrets-management.js:305** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/enterprise-hardening/secrets-management.js:307** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/enterprise-hardening/secrets-management.js:319** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/enterprise-hardening/secrets-management.js:349** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/enterprise-hardening/secrets-management.js:391** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/enterprise-hardening/secrets-management.js:399** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/enterprise-hardening/secrets-management.js:437** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/enterprise-hardening/secrets-management.js:457** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/enterprise-hardening/secrets-management.js:500** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/enterprise-hardening/secrets-management.js:512** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/enterprise-hardening/secrets-management.js:532** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/enterprise-hardening/secrets-management.js:563** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/enterprise-hardening/secrets-management.js:567** - Date.now() call creates non-deterministic timestamp
+- **src/security/enterprise-hardening/secrets-management.js:569** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/enterprise-hardening/secrets-management.js:582** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/enterprise-hardening/secrets-management.js:607** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/enterprise-hardening/secrets-management.js:661** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/enterprise-hardening/secrets-management.js:675** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/enterprise-hardening/secrets-management.js:694** - Date.now() call creates non-deterministic timestamp
+- **src/security/enterprise-hardening/secrets-management.js:953** - Date.now() call creates non-deterministic timestamp
+- **src/security/enterprise-hardening/secrets-management.js:980** - Date.now() call creates non-deterministic timestamp
+- **src/security/enterprise-hardening/vulnerability-scanner.js:168** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/enterprise-hardening/vulnerability-scanner.js:232** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/enterprise-hardening/vulnerability-scanner.js:761** - Date.now() call creates non-deterministic timestamp
+- **src/security/enterprise-hardening/vulnerability-scanner.js:780** - Date.now() call creates non-deterministic timestamp
+- **src/security/enterprise-hardening/vulnerability-scanner.js:986** - Date.now() call creates non-deterministic timestamp
+- **src/security/enterprise-security-orchestrator.js:109** - Date.now() call creates non-deterministic timestamp
+- **src/security/enterprise-security-orchestrator.js:135** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/enterprise-security-orchestrator.js:156** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/enterprise-security-orchestrator.js:163** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/enterprise-security-orchestrator.js:183** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/enterprise-security-orchestrator.js:360** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/enterprise-security-orchestrator.js:373** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/enterprise-security-orchestrator.js:378** - Date.now() call creates non-deterministic timestamp
+- **src/security/enterprise-security-orchestrator.js:443** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/enterprise-security-orchestrator.js:470** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/enterprise-security-orchestrator.js:526** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/enterprise-security-orchestrator.js:584** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/enterprise-security-orchestrator.js:593** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/enterprise-security-orchestrator.js:683** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/enterprise-security-orchestrator.js:751** - Date.now() call creates non-deterministic timestamp
+- **src/security/enterprise-security-orchestrator.js:838** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/enterprise-security-orchestrator.js:851** - Date.now() call creates non-deterministic timestamp
+- **src/security/enterprise-security-orchestrator.js:852** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/enterprise-security-orchestrator.js:868** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/enterprise-security-orchestrator.js:900** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/enterprise-security-orchestrator.js:918** - Date.now() call creates non-deterministic timestamp
+- **src/security/enterprise-security-orchestrator.js:968** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/enterprise-security-orchestrator.js:999** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/enterprise-security-orchestrator.js:1055** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/jose-attestation-system.js:100** - Date.now() call creates non-deterministic timestamp
+- **src/security/jose-attestation-system.js:142** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/jose-attestation-system.js:194** - Date.now() call creates non-deterministic timestamp
+- **src/security/jose-attestation-system.js:195** - Date.now() call creates non-deterministic timestamp
+- **src/security/jose-attestation-system.js:213** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/jose-attestation-system.js:296** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/jose-attestation-system.js:312** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/jose-attestation-system.js:366** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/jose-attestation-system.js:404** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/jose-attestation-system.js:542** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/key-management-utilities.js:177** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/key-management-utilities.js:178** - Date.now() call creates non-deterministic timestamp
+- **src/security/key-management-utilities.js:279** - Date.now() call creates non-deterministic timestamp
+- **src/security/key-management-utilities.js:281** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/key-management-utilities.js:336** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/key-management-utilities.js:402** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/key-management-utilities.js:404** - Date.now() call creates non-deterministic timestamp
+- **src/security/key-management-utilities.js:563** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/key-management-utilities.js:584** - Date.now() call creates non-deterministic timestamp
+- **src/security/monitoring/security-metrics-dashboard.js:64** - Date.now() call creates non-deterministic timestamp
+- **src/security/monitoring/security-metrics-dashboard.js:163** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/monitoring/security-metrics-dashboard.js:166** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/monitoring/security-metrics-dashboard.js:185** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/monitoring/security-metrics-dashboard.js:220** - Date.now() call creates non-deterministic timestamp
+- **src/security/monitoring/security-metrics-dashboard.js:252** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/monitoring/security-metrics-dashboard.js:261** - Date.now() call creates non-deterministic timestamp
+- **src/security/monitoring/security-metrics-dashboard.js:308** - Date.now() call creates non-deterministic timestamp
+- **src/security/monitoring/security-metrics-dashboard.js:309** - Date.now() call creates non-deterministic timestamp
+- **src/security/monitoring/security-metrics-dashboard.js:313** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/monitoring/security-metrics-dashboard.js:371** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/monitoring/security-metrics-dashboard.js:392** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/monitoring/security-metrics-dashboard.js:402** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/monitoring/security-metrics-dashboard.js:417** - Date.now() call creates non-deterministic timestamp
+- **src/security/monitoring/security-metrics-dashboard.js:471** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/monitoring/security-metrics-dashboard.js:492** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/monitoring/security-metrics-dashboard.js:517** - Date.now() call creates non-deterministic timestamp
+- **src/security/monitoring/security-metrics-dashboard.js:584** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/monitoring/security-metrics-dashboard.js:594** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/monitoring/security-metrics-dashboard.js:698** - Date.now() call creates non-deterministic timestamp
+- **src/security/monitoring/security-metrics-dashboard.js:711** - Date.now() call creates non-deterministic timestamp
+- **src/security/monitoring/security-metrics-dashboard.js:762** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/monitoring/security-metrics-dashboard.js:768** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/monitoring/security-metrics-dashboard.js:786** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/monitoring/security-metrics-dashboard.js:882** - Date.now() call creates non-deterministic timestamp
+- **src/security/monitoring/security-metrics-dashboard.js:911** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/monitoring/security-metrics-dashboard.js:943** - Date.now() call creates non-deterministic timestamp
+- **src/security/monitoring/security-metrics-dashboard.js:1044** - Date.now() call creates non-deterministic timestamp
+- **src/security/monitoring/security-metrics-dashboard.js:1084** - Date.now() call creates non-deterministic timestamp
+- **src/security/path-security.js:69** - Date.now() call creates non-deterministic timestamp
+- **src/security/path-security.js:81** - Date.now() call creates non-deterministic timestamp
+- **src/security/path-security.js:88** - Date.now() call creates non-deterministic timestamp
+- **src/security/path-security.js:273** - Date.now() call creates non-deterministic timestamp
+- **src/security/path-security.js:290** - Date.now() call creates non-deterministic timestamp
+- **src/security/protection/ddos-protection.js:129** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/protection/ddos-protection.js:228** - Date.now() call creates non-deterministic timestamp
+- **src/security/protection/ddos-protection.js:233** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/protection/ddos-protection.js:314** - Date.now() call creates non-deterministic timestamp
+- **src/security/protection/ddos-protection.js:445** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/protection/ddos-protection.js:462** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/protection/ddos-protection.js:483** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/protection/ddos-protection.js:493** - Date.now() call creates non-deterministic timestamp
+- **src/security/protection/ddos-protection.js:509** - Date.now() call creates non-deterministic timestamp
+- **src/security/protection/ddos-protection.js:623** - Date.now() call creates non-deterministic timestamp
+- **src/security/protection/ddos-protection.js:644** - Date.now() call creates non-deterministic timestamp
+- **src/security/protection/ddos-protection.js:665** - Date.now() call creates non-deterministic timestamp
+- **src/security/rbac/enterprise-rbac.js:175** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/rbac/enterprise-rbac.js:177** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/rbac/enterprise-rbac.js:195** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/rbac/enterprise-rbac.js:248** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/rbac/enterprise-rbac.js:301** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/rbac/enterprise-rbac.js:317** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/rbac/enterprise-rbac.js:383** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/rbac/enterprise-rbac.js:403** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/rbac/enterprise-rbac.js:458** - Date.now() call creates non-deterministic timestamp
+- **src/security/rbac/enterprise-rbac.js:466** - Date.now() call creates non-deterministic timestamp
+- **src/security/rbac/enterprise-rbac.js:472** - Date.now() call creates non-deterministic timestamp
+- **src/security/rbac/enterprise-rbac.js:492** - Date.now() call creates non-deterministic timestamp
+- **src/security/rbac/enterprise-rbac.js:506** - Date.now() call creates non-deterministic timestamp
+- **src/security/rbac/enterprise-rbac.js:591** - Date.now() call creates non-deterministic timestamp
+- **src/security/rbac/enterprise-rbac.js:601** - Date.now() call creates non-deterministic timestamp
+- **src/security/rbac/enterprise-rbac.js:623** - Date.now() call creates non-deterministic timestamp
+- **src/security/rbac/enterprise-rbac.js:694** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/rbac/enterprise-rbac.js:743** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/rbac/enterprise-rbac.js:960** - Date.now() call creates non-deterministic timestamp
+- **src/security/rbac/enterprise-rbac.js:999** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/rbac/enterprise-rbac.js:1025** - Date.now() call creates non-deterministic timestamp
+- **src/security/rbac/enterprise-rbac.js:1071** - Date.now() call creates non-deterministic timestamp
+- **src/security/rbac/enterprise-rbac.js:1081** - Date.now() call creates non-deterministic timestamp
+- **src/security/rbac/enterprise-rbac.js:1182** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/rbac/enterprise-rbac.js:1271** - Date.now() call creates non-deterministic timestamp
+- **src/security/rbac/enterprise-rbac.js:1281** - Date.now() call creates non-deterministic timestamp
+- **src/security/rbac/enterprise-rbac.js:1289** - Date.now() call creates non-deterministic timestamp
+- **src/security/runtime-security.js:24** - Date.now() call creates non-deterministic timestamp
+- **src/security/runtime-security.js:75** - Date.now() call creates non-deterministic timestamp
+- **src/security/runtime-security.js:318** - Date.now() call creates non-deterministic timestamp
+- **src/security/runtime-security.js:351** - Date.now() call creates non-deterministic timestamp
+- **src/security/runtime-security.js:375** - Date.now() call creates non-deterministic timestamp
+- **src/security/runtime-security.js:380** - Date.now() call creates non-deterministic timestamp
+- **src/security/runtime-security.js:407** - Date.now() call creates non-deterministic timestamp
+- **src/security/runtime-security.js:433** - Date.now() call creates non-deterministic timestamp
+- **src/security/runtime-security.js:527** - Date.now() call creates non-deterministic timestamp
+- **src/security/runtime-security.js:566** - Date.now() call creates non-deterministic timestamp
+- **src/security/runtime-security.js:593** - Date.now() call creates non-deterministic timestamp
+- **src/security/runtime-security.js:600** - Date.now() call creates non-deterministic timestamp
+- **src/security/runtime-security.js:625** - Date.now() call creates non-deterministic timestamp
+- **src/security/runtime-security.js:652** - Date.now() call creates non-deterministic timestamp
+- **src/security/runtime-security.js:666** - Date.now() call creates non-deterministic timestamp
+- **src/security/secrets/compliance-auditor.js:92** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/secrets/compliance-auditor.js:138** - Date.now() call creates non-deterministic timestamp
+- **src/security/secrets/config-manager.js:336** - Date.now() call creates non-deterministic timestamp
+- **src/security/secrets/config-manager.js:344** - Date.now() call creates non-deterministic timestamp
+- **src/security/secrets/index.js:104** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/secrets/index.js:159** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/secrets/index.js:312** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/secrets/secret-manager.js:72** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/secrets/secret-manager.js:141** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/secrets/secret-manager.js:142** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/secrets/secret-manager.js:235** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/secrets/secret-manager.js:316** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/secrets/secret-manager.js:347** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/secrets/secret-rotation.js:398** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/security-headers.js:304** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/security/security-tests.js:39** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/server/config/database.js:62** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/server/config/database.js:107** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/server/middleware/rate-limiter.js:383** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/server/middleware/rate-limiter.js:391** - Date.now() call creates non-deterministic timestamp
+- **src/server/middleware/rate-limiter.js:433** - Date.now() call creates non-deterministic timestamp
+- **src/server/middleware/rbac.js:147** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/server/middleware/tenant-isolation.js:40** - Date.now() call creates non-deterministic timestamp
+- **src/server/middleware/tenant-isolation.js:90** - Date.now() call creates non-deterministic timestamp
+- **src/server/services/audit-logger.js:62** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/server/services/audit-logger.js:204** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/server.js:92** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/sparql-engine.js:112** - Date.now() call creates non-deterministic timestamp
+- **src/sparql-engine.js:151** - Date.now() call creates non-deterministic timestamp
+- **src/sparql-engine.js:178** - Date.now() call creates non-deterministic timestamp
+- **src/sparql-engine.js:519** - Date.now() call creates non-deterministic timestamp
+- **src/sparql-engine.js:782** - Date.now() call creates non-deterministic timestamp
+- **src/sparql-engine.js:789** - Date.now() call creates non-deterministic timestamp
+- **src/sparql-engine.js:805** - Date.now() call creates non-deterministic timestamp
+- **src/sparql-engine.js:830** - Date.now() call creates non-deterministic timestamp
+- **src/sparql-integration.js:95** - Date.now() call creates non-deterministic timestamp
+- **src/sparql-integration.js:114** - Date.now() call creates non-deterministic timestamp
+- **src/sparql-integration.js:149** - Date.now() call creates non-deterministic timestamp
+- **src/sparql-integration.js:179** - Date.now() call creates non-deterministic timestamp
+- **src/sparql-integration.js:198** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/sparql-integration.js:204** - Date.now() call creates non-deterministic timestamp
+- **src/sparql-integration.js:282** - Date.now() call creates non-deterministic timestamp
+- **src/sparql-integration.js:297** - Date.now() call creates non-deterministic timestamp
+- **src/sparql-integration.js:527** - Date.now() call creates non-deterministic timestamp
+- **src/spec-driven/core/PlanGenerator.js:34** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/spec-driven/core/PlanGenerator.js:191** - Date.now() call creates non-deterministic timestamp
+- **src/spec-driven/core/SpecificationEngine.js:74** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/spec-driven/core/SpecificationEngine.js:156** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/spec-driven/core/SpecificationEngine.js:186** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/spec-driven/core/SpecificationEngine.js:197** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/spec-driven/core/SpecificationEngine.js:276** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/spec-driven/core/SpecificationEngine.js:314** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/spec-driven/core/SpecificationEngine.js:315** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/spec-driven/core/SpecificationEngine.js:417** - Date.now() call creates non-deterministic timestamp
+- **src/spec-driven/core/TaskOrchestrator.js:47** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/spec-driven/core/TaskOrchestrator.js:71** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/spec-driven/core/TaskOrchestrator.js:124** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/spec-driven/core/TaskOrchestrator.js:130** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/spec-driven/core/TaskOrchestrator.js:231** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/spec-driven/core/TaskOrchestrator.js:238** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/spec-driven/core/TaskOrchestrator.js:250** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/spec-driven/core/TaskOrchestrator.js:291** - Date.now() call creates non-deterministic timestamp
+- **src/spec-driven/core/TaskOrchestrator.js:303** - Date.now() call creates non-deterministic timestamp
+- **src/spec-driven/core/TaskOrchestrator.js:314** - Date.now() call creates non-deterministic timestamp
+- **src/templates/template-engine.js:178** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/templates/template-engine.js:179** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/templates/template-engine.js:180** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/templates/template-engine.js:198** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/test-sparql-basic.js:102** - Date.now() call creates non-deterministic timestamp
+- **src/test-sparql-basic.js:126** - Date.now() call creates non-deterministic timestamp
+- **src/test-sparql-basic.js:183** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/tests/audit-integration.test.js:91** - Date.now() call creates non-deterministic timestamp
+- **src/tests/audit-integration.test.js:183** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/tests/audit-integration.test.js:197** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/tests/audit-integration.test.js:213** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/tests/audit-integration.test.js:232** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/tests/audit-integration.test.js:266** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/tests/audit-integration.test.js:378** - Date.now() call creates non-deterministic timestamp
+- **src/tests/audit-integration.test.js:800** - Date.now() call creates non-deterministic timestamp
+- **src/tests/audit-integration.test.js:870** - Date.now() call creates non-deterministic timestamp
+- **src/tests/audit-integration.test.js:876** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/tests/audit-integration.test.js:886** - Date.now() call creates non-deterministic timestamp
+- **src/tests/audit-stream-coordinator.test.js:31** - Date.now() call creates non-deterministic timestamp
+- **src/tests/audit-stream-coordinator.test.js:113** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/tests/audit-stream-coordinator.test.js:133** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/tests/audit-stream-coordinator.test.js:154** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/tests/audit-stream-coordinator.test.js:180** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/tests/audit-stream-coordinator.test.js:202** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/tests/audit-stream-coordinator.test.js:260** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/tests/audit-stream-coordinator.test.js:287** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/tests/audit-stream-coordinator.test.js:317** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/tests/audit-stream-coordinator.test.js:395** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/tests/audit-stream-coordinator.test.js:483** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/tests/audit-stream-coordinator.test.js:492** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/tests/audit-stream-coordinator.test.js:535** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/tests/audit-stream-coordinator.test.js:539** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/tests/audit-stream-coordinator.test.js:618** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/tests/audit-stream-coordinator.test.js:681** - Date.now() call creates non-deterministic timestamp
+- **src/tests/audit-stream-coordinator.test.js:707** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/tests/audit-stream-coordinator.test.js:748** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/tests/audit-stream-coordinator.test.js:766** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/tests/export-quality-report.js:202** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/tests/export-system-test.js:343** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/utils/deterministic-id-generator.js:5** - Date.now() call creates non-deterministic timestamp
+- **src/validation/compliance-rules.js:164** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/workflows/orchestrator.js:119** - Date.now() call creates non-deterministic timestamp
+- **src/workflows/orchestrator.js:120** - Date.now() call creates non-deterministic timestamp
+- **src/workflows/orchestrator.js:179** - Date.now() call creates non-deterministic timestamp
+- **src/workflows/orchestrator.js:468** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/workflows/orchestrator.js:473** - Date.now() call creates non-deterministic timestamp
+- **src/workflows/orchestrator.js:588** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/workflows/orchestrator.js:736** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/workflows/orchestrator.js:762** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **src/workflows/orchestrator.js:842** - Date.now() call creates non-deterministic timestamp
+- **src/workflows/orchestrator.js:850** - Date.now() call creates non-deterministic timestamp
+- **src/workflows/orchestrator.js:888** - Date.now() call creates non-deterministic timestamp
+- **src/workflows/orchestrator.js:997** - Date.now() call creates non-deterministic timestamp
+- **src/workflows/orchestrator.js:1000** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **test-lint.js:82** - Date.now() call creates non-deterministic timestamp
+- **test-lint.js:84** - Date.now() call creates non-deterministic timestamp
+- **tests/agent6-sparql-test-corrected.js:16** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/agent6-sparql-test.js:18** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/api-contracts/api-contract-validator.js:526** - Date.now() call creates non-deterministic timestamp
+- **tests/artifact-generator-test.js:129** - Date.now() call creates non-deterministic timestamp
+- **tests/artifact-generator-test.js:280** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/atomic-operations.test.js:20** - Date.now() call creates non-deterministic timestamp
+- **tests/atomic-operations.test.js:442** - Date.now() call creates non-deterministic timestamp
+- **tests/atomic-operations.test.js:534** - Date.now() call creates non-deterministic timestamp
+- **tests/basic-cli-test.js:176** - Date.now() call creates non-deterministic timestamp
+- **tests/basic-cli-test.js:178** - Date.now() call creates non-deterministic timestamp
+- **tests/cache/cache-manager.test.js:13** - Date.now() call creates non-deterministic timestamp
+- **tests/cache/cache-manager.test.js:135** - Date.now() call creates non-deterministic timestamp
+- **tests/cache/garbage-collector.test.js:13** - Date.now() call creates non-deterministic timestamp
+- **tests/cache/garbage-collector.test.js:287** - Date.now() call creates non-deterministic timestamp
+- **tests/cache/garbage-collector.test.js:294** - Date.now() call creates non-deterministic timestamp
+- **tests/cas-direct-test.js:26** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/cas-optimized-test.js:49** - Date.now() call creates non-deterministic timestamp
+- **tests/cas-performance-test.js:26** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/chaos/chaos-engineering.test.js:311** - Date.now() call creates non-deterministic timestamp
+- **tests/chaos/chaos-engineering.test.js:315** - Date.now() call creates non-deterministic timestamp
+- **tests/chaos/chaos-engineering.test.js:355** - Date.now() call creates non-deterministic timestamp
+- **tests/chaos/chaos-engineering.test.js:360** - Date.now() call creates non-deterministic timestamp
+- **tests/chaos/chaos-engineering.test.js:485** - Date.now() call creates non-deterministic timestamp
+- **tests/chaos/chaos-engineering.test.js:488** - Date.now() call creates non-deterministic timestamp
+- **tests/chaos/chaos-engineering.test.js:732** - Date.now() call creates non-deterministic timestamp
+- **tests/chaos/latex-chaos-tests.js:693** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/chaos/run-latex-chaos.js:54** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/clean-room-validation/enterprise/basel-compliance-test.js:14** - Date.now() call creates non-deterministic timestamp
+- **tests/clean-room-validation/enterprise/basel-compliance-test.js:887** - Date.now() call creates non-deterministic timestamp
+- **tests/clean-room-validation/enterprise/basel-compliance-test.js:900** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/clean-room-validation/enterprise/hipaa-compliance-test.js:14** - Date.now() call creates non-deterministic timestamp
+- **tests/clean-room-validation/enterprise/hipaa-compliance-test.js:269** - Date.now() call creates non-deterministic timestamp
+- **tests/clean-room-validation/enterprise/hipaa-compliance-test.js:272** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/clean-room-validation/enterprise/hipaa-compliance-test.js:547** - Date.now() call creates non-deterministic timestamp
+- **tests/clean-room-validation/enterprise/hipaa-compliance-test.js:551** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/clean-room-validation/enterprise/hipaa-compliance-test.js:554** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/clean-room-validation/enterprise/hipaa-compliance-test.js:559** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/clean-room-validation/enterprise/hipaa-compliance-test.js:683** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/clean-room-validation/enterprise/hipaa-compliance-test.js:733** - Date.now() call creates non-deterministic timestamp
+- **tests/clean-room-validation/enterprise/hipaa-compliance-test.js:745** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/clean-room-validation/enterprise/hipaa-compliance-test.js:894** - Date.now() call creates non-deterministic timestamp
+- **tests/clean-room-validation/enterprise/hipaa-compliance-test.js:907** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/clean-room-validation/enterprise/sox-compliance-test.js:14** - Date.now() call creates non-deterministic timestamp
+- **tests/clean-room-validation/enterprise/sox-compliance-test.js:181** - Date.now() call creates non-deterministic timestamp
+- **tests/clean-room-validation/enterprise/sox-compliance-test.js:186** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/clean-room-validation/enterprise/sox-compliance-test.js:334** - Date.now() call creates non-deterministic timestamp
+- **tests/clean-room-validation/enterprise/sox-compliance-test.js:343** - Date.now() call creates non-deterministic timestamp
+- **tests/clean-room-validation/enterprise/sox-compliance-test.js:344** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/clean-room-validation/enterprise/sox-compliance-test.js:396** - Date.now() call creates non-deterministic timestamp
+- **tests/clean-room-validation/enterprise/sox-compliance-test.js:440** - Date.now() call creates non-deterministic timestamp
+- **tests/clean-room-validation/enterprise/sox-compliance-test.js:471** - Date.now() call creates non-deterministic timestamp
+- **tests/clean-room-validation/enterprise/sox-compliance-test.js:484** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/cleanroom/cleanroom-manager.test.js:16** - Date.now() call creates non-deterministic timestamp
+- **tests/cleanroom/integration.test.js:21** - Date.now() call creates non-deterministic timestamp
+- **tests/cli/cli-validation-test.js:247** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/cli/command-combinations.test.js:600** - Date.now() call creates non-deterministic timestamp
+- **tests/cli/command-combinations.test.js:623** - Date.now() call creates non-deterministic timestamp
+- **tests/cli/file-operations.test.js:518** - Date.now() call creates non-deterministic timestamp
+- **tests/cli/file-operations.test.js:530** - Date.now() call creates non-deterministic timestamp
+- **tests/cli/performance-edge-cases.test.js:288** - Date.now() call creates non-deterministic timestamp
+- **tests/cli/performance-edge-cases.test.js:295** - Date.now() call creates non-deterministic timestamp
+- **tests/cli/version-system-validation.test.js:260** - Date.now() call creates non-deterministic timestamp
+- **tests/cli/version-system-validation.test.js:262** - Date.now() call creates non-deterministic timestamp
+- **tests/cli-comprehensive/advanced-command-tests.js:15** - Date.now() call creates non-deterministic timestamp
+- **tests/cli-comprehensive/advanced-command-tests.js:69** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/cli-comprehensive/advanced-command-tests.js:273** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/cli-comprehensive/bdd-tests.js:16** - Date.now() call creates non-deterministic timestamp
+- **tests/cli-comprehensive/run-all-tests.js:22** - Date.now() call creates non-deterministic timestamp
+- **tests/cli-comprehensive/run-all-tests.js:60** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/cli-comprehensive/run-all-tests.js:61** - Date.now() call creates non-deterministic timestamp
+- **tests/cli-comprehensive/test-runner.js:24** - Date.now() call creates non-deterministic timestamp
+- **tests/cli-comprehensive/test-runner.js:78** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/cli-comprehensive/test-runner.js:400** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/cli-validation/agent-1-prd-requirements.js:15** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/cli-validation/agent-2-cli-structure-audit.js:20** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/cli-validation/cli-test-runner.js:25** - Date.now() call creates non-deterministic timestamp
+- **tests/cli-validation/cli-test-runner.js:37** - Date.now() call creates non-deterministic timestamp
+- **tests/cli-validation/cli-test-runner.js:43** - Date.now() call creates non-deterministic timestamp
+- **tests/cli-validation/cli-test-runner.js:54** - Date.now() call creates non-deterministic timestamp
+- **tests/cli-validation/cli-test-runner.js:246** - Date.now() call creates non-deterministic timestamp
+- **tests/cli-validation/cli-test-runner.js:251** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/cli-validation/comprehensive-cli-test.js:26** - Date.now() call creates non-deterministic timestamp
+- **tests/cli-validation/comprehensive-cli-test.js:34** - Date.now() call creates non-deterministic timestamp
+- **tests/cli-validation/comprehensive-cli-test.js:53** - Date.now() call creates non-deterministic timestamp
+- **tests/cli-validation/comprehensive-cli-test.js:254** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/cli-validation/manual-cli-test.js:25** - Date.now() call creates non-deterministic timestamp
+- **tests/cli-validation/manual-cli-test.js:33** - Date.now() call creates non-deterministic timestamp
+- **tests/cli-validation/manual-cli-test.js:52** - Date.now() call creates non-deterministic timestamp
+- **tests/cli-validation/manual-cli-test.js:153** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/cli-validation/manual-cli-test.js:169** - Date.now() call creates non-deterministic timestamp
+- **tests/compliance/gdpr-compliance-checker.js:148** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/compliance/gdpr-compliance-checker.js:192** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/compliance/gdpr-compliance-checker.js:221** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/compliance/gdpr-compliance-checker.js:223** - Date.now() call creates non-deterministic timestamp
+- **tests/compliance/gdpr-compliance-checker.js:224** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/compliance/gdpr-compliance-checker.js:245** - Date.now() call creates non-deterministic timestamp
+- **tests/compliance/gdpr-compliance-checker.js:261** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/compliance/gdpr-compliance-checker.js:286** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/compliance/gdpr-compliance-checker.js:311** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/compliance/gdpr-compliance-checker.js:336** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/compliance/gdpr-compliance-checker.js:357** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/compliance/gdpr-compliance-checker.js:371** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/compliance/gdpr-compliance-checker.js:398** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/compliance/gdpr-compliance-checker.js:419** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/compliance/gdpr-compliance-checker.js:430** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/compliance/gdpr-compliance-checker.js:457** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/compliance/gdpr-compliance-checker.js:486** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/compliance/gdpr-compliance-checker.js:526** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/compliance/gdpr-compliance-checker.js:563** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/compliance/gdpr-compliance-checker.js:573** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/compliance/gdpr-compliance-checker.js:606** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/compliance/gdpr-compliance-checker.js:684** - Date.now() call creates non-deterministic timestamp
+- **tests/compliance/gdpr-compliance-checker.js:692** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/compliance/gdpr-compliance-checker.js:746** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/compliance/gdpr-compliance-checker.js:783** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/compliance/gdpr-compliance-checker.js:789** - Date.now() call creates non-deterministic timestamp
+- **tests/compliance/pci-dss-validator.js:234** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/compliance/pci-dss-validator.js:255** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/compliance/pci-dss-validator.js:257** - Date.now() call creates non-deterministic timestamp
+- **tests/compliance/pci-dss-validator.js:258** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/compliance/pci-dss-validator.js:280** - Date.now() call creates non-deterministic timestamp
+- **tests/compliance/pci-dss-validator.js:305** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/compliance/pci-dss-validator.js:333** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/compliance/pci-dss-validator.js:358** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/compliance/pci-dss-validator.js:385** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/compliance/pci-dss-validator.js:416** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/compliance/pci-dss-validator.js:460** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/compliance/pci-dss-validator.js:566** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/compliance/pci-dss-validator.js:595** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/compliance/pci-dss-validator.js:814** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/compliance/pci-dss-validator.js:820** - Date.now() call creates non-deterministic timestamp
+- **tests/compliance/sox-compliance-auditor.js:184** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/compliance/sox-compliance-auditor.js:195** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/compliance/sox-compliance-auditor.js:197** - Date.now() call creates non-deterministic timestamp
+- **tests/compliance/sox-compliance-auditor.js:198** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/compliance/sox-compliance-auditor.js:222** - Date.now() call creates non-deterministic timestamp
+- **tests/compliance/sox-compliance-auditor.js:242** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/compliance/sox-compliance-auditor.js:256** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/compliance/sox-compliance-auditor.js:304** - Date.now() call creates non-deterministic timestamp
+- **tests/compliance/sox-compliance-auditor.js:357** - Date.now() call creates non-deterministic timestamp
+- **tests/compliance/sox-compliance-auditor.js:638** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/compliance/sox-compliance-auditor.js:644** - Date.now() call creates non-deterministic timestamp
+- **tests/compliance/sox-compliance-auditor.js:740** - Date.now() call creates non-deterministic timestamp
+- **tests/compliance/sox-compliance-auditor.js:741** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/compliance/sox-compliance-auditor.js:764** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/comprehensive-filter-analysis.js:469** - Date.now() call creates non-deterministic timestamp
+- **tests/comprehensive-filter-analysis.js:480** - Date.now() call creates non-deterministic timestamp
+- **tests/comprehensive-filters/comprehensive-execution-runner.test.js:39** - Date.now() call creates non-deterministic timestamp
+- **tests/comprehensive-filters/comprehensive-execution-runner.test.js:121** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/comprehensive-filters/comprehensive-execution-runner.test.js:750** - Date.now() call creates non-deterministic timestamp
+- **tests/comprehensive-filters/comprehensive-filter-test-suite.test.js:552** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/comprehensive-filters/dark-matter-edge-cases.test.js:473** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/comprehensive-json-validation.js:371** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/config-integration.test.js:22** - Date.now() call creates non-deterministic timestamp
+- **tests/config-integration.test.js:51** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/config-integration.test.js:292** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/config-integration.test.js:399** - Date.now() call creates non-deterministic timestamp
+- **tests/config-integration.test.js:405** - Date.now() call creates non-deterministic timestamp
+- **tests/config-integration.test.js:417** - Date.now() call creates non-deterministic timestamp
+- **tests/config-integration.test.js:423** - Date.now() call creates non-deterministic timestamp
+- **tests/config-real-test.js:22** - Date.now() call creates non-deterministic timestamp
+- **tests/config-standalone-test.js:243** - Date.now() call creates non-deterministic timestamp
+- **tests/config-standalone-test.js:337** - Date.now() call creates non-deterministic timestamp
+- **tests/config-validation.test.js:127** - Date.now() call creates non-deterministic timestamp
+- **tests/config-validation.test.js:638** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/container-deployment.test.js:21** - Date.now() call creates non-deterministic timestamp
+- **tests/contracts/mcp-contracts.test.js:357** - Date.now() call creates non-deterministic timestamp
+- **tests/contracts/mcp-contracts.test.js:359** - Date.now() call creates non-deterministic timestamp
+- **tests/contracts/microservices-contracts.test.js:635** - Date.now() call creates non-deterministic timestamp
+- **tests/contracts/microservices-contracts.test.js:735** - Date.now() call creates non-deterministic timestamp
+- **tests/contracts/microservices-contracts.test.js:755** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/contracts/microservices-contracts.test.js:763** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/core-functionality-real.test.js:550** - Date.now() call creates non-deterministic timestamp
+- **tests/core-functionality-real.test.js:556** - Date.now() call creates non-deterministic timestamp
+- **tests/core-functionality-real.test.js:571** - Date.now() call creates non-deterministic timestamp
+- **tests/core-functionality-real.test.js:584** - Date.now() call creates non-deterministic timestamp
+- **tests/critical/mcp-coordination-validation.spec.js:10** - Date.now() call creates non-deterministic timestamp
+- **tests/critical/mcp-coordination-validation.spec.js:135** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/cross-platform/platform-compatibility.test.js:498** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/cross-platform-compatibility.test.js:24** - Date.now() call creates non-deterministic timestamp
+- **tests/cross-platform-compatibility.test.js:308** - Date.now() call creates non-deterministic timestamp
+- **tests/cross-platform-compatibility.test.js:311** - Date.now() call creates non-deterministic timestamp
+- **tests/cross-platform-validation.test.js:468** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/dark-matter/dark-matter-orchestrator.test.js:105** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/dark-matter/dark-matter-orchestrator.test.js:116** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/dark-matter/dark-matter-orchestrator.test.js:377** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/dark-matter/dark-matter-orchestrator.test.js:502** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/dark-matter/malformed-input.test.js:354** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/deployment/end-to-end-validation.test.js:16** - Date.now() call creates non-deterministic timestamp
+- **tests/deployment/end-to-end-validation.test.js:196** - Date.now() call creates non-deterministic timestamp
+- **tests/deployment/end-to-end-validation.test.js:200** - Date.now() call creates non-deterministic timestamp
+- **tests/deployment/end-to-end-validation.test.js:208** - Date.now() call creates non-deterministic timestamp
+- **tests/deployment/end-to-end-validation.test.js:503** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/deployment/health-checks.test.js:130** - Date.now() call creates non-deterministic timestamp
+- **tests/deployment/health-checks.test.js:147** - Date.now() call creates non-deterministic timestamp
+- **tests/deployment/health-checks.test.js:280** - Date.now() call creates non-deterministic timestamp
+- **tests/deployment/health-checks.test.js:293** - Date.now() call creates non-deterministic timestamp
+- **tests/deployment/health-checks.test.js:303** - Date.now() call creates non-deterministic timestamp
+- **tests/deployment/health-checks.test.js:313** - Date.now() call creates non-deterministic timestamp
+- **tests/deterministic-rendering.test.js:343** - Date.now() call creates non-deterministic timestamp
+- **tests/deterministic-rendering.test.js:344** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/docker/cicd-pipeline.test.js:253** - Date.now() call creates non-deterministic timestamp
+- **tests/docker/cicd-pipeline.test.js:278** - Date.now() call creates non-deterministic timestamp
+- **tests/docker/container-security.test.js:70** - Date.now() call creates non-deterministic timestamp
+- **tests/docker/container-security.test.js:83** - Date.now() call creates non-deterministic timestamp
+- **tests/docker/container-security.test.js:84** - Date.now() call creates non-deterministic timestamp
+- **tests/docker/container-security.test.js:87** - Date.now() call creates non-deterministic timestamp
+- **tests/docker/containerized-test-execution.test.js:31** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/docker/containerized-test-execution.test.js:46** - Date.now() call creates non-deterministic timestamp
+- **tests/docker/containerized-test-execution.test.js:48** - Date.now() call creates non-deterministic timestamp
+- **tests/docker/containerized-test-execution.test.js:222** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/docker/docker-environment-setup.test.js:92** - Date.now() call creates non-deterministic timestamp
+- **tests/docker/docker-environment-setup.test.js:94** - Date.now() call creates non-deterministic timestamp
+- **tests/docker/docker-environment-setup.test.js:161** - Date.now() call creates non-deterministic timestamp
+- **tests/docker/docker-environment-setup.test.js:163** - Date.now() call creates non-deterministic timestamp
+- **tests/docker/docker-validation-suite.test.js:47** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/docker/docker-validation-suite.test.js:233** - Date.now() call creates non-deterministic timestamp
+- **tests/docker/docker-validation-suite.test.js:238** - Date.now() call creates non-deterministic timestamp
+- **tests/docker/resource-management.test.js:59** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/docker/resource-management.test.js:140** - Date.now() call creates non-deterministic timestamp
+- **tests/docker/resource-management.test.js:142** - Date.now() call creates non-deterministic timestamp
+- **tests/docker/resource-management.test.js:149** - Date.now() call creates non-deterministic timestamp
+- **tests/docker/resource-management.test.js:151** - Date.now() call creates non-deterministic timestamp
+- **tests/docker/resource-management.test.js:305** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/docker-validation/compliance-validation.test.js:1009** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/docker-validation/docker-stress.test.js:66** - Date.now() call creates non-deterministic timestamp
+- **tests/docker-validation/docker-stress.test.js:89** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/docker-validation/docker-stress.test.js:124** - Date.now() call creates non-deterministic timestamp
+- **tests/docker-validation/docker-stress.test.js:401** - Date.now() call creates non-deterministic timestamp
+- **tests/docker-validation/docker-stress.test.js:415** - Date.now() call creates non-deterministic timestamp
+- **tests/docker-validation/docker-stress.test.js:419** - Date.now() call creates non-deterministic timestamp
+- **tests/docker-validation/docker-stress.test.js:451** - Date.now() call creates non-deterministic timestamp
+- **tests/docker-validation/docker-stress.test.js:465** - Date.now() call creates non-deterministic timestamp
+- **tests/docker-validation/docker-stress.test.js:494** - Date.now() call creates non-deterministic timestamp
+- **tests/docker-validation/docker-stress.test.js:495** - Date.now() call creates non-deterministic timestamp
+- **tests/docker-validation/docker-stress.test.js:518** - Date.now() call creates non-deterministic timestamp
+- **tests/docker-validation/docker-stress.test.mjs:66** - Date.now() call creates non-deterministic timestamp
+- **tests/docker-validation/docker-stress.test.mjs:89** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/docker-validation/docker-stress.test.mjs:124** - Date.now() call creates non-deterministic timestamp
+- **tests/docker-validation/docker-stress.test.mjs:298** - Date.now() call creates non-deterministic timestamp
+- **tests/docker-validation/docker-stress.test.mjs:312** - Date.now() call creates non-deterministic timestamp
+- **tests/docker-validation/docker-stress.test.mjs:316** - Date.now() call creates non-deterministic timestamp
+- **tests/docker-validation/docker-stress.test.mjs:348** - Date.now() call creates non-deterministic timestamp
+- **tests/docker-validation/docker-stress.test.mjs:362** - Date.now() call creates non-deterministic timestamp
+- **tests/docker-validation/docker-stress.test.mjs:391** - Date.now() call creates non-deterministic timestamp
+- **tests/docker-validation/docker-stress.test.mjs:392** - Date.now() call creates non-deterministic timestamp
+- **tests/docker-validation/docker-stress.test.mjs:415** - Date.now() call creates non-deterministic timestamp
+- **tests/docker-validation/error-recovery-validation-fixed.test.js:80** - Date.now() call creates non-deterministic timestamp
+- **tests/docker-validation/error-recovery-validation-fixed.test.js:110** - Date.now() call creates non-deterministic timestamp
+- **tests/docker-validation/error-recovery-validation-fixed.test.js:237** - Date.now() call creates non-deterministic timestamp
+- **tests/docker-validation/error-recovery-validation-fixed.test.js:243** - Date.now() call creates non-deterministic timestamp
+- **tests/docker-validation/error-recovery-validation-fixed.test.js:592** - Date.now() call creates non-deterministic timestamp
+- **tests/docker-validation/error-recovery-validation-fixed.test.js:606** - Date.now() call creates non-deterministic timestamp
+- **tests/docker-validation/error-recovery-validation-fixed.test.js:942** - Date.now() call creates non-deterministic timestamp
+- **tests/docker-validation/error-recovery-validation-fixed.test.js:946** - Date.now() call creates non-deterministic timestamp
+- **tests/docker-validation/error-recovery-validation-fixed.test.js:961** - Date.now() call creates non-deterministic timestamp
+- **tests/docker-validation/error-recovery-validation-fixed.test.js:963** - Date.now() call creates non-deterministic timestamp
+- **tests/docker-validation/error-recovery-validation-fixed.test.js:967** - Date.now() call creates non-deterministic timestamp
+- **tests/docker-validation/error-recovery-validation-fixed.test.js:973** - Date.now() call creates non-deterministic timestamp
+- **tests/docker-validation/error-recovery-validation.test.js:80** - Date.now() call creates non-deterministic timestamp
+- **tests/docker-validation/error-recovery-validation.test.js:110** - Date.now() call creates non-deterministic timestamp
+- **tests/docker-validation/error-recovery-validation.test.js:237** - Date.now() call creates non-deterministic timestamp
+- **tests/docker-validation/error-recovery-validation.test.js:243** - Date.now() call creates non-deterministic timestamp
+- **tests/docker-validation/error-recovery-validation.test.js:593** - Date.now() call creates non-deterministic timestamp
+- **tests/docker-validation/error-recovery-validation.test.js:607** - Date.now() call creates non-deterministic timestamp
+- **tests/docker-validation/error-recovery-validation.test.js:943** - Date.now() call creates non-deterministic timestamp
+- **tests/docker-validation/error-recovery-validation.test.js:947** - Date.now() call creates non-deterministic timestamp
+- **tests/docker-validation/error-recovery-validation.test.js:962** - Date.now() call creates non-deterministic timestamp
+- **tests/docker-validation/error-recovery-validation.test.js:964** - Date.now() call creates non-deterministic timestamp
+- **tests/docker-validation/error-recovery-validation.test.js:968** - Date.now() call creates non-deterministic timestamp
+- **tests/docker-validation/error-recovery-validation.test.js:974** - Date.now() call creates non-deterministic timestamp
+- **tests/docker-validation/filter-validation.test.js:357** - Date.now() call creates non-deterministic timestamp
+- **tests/docker-validation/filter-validation.test.js:359** - Date.now() call creates non-deterministic timestamp
+- **tests/docker-validation/generate-report.js:24** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/docker-validation/generate-report.js:212** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/docker-validation/generate-report.js:221** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/docker-validation/integration-validation.test.js:243** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/docker-validation/integration-validation.test.js:392** - Date.now() call creates non-deterministic timestamp
+- **tests/docker-validation/integration-validation.test.js:396** - Date.now() call creates non-deterministic timestamp
+- **tests/docker-validation/performance-validation.test.js:68** - Date.now() call creates non-deterministic timestamp
+- **tests/docker-validation/performance-validation.test.js:128** - Date.now() call creates non-deterministic timestamp
+- **tests/docker-validation/performance-validation.test.js:149** - Date.now() call creates non-deterministic timestamp
+- **tests/docker-validation/performance-validation.test.js:186** - Date.now() call creates non-deterministic timestamp
+- **tests/docker-validation/performance-validation.test.js:218** - Date.now() call creates non-deterministic timestamp
+- **tests/docker-validation/performance-validation.test.js:281** - Date.now() call creates non-deterministic timestamp
+- **tests/docker-validation/performance-validation.test.js:304** - Date.now() call creates non-deterministic timestamp
+- **tests/docker-validation/performance-validation.test.js:307** - Date.now() call creates non-deterministic timestamp
+- **tests/docker-validation/performance-validation.test.js:351** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/docker-validation/performance-validation.test.js:643** - Date.now() call creates non-deterministic timestamp
+- **tests/docker-validation/resource-validation.test.js:47** - Date.now() call creates non-deterministic timestamp
+- **tests/docker-validation/resource-validation.test.js:456** - Date.now() call creates non-deterministic timestamp
+- **tests/docker-validation/resource-validation.test.js:467** - Date.now() call creates non-deterministic timestamp
+- **tests/docker-validation/resource-validation.test.js:474** - Date.now() call creates non-deterministic timestamp
+- **tests/docker-validation/resource-validation.test.js:494** - Date.now() call creates non-deterministic timestamp
+- **tests/docker-validation/run-all-tests.js:40** - Date.now() call creates non-deterministic timestamp
+- **tests/docker-validation/run-all-tests.js:159** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/docker-validation/run-all-tests.js:220** - Date.now() call creates non-deterministic timestamp
+- **tests/docker-validation/run-all-tests.js:226** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/docker-validation/run-all-tests.js:286** - Date.now() call creates non-deterministic timestamp
+- **tests/docker-validation/run-all-tests.js:287** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/docker-validation/run-all-tests.js:483** - Date.now() call creates non-deterministic timestamp
+- **tests/docker-validation/run-all-tests.js:506** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/docker-validation/run-all-tests.js:907** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/docker-validation/security-validation.test.js:362** - Date.now() call creates non-deterministic timestamp
+- **tests/docker-validation/security-validation.test.js:378** - Date.now() call creates non-deterministic timestamp
+- **tests/docker-validation/security-validation.test.js:872** - Date.now() call creates non-deterministic timestamp
+- **tests/docker-validation/template-validation.test.js:1135** - Date.now() call creates non-deterministic timestamp
+- **tests/docker-validation/template-validation.test.js:1141** - Date.now() call creates non-deterministic timestamp
+- **tests/docker-validation/template-validation.test.js:1143** - Date.now() call creates non-deterministic timestamp
+- **tests/docker-validation/test-utils.js:106** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/docker-validation/test-utils.js:361** - Date.now() call creates non-deterministic timestamp
+- **tests/docker-validation/test-utils.js:366** - Date.now() call creates non-deterministic timestamp
+- **tests/docker-validation/test-utils.js:400** - Date.now() call creates non-deterministic timestamp
+- **tests/docker-validation/test-utils.js:545** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/docker-validation/test-utils.js:565** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/docker-validation/test-utils.js:853** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/docs/documentation-suite.test.ts:235** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/docs/documentation-suite.test.ts:284** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/docs/documentation-suite.test.ts:304** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/docs/documentation-suite.test.ts:305** - Date.now() call creates non-deterministic timestamp
+- **tests/docs/documentation-suite.test.ts:706** - Date.now() call creates non-deterministic timestamp
+- **tests/docs/documentation-suite.test.ts:710** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/docs/documentation-suite.test.ts:752** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/docs/documentation-suite.test.ts:788** - Date.now() call creates non-deterministic timestamp
+- **tests/documentation/semantic-doc-validation.test.js:23** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/documentation/semantic-doc-validation.test.js:354** - Date.now() call creates non-deterministic timestamp
+- **tests/documentation/semantic-doc-validation.test.js:430** - Date.now() call creates non-deterministic timestamp
+- **tests/documentation/semantic-doc-validation.test.js:435** - Date.now() call creates non-deterministic timestamp
+- **tests/docx-export.test.js:821** - Date.now() call creates non-deterministic timestamp
+- **tests/docx-export.test.js:825** - Date.now() call creates non-deterministic timestamp
+- **tests/docx-export.test.js:858** - Date.now() call creates non-deterministic timestamp
+- **tests/docx-export.test.js:863** - Date.now() call creates non-deterministic timestamp
+- **tests/docx-export.test.js:866** - Date.now() call creates non-deterministic timestamp
+- **tests/docx-export.test.js:871** - Date.now() call creates non-deterministic timestamp
+- **tests/drift-detection/DriftDetectionEngine.test.js:116** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/drift-detection/DriftDetectionEngine.test.js:126** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/drift-detection/DriftDetectionEngine.test.js:322** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/drift-detection/DriftDetectionEngine.test.js:604** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/drift-detection/DriftDetectionEngine.test.js:609** - Date.now() call creates non-deterministic timestamp
+- **tests/drift-detection/DriftDetectionEngine.test.js:611** - Date.now() call creates non-deterministic timestamp
+- **tests/drift-detection/DriftDetectionEngine.test.js:647** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/drift-validation-test.js:129** - Date.now() call creates non-deterministic timestamp
+- **tests/drift-validation-test.js:132** - Date.now() call creates non-deterministic timestamp
+- **tests/e2e/complete-user-journeys.test.js:117** - Date.now() call creates non-deterministic timestamp
+- **tests/e2e/complete-user-journeys.test.js:119** - Date.now() call creates non-deterministic timestamp
+- **tests/e2e/complete-user-journeys.test.js:395** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/e2e/complete-user-journeys.test.js:503** - Date.now() call creates non-deterministic timestamp
+- **tests/e2e/complete-user-journeys.test.js:514** - Date.now() call creates non-deterministic timestamp
+- **tests/e2e/complete-user-journeys.test.js:562** - Date.now() call creates non-deterministic timestamp
+- **tests/e2e/complete-user-journeys.test.js:569** - Date.now() call creates non-deterministic timestamp
+- **tests/e2e/complete-user-journeys.test.js:596** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/e2e/complete-user-journeys.test.js:627** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/e2e/functional-validation.test.js:19** - Date.now() call creates non-deterministic timestamp
+- **tests/e2e/functional-validation.test.js:160** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/e2e/functional-validation.test.js:243** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/e2e/functional-validation.test.js:362** - Date.now() call creates non-deterministic timestamp
+- **tests/e2e/functional-validation.test.js:370** - Date.now() call creates non-deterministic timestamp
+- **tests/e2e/functional-validation.test.js:412** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/e2e/functional-validation.test.js:425** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/e2e/real-world-scenarios.test.js:118** - Date.now() call creates non-deterministic timestamp
+- **tests/e2e/real-world-scenarios.test.js:122** - Date.now() call creates non-deterministic timestamp
+- **tests/e2e/real-world-scenarios.test.js:134** - Date.now() call creates non-deterministic timestamp
+- **tests/e2e/real-world-scenarios.test.js:271** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/e2e/real-world-scenarios.test.js:272** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/e2e/real-world-scenarios.test.js:287** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/e2e/real-world-scenarios.test.js:495** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/e2e/real-world-scenarios.test.js:608** - Date.now() call creates non-deterministic timestamp
+- **tests/e2e/real-world-scenarios.test.js:615** - Date.now() call creates non-deterministic timestamp
+- **tests/e2e/real-world-scenarios.test.js:643** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/e2e/run-e2e-tests.js:39** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/e2e/run-e2e-tests.js:50** - Date.now() call creates non-deterministic timestamp
+- **tests/e2e/run-e2e-tests.js:75** - Date.now() call creates non-deterministic timestamp
+- **tests/e2e/run-e2e-tests.js:304** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/e2e/run-e2e-tests.js:346** - Date.now() call creates non-deterministic timestamp
+- **tests/e2e/run-e2e-tests.js:390** - Date.now() call creates non-deterministic timestamp
+- **tests/e2e/user-flows.e2e.test.js:12** - Date.now() call creates non-deterministic timestamp
+- **tests/e2e/working-features.test.js:18** - Date.now() call creates non-deterministic timestamp
+- **tests/e2e/working-features.test.js:30** - Date.now() call creates non-deterministic timestamp
+- **tests/e2e/working-features.test.js:78** - Date.now() call creates non-deterministic timestamp
+- **tests/e2e/working-features.test.js:82** - Date.now() call creates non-deterministic timestamp
+- **tests/e2e/working-features.test.js:87** - Date.now() call creates non-deterministic timestamp
+- **tests/e2e/working-features.test.js:317** - Date.now() call creates non-deterministic timestamp
+- **tests/e2e/working-features.test.js:361** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/e2e/working-features.test.js:374** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/engine-deterministic-test.js:38** - Date.now() call creates non-deterministic timestamp
+- **tests/engine-deterministic-test.js:39** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/enterprise/chaos-engineering.js:60** - Date.now() call creates non-deterministic timestamp
+- **tests/enterprise/chaos-engineering.js:81** - Date.now() call creates non-deterministic timestamp
+- **tests/enterprise/chaos-engineering.js:99** - Date.now() call creates non-deterministic timestamp
+- **tests/enterprise/chaos-engineering.js:122** - Date.now() call creates non-deterministic timestamp
+- **tests/enterprise/chaos-engineering.js:143** - Date.now() call creates non-deterministic timestamp
+- **tests/enterprise/chaos-engineering.js:162** - Date.now() call creates non-deterministic timestamp
+- **tests/enterprise/chaos-engineering.js:262** - Date.now() call creates non-deterministic timestamp
+- **tests/enterprise/chaos-engineering.js:263** - Date.now() call creates non-deterministic timestamp
+- **tests/enterprise/chaos-engineering.js:352** - Date.now() call creates non-deterministic timestamp
+- **tests/enterprise/chaos-engineering.js:831** - Date.now() call creates non-deterministic timestamp
+- **tests/enterprise/chaos-engineering.js:843** - Date.now() call creates non-deterministic timestamp
+- **tests/enterprise/chaos-engineering.js:848** - Date.now() call creates non-deterministic timestamp
+- **tests/enterprise/compliance-validation.js:470** - Date.now() call creates non-deterministic timestamp
+- **tests/enterprise/compliance-validation.js:701** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/enterprise/compliance-validation.js:712** - Date.now() call creates non-deterministic timestamp
+- **tests/enterprise/compliance-validation.js:713** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/enterprise/compliance-validation.js:1106** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/enterprise/compliance-validation.js:1113** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/enterprise/compliance-validation.js:1125** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/enterprise/compliance-validation.js:1137** - Date.now() call creates non-deterministic timestamp
+- **tests/enterprise/compliance-validation.js:1250** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/enterprise/load-testing.js:97** - Date.now() call creates non-deterministic timestamp
+- **tests/enterprise/load-testing.js:108** - Date.now() call creates non-deterministic timestamp
+- **tests/enterprise/load-testing.js:121** - Date.now() call creates non-deterministic timestamp
+- **tests/enterprise/load-testing.js:186** - Date.now() call creates non-deterministic timestamp
+- **tests/enterprise/load-testing.js:207** - Date.now() call creates non-deterministic timestamp
+- **tests/enterprise/load-testing.js:214** - Date.now() call creates non-deterministic timestamp
+- **tests/enterprise/load-testing.js:253** - Date.now() call creates non-deterministic timestamp
+- **tests/enterprise/load-testing.js:351** - Date.now() call creates non-deterministic timestamp
+- **tests/enterprise/load-testing.js:367** - Date.now() call creates non-deterministic timestamp
+- **tests/enterprise/load-testing.js:380** - Date.now() call creates non-deterministic timestamp
+- **tests/enterprise/load-testing.js:469** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/enterprise/load-testing.js:500** - Date.now() call creates non-deterministic timestamp
+- **tests/enterprise/load-testing.js:588** - Date.now() call creates non-deterministic timestamp
+- **tests/enterprise/security-penetration-testing.js:239** - Date.now() call creates non-deterministic timestamp
+- **tests/enterprise/security-penetration-testing.js:265** - Date.now() call creates non-deterministic timestamp
+- **tests/enterprise/security-penetration-testing.js:1098** - Date.now() call creates non-deterministic timestamp
+- **tests/enterprise/testing-framework.js:126** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/enterprise/testing-framework.js:142** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/error-clarity-validation.test.js:250** - Date.now() call creates non-deterministic timestamp
+- **tests/error-clarity-validation.test.js:260** - Date.now() call creates non-deterministic timestamp
+- **tests/error-clarity-validation.test.js:265** - Date.now() call creates non-deterministic timestamp
+- **tests/error-clarity-validation.test.js:272** - Date.now() call creates non-deterministic timestamp
+- **tests/error-handler/error-handler.test.js:124** - Date.now() call creates non-deterministic timestamp
+- **tests/error-handler/error-handler.test.js:134** - Date.now() call creates non-deterministic timestamp
+- **tests/error-handler/error-handler.test.js:171** - Date.now() call creates non-deterministic timestamp
+- **tests/error-handler/error-handler.test.js:181** - Date.now() call creates non-deterministic timestamp
+- **tests/error-handling/robust-error-system.test.js:492** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/error-handling/robust-error-system.test.js:514** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/examples/london-school-tdd-example.test.js:274** - Date.now() call creates non-deterministic timestamp
+- **tests/examples/london-school-tdd-example.test.js:286** - Date.now() call creates non-deterministic timestamp
+- **tests/examples/london-school-tdd-example.test.js:316** - Date.now() call creates non-deterministic timestamp
+- **tests/export/cli.test.js:324** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/export/cli.test.js:332** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/export/export-integration-test.js:274** - Date.now() call creates non-deterministic timestamp
+- **tests/export/export-integration-test.js:276** - Date.now() call creates non-deterministic timestamp
+- **tests/export/export-integration-test.js:311** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/export/export-validation.test.js:511** - Date.now() call creates non-deterministic timestamp
+- **tests/export/export-validation.test.js:513** - Date.now() call creates non-deterministic timestamp
+- **tests/export/exporters.test.js:570** - Date.now() call creates non-deterministic timestamp
+- **tests/export/exporters.test.js:575** - Date.now() call creates non-deterministic timestamp
+- **tests/export-quality/docx-quality-validator.js:710** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/export-quality/docx-quality-validator.js:736** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/export-quality/export-quality-test-suite.js:466** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/export-quality/export-quality-test-suite.js:533** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/export-quality/export-quality-test-suite.js:766** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/export-quality/export-quality-test-suite.js:810** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/export-quality/html-quality-validator.js:405** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/export-quality/html-quality-validator.js:520** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/export-quality/html-quality-validator.js:993** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/export-quality/html-quality-validator.js:1019** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/export-quality/markdown-quality-validator.js:874** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/export-quality/markdown-quality-validator.js:900** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/export-quality/pdf-quality-validator.js:453** - Date.now() call creates non-deterministic timestamp
+- **tests/export-quality/pdf-quality-validator.js:480** - Date.now() call creates non-deterministic timestamp
+- **tests/export-quality/pdf-quality-validator.js:500** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/export-quality/pdf-quality-validator.js:526** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/export-quality/run-export-quality-tests.js:349** - Date.now() call creates non-deterministic timestamp
+- **tests/export-quality/run-export-quality-tests.js:353** - Date.now() call creates non-deterministic timestamp
+- **tests/export-quality/test-documents.js:155** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/export-quality/test-documents.js:156** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/features/api-generation.feature.spec.js:19** - Date.now() call creates non-deterministic timestamp
+- **tests/features/cicd-pipelines.feature.spec.js:18** - Date.now() call creates non-deterministic timestamp
+- **tests/features/critical-fixes-validation.feature.spec.js:123** - Date.now() call creates non-deterministic timestamp
+- **tests/features/critical-fixes-validation.feature.spec.js:125** - Date.now() call creates non-deterministic timestamp
+- **tests/features/database-migrations.feature.spec.js:19** - Date.now() call creates non-deterministic timestamp
+- **tests/features/database-migrations.feature.spec.js:109** - Date.now() call creates non-deterministic timestamp
+- **tests/features/database-migrations.feature.spec.js:342** - Date.now() call creates non-deterministic timestamp
+- **tests/features/database-migrations.feature.spec.js:410** - Date.now() call creates non-deterministic timestamp
+- **tests/features/documentation-generation.feature.spec.js:18** - Date.now() call creates non-deterministic timestamp
+- **tests/features/documentation-generation.feature.spec.js:167** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/features/documentation-generation.feature.spec.js:444** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/features/documentation-generation.feature.spec.js:587** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/features/file-operations.feature.spec.js:880** - Date.now() call creates non-deterministic timestamp
+- **tests/features/file-operations.feature.spec.js:890** - Date.now() call creates non-deterministic timestamp
+- **tests/features/injection-safety-atomicity.feature.spec.js:218** - Date.now() call creates non-deterministic timestamp
+- **tests/features/injection-safety-atomicity.feature.spec.js:220** - Date.now() call creates non-deterministic timestamp
+- **tests/features/live-mcp-validation.feature.spec.js:92** - Date.now() call creates non-deterministic timestamp
+- **tests/features/mcp/tools.feature.spec.js:220** - Date.now() call creates non-deterministic timestamp
+- **tests/features/mcp/tools.feature.spec.js:236** - Date.now() call creates non-deterministic timestamp
+- **tests/features/mcp-claude-flow-integration.feature.spec.js:69** - Date.now() call creates non-deterministic timestamp
+- **tests/features/mcp-claude-flow-integration.feature.spec.js:122** - Date.now() call creates non-deterministic timestamp
+- **tests/features/mcp-claude-flow-integration.feature.spec.js:126** - Date.now() call creates non-deterministic timestamp
+- **tests/features/mcp-claude-flow-integration.feature.spec.js:133** - Date.now() call creates non-deterministic timestamp
+- **tests/features/mcp-claude-flow-integration.feature.spec.js:136** - Date.now() call creates non-deterministic timestamp
+- **tests/features/mcp-claude-flow-integration.feature.spec.js:143** - Date.now() call creates non-deterministic timestamp
+- **tests/features/mcp-claude-flow-integration.feature.spec.js:146** - Date.now() call creates non-deterministic timestamp
+- **tests/features/mcp-claude-flow-integration.feature.spec.js:153** - Date.now() call creates non-deterministic timestamp
+- **tests/features/mcp-claude-flow-integration.feature.spec.js:156** - Date.now() call creates non-deterministic timestamp
+- **tests/features/mcp-claude-flow-integration.feature.spec.js:163** - Date.now() call creates non-deterministic timestamp
+- **tests/features/mcp-claude-flow-integration.feature.spec.js:166** - Date.now() call creates non-deterministic timestamp
+- **tests/features/mcp-integration.feature.spec.js:82** - Date.now() call creates non-deterministic timestamp
+- **tests/features/mcp-semantic-coordination.feature.spec.js:16** - Date.now() call creates non-deterministic timestamp
+- **tests/features/mcp-semantic-coordination.feature.spec.js:21** - Date.now() call creates non-deterministic timestamp
+- **tests/features/performance-comparison.feature.spec.js:162** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/features/semantic/compliance-multi-regulatory.feature.spec.js:45** - Date.now() call creates non-deterministic timestamp
+- **tests/features/semantic/compliance-multi-regulatory.feature.spec.js:572** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/features/semantic/compliance-multi-regulatory.feature.spec.js:578** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/features/semantic/compliance-multi-regulatory.feature.spec.js:611** - Date.now() call creates non-deterministic timestamp
+- **tests/features/semantic/financial-fibo-compliance.feature.spec.js:38** - Date.now() call creates non-deterministic timestamp
+- **tests/features/semantic/financial-fibo-compliance.feature.spec.js:61** - Date.now() call creates non-deterministic timestamp
+- **tests/features/semantic/healthcare-fhir-integration.feature.spec.js:34** - Date.now() call creates non-deterministic timestamp
+- **tests/features/semantic/healthcare-fhir-integration.feature.spec.js:132** - Date.now() call creates non-deterministic timestamp
+- **tests/features/semantic/healthcare-fhir-integration.feature.spec.js:161** - Date.now() call creates non-deterministic timestamp
+- **tests/features/semantic/schema-org-seo-microservice.feature.spec.js:38** - Date.now() call creates non-deterministic timestamp
+- **tests/features/semantic/schema-org-seo-microservice.feature.spec.js:348** - Date.now() call creates non-deterministic timestamp
+- **tests/features/semantic/schema-org-seo-microservice.feature.spec.js:367** - Date.now() call creates non-deterministic timestamp
+- **tests/features/semantic/schema-org-seo-microservice.feature.spec.js:616** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/features/semantic/schema-org-seo-microservice.feature.spec.js:617** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/features/semantic/step_definitions/semantic_steps.js:90** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/features/semantic/supply-chain-gs1-tracking.feature.spec.js:38** - Date.now() call creates non-deterministic timestamp
+- **tests/features/semantic/supply-chain-gs1-tracking.feature.spec.js:311** - Date.now() call creates non-deterministic timestamp
+- **tests/features/semantic/supply-chain-gs1-tracking.feature.spec.js:316** - Date.now() call creates non-deterministic timestamp
+- **tests/features/semantic-core-bdd.test.js:16** - Date.now() call creates non-deterministic timestamp
+- **tests/features/semantic-core-bdd.test.js:32** - Date.now() call creates non-deterministic timestamp
+- **tests/features/semantic-core-bdd.test.js:33** - Date.now() call creates non-deterministic timestamp
+- **tests/features/semantic-core-bdd.test.js:116** - Date.now() call creates non-deterministic timestamp
+- **tests/features/semantic-core.feature.spec.js:65** - Date.now() call creates non-deterministic timestamp
+- **tests/features/semantic-core.feature.spec.js:181** - Date.now() call creates non-deterministic timestamp
+- **tests/features/semantic-core.feature.spec.js:201** - Date.now() call creates non-deterministic timestamp
+- **tests/features/semantic-core.feature.spec.js:307** - Date.now() call creates non-deterministic timestamp
+- **tests/features/semantic-core.feature.spec.js:325** - Date.now() call creates non-deterministic timestamp
+- **tests/features/semantic-core.feature.spec.js:426** - Date.now() call creates non-deterministic timestamp
+- **tests/features/semantic-core.feature.spec.js:451** - Date.now() call creates non-deterministic timestamp
+- **tests/features/semantic-core.feature.spec.js:476** - Date.now() call creates non-deterministic timestamp
+- **tests/features/semantic-core.feature.spec.js:484** - Date.now() call creates non-deterministic timestamp
+- **tests/features/service-scaffolding.feature.spec.js:19** - Date.now() call creates non-deterministic timestamp
+- **tests/features/spec-driven/code-generation.feature.spec.js:121** - Date.now() call creates non-deterministic timestamp
+- **tests/features/spec-driven/code-generation.feature.spec.js:1019** - Date.now() call creates non-deterministic timestamp
+- **tests/features/spec-driven/end-to-end-workflow.feature.spec.js:29** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/features/spec-driven/end-to-end-workflow.feature.spec.js:60** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/features/spec-driven/end-to-end-workflow.feature.spec.js:78** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/features/spec-driven/end-to-end-workflow.feature.spec.js:90** - Date.now() call creates non-deterministic timestamp
+- **tests/features/spec-driven/end-to-end-workflow.feature.spec.js:92** - Date.now() call creates non-deterministic timestamp
+- **tests/features/spec-driven/end-to-end-workflow.feature.spec.js:420** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/features/spec-driven/end-to-end-workflow.feature.spec.js:443** - Date.now() call creates non-deterministic timestamp
+- **tests/features/spec-driven/end-to-end-workflow.feature.spec.js:449** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/features/spec-driven/end-to-end-workflow.feature.spec.js:458** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/features/spec-driven/end-to-end-workflow.feature.spec.js:473** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/features/spec-driven/end-to-end-workflow.feature.spec.js:496** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/features/spec-driven/end-to-end-workflow.feature.spec.js:507** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/features/spec-driven/end-to-end-workflow.feature.spec.js:709** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/features/spec-driven/integration.test.js:110** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/features/spec-driven/integration.test.js:330** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/features/spec-driven/integration.test.js:445** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/features/spec-driven/integration.test.js:455** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/features/spec-driven/integration.test.js:459** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/features/spec-driven/integration.test.js:578** - Date.now() call creates non-deterministic timestamp
+- **tests/features/spec-driven/integration.test.js:700** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/features/spec-driven/integration.test.js:701** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/features/spec-driven/integration.test.js:702** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/features/spec-driven/integration.test.js:703** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/features/spec-driven/plan-generation.feature.spec.js:50** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/features/spec-driven/plan-generation.feature.spec.js:73** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/features/spec-driven/plan-generation.feature.spec.js:110** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/features/spec-driven/plan-generation.feature.spec.js:159** - Date.now() call creates non-deterministic timestamp
+- **tests/features/spec-driven/plan-generation.feature.spec.js:163** - Date.now() call creates non-deterministic timestamp
+- **tests/features/spec-driven/plan-generation.feature.spec.js:242** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/features/spec-driven/setup.js:48** - Date.now() call creates non-deterministic timestamp
+- **tests/features/spec-driven/setup.js:54** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/features/spec-driven/setup.js:70** - Date.now() call creates non-deterministic timestamp
+- **tests/features/spec-driven/setup.js:81** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/features/spec-driven/setup.js:125** - Date.now() call creates non-deterministic timestamp
+- **tests/features/spec-driven/setup.js:128** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/features/spec-driven/specification-creation.feature.spec.js:47** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/features/spec-driven/specification-creation.feature.spec.js:66** - Date.now() call creates non-deterministic timestamp
+- **tests/features/spec-driven/task-breakdown.feature.spec.js:51** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/features/spec-driven/task-breakdown.feature.spec.js:216** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/features/spec-driven/task-breakdown.feature.spec.js:739** - Date.now() call creates non-deterministic timestamp
+- **tests/features/swarm/swarm-validation-basic.test.js:58** - Date.now() call creates non-deterministic timestamp
+- **tests/features/swarm/swarm-validation.test.js:238** - Date.now() call creates non-deterministic timestamp
+- **tests/features/swarm/swarm-validation.test.js:242** - Date.now() call creates non-deterministic timestamp
+- **tests/features/template-discovery-comprehensive.feature.spec.js:46** - Date.now() call creates non-deterministic timestamp
+- **tests/features/template-discovery-comprehensive.feature.spec.js:48** - Date.now() call creates non-deterministic timestamp
+- **tests/features/template-discovery-comprehensive.feature.spec.js:100** - Date.now() call creates non-deterministic timestamp
+- **tests/features/template-discovery-comprehensive.feature.spec.js:102** - Date.now() call creates non-deterministic timestamp
+- **tests/features/template-discovery-comprehensive.feature.spec.js:149** - Date.now() call creates non-deterministic timestamp
+- **tests/features/template-discovery-comprehensive.feature.spec.js:151** - Date.now() call creates non-deterministic timestamp
+- **tests/features/template-discovery-comprehensive.feature.spec.js:169** - Date.now() call creates non-deterministic timestamp
+- **tests/features/template-discovery-comprehensive.feature.spec.js:171** - Date.now() call creates non-deterministic timestamp
+- **tests/features/turtle-basic-working.spec.js:14** - Date.now() call creates non-deterministic timestamp
+- **tests/features/turtle-basic-working.spec.js:86** - Date.now() call creates non-deterministic timestamp
+- **tests/features/turtle-basic-working.spec.js:89** - Date.now() call creates non-deterministic timestamp
+- **tests/features/turtle-data-support.feature.spec.js:18** - Date.now() call creates non-deterministic timestamp
+- **tests/features/turtle-data-support.spec.js:14** - Date.now() call creates non-deterministic timestamp
+- **tests/features/vitest-cucumber-cli.feature.spec.js:53** - Date.now() call creates non-deterministic timestamp
+- **tests/filter-breaking-stress-test.js:41** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/filters/comprehensive-validation-report.test.js:20** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/filters/comprehensive-validation-report.test.js:115** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/filters/date-time/date-filters.test.js:289** - Date.now() call creates non-deterministic timestamp
+- **tests/filters/date-time/date-filters.test.js:293** - Date.now() call creates non-deterministic timestamp
+- **tests/filters/date-time/date-filters.test.js:299** - Date.now() call creates non-deterministic timestamp
+- **tests/filters/date-time/date-filters.test.js:301** - Date.now() call creates non-deterministic timestamp
+- **tests/filters/edge-cases/edge-cases.test.js:129** - Date.now() call creates non-deterministic timestamp
+- **tests/filters/edge-cases/edge-cases.test.js:133** - Date.now() call creates non-deterministic timestamp
+- **tests/filters/edge-cases/edge-cases.test.js:140** - Date.now() call creates non-deterministic timestamp
+- **tests/filters/edge-cases/edge-cases.test.js:144** - Date.now() call creates non-deterministic timestamp
+- **tests/filters/edge-cases/edge-cases.test.js:255** - Date.now() call creates non-deterministic timestamp
+- **tests/filters/edge-cases/edge-cases.test.js:267** - Date.now() call creates non-deterministic timestamp
+- **tests/filters/edge-cases/edge-cases.test.js:361** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/filters/faker/faker-filters.test.js:301** - Date.now() call creates non-deterministic timestamp
+- **tests/filters/faker/faker-filters.test.js:309** - Date.now() call creates non-deterministic timestamp
+- **tests/filters/faker/faker-filters.test.js:322** - Date.now() call creates non-deterministic timestamp
+- **tests/filters/faker/faker-filters.test.js:328** - Date.now() call creates non-deterministic timestamp
+- **tests/filters/integration/filter-chaining.test.js:217** - Date.now() call creates non-deterministic timestamp
+- **tests/filters/integration/filter-chaining.test.js:227** - Date.now() call creates non-deterministic timestamp
+- **tests/filters/integration/filter-chaining.test.js:247** - Date.now() call creates non-deterministic timestamp
+- **tests/filters/integration/filter-chaining.test.js:249** - Date.now() call creates non-deterministic timestamp
+- **tests/filters/semantic-web/semantic-filters.test.js:325** - Date.now() call creates non-deterministic timestamp
+- **tests/filters/semantic-web/semantic-filters.test.js:333** - Date.now() call creates non-deterministic timestamp
+- **tests/filters/semantic-web/semantic-filters.test.js:344** - Date.now() call creates non-deterministic timestamp
+- **tests/filters/semantic-web/semantic-filters.test.js:348** - Date.now() call creates non-deterministic timestamp
+- **tests/filters/string-inflection/string-filters.test.js:197** - Date.now() call creates non-deterministic timestamp
+- **tests/filters/string-inflection/string-filters.test.js:199** - Date.now() call creates non-deterministic timestamp
+- **tests/filters/utility/utility-filters.test.js:166** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/filters/utility/utility-filters.test.js:307** - Date.now() call creates non-deterministic timestamp
+- **tests/filters/utility/utility-filters.test.js:309** - Date.now() call creates non-deterministic timestamp
+- **tests/filters/utility/utility-filters.test.js:315** - Date.now() call creates non-deterministic timestamp
+- **tests/filters/utility/utility-filters.test.js:328** - Date.now() call creates non-deterministic timestamp
+- **tests/fixtures/configs/valid/unjucks.config.js:7** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/fixtures/knowledge-graphs/deployment/kg-api-server.js:98** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/fixtures/knowledge-graphs/deployment/kg-api-server.js:139** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/fixtures/knowledge-graphs/deployment/kg-api-server.js:177** - Date.now() call creates non-deterministic timestamp
+- **tests/fixtures/knowledge-graphs/deployment/kg-api-server.js:191** - Date.now() call creates non-deterministic timestamp
+- **tests/fixtures/knowledge-graphs/deployment/kg-api-server.js:205** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/fixtures/spec-driven/mock-data.js:6** - Date.now() call creates non-deterministic timestamp
+- **tests/fixtures/spec-driven/mock-data.js:13** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/fixtures/spec-driven/mock-data.js:25** - Date.now() call creates non-deterministic timestamp
+- **tests/fixtures/spec-driven/mock-data.js:72** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/fixtures/spec-driven/mock-data.js:102** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/fixtures/spec-driven/mock-data.js:115** - Date.now() call creates non-deterministic timestamp
+- **tests/fixtures/spec-driven/mock-data.js:119** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/fixtures/spec-driven/mock-data.js:486** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/fixtures/spec-driven/mock-data.js:494** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/fixtures/spec-driven/mock-data.js:502** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/fixtures/spec-driven/mock-data.js:510** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/fixtures/spec-driven/mock-data.js:532** - Date.now() call creates non-deterministic timestamp
+- **tests/fixtures/spec-driven/mock-data.js:536** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/git-first-workflow.test.js:138** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/git-first-workflow.test.js:171** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/git-first-workflow.test.js:215** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/governance/test-shacl-gate-enforcer.js:677** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/helpers/async-test-helper.js:210** - Date.now() call creates non-deterministic timestamp
+- **tests/helpers/async-test-helper.js:213** - Date.now() call creates non-deterministic timestamp
+- **tests/helpers/async-test-helper.js:260** - Date.now() call creates non-deterministic timestamp
+- **tests/helpers/cross-test-communication.js:52** - Date.now() call creates non-deterministic timestamp
+- **tests/helpers/cross-test-communication.js:187** - Date.now() call creates non-deterministic timestamp
+- **tests/helpers/cross-test-communication.js:211** - Date.now() call creates non-deterministic timestamp
+- **tests/helpers/cross-test-communication.js:213** - Date.now() call creates non-deterministic timestamp
+- **tests/helpers/cross-test-communication.js:280** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/helpers/cross-test-communication.js:323** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/helpers/cross-test-communication.js:419** - Date.now() call creates non-deterministic timestamp
+- **tests/helpers/cross-test-communication.js:426** - Date.now() call creates non-deterministic timestamp
+- **tests/helpers/cross-test-communication.js:497** - Date.now() call creates non-deterministic timestamp
+- **tests/helpers/cross-test-communication.js:511** - Date.now() call creates non-deterministic timestamp
+- **tests/helpers/cross-test-communication.js:523** - Date.now() call creates non-deterministic timestamp
+- **tests/helpers/enhanced-mock-framework.js:75** - Date.now() call creates non-deterministic timestamp
+- **tests/helpers/enhanced-mock-framework.js:388** - Date.now() call creates non-deterministic timestamp
+- **tests/helpers/enhanced-mock-framework.js:401** - Date.now() call creates non-deterministic timestamp
+- **tests/helpers/file-test-helper.js:22** - Date.now() call creates non-deterministic timestamp
+- **tests/helpers/file-test-helper.js:36** - Date.now() call creates non-deterministic timestamp
+- **tests/helpers/property-test-helper.js:15** - Date.now() call creates non-deterministic timestamp
+- **tests/helpers/property-test-helper.js:122** - Date.now() call creates non-deterministic timestamp
+- **tests/helpers/property-test-helper.js:132** - Date.now() call creates non-deterministic timestamp
+- **tests/helpers/property-test-helper.js:144** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/helpers/temp-utils.js:14** - Date.now() call creates non-deterministic timestamp
+- **tests/helpers/test-coordination-hooks.js:18** - Date.now() call creates non-deterministic timestamp
+- **tests/helpers/test-coordination-hooks.js:44** - Date.now() call creates non-deterministic timestamp
+- **tests/helpers/test-coordination-hooks.js:63** - Date.now() call creates non-deterministic timestamp
+- **tests/helpers/test-coordination-hooks.js:82** - Date.now() call creates non-deterministic timestamp
+- **tests/helpers/test-coordination-hooks.js:106** - Date.now() call creates non-deterministic timestamp
+- **tests/helpers/test-coordination-hooks.js:124** - Date.now() call creates non-deterministic timestamp
+- **tests/helpers/test-coordination-hooks.js:141** - Date.now() call creates non-deterministic timestamp
+- **tests/helpers/test-coordination-hooks.js:166** - Date.now() call creates non-deterministic timestamp
+- **tests/helpers/test-coordination-hooks.js:190** - Date.now() call creates non-deterministic timestamp
+- **tests/helpers/test-coordination-hooks.js:225** - Date.now() call creates non-deterministic timestamp
+- **tests/helpers/test-coordination-hooks.js:250** - Date.now() call creates non-deterministic timestamp
+- **tests/helpers/test-coordination-hooks.js:273** - Date.now() call creates non-deterministic timestamp
+- **tests/helpers/test-coordination-hooks.js:287** - Date.now() call creates non-deterministic timestamp
+- **tests/helpers/test-coordination-hooks.js:299** - Date.now() call creates non-deterministic timestamp
+- **tests/helpers/test-coordination-hooks.js:319** - Date.now() call creates non-deterministic timestamp
+- **tests/helpers/test-coordination-hooks.js:433** - Date.now() call creates non-deterministic timestamp
+- **tests/helpers/test-coordination-hooks.js:449** - Date.now() call creates non-deterministic timestamp
+- **tests/helpers/test-coordination-hooks.js:470** - Date.now() call creates non-deterministic timestamp
+- **tests/helpers/test-coordination-hooks.js:568** - Date.now() call creates non-deterministic timestamp
+- **tests/helpers/test-coordination-hooks.js:572** - Date.now() call creates non-deterministic timestamp
+- **tests/helpers/test-environment-manager.js:64** - Date.now() call creates non-deterministic timestamp
+- **tests/helpers/test-environment-manager.js:128** - Date.now() call creates non-deterministic timestamp
+- **tests/helpers/test-environment-manager.js:408** - Date.now() call creates non-deterministic timestamp
+- **tests/helpers/test-environment-manager.js:451** - Date.now() call creates non-deterministic timestamp
+- **tests/helpers/test-environment-manager.js:528** - Date.now() call creates non-deterministic timestamp
+- **tests/helpers/test-environment-manager.js:532** - Date.now() call creates non-deterministic timestamp
+- **tests/helpers/test-helper.js:29** - Date.now() call creates non-deterministic timestamp
+- **tests/helpers/test-helper.js:316** - Date.now() call creates non-deterministic timestamp
+- **tests/helpers/test-helper.js:318** - Date.now() call creates non-deterministic timestamp
+- **tests/helpers/test-utils.js:14** - Date.now() call creates non-deterministic timestamp
+- **tests/hermetic/hermetic-runtime.test.js:170** - Date.now() call creates non-deterministic timestamp
+- **tests/hermetic/hermetic-runtime.test.js:577** - Date.now() call creates non-deterministic timestamp
+- **tests/infrastructure/test-infrastructure-validation.test.js:157** - Date.now() call creates non-deterministic timestamp
+- **tests/infrastructure/test-infrastructure-validation.test.js:162** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/api-contract-tests.js:654** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/api-contract-tests.js:656** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/api-contract-tests.js:665** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/api-contract-tests.js:668** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/api-contract-tests.js:694** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/integration/cli-commands.test.js:606** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/cli-commands.test.js:624** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/cli-integration.test.js:13** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/cli-integration.test.js:277** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/cli-integration.test.js:279** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/cli-integration.test.js:288** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/cli-integration.test.js:292** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/cli-validation.spec.js:10** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/cli-validation.spec.js:67** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/integration/cli-validation.spec.js:493** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/cli-validation.spec.js:497** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/cli-verification.test.js:30** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/cli-verification.test.js:32** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/cli-verification.test.js:226** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/cli-verification.test.js:239** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/cli-workflows-e2e.test.js:259** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/cli-workflows-e2e.test.js:261** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/complete-workflow.integration.spec.js:385** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/complete-workflow.integration.spec.js:389** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/complete-workflow.integration.spec.js:398** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/complete-workflow.integration.spec.js:402** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/comprehensive-test-runner.js:35** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/comprehensive-test-runner.js:72** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/comprehensive-test-runner.js:74** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/comprehensive-test-runner.js:117** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/comprehensive-test-runner.js:145** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/integration/comprehensive-testing.spec.js:11** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/concurrency/concurrent-operations.test.js:51** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/integration/concurrency/concurrent-operations.test.js:208** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/concurrency/concurrent-operations.test.js:210** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/concurrency/concurrent-operations.test.js:275** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/concurrency/concurrent-operations.test.js:277** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/concurrency/concurrent-operations.test.js:321** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/concurrency/concurrent-operations.test.js:327** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/concurrency/concurrent-operations.test.js:370** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/concurrency/concurrent-operations.test.js:372** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/concurrency/concurrent-operations.test.js:421** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/integration/concurrency/concurrent-operations.test.js:848** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/concurrency/concurrent-operations.test.js:853** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/concurrency/concurrent-operations.test.js:864** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/data-flow/data-flow.test.js:37** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/data-flow/data-flow.test.js:125** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/integration/data-flow/data-flow.test.js:309** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/data-flow/data-flow.test.js:313** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/data-flow/data-flow.test.js:382** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/integration/data-flow/data-flow.test.js:439** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/integration/data-flow/data-flow.test.js:473** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/integration/data-flow/data-flow.test.js:556** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/integration/data-flow/data-flow.test.js:560** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/integration/database-migration-tests.js:639** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/database-migration-tests.js:641** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/database-migration-tests.js:656** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/database-migration-tests.js:658** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/direct-validation.test.js:255** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/direct-validation.test.js:259** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/drift-detection-integration.test.js:329** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/drift-detection-integration.test.js:333** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/drift-detection-integration.test.js:336** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/drift-detection-integration.test.js:340** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/e2e-user-journeys.js:166** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/integration/e2e-user-journeys.js:183** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/e2e-user-journeys.js:221** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/e2e-user-journeys.js:234** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/e2e-user-journeys.js:275** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/e2e-user-journeys.js:288** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/e2e-user-journeys.js:368** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/e2e-user-journeys.js:381** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/e2e-user-journeys.js:434** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/e2e-user-journeys.js:447** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/e2e-user-journeys.js:463** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/e2e-user-journeys.js:480** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/e2e-user-journeys.js:500** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/e2e-user-journeys.js:601** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/e2e-user-journeys.js:608** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/e2e-user-journeys.js:720** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/e2e-user-journeys.js:724** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/e2e-user-journeys.js:732** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/e2e-user-journeys.js:736** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/e2e-workflows.test.js:201** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/e2e-workflows.test.js:203** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/enhanced-features.integration.spec.js:219** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/enhanced-features.integration.spec.js:228** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/enhanced-features.integration.spec.js:248** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/enhanced-features.integration.spec.js:254** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/enterprise-integration.test.js:257** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/integration/enterprise-integration.test.js:290** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/enterprise-integration.test.js:701** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/enterprise-integration.test.js:703** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/environment-isolation.js:48** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/integration/environment-isolation.js:502** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/integration/file-generation.spec.js:11** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/file-generation.spec.js:233** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/integration/file-operations.spec.js:579** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/file-operations.spec.js:581** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/filter-environment-validation.test.js:246** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/filter-environment-validation.test.js:248** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/filter-environment-validation.test.js:259** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/filter-environment-validation.test.js:261** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/final-semantic-demo.test.js:103** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/final-semantic-demo.test.js:110** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/fortune5-scenarios/api-rollout.test.js:63** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/fortune5-scenarios/api-rollout.test.js:82** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/fortune5-scenarios/migration-automation.test.js:109** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/integration/fortune5-scenarios/migration-automation.test.js:199** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/integration/fortune5-scenarios/migration-automation.test.js:284** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/integration/fortune5-scenarios/migration-automation.test.js:451** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/integration/frontmatter-filter-processing.test.js:197** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/integration/frontmatter-filter-processing.test.js:333** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/frontmatter-filter-processing.test.js:335** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/git-uri-resolver.test.js:24** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/integration-test-runner.js:550** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/integration/integration-test-runner.js:571** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/integration/kgen/simple-sparql-test.test.js:36** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/kgen/sparql-cli-integration.test.js:40** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/kgen/sparql-cli-integration.test.js:191** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/kgen/sparql-cli-integration.test.js:193** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/kgen/working-sparql-test.test.js:37** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/kgen-core-engine.test.js:46** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/kgen-core-engine.test.js:347** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/kgen-core-engine.test.js:349** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/kgen-e2e.test.js:293** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/integration/kgen-integration-test-suite.js:35** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/integration/kgen-integration-test-suite.js:85** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/kgen-integration-test-suite.js:87** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/kgen-integration-test-suite.js:144** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/kgen-integration-test-suite.js:146** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/kgen-integration-test-suite.js:177** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/kgen-integration-test-suite.js:179** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/kgen-integration-test-suite.js:210** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/kgen-integration-test-suite.js:212** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/kgen-integration-test-suite.js:230** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/kgen-integration-test-suite.js:236** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/live-mcp-validation.test.js:635** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/mcp-comprehensive-testing.test.js:34** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/mcp-integration-comprehensive.test.js:666** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/mcp-integration-comprehensive.test.js:672** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/mcp-integration-comprehensive.test.js:688** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/mcp-integration-comprehensive.test.js:693** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/mcp-javascript-integration.test.js:62** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/mcp-javascript-integration.test.js:253** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/mcp-protocol-validation.test.js:530** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/integration/mcp-protocol-validation.test.js:578** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/integration/mcp-protocol-validation.test.js:596** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/mcp-protocol-validation.test.js:604** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/mcp-to-mcp-validation.test.js:65** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/modules/module-dependencies.test.js:145** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/modules/module-dependencies.test.js:297** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/modules/module-dependencies.test.js:310** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/modules/module-dependencies.test.js:378** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/integration/modules/module-dependencies.test.js:397** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/integration/modules/module-dependencies.test.js:478** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/modules/module-dependencies.test.js:481** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/modules/module-dependencies.test.js:485** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/modules/module-dependencies.test.js:488** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/performance-infrastructure.test.js:56** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/performance-infrastructure.test.js:75** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/performance-infrastructure.test.js:149** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/performance-infrastructure.test.js:199** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/integration/positional-parameters.spec.js:10** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/rdf-template-generation.test.js:440** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/integration/rdf-template-generation.test.js:575** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/integration/real-functionality-test.spec.js:13** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/real-functionality-test.spec.js:165** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/integration/real-functionality-test.spec.js:297** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/real-functionality-test.spec.js:299** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/real-functionality-test.spec.js:305** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/real-functionality-test.spec.js:320** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/real-operations-validation.test.js:676** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/real-operations-validation.test.js:683** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/run-integration-tests.js:24** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/run-integration-tests.js:64** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/run-integration-tests.js:203** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/integration/semantic-80-20.test.js:33** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/semantic-80-20.test.js:70** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/semantic-80-20.test.js:103** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/semantic-80-20.test.js:149** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/semantic-80-20.test.js:178** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/semantic-80-20.test.js:224** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/semantic-80-20.test.js:267** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/semantic-80-20.test.js:314** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/semantic-80-20.test.js:320** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/semantic-80-20.test.js:333** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/semantic-80-20.test.js:344** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/semantic-80-20.test.js:356** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/semantic-generation-workflow.test.js:345** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/semantic-generation-workflow.test.js:348** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/semantic-generation-workflow.test.js:452** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/semantic-generation-workflow.test.js:457** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/semantic-workflow-demo.test.js:169** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/semantic-workflow-demo.test.js:171** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/semantic-workflow-demo.test.js:210** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/semantic-workflow-demo.test.js:212** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/semantic-workflow-demo.test.js:273** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/semantic-workflow-demo.test.js:275** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/smoke-tests.js:128** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/smoke-tests.js:131** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/smoke-tests.js:153** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/smoke-tests.js:156** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/state-management/state-management.test.js:38** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/state-management/state-management.test.js:101** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/state-management/state-management.test.js:286** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/integration/state-management/state-management.test.js:403** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/state-management/state-management.test.js:405** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/state-management/state-management.test.js:467** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/integration/state-management/state-management.test.js:487** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/state-management/state-management.test.js:692** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/template-discovery.spec.js:11** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/template-discovery.test.js:10** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/template-discovery.test.js:337** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/template-discovery.test.js:339** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/template-discovery.test.js:365** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/template-discovery.test.js:367** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/template-engine.test.js:126** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/integration/template-engine.test.js:146** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/integration/template-engine.test.js:186** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/template-engine.test.js:188** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/template-engine.test.js:466** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/template-engine.test.js:472** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/template-engine.test.js:532** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/template-engine.test.js:534** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/template-engine.test.js:547** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/template-engine.test.js:567** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/template-rendering-pipeline.test.js:503** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/template-rendering-pipeline.test.js:514** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/test-data-factory.js:304** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/test-data-factory.js:605** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/integration/third-party-integration-tests.js:54** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/integration/third-party-integration-tests.js:250** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/integration/third-party-integration-tests.js:328** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/third-party-integration-tests.js:400** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/integration/third-party-integration-tests.js:471** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/third-party-integration-tests.js:474** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/third-party-integration-tests.js:692** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/third-party-integration-tests.js:694** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/third-party-integration-tests.js:818** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/third-party-integration-tests.js:827** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/third-party-integration-tests.js:829** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/turtle-template-integration.test.js:10** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/turtle-template-integration.test.js:31** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/integration/unified-template-engine.test.js:304** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/unified-template-engine.test.js:306** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/unified-template-engine.test.js:309** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/unified-template-engine.test.js:311** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/unjucks-integration.test.js:140** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/unjucks-integration.test.js:142** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/unjucks-integration.test.js:501** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/unjucks-integration.test.js:514** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/unjucks-integration.test.js:572** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/unjucks-integration.test.js:603** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/unjucks-mcp-real-workflows.test.js:18** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/unjucks-mcp-real-workflows.test.js:179** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/workflow-chaining.test.js:146** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/workflow-chaining.test.js:148** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/workflows/complete-workflow.test.js:48** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/workflows/complete-workflow.test.js:58** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/workflows/complete-workflow.test.js:65** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/workflows/complete-workflow.test.js:75** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/workflows/complete-workflow.test.js:87** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/workflows/complete-workflow.test.js:96** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/workflows/complete-workflow.test.js:102** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/workflows/complete-workflow.test.js:110** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/workflows/complete-workflow.test.js:124** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/workflows/complete-workflow.test.js:133** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/workflows/complete-workflow.test.js:139** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/workflows/complete-workflow.test.js:359** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/workflows/complete-workflow.test.js:365** - Date.now() call creates non-deterministic timestamp
+- **tests/integration/working-validation.spec.js:12** - Date.now() call creates non-deterministic timestamp
+- **tests/integration-end-to-end-test.mjs:286** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/integration-orchestrator-final-demo.mjs:173** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/integration-strategy/coverage-quality-monitor.js:1285** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/integration-strategy/coverage-quality-monitor.js:1312** - Date.now() call creates non-deterministic timestamp
+- **tests/integration-strategy/critical-user-journey-tester.js:923** - Date.now() call creates non-deterministic timestamp
+- **tests/integration-strategy/data-flow-integrity-tester.js:527** - Date.now() call creates non-deterministic timestamp
+- **tests/integration-strategy/data-flow-integrity-tester.js:757** - Date.now() call creates non-deterministic timestamp
+- **tests/integration-strategy/data-flow-integrity-tester.js:846** - Date.now() call creates non-deterministic timestamp
+- **tests/integration-strategy/integration-test-orchestrator.js:305** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/integration-strategy/integration-test-orchestrator.js:342** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/integration-strategy/integration-test-strategy.js:618** - Date.now() call creates non-deterministic timestamp
+- **tests/integration-strategy/integration-test-strategy.js:619** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/integration-strategy/integration-test-strategy.js:636** - Date.now() call creates non-deterministic timestamp
+- **tests/integration-strategy/performance-reliability-tester.js:398** - Date.now() call creates non-deterministic timestamp
+- **tests/integration-strategy/performance-reliability-tester.js:406** - Date.now() call creates non-deterministic timestamp
+- **tests/integration-strategy/performance-reliability-tester.js:462** - Date.now() call creates non-deterministic timestamp
+- **tests/integration-strategy/performance-reliability-tester.js:920** - Date.now() call creates non-deterministic timestamp
+- **tests/json-cli-performance.js:327** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/json-cli-performance.js:389** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/json-entity-corruption-test.js:264** - Date.now() call creates non-deterministic timestamp
+- **tests/json-entity-corruption-test.js:266** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/advanced-query-optimizer.test.js:30** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/attestation/enhanced-integration.test.js:28** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/attestation/integration.test.js:276** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/attestation/integration.test.js:289** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/attestation/integration.test.js:292** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/attestation/integration.test.js:294** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/attestation/integration.test.js:316** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/attestation/integration.test.js:318** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/attestation/integration.test.js:321** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/attestation/integration.test.js:323** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/attestation/verifier.test.js:136** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/attestation/verifier.test.js:138** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/attestation/verifier.test.js:344** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/attestation/verifier.test.js:346** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/cas-performance-validation.test.js:107** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/cas-performance-validation.test.js:139** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/cli/sparql-adapter.test.js:71** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/cli-compatibility.js:423** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/kgen/cli-compatibility.js:433** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/kgen/cli-compatibility.js:468** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/kgen/cli-compatibility.js:615** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/kgen/cli-compatibility.js:637** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/cli-compatibility.js:644** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/content-uri-integration.test.js:204** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/content-uri-integration.test.js:205** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/kgen/content-uri-integration.test.js:242** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/content-uri-integration.test.js:243** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/kgen/content-uri-integration.test.js:289** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/kgen/content-uri-integration.test.js:324** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/content-uri-integration.test.js:325** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/kgen/content-uri-integration.test.js:388** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/content-uri-integration.test.js:389** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/kgen/deterministic/deterministic-renderer.test.js:297** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/kgen/deterministic/integration-test.js:350** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/deterministic/integration-test.js:379** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/deterministic/integration-test.js:381** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/deterministic/integration-test.js:386** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/deterministic/integration-test.js:388** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/deterministic-fixes-validation.test.js:179** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/deterministic-fixes-validation.test.js:180** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/deterministic-validation.js:305** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/kgen/deterministic-validation.js:316** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/kgen/deterministic-validation.js:726** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/kgen/deterministic-validation.js:745** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/deterministic-validation.js:752** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/drift-detection.test.js:80** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/kgen/drift-detection.test.js:631** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/drift-detection.test.js:635** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/kgen-cli-production-test.js:34** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/kgen-cli-production-test.js:38** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/kgen/kgen-cli-production-test.js:66** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/kgen-cli-production-test.js:76** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/kgen-cli-production-test.js:99** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/kgen-cli-production-test.js:280** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/kgen-cli-production-test.js:289** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/kgen/kgen-engine-real-implementation.test.js:22** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/kgen-engine-real-implementation.test.js:434** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/kgen-engine-real-implementation.test.js:436** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/kgen-functional-test.js:263** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/kgen/kgen-simple-test.js:118** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/kgen-simple-test.js:246** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/kgen/latex/integration.test.js:28** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/latex/integration.test.js:666** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/latex/integration.test.js:669** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/latex/integration.test.js:685** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/latex/integration.test.js:689** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/performance-regression.js:144** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/kgen/performance-regression.js:234** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/kgen/performance-regression.js:274** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/performance-regression.js:301** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/performance-regression.js:359** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/performance-regression.js:419** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/kgen/performance-regression.js:482** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/kgen/performance-regression.js:517** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/kgen/performance-regression.js:581** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/performance-regression.js:615** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/kgen/performance-regression.js:672** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/kgen/performance-regression.js:787** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/kgen/performance-regression.js:816** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/performance-regression.js:823** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/provenance/performance-validation.test.js:122** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/provenance/performance-validation.test.js:126** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/provenance/performance-validation.test.js:150** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/provenance/performance-validation.test.js:152** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/provenance/performance-validation.test.js:177** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/kgen/provenance/performance-validation.test.js:193** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/provenance/performance-validation.test.js:195** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/provenance/performance-validation.test.js:212** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/provenance/performance-validation.test.js:216** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/provenance/performance-validation.test.js:239** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/provenance/performance-validation.test.js:243** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/provenance/performance-validation.test.js:386** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/provenance/performance-validation.test.js:390** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/provenance/performance-validation.test.js:404** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/provenance/performance-validation.test.js:409** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/provenance/performance-validation.test.js:516** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/provenance/performance-validation.test.js:525** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/provenance/tracker.test.js:239** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/provenance/tracker.test.js:240** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/kgen/provenance/tracker.test.js:333** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/provenance/tracker.test.js:334** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/kgen/provenance.test.js:483** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/query/QueryEngine.test.ts:620** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/query/QueryEngine.test.ts:622** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/query/QueryEngine.test.ts:633** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/query/QueryEngine.test.ts:635** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/query/QueryEngine.test.ts:658** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/query/QueryEngine.test.ts:660** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/query/QueryEngine.test.ts:694** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/query/QueryEngine.test.ts:696** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/security/consensus/consensus-security.test.js:122** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/security/consensus/consensus-security.test.js:128** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/security/consensus/consensus-security.test.js:177** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/security/consensus/consensus-security.test.js:178** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/kgen/security/consensus/consensus-security.test.js:459** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/security/consensus/consensus-security.test.js:466** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/security/consensus/consensus-security.test.js:471** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/security/consensus/consensus-security.test.js:472** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/security/consensus/consensus-security.test.js:506** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/security/consensus/consensus-security.test.js:512** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/security/consensus/consensus-security.test.js:725** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/security/consensus/consensus-security.test.js:761** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/security/consensus/consensus-security.test.js:767** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/security/consensus/consensus-security.test.js:858** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/security/consensus/consensus-security.test.js:864** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/security/consensus/consensus-security.test.js:874** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/security/governance/enterprise-rules.test.js:168** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/kgen/security/governance/enterprise-rules.test.js:300** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/security/governance/enterprise-rules.test.js:356** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/security/governance/enterprise-rules.test.js:415** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/security/governance/enterprise-rules.test.js:416** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/kgen/security/governance/enterprise-rules.test.js:501** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/security/governance/enterprise-rules.test.js:502** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/kgen/security/integration/enterprise-security.test.js:413** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/security/integration/enterprise-security.test.js:414** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/kgen/security/integration/enterprise-security.test.js:428** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/security/integration/enterprise-security.test.js:429** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/kgen/security/integration/enterprise-security.test.js:503** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/security/integration/enterprise-security.test.js:504** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/kgen/security/integration/enterprise-security.test.js:536** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/security/integration/enterprise-security.test.js:549** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/security/security-integration.test.js:160** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/security/security-integration.test.js:176** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/security/security-integration.test.js:184** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/security/security-integration.test.js:404** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/security/security-integration.test.js:408** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/security/security-integration.test.js:424** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/security/security-integration.test.js:426** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/security/unit/security-components.test.js:132** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/kgen/security/unit/security-components.test.js:133** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/security/unit/security-components.test.js:263** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/security/unit/security-components.test.js:264** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/kgen/serialization/canonical-serializer.test.js:287** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/serialization/canonical-serializer.test.js:289** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/serialization/streaming-serializer.test.js:356** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/serialization/streaming-serializer.test.js:358** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/templating/integration.test.js:71** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/kgen/test-framework-architect.js:197** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/kgen/test-framework-architect.js:224** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/kgen/test-framework-architect.js:254** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/kgen/test-framework-architect.js:297** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/kgen/test-framework-architect.js:474** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/kgen/test-framework-architect.js:783** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/kgen/test-framework-architect.js:876** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/kgen/test-framework-architect.js:1073** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/kgen/test-orchestrator.js:197** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/kgen/test-orchestrator.js:217** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/kgen/test-orchestrator.js:435** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/kgen/test-orchestrator.js:447** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/kgen/test-orchestrator.js:473** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/kgen/test-orchestrator.js:663** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/kgen/test-orchestrator.js:691** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/test-orchestrator.js:698** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/test-orchestrator.js:705** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/unified-provenance.test.js:473** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/kgen/unified-provenance.test.js:475** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/kgen/unified-provenance.test.js:590** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/unified-provenance.test.js:592** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/unified-provenance.test.js:595** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/unified-provenance.test.js:597** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/validation/cli.test.js:235** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/kgen/validation/demo-validation.test.js:61** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/validation/demo-validation.test.js:171** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/validation/demo-validation.test.js:251** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/validation/demo-validation.test.js:256** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/kgen/validation/demo-validation.test.js:291** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/validation/demo-validation.test.js:297** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/kgen/validation/demo-validation.test.js:300** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/validation/demo-validation.test.js:306** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/kgen/validation/integration.test.js:586** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/validation/integration.test.js:591** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen/validation/validation-engine.test.js:409** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/kgen-self-healing.test.js:192** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen-self-healing.test.js:706** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen-self-healing.test.js:717** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen-self-healing.test.js:732** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen-self-healing.test.js:743** - Date.now() call creates non-deterministic timestamp
+- **tests/kgen-test-runner.js:194** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/kgen-test-runner.js:257** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/latex-compiler.test.js:18** - Date.now() call creates non-deterministic timestamp
+- **tests/latex-compiler.test.js:297** - Date.now() call creates non-deterministic timestamp
+- **tests/latex-compiler.test.js:411** - Date.now() call creates non-deterministic timestamp
+- **tests/latex-compiler.test.js:435** - Date.now() call creates non-deterministic timestamp
+- **tests/latex-compiler.test.js:459** - Date.now() call creates non-deterministic timestamp
+- **tests/latex-comprehensive-test.js:142** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/latex-performance-tests.js:27** - Date.now() call creates non-deterministic timestamp
+- **tests/latex-performance-tests.js:219** - Date.now() call creates non-deterministic timestamp
+- **tests/linked-data-performance.test.js:224** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/linked-data-performance.test.js:418** - Date.now() call creates non-deterministic timestamp
+- **tests/load/k6-load-test.js:56** - Date.now() call creates non-deterministic timestamp
+- **tests/load/k6-load-test.js:57** - Date.now() call creates non-deterministic timestamp
+- **tests/load/k6-load-test.js:171** - Date.now() call creates non-deterministic timestamp
+- **tests/load/k6-load-test.js:223** - Date.now() call creates non-deterministic timestamp
+- **tests/load/k6-load-test.js:308** - Date.now() call creates non-deterministic timestamp
+- **tests/load/k6-load-test.js:334** - Date.now() call creates non-deterministic timestamp
+- **tests/load/k6-load-test.js:339** - Date.now() call creates non-deterministic timestamp
+- **tests/manual-attack-tests.js:241** - Date.now() call creates non-deterministic timestamp
+- **tests/manual-attack-tests.js:248** - Date.now() call creates non-deterministic timestamp
+- **tests/manual-cli-test.js:23** - Date.now() call creates non-deterministic timestamp
+- **tests/mcp-integration/protocol-communication.test.js:320** - Date.now() call creates non-deterministic timestamp
+- **tests/mcp-integration/protocol-communication.test.js:327** - Date.now() call creates non-deterministic timestamp
+- **tests/mcp-integration/protocol-communication.test.js:330** - Date.now() call creates non-deterministic timestamp
+- **tests/mcp-integration/semantic-mcp-validation.test.js:262** - Date.now() call creates non-deterministic timestamp
+- **tests/mcp-integration/semantic-mcp-validation.test.js:269** - Date.now() call creates non-deterministic timestamp
+- **tests/mcp-integration/unjucks-mcp-integration.test.js:480** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/mcp-integration/unjucks-mcp-integration.test.js:486** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/mocks/mcp-client.mock.js:130** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/mocks/mcp-client.mock.js:142** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/mocks/mcp-client.mock.js:187** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/mocks/mcp-client.mock.js:235** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/mocks/mcp-client.mock.js:246** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/mocks/mcp-client.mock.js:299** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/mocks/mcp-client.mock.js:366** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/mocks/mcp-client.mock.js:409** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/monitoring/monitoring-gap-analysis.js:7** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/monitoring/monitoring-validation.js:45** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/monitoring/monitoring-validation.js:60** - Date.now() call creates non-deterministic timestamp
+- **tests/monitoring/monitoring-validation.js:64** - Date.now() call creates non-deterministic timestamp
+- **tests/monitoring/monitoring-validation.js:110** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/monitoring/monitoring-validation.js:143** - Date.now() call creates non-deterministic timestamp
+- **tests/monitoring/monitoring-validation.js:146** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/monitoring/monitoring-validation.js:176** - Date.now() call creates non-deterministic timestamp
+- **tests/monitoring/monitoring-validation.js:240** - Date.now() call creates non-deterministic timestamp
+- **tests/monitoring/monitoring-validation.js:241** - Date.now() call creates non-deterministic timestamp
+- **tests/monitoring/monitoring-validation.js:268** - Date.now() call creates non-deterministic timestamp
+- **tests/monitoring/monitoring-validation.js:293** - Date.now() call creates non-deterministic timestamp
+- **tests/monitoring/monitoring-validation.js:311** - Date.now() call creates non-deterministic timestamp
+- **tests/monitoring/monitoring-validation.js:344** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/monitoring/monitoring-validation.js:409** - Date.now() call creates non-deterministic timestamp
+- **tests/native-bindings-test.js:191** - Date.now() call creates non-deterministic timestamp
+- **tests/node-version-compatibility.test.js:40** - Date.now() call creates non-deterministic timestamp
+- **tests/node-version-compatibility.test.js:115** - Date.now() call creates non-deterministic timestamp
+- **tests/node-version-compatibility.test.js:142** - Date.now() call creates non-deterministic timestamp
+- **tests/node-version-compatibility.test.js:160** - Date.now() call creates non-deterministic timestamp
+- **tests/node-version-compatibility.test.js:179** - Date.now() call creates non-deterministic timestamp
+- **tests/office/cli/office-commands.test.js:127** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/office/cli/office-commands.test.js:136** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/office/cli/office-commands.test.js:214** - Date.now() call creates non-deterministic timestamp
+- **tests/office/cli/office-commands.test.js:378** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/office/e2e/complete-workflow.test.js:338** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/office/e2e/simple-workflow.test.js:220** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/office/end-to-end-validation.js:39** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/office/end-to-end-validation.js:392** - Date.now() call creates non-deterministic timestamp
+- **tests/office/end-to-end-validation.js:450** - Date.now() call creates non-deterministic timestamp
+- **tests/office/enhanced-opc-validation.test.js:25** - Date.now() call creates non-deterministic timestamp
+- **tests/office/enhanced-opc-validation.test.js:615** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/office/injectors/office-injector.test.js:298** - Date.now() call creates non-deterministic timestamp
+- **tests/office/injectors/office-injector.test.js:302** - Date.now() call creates non-deterministic timestamp
+- **tests/office/integration/batch-operations.test.js:25** - Date.now() call creates non-deterministic timestamp
+- **tests/office/integration/batch-operations.test.js:46** - Date.now() call creates non-deterministic timestamp
+- **tests/office/integration/batch-operations.test.js:62** - Date.now() call creates non-deterministic timestamp
+- **tests/office/integration/batch-operations.test.js:132** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/office/integration/batch-operations.test.js:133** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/office/integration/batch-operations.test.js:169** - Date.now() call creates non-deterministic timestamp
+- **tests/office/integration/batch-operations.test.js:273** - Date.now() call creates non-deterministic timestamp
+- **tests/office/integration/batch-operations.test.js:275** - Date.now() call creates non-deterministic timestamp
+- **tests/office/integration/batch-operations.test.js:548** - Date.now() call creates non-deterministic timestamp
+- **tests/office/integration/batch-operations.test.js:550** - Date.now() call creates non-deterministic timestamp
+- **tests/office/integration/office-workflows.test.js:37** - Date.now() call creates non-deterministic timestamp
+- **tests/office/integration/office-workflows.test.js:52** - Date.now() call creates non-deterministic timestamp
+- **tests/office/integration/office-workflows.test.js:71** - Date.now() call creates non-deterministic timestamp
+- **tests/office/integration/office-workflows.test.js:250** - Date.now() call creates non-deterministic timestamp
+- **tests/office/integration/office-workflows.test.js:280** - Date.now() call creates non-deterministic timestamp
+- **tests/office/integration/office-workflows.test.js:461** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/office/integration/template-processing.test.js:36** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/office/office-integration.test.js:110** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/office/office-integration.test.js:506** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/office/office-integration.test.js:614** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/office/office-integration.test.js:620** - Date.now() call creates non-deterministic timestamp
+- **tests/office/office-integration.test.js:624** - Date.now() call creates non-deterministic timestamp
+- **tests/office/opc-performance-benchmarks.test.js:481** - Date.now() call creates non-deterministic timestamp
+- **tests/office/opc-performance-benchmarks.test.js:484** - Date.now() call creates non-deterministic timestamp
+- **tests/office/performance/batch-performance.test.js:56** - Date.now() call creates non-deterministic timestamp
+- **tests/office/performance/batch-performance.test.js:63** - Date.now() call creates non-deterministic timestamp
+- **tests/office/performance/batch-performance.test.js:128** - Date.now() call creates non-deterministic timestamp
+- **tests/office/performance/batch-performance.test.js:134** - Date.now() call creates non-deterministic timestamp
+- **tests/office/performance/batch-performance.test.js:184** - Date.now() call creates non-deterministic timestamp
+- **tests/office/performance/batch-performance.test.js:200** - Date.now() call creates non-deterministic timestamp
+- **tests/office/performance/batch-performance.test.js:223** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/office/performance/batch-performance.test.js:230** - Date.now() call creates non-deterministic timestamp
+- **tests/office/performance/batch-performance.test.js:248** - Date.now() call creates non-deterministic timestamp
+- **tests/office/performance/batch-performance.test.js:490** - Date.now() call creates non-deterministic timestamp
+- **tests/office/performance/batch-performance.test.js:514** - Date.now() call creates non-deterministic timestamp
+- **tests/office/test-runner.js:346** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/office/test-runner.js:410** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/office/test-runner.js:457** - Date.now() call creates non-deterministic timestamp
+- **tests/office/test-runner.js:491** - Date.now() call creates non-deterministic timestamp
+- **tests/office/unit/excel-processor.test.js:381** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/office/unit/excel-processor.test.js:382** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/office/unit/excel-processor.test.js:413** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/office/unit/powerpoint-processor.test.js:433** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/office/unit/powerpoint-processor.test.js:434** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/office/unit/powerpoint-processor.test.js:499** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/office/unit/word-processor.test.js:302** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/office/unit/word-processor.test.js:303** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/office/unit/word-processor.test.js:331** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/office/utils/variable-extractor.test.js:465** - Date.now() call creates non-deterministic timestamp
+- **tests/office/utils/variable-extractor.test.js:467** - Date.now() call creates non-deterministic timestamp
+- **tests/office/word-processor.test.js:503** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/package-manager-compatibility.test.js:21** - Date.now() call creates non-deterministic timestamp
+- **tests/performance/claims-validator.js:45** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/performance/kgen-performance-validation.js:512** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/performance/memory-profiler.mjs:224** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/performance/memory-profiler.mjs:314** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/performance/memory-usage.test.js:45** - Date.now() call creates non-deterministic timestamp
+- **tests/performance/memory-usage.test.js:115** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/performance/memory-usage.test.js:174** - Date.now() call creates non-deterministic timestamp
+- **tests/performance/memory-usage.test.js:223** - Date.now() call creates non-deterministic timestamp
+- **tests/performance/performance-benchmark.mjs:71** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/performance/performance-benchmark.mjs:129** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/performance/performance-benchmark.mjs:592** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/performance/performance-benchmark.mjs:725** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/performance/performance-claims-audit.js:28** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/performance/performance-claims-audit.js:48** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/performance/quick-performance-check.js:228** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/performance/quick-performance-test.js:115** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/performance/regression-detection.test.js:13** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/performance/regression-detection.test.js:41** - Date.now() call creates non-deterministic timestamp
+- **tests/performance/regression-detection.test.js:158** - Date.now() call creates non-deterministic timestamp
+- **tests/performance/regression-detection.test.js:256** - Date.now() call creates non-deterministic timestamp
+- **tests/performance/regression-detection.test.js:322** - Date.now() call creates non-deterministic timestamp
+- **tests/performance/regression-detection.test.js:324** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/performance/run-performance-tests.js:196** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/performance/setup.js:122** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/performance/setup.js:152** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/performance/setup.js:183** - Date.now() call creates non-deterministic timestamp
+- **tests/performance/template-generation.bench.js:211** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/performance/template-generation.bench.js:253** - Date.now() call creates non-deterministic timestamp
+- **tests/performance-analysis.js:29** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/performance-benchmark.js:377** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/performance-benchmark.js:465** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/performance-benchmark.js:476** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/performance-benchmark.js:510** - Date.now() call creates non-deterministic timestamp
+- **tests/performance-benchmark.js:535** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/performance-benchmark.js:696** - Date.now() call creates non-deterministic timestamp
+- **tests/performance-regression-detector.js:37** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/performance-regression-detector.js:84** - Date.now() call creates non-deterministic timestamp
+- **tests/performance-regression-detector.js:132** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/performance-regression-detector.js:258** - Date.now() call creates non-deterministic timestamp
+- **tests/performance-regression-detector.js:263** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/performance-regression-detector.js:298** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/performance-regression-detector.js:317** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/performance-regression-detector.js:324** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/performance-regression-detector.js:336** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/pipeline/dark-matter-integration.test.js:25** - Date.now() call creates non-deterministic timestamp
+- **tests/platform-compatibility.test.js:42** - Date.now() call creates non-deterministic timestamp
+- **tests/policy-gates.test.js:25** - Date.now() call creates non-deterministic timestamp
+- **tests/policy-gates.test.js:168** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/production/compliance-governance.test.js:108** - Date.now() call creates non-deterministic timestamp
+- **tests/production/compliance-governance.test.js:139** - Date.now() call creates non-deterministic timestamp
+- **tests/production/compliance-governance.test.js:151** - Date.now() call creates non-deterministic timestamp
+- **tests/production/compliance-governance.test.js:164** - Date.now() call creates non-deterministic timestamp
+- **tests/production/compliance-governance.test.js:191** - Date.now() call creates non-deterministic timestamp
+- **tests/production/compliance-governance.test.js:202** - Date.now() call creates non-deterministic timestamp
+- **tests/production/compliance-governance.test.js:215** - Date.now() call creates non-deterministic timestamp
+- **tests/production/compliance-governance.test.js:242** - Date.now() call creates non-deterministic timestamp
+- **tests/production/compliance-governance.test.js:253** - Date.now() call creates non-deterministic timestamp
+- **tests/production/compliance-governance.test.js:268** - Date.now() call creates non-deterministic timestamp
+- **tests/production/compliance-governance.test.js:299** - Date.now() call creates non-deterministic timestamp
+- **tests/production/compliance-governance.test.js:310** - Date.now() call creates non-deterministic timestamp
+- **tests/production/compliance-governance.test.js:323** - Date.now() call creates non-deterministic timestamp
+- **tests/production/compliance-governance.test.js:350** - Date.now() call creates non-deterministic timestamp
+- **tests/production/compliance-governance.test.js:361** - Date.now() call creates non-deterministic timestamp
+- **tests/production/compliance-governance.test.js:375** - Date.now() call creates non-deterministic timestamp
+- **tests/production/compliance-governance.test.js:406** - Date.now() call creates non-deterministic timestamp
+- **tests/production/compliance-governance.test.js:417** - Date.now() call creates non-deterministic timestamp
+- **tests/production/compliance-governance.test.js:429** - Date.now() call creates non-deterministic timestamp
+- **tests/production/compliance-governance.test.js:460** - Date.now() call creates non-deterministic timestamp
+- **tests/production/compliance-governance.test.js:471** - Date.now() call creates non-deterministic timestamp
+- **tests/production/compliance-governance.test.js:483** - Date.now() call creates non-deterministic timestamp
+- **tests/production/compliance-governance.test.js:514** - Date.now() call creates non-deterministic timestamp
+- **tests/production/compliance-governance.test.js:525** - Date.now() call creates non-deterministic timestamp
+- **tests/production/compliance-governance.test.js:539** - Date.now() call creates non-deterministic timestamp
+- **tests/production/compliance-governance.test.js:574** - Date.now() call creates non-deterministic timestamp
+- **tests/production/compliance-governance.test.js:585** - Date.now() call creates non-deterministic timestamp
+- **tests/production/compliance-governance.test.js:597** - Date.now() call creates non-deterministic timestamp
+- **tests/production/compliance-governance.test.js:624** - Date.now() call creates non-deterministic timestamp
+- **tests/production/compliance-governance.test.js:635** - Date.now() call creates non-deterministic timestamp
+- **tests/production/compliance-governance.test.js:649** - Date.now() call creates non-deterministic timestamp
+- **tests/production/compliance-governance.test.js:680** - Date.now() call creates non-deterministic timestamp
+- **tests/production/compliance-governance.test.js:691** - Date.now() call creates non-deterministic timestamp
+- **tests/production/compliance-governance.test.js:703** - Date.now() call creates non-deterministic timestamp
+- **tests/production/compliance-governance.test.js:734** - Date.now() call creates non-deterministic timestamp
+- **tests/production/compliance-governance.test.js:745** - Date.now() call creates non-deterministic timestamp
+- **tests/production/compliance-governance.test.js:759** - Date.now() call creates non-deterministic timestamp
+- **tests/production/compliance-governance.test.js:790** - Date.now() call creates non-deterministic timestamp
+- **tests/production/compliance-governance.test.js:801** - Date.now() call creates non-deterministic timestamp
+- **tests/production/compliance-governance.test.js:813** - Date.now() call creates non-deterministic timestamp
+- **tests/production/compliance-governance.test.js:844** - Date.now() call creates non-deterministic timestamp
+- **tests/production/compliance-governance.test.js:855** - Date.now() call creates non-deterministic timestamp
+- **tests/production/compliance-governance.test.js:925** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/production/compliance-governance.test.js:1134** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/production/cross-platform.test.js:654** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/production/deployment-pipeline.test.js:74** - Date.now() call creates non-deterministic timestamp
+- **tests/production/deployment-pipeline.test.js:93** - Date.now() call creates non-deterministic timestamp
+- **tests/production/deployment-pipeline.test.js:102** - Date.now() call creates non-deterministic timestamp
+- **tests/production/deployment-pipeline.test.js:115** - Date.now() call creates non-deterministic timestamp
+- **tests/production/deployment-pipeline.test.js:127** - Date.now() call creates non-deterministic timestamp
+- **tests/production/deployment-pipeline.test.js:158** - Date.now() call creates non-deterministic timestamp
+- **tests/production/deployment-pipeline.test.js:168** - Date.now() call creates non-deterministic timestamp
+- **tests/production/deployment-pipeline.test.js:179** - Date.now() call creates non-deterministic timestamp
+- **tests/production/deployment-pipeline.test.js:193** - Date.now() call creates non-deterministic timestamp
+- **tests/production/deployment-pipeline.test.js:205** - Date.now() call creates non-deterministic timestamp
+- **tests/production/deployment-pipeline.test.js:236** - Date.now() call creates non-deterministic timestamp
+- **tests/production/deployment-pipeline.test.js:246** - Date.now() call creates non-deterministic timestamp
+- **tests/production/deployment-pipeline.test.js:257** - Date.now() call creates non-deterministic timestamp
+- **tests/production/deployment-pipeline.test.js:271** - Date.now() call creates non-deterministic timestamp
+- **tests/production/deployment-pipeline.test.js:283** - Date.now() call creates non-deterministic timestamp
+- **tests/production/deployment-pipeline.test.js:346** - Date.now() call creates non-deterministic timestamp
+- **tests/production/deployment-pipeline.test.js:356** - Date.now() call creates non-deterministic timestamp
+- **tests/production/deployment-pipeline.test.js:369** - Date.now() call creates non-deterministic timestamp
+- **tests/production/deployment-pipeline.test.js:384** - Date.now() call creates non-deterministic timestamp
+- **tests/production/deployment-pipeline.test.js:410** - Date.now() call creates non-deterministic timestamp
+- **tests/production/deployment-pipeline.test.js:419** - Date.now() call creates non-deterministic timestamp
+- **tests/production/deployment-pipeline.test.js:434** - Date.now() call creates non-deterministic timestamp
+- **tests/production/deployment-pipeline.test.js:460** - Date.now() call creates non-deterministic timestamp
+- **tests/production/deployment-pipeline.test.js:471** - Date.now() call creates non-deterministic timestamp
+- **tests/production/deployment-pipeline.test.js:483** - Date.now() call creates non-deterministic timestamp
+- **tests/production/deployment-pipeline.test.js:509** - Date.now() call creates non-deterministic timestamp
+- **tests/production/deployment-pipeline.test.js:520** - Date.now() call creates non-deterministic timestamp
+- **tests/production/deployment-pipeline.test.js:534** - Date.now() call creates non-deterministic timestamp
+- **tests/production/deployment-pipeline.test.js:564** - Date.now() call creates non-deterministic timestamp
+- **tests/production/deployment-pipeline.test.js:575** - Date.now() call creates non-deterministic timestamp
+- **tests/production/deployment-pipeline.test.js:587** - Date.now() call creates non-deterministic timestamp
+- **tests/production/deployment-pipeline.test.js:621** - Date.now() call creates non-deterministic timestamp
+- **tests/production/deployment-pipeline.test.js:632** - Date.now() call creates non-deterministic timestamp
+- **tests/production/deployment-pipeline.test.js:644** - Date.now() call creates non-deterministic timestamp
+- **tests/production/deployment-pipeline.test.js:674** - Date.now() call creates non-deterministic timestamp
+- **tests/production/deployment-pipeline.test.js:685** - Date.now() call creates non-deterministic timestamp
+- **tests/production/deployment-pipeline.test.js:964** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/production/enterprise-integration.test.js:65** - Date.now() call creates non-deterministic timestamp
+- **tests/production/enterprise-integration.test.js:96** - Date.now() call creates non-deterministic timestamp
+- **tests/production/enterprise-integration.test.js:107** - Date.now() call creates non-deterministic timestamp
+- **tests/production/enterprise-integration.test.js:119** - Date.now() call creates non-deterministic timestamp
+- **tests/production/enterprise-integration.test.js:150** - Date.now() call creates non-deterministic timestamp
+- **tests/production/enterprise-integration.test.js:161** - Date.now() call creates non-deterministic timestamp
+- **tests/production/enterprise-integration.test.js:173** - Date.now() call creates non-deterministic timestamp
+- **tests/production/enterprise-integration.test.js:208** - Date.now() call creates non-deterministic timestamp
+- **tests/production/enterprise-integration.test.js:219** - Date.now() call creates non-deterministic timestamp
+- **tests/production/enterprise-integration.test.js:233** - Date.now() call creates non-deterministic timestamp
+- **tests/production/enterprise-integration.test.js:269** - Date.now() call creates non-deterministic timestamp
+- **tests/production/enterprise-integration.test.js:280** - Date.now() call creates non-deterministic timestamp
+- **tests/production/enterprise-integration.test.js:292** - Date.now() call creates non-deterministic timestamp
+- **tests/production/enterprise-integration.test.js:327** - Date.now() call creates non-deterministic timestamp
+- **tests/production/enterprise-integration.test.js:338** - Date.now() call creates non-deterministic timestamp
+- **tests/production/enterprise-integration.test.js:352** - Date.now() call creates non-deterministic timestamp
+- **tests/production/enterprise-integration.test.js:387** - Date.now() call creates non-deterministic timestamp
+- **tests/production/enterprise-integration.test.js:398** - Date.now() call creates non-deterministic timestamp
+- **tests/production/enterprise-integration.test.js:410** - Date.now() call creates non-deterministic timestamp
+- **tests/production/enterprise-integration.test.js:437** - Date.now() call creates non-deterministic timestamp
+- **tests/production/enterprise-integration.test.js:448** - Date.now() call creates non-deterministic timestamp
+- **tests/production/enterprise-integration.test.js:462** - Date.now() call creates non-deterministic timestamp
+- **tests/production/enterprise-integration.test.js:497** - Date.now() call creates non-deterministic timestamp
+- **tests/production/enterprise-integration.test.js:508** - Date.now() call creates non-deterministic timestamp
+- **tests/production/enterprise-integration.test.js:520** - Date.now() call creates non-deterministic timestamp
+- **tests/production/enterprise-integration.test.js:551** - Date.now() call creates non-deterministic timestamp
+- **tests/production/enterprise-integration.test.js:562** - Date.now() call creates non-deterministic timestamp
+- **tests/production/enterprise-integration.test.js:576** - Date.now() call creates non-deterministic timestamp
+- **tests/production/enterprise-integration.test.js:607** - Date.now() call creates non-deterministic timestamp
+- **tests/production/enterprise-integration.test.js:618** - Date.now() call creates non-deterministic timestamp
+- **tests/production/enterprise-integration.test.js:630** - Date.now() call creates non-deterministic timestamp
+- **tests/production/enterprise-integration.test.js:657** - Date.now() call creates non-deterministic timestamp
+- **tests/production/enterprise-integration.test.js:668** - Date.now() call creates non-deterministic timestamp
+- **tests/production/enterprise-integration.test.js:682** - Date.now() call creates non-deterministic timestamp
+- **tests/production/enterprise-integration.test.js:717** - Date.now() call creates non-deterministic timestamp
+- **tests/production/enterprise-integration.test.js:728** - Date.now() call creates non-deterministic timestamp
+- **tests/production/enterprise-integration.test.js:740** - Date.now() call creates non-deterministic timestamp
+- **tests/production/enterprise-integration.test.js:767** - Date.now() call creates non-deterministic timestamp
+- **tests/production/enterprise-integration.test.js:778** - Date.now() call creates non-deterministic timestamp
+- **tests/production/enterprise-integration.test.js:1154** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/production/error-recovery.test.js:43** - Date.now() call creates non-deterministic timestamp
+- **tests/production/error-recovery.test.js:52** - Date.now() call creates non-deterministic timestamp
+- **tests/production/error-recovery.test.js:122** - Date.now() call creates non-deterministic timestamp
+- **tests/production/error-recovery.test.js:140** - Date.now() call creates non-deterministic timestamp
+- **tests/production/error-recovery.test.js:152** - Date.now() call creates non-deterministic timestamp
+- **tests/production/error-recovery.test.js:281** - Date.now() call creates non-deterministic timestamp
+- **tests/production/error-recovery.test.js:323** - Date.now() call creates non-deterministic timestamp
+- **tests/production/error-recovery.test.js:369** - Date.now() call creates non-deterministic timestamp
+- **tests/production/error-recovery.test.js:386** - Date.now() call creates non-deterministic timestamp
+- **tests/production/error-recovery.test.js:500** - Date.now() call creates non-deterministic timestamp
+- **tests/production/error-recovery.test.js:516** - Date.now() call creates non-deterministic timestamp
+- **tests/production/error-recovery.test.js:527** - Date.now() call creates non-deterministic timestamp
+- **tests/production/error-recovery.test.js:781** - Date.now() call creates non-deterministic timestamp
+- **tests/production/error-recovery.test.js:786** - Date.now() call creates non-deterministic timestamp
+- **tests/production/error-recovery.test.js:803** - Date.now() call creates non-deterministic timestamp
+- **tests/production/error-recovery.test.js:809** - Date.now() call creates non-deterministic timestamp
+- **tests/production/error-recovery.test.js:926** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/production/integration-smoke.test.js:83** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/production/integration-smoke.test.js:102** - Date.now() call creates non-deterministic timestamp
+- **tests/production/integration-smoke.test.js:131** - Date.now() call creates non-deterministic timestamp
+- **tests/production/integration-smoke.test.js:168** - Date.now() call creates non-deterministic timestamp
+- **tests/production/integration-smoke.test.js:175** - Date.now() call creates non-deterministic timestamp
+- **tests/production/integration-smoke.test.js:185** - Date.now() call creates non-deterministic timestamp
+- **tests/production/integration-smoke.test.js:288** - Date.now() call creates non-deterministic timestamp
+- **tests/production/integration-smoke.test.js:311** - Date.now() call creates non-deterministic timestamp
+- **tests/production/integration-smoke.test.js:321** - Date.now() call creates non-deterministic timestamp
+- **tests/production/integration-smoke.test.js:418** - Date.now() call creates non-deterministic timestamp
+- **tests/production/integration-smoke.test.js:447** - Date.now() call creates non-deterministic timestamp
+- **tests/production/integration-smoke.test.js:457** - Date.now() call creates non-deterministic timestamp
+- **tests/production/integration-smoke.test.js:551** - Date.now() call creates non-deterministic timestamp
+- **tests/production/integration-smoke.test.js:574** - Date.now() call creates non-deterministic timestamp
+- **tests/production/integration-smoke.test.js:584** - Date.now() call creates non-deterministic timestamp
+- **tests/production/integration-smoke.test.js:721** - Date.now() call creates non-deterministic timestamp
+- **tests/production/integration-smoke.test.js:744** - Date.now() call creates non-deterministic timestamp
+- **tests/production/integration-smoke.test.js:754** - Date.now() call creates non-deterministic timestamp
+- **tests/production/integration-smoke.test.js:800** - Date.now() call creates non-deterministic timestamp
+- **tests/production/integration-smoke.test.js:808** - Date.now() call creates non-deterministic timestamp
+- **tests/production/integration-smoke.test.js:842** - Date.now() call creates non-deterministic timestamp
+- **tests/production/integration-smoke.test.js:864** - Date.now() call creates non-deterministic timestamp
+- **tests/production/integration-smoke.test.js:903** - Date.now() call creates non-deterministic timestamp
+- **tests/production/integration-smoke.test.js:990** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/production/monitoring-alerting.test.js:93** - Date.now() call creates non-deterministic timestamp
+- **tests/production/monitoring-alerting.test.js:97** - Date.now() call creates non-deterministic timestamp
+- **tests/production/monitoring-alerting.test.js:180** - Date.now() call creates non-deterministic timestamp
+- **tests/production/monitoring-alerting.test.js:209** - Date.now() call creates non-deterministic timestamp
+- **tests/production/monitoring-alerting.test.js:392** - Date.now() call creates non-deterministic timestamp
+- **tests/production/monitoring-alerting.test.js:394** - Date.now() call creates non-deterministic timestamp
+- **tests/production/monitoring-alerting.test.js:405** - Date.now() call creates non-deterministic timestamp
+- **tests/production/monitoring-alerting.test.js:416** - Date.now() call creates non-deterministic timestamp
+- **tests/production/monitoring-alerting.test.js:429** - Date.now() call creates non-deterministic timestamp
+- **tests/production/monitoring-alerting.test.js:446** - Date.now() call creates non-deterministic timestamp
+- **tests/production/monitoring-alerting.test.js:486** - Date.now() call creates non-deterministic timestamp
+- **tests/production/monitoring-alerting.test.js:488** - Date.now() call creates non-deterministic timestamp
+- **tests/production/monitoring-alerting.test.js:530** - Date.now() call creates non-deterministic timestamp
+- **tests/production/monitoring-alerting.test.js:547** - Date.now() call creates non-deterministic timestamp
+- **tests/production/monitoring-alerting.test.js:626** - Date.now() call creates non-deterministic timestamp
+- **tests/production/monitoring-alerting.test.js:627** - Date.now() call creates non-deterministic timestamp
+- **tests/production/monitoring-alerting.test.js:642** - Date.now() call creates non-deterministic timestamp
+- **tests/production/monitoring-alerting.test.js:651** - Date.now() call creates non-deterministic timestamp
+- **tests/production/monitoring-alerting.test.js:742** - Date.now() call creates non-deterministic timestamp
+- **tests/production/monitoring-alerting.test.js:758** - Date.now() call creates non-deterministic timestamp
+- **tests/production/monitoring-alerting.test.js:769** - Date.now() call creates non-deterministic timestamp
+- **tests/production/monitoring-alerting.test.js:776** - Date.now() call creates non-deterministic timestamp
+- **tests/production/monitoring-alerting.test.js:803** - Date.now() call creates non-deterministic timestamp
+- **tests/production/monitoring-alerting.test.js:838** - Date.now() call creates non-deterministic timestamp
+- **tests/production/monitoring-alerting.test.js:1010** - Date.now() call creates non-deterministic timestamp
+- **tests/production/monitoring-alerting.test.js:1033** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/production/performance-benchmarks.test.js:148** - Date.now() call creates non-deterministic timestamp
+- **tests/production/performance-benchmarks.test.js:151** - Date.now() call creates non-deterministic timestamp
+- **tests/production/scalability-stress.test.js:48** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/production/scalability-stress.test.js:116** - Date.now() call creates non-deterministic timestamp
+- **tests/production/scalability-stress.test.js:126** - Date.now() call creates non-deterministic timestamp
+- **tests/production/scalability-stress.test.js:152** - Date.now() call creates non-deterministic timestamp
+- **tests/production/scalability-stress.test.js:159** - Date.now() call creates non-deterministic timestamp
+- **tests/production/security-hardening.test.js:77** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/production/security-hardening.test.js:127** - Date.now() call creates non-deterministic timestamp
+- **tests/production/security-hardening.test.js:136** - Date.now() call creates non-deterministic timestamp
+- **tests/production/security-hardening.test.js:322** - Date.now() call creates non-deterministic timestamp
+- **tests/production/security-hardening.test.js:328** - Date.now() call creates non-deterministic timestamp
+- **tests/production/security-hardening.test.js:377** - Date.now() call creates non-deterministic timestamp
+- **tests/production/security-hardening.test.js:379** - Date.now() call creates non-deterministic timestamp
+- **tests/production/security-hardening.test.js:402** - Date.now() call creates non-deterministic timestamp
+- **tests/production-readiness-report.mjs:22** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/project/attestation-bundler.test.js:69** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/project/attestation-bundler.test.js:80** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/project/attestation-bundler.test.js:250** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/project/attestation-bundler.test.js:251** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/project/lockfile-generator.test.js:120** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/project/lockfile-generator.test.js:158** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/project/lockfile-generator.test.js:181** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/project/lockfile-generator.test.js:205** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/project/lockfile-generator.test.js:238** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/project/project-manager.test.js:144** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/project/project-manager.test.js:171** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/provenance/attestation-signature.test.js:72** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/provenance/attestation-signature.test.js:73** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/provenance/attestation-signature.test.js:145** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/provenance/attestation-signature.test.js:146** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/provenance/attestation-signature.test.js:180** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/provenance/attestation-signature.test.js:181** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/provenance/attestation-signature.test.js:219** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/provenance/attestation-signature.test.js:220** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/provenance/attestation-signature.test.js:248** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/provenance/attestation-signature.test.js:249** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/provenance/attestation-signature.test.js:277** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/provenance/attestation-signature.test.js:278** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/provenance/crypto-attestation.test.js:110** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/provenance/crypto-attestation.test.js:111** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/provenance/crypto-attestation.test.js:145** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/provenance/crypto-attestation.test.js:146** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/provenance/crypto-attestation.test.js:174** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/provenance/crypto-attestation.test.js:175** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/provenance/crypto-attestation.test.js:213** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/provenance/crypto-attestation.test.js:214** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/qa/continuous-monitoring.js:111** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/qa/continuous-monitoring.js:421** - Date.now() call creates non-deterministic timestamp
+- **tests/qa/continuous-monitoring.js:422** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/qa/continuous-monitoring.js:515** - Date.now() call creates non-deterministic timestamp
+- **tests/qa/continuous-monitoring.js:549** - Date.now() call creates non-deterministic timestamp
+- **tests/qa/continuous-monitoring.js:595** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/qa/coverage-monitor.js:36** - Date.now() call creates non-deterministic timestamp
+- **tests/qa/coverage-monitor.js:44** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/qa/coverage-monitor.js:45** - Date.now() call creates non-deterministic timestamp
+- **tests/qa/e2e-user-journeys.js:79** - Date.now() call creates non-deterministic timestamp
+- **tests/qa/e2e-user-journeys.js:109** - Date.now() call creates non-deterministic timestamp
+- **tests/qa/e2e-user-journeys.js:120** - Date.now() call creates non-deterministic timestamp
+- **tests/qa/e2e-user-journeys.js:366** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/qa/mutation-testing.js:100** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/qa/mutation-testing.js:280** - Date.now() call creates non-deterministic timestamp
+- **tests/qa/mutation-testing.js:286** - Date.now() call creates non-deterministic timestamp
+- **tests/qa/mutation-testing.js:303** - Date.now() call creates non-deterministic timestamp
+- **tests/qa/performance-regression.js:176** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/qa/performance-regression.js:308** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/qa/qa-suite.js:36** - Date.now() call creates non-deterministic timestamp
+- **tests/qa/qa-suite.js:291** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/qa/qa-suite.js:292** - Date.now() call creates non-deterministic timestamp
+- **tests/qa/qa-suite.js:428** - Date.now() call creates non-deterministic timestamp
+- **tests/qa/quality-dashboard.js:29** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/qa/quality-gates.js:29** - Date.now() call creates non-deterministic timestamp
+- **tests/qa/quality-gates.js:36** - Date.now() call creates non-deterministic timestamp
+- **tests/qa/quality-gates.js:51** - Date.now() call creates non-deterministic timestamp
+- **tests/qa/quality-gates.js:157** - Date.now() call creates non-deterministic timestamp
+- **tests/qa/quality-gates.js:175** - Date.now() call creates non-deterministic timestamp
+- **tests/qa/quality-gates.js:192** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/qa/security-scanner.js:69** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/qa/test-factories.js:435** - Date.now() call creates non-deterministic timestamp
+- **tests/qa/workflow-validator.js:30** - Date.now() call creates non-deterministic timestamp
+- **tests/qa/workflow-validator.js:34** - Date.now() call creates non-deterministic timestamp
+- **tests/qa/workflow-validator.js:46** - Date.now() call creates non-deterministic timestamp
+- **tests/qa/workflow-validator.js:93** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/qa/workflow-validator.js:184** - Date.now() call creates non-deterministic timestamp
+- **tests/qa/workflow-validator.js:425** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/rdf-focused-validation.test.js:14** - Date.now() call creates non-deterministic timestamp
+- **tests/regression/turtle-edge-cases.test.js:154** - Date.now() call creates non-deterministic timestamp
+- **tests/regression/turtle-edge-cases.test.js:156** - Date.now() call creates non-deterministic timestamp
+- **tests/reports/mutation-testing.json:11** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/reports/mutation-testing.json:12** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/reports/mutation-testing.json:32** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/reports/mutation-testing.json:33** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/reports/mutation-testing.json:53** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/reports/mutation-testing.json:54** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/reports/mutation-testing.json:74** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/reports/mutation-testing.json:75** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/reports/mutation-testing.json:95** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/reports/mutation-testing.json:96** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/reports/mutation-testing.json:116** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/reports/mutation-testing.json:117** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/reports/mutation-testing.json:137** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/reports/mutation-testing.json:138** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/reports/mutation-testing.json:158** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/reports/mutation-testing.json:159** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/reports/mutation-testing.json:179** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/reports/mutation-testing.json:180** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/reports/mutation-testing.json:200** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/reports/mutation-testing.json:201** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/reproducibility/cli.js:361** - Date.now() call creates non-deterministic timestamp
+- **tests/reproducibility/cli.js:372** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/reproducibility/cli.js:389** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/reproducibility/fix-timestamp-sources.js:17** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/reproducibility/fix-timestamp-sources.js:49** - Date.now() call creates non-deterministic timestamp
+- **tests/reproducibility/fix-timestamp-sources.js:50** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/reproducibility/fix-timestamp-sources.js:100** - Date.now() call creates non-deterministic timestamp
+- **tests/reproducibility/fix-timestamp-sources.js:101** - Date.now() call creates non-deterministic timestamp
+- **tests/reproducibility/fix-timestamp-sources.js:108** - Date.now() call creates non-deterministic timestamp
+- **tests/reproducibility/fix-timestamp-sources.js:113** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/reproducibility/fix-timestamp-sources.js:118** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/reproducibility/fix-timestamp-sources.js:125** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/reproducibility/fix-timestamp-sources.js:258** - Date.now() call creates non-deterministic timestamp
+- **tests/reproducibility/fix-timestamp-sources.js:281** - Date.now() call creates non-deterministic timestamp
+- **tests/reproducibility/fix-timestamp-sources.js:290** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/reproducibility/fix-timestamp-sources.js:394** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/reproducibility/fix-timestamp-sources.js:407** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/reproducibility/fix-timestamp-sources.js:427** - Date.now() call creates non-deterministic timestamp
+- **tests/reproducibility/fix-timestamp-sources.js:434** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/reproducibility/fix-timestamp-sources.js:514** - Date.now() call creates non-deterministic timestamp
+- **tests/reproducibility/fix-timestamp-sources.js:515** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/reproducibility/fix-timestamp-sources.js:541** - Date.now() call creates non-deterministic timestamp
+- **tests/reproducibility/fix-timestamp-sources.js:542** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/reproducibility/framework.js:101** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/reproducibility/framework.js:477** - Date.now() call creates non-deterministic timestamp
+- **tests/reproducibility/framework.js:856** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/reproducibility/framework.js:860** - Date.now() call creates non-deterministic timestamp
+- **tests/reproducibility/framework.js:864** - Date.now() call creates non-deterministic timestamp
+- **tests/reproducibility/framework.js:1015** - Date.now() call creates non-deterministic timestamp
+- **tests/reproducibility/integration.test.js:29** - Date.now() call creates non-deterministic timestamp
+- **tests/reproducibility/integration.test.js:590** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/reproducibility/integration.test.js:608** - Date.now() call creates non-deterministic timestamp
+- **tests/reproducibility/monitor.js:164** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/reproducibility/monitor.js:260** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/reproducibility/monitor.js:265** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/reproducibility/monitor.js:457** - Date.now() call creates non-deterministic timestamp
+- **tests/reproducibility/monitor.js:619** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/reproducibility/monitor.js:623** - Date.now() call creates non-deterministic timestamp
+- **tests/reproducibility/monitor.js:627** - Date.now() call creates non-deterministic timestamp
+- **tests/reproducibility/monitor.js:920** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/reproducibility/monitor.js:990** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/reproducibility/test-build-reproducibility.js:23** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/reproducibility/test-build-reproducibility.js:128** - Date.now() call creates non-deterministic timestamp
+- **tests/reproducibility/test-build-reproducibility.js:160** - Date.now() call creates non-deterministic timestamp
+- **tests/reproducibility/test-build-reproducibility.js:170** - Date.now() call creates non-deterministic timestamp
+- **tests/reproducibility/test-build-reproducibility.js:610** - Date.now() call creates non-deterministic timestamp
+- **tests/reproducibility/test-build-reproducibility.js:610** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/reproducibility/validate.mjs:449** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/reproducibility/validate.mjs:459** - Date.now() call creates non-deterministic timestamp
+- **tests/resolver.test.mjs:137** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/resolver.test.mjs:228** - Date.now() call creates non-deterministic timestamp
+- **tests/resolver.test.mjs:270** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/resolvers/content-uri-resolver.test.js:25** - Date.now() call creates non-deterministic timestamp
+- **tests/resolvers/content-uri-resolver.test.js:302** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/resolvers/content-uri-resolver.test.js:339** - Date.now() call creates non-deterministic timestamp
+- **tests/resolvers/content-uri-resolver.test.js:341** - Date.now() call creates non-deterministic timestamp
+- **tests/resolvers/content-uri-resolver.test.js:346** - Date.now() call creates non-deterministic timestamp
+- **tests/resolvers/content-uri-resolver.test.js:348** - Date.now() call creates non-deterministic timestamp
+- **tests/resolvers/integration-tests.test.js:27** - Date.now() call creates non-deterministic timestamp
+- **tests/resolvers/integration-tests.test.js:102** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/resolvers/integration-tests.test.js:129** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/resolvers/integration-tests.test.js:157** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/resolvers/integration-tests.test.js:249** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/resolvers/integration-tests.test.js:512** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/resolvers/integration-tests.test.js:565** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/resolvers/integration-tests.test.js:688** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/resolvers/integration-tests.test.js:761** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/resolvers/performance-benchmarks.test.js:32** - Date.now() call creates non-deterministic timestamp
+- **tests/resolvers/performance-benchmarks.test.js:361** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/resolvers/performance-benchmarks.test.js:414** - Date.now() call creates non-deterministic timestamp
+- **tests/resolvers/performance-benchmarks.test.js:530** - Date.now() call creates non-deterministic timestamp
+- **tests/resolvers/performance-benchmarks.test.js:589** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/resolvers/performance-benchmarks.test.js:731** - Date.now() call creates non-deterministic timestamp
+- **tests/resolvers/performance-benchmarks.test.js:736** - Date.now() call creates non-deterministic timestamp
+- **tests/resolvers/performance-benchmarks.test.js:737** - Date.now() call creates non-deterministic timestamp
+- **tests/resolvers/performance-benchmarks.test.js:752** - Date.now() call creates non-deterministic timestamp
+- **tests/resolvers/reproducibility-validation.test.js:27** - Date.now() call creates non-deterministic timestamp
+- **tests/resolvers/run-resolver-tests.js:123** - Date.now() call creates non-deterministic timestamp
+- **tests/resolvers/run-resolver-tests.js:204** - Date.now() call creates non-deterministic timestamp
+- **tests/resolvers/run-resolver-tests.js:241** - Date.now() call creates non-deterministic timestamp
+- **tests/resolvers/run-resolver-tests.js:257** - Date.now() call creates non-deterministic timestamp
+- **tests/resolvers/run-resolver-tests.js:357** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/resolvers/run-resolver-tests.js:359** - Date.now() call creates non-deterministic timestamp
+- **tests/resolvers/run-resolver-tests.js:370** - Date.now() call creates non-deterministic timestamp
+- **tests/resolvers/run-resolver-tests.js:474** - Date.now() call creates non-deterministic timestamp
+- **tests/resolvers/run-resolver-tests.js:481** - Date.now() call creates non-deterministic timestamp
+- **tests/resolvers/security-validation.test.js:30** - Date.now() call creates non-deterministic timestamp
+- **tests/resolvers/security-validation.test.js:238** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/resolvers/security-validation.test.js:299** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/resolvers/security-validation.test.js:381** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/resolvers/security-validation.test.js:388** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/resolvers/security-validation.test.js:501** - Date.now() call creates non-deterministic timestamp
+- **tests/resolvers/security-validation.test.js:517** - Date.now() call creates non-deterministic timestamp
+- **tests/resolvers/security-validation.test.js:639** - Date.now() call creates non-deterministic timestamp
+- **tests/resolvers/security-validation.test.js:640** - Date.now() call creates non-deterministic timestamp
+- **tests/resolvers/test-setup.js:37** - Date.now() call creates non-deterministic timestamp
+- **tests/resolvers/test-setup.js:70** - Date.now() call creates non-deterministic timestamp
+- **tests/resolvers/uri-resolver-comprehensive.test.js:34** - Date.now() call creates non-deterministic timestamp
+- **tests/resolvers/uri-resolver-comprehensive.test.js:236** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/resolvers/uri-resolver-comprehensive.test.js:307** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/resolvers/uri-resolver-comprehensive.test.js:332** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/resolvers/uri-resolver-comprehensive.test.js:512** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/resolvers/uri-resolver-comprehensive.test.js:588** - Date.now() call creates non-deterministic timestamp
+- **tests/resolvers/uri-resolver-comprehensive.test.js:756** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/resolvers/uri-resolver-comprehensive.test.js:823** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/resource-cleanup-test.js:64** - Date.now() call creates non-deterministic timestamp
+- **tests/run-integration-tests.js:150** - Date.now() call creates non-deterministic timestamp
+- **tests/run-integration-tests.js:152** - Date.now() call creates non-deterministic timestamp
+- **tests/sast-report.json:515** - Date.now() call creates non-deterministic timestamp
+- **tests/sast-report.json:603** - Date.now() call creates non-deterministic timestamp
+- **tests/sast-report.json:614** - Date.now() call creates non-deterministic timestamp
+- **tests/sast-report.json:625** - Date.now() call creates non-deterministic timestamp
+- **tests/sast-report.json:691** - Date.now() call creates non-deterministic timestamp
+- **tests/sast-report.json:977** - Date.now() call creates non-deterministic timestamp
+- **tests/sast-report.json:1065** - Date.now() call creates non-deterministic timestamp
+- **tests/sast-report.json:1076** - Date.now() call creates non-deterministic timestamp
+- **tests/sast-report.json:1120** - Date.now() call creates non-deterministic timestamp
+- **tests/sast-report.json:1186** - Date.now() call creates non-deterministic timestamp
+- **tests/sast-report.json:1329** - Date.now() call creates non-deterministic timestamp
+- **tests/sast-report.json:1340** - Date.now() call creates non-deterministic timestamp
+- **tests/sast-report.json:1406** - Date.now() call creates non-deterministic timestamp
+- **tests/sast-report.json:1417** - Date.now() call creates non-deterministic timestamp
+- **tests/sast-report.json:1483** - Date.now() call creates non-deterministic timestamp
+- **tests/sast-report.json:1494** - Date.now() call creates non-deterministic timestamp
+- **tests/sast-report.json:1516** - Date.now() call creates non-deterministic timestamp
+- **tests/sast-report.json:1549** - Date.now() call creates non-deterministic timestamp
+- **tests/sast-report.json:2033** - Date.now() call creates non-deterministic timestamp
+- **tests/sast-report.json:2044** - Date.now() call creates non-deterministic timestamp
+- **tests/sast-report.json:3298** - Date.now() call creates non-deterministic timestamp
+- **tests/sast-report.json:3540** - Date.now() call creates non-deterministic timestamp
+- **tests/sast-report.json:3826** - Date.now() call creates non-deterministic timestamp
+- **tests/sast-report.json:3936** - Date.now() call creates non-deterministic timestamp
+- **tests/sast-report.json:4002** - Date.now() call creates non-deterministic timestamp
+- **tests/sast-report.json:4068** - Date.now() call creates non-deterministic timestamp
+- **tests/sast-report.json:4079** - Date.now() call creates non-deterministic timestamp
+- **tests/sast-report.json:4332** - Date.now() call creates non-deterministic timestamp
+- **tests/sast-report.json:4343** - Date.now() call creates non-deterministic timestamp
+- **tests/sast-report.json:4376** - Date.now() call creates non-deterministic timestamp
+- **tests/sast-report.json:4475** - Date.now() call creates non-deterministic timestamp
+- **tests/sast-report.json:4486** - Date.now() call creates non-deterministic timestamp
+- **tests/sast-report.json:4497** - Date.now() call creates non-deterministic timestamp
+- **tests/sast-report.json:6147** - Date.now() call creates non-deterministic timestamp
+- **tests/sast-report.json:6180** - Date.now() call creates non-deterministic timestamp
+- **tests/sast-report.json:7423** - Date.now() call creates non-deterministic timestamp
+- **tests/sast-report.json:8622** - Date.now() call creates non-deterministic timestamp
+- **tests/sast-report.json:13330** - Date.now() call creates non-deterministic timestamp
+- **tests/sast-report.json:15090** - Date.now() call creates non-deterministic timestamp
+- **tests/sast-report.json:15783** - Date.now() call creates non-deterministic timestamp
+- **tests/sast-report.json:16245** - Date.now() call creates non-deterministic timestamp
+- **tests/sast-report.json:16971** - Date.now() call creates non-deterministic timestamp
+- **tests/sast-report.json:17818** - Date.now() call creates non-deterministic timestamp
+- **tests/sast-report.json:18346** - Date.now() call creates non-deterministic timestamp
+- **tests/sast-report.json:19017** - Date.now() call creates non-deterministic timestamp
+- **tests/sast-report.json:19171** - Date.now() call creates non-deterministic timestamp
+- **tests/sast-report.json:19204** - Date.now() call creates non-deterministic timestamp
+- **tests/sast-report.json:19732** - Date.now() call creates non-deterministic timestamp
+- **tests/sast-report.json:22064** - Date.now() call creates non-deterministic timestamp
+- **tests/sast-report.json:23868** - Date.now() call creates non-deterministic timestamp
+- **tests/sast-report.json:23879** - Date.now() call creates non-deterministic timestamp
+- **tests/sast-report.json:23890** - Date.now() call creates non-deterministic timestamp
+- **tests/sast-report.json:23901** - Date.now() call creates non-deterministic timestamp
+- **tests/sast-report.json:23912** - Date.now() call creates non-deterministic timestamp
+- **tests/sast-report.json:23923** - Date.now() call creates non-deterministic timestamp
+- **tests/sast-report.json:23934** - Date.now() call creates non-deterministic timestamp
+- **tests/sast-report.json:23945** - Date.now() call creates non-deterministic timestamp
+- **tests/sast-report.json:23956** - Date.now() call creates non-deterministic timestamp
+- **tests/sast-report.json:23967** - Date.now() call creates non-deterministic timestamp
+- **tests/sast-report.json:23978** - Date.now() call creates non-deterministic timestamp
+- **tests/sast-report.json:28103** - Date.now() call creates non-deterministic timestamp
+- **tests/sast-report.json:28114** - Date.now() call creates non-deterministic timestamp
+- **tests/sast-report.json:28125** - Date.now() call creates non-deterministic timestamp
+- **tests/sast-report.json:28169** - Date.now() call creates non-deterministic timestamp
+- **tests/sast-report.json:28719** - Date.now() call creates non-deterministic timestamp
+- **tests/sast-report.json:28730** - Date.now() call creates non-deterministic timestamp
+- **tests/sast-report.json:28741** - Date.now() call creates non-deterministic timestamp
+- **tests/sast-report.json:28752** - Date.now() call creates non-deterministic timestamp
+- **tests/sast-report.json:28763** - Date.now() call creates non-deterministic timestamp
+- **tests/sast-report.json:28774** - Date.now() call creates non-deterministic timestamp
+- **tests/sast-report.json:28983** - Date.now() call creates non-deterministic timestamp
+- **tests/sast-report.json:31029** - Date.now() call creates non-deterministic timestamp
+- **tests/sast-report.json:31095** - Date.now() call creates non-deterministic timestamp
+- **tests/sast-report.json:35088** - Date.now() call creates non-deterministic timestamp
+- **tests/sast-report.json:35098** - Date.now() call creates non-deterministic timestamp
+- **tests/sast-report.json:35099** - Date.now() call creates non-deterministic timestamp
+- **tests/sast-report.json:35176** - Date.now() call creates non-deterministic timestamp
+- **tests/sast-report.json:35186** - Date.now() call creates non-deterministic timestamp
+- **tests/sast-report.json:35187** - Date.now() call creates non-deterministic timestamp
+- **tests/sast-report.json:35197** - Date.now() call creates non-deterministic timestamp
+- **tests/sast-report.json:35198** - Date.now() call creates non-deterministic timestamp
+- **tests/sast-report.json:36353** - Date.now() call creates non-deterministic timestamp
+- **tests/sast-report.json:50565** - Date.now() call creates non-deterministic timestamp
+- **tests/sast-report.json:50620** - Date.now() call creates non-deterministic timestamp
+- **tests/scenarios/fortune5/compliance-validation.test.js:45** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/scenarios/fortune5/mcp-swarm-integration.test.js:6** - Date.now() call creates non-deterministic timestamp
+- **tests/scenarios/fortune5/mcp-swarm-integration.test.js:257** - Date.now() call creates non-deterministic timestamp
+- **tests/schema-org-validation.test.js:72** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/schema-org-validation.test.js:73** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/security/attack-simulation.test.js:20** - Date.now() call creates non-deterministic timestamp
+- **tests/security/attack-simulation.test.js:150** - Date.now() call creates non-deterministic timestamp
+- **tests/security/attack-simulation.test.js:191** - Date.now() call creates non-deterministic timestamp
+- **tests/security/attack-simulation.test.js:233** - Date.now() call creates non-deterministic timestamp
+- **tests/security/attack-simulation.test.js:236** - Date.now() call creates non-deterministic timestamp
+- **tests/security/attack-simulation.test.js:244** - Date.now() call creates non-deterministic timestamp
+- **tests/security/attack-simulation.test.js:254** - Date.now() call creates non-deterministic timestamp
+- **tests/security/attack-simulation.test.js:350** - Date.now() call creates non-deterministic timestamp
+- **tests/security/attack-simulation.test.js:430** - Date.now() call creates non-deterministic timestamp
+- **tests/security/audit-trail-functionality.test.js:34** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/security/audit-trail-functionality.test.js:45** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/security/audit-trail-functionality.test.js:190** - Date.now() call creates non-deterministic timestamp
+- **tests/security/audit-trail-functionality.test.js:191** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/security/audit-trail-functionality.test.js:504** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/security/audit-trail-functionality.test.js:621** - Date.now() call creates non-deterministic timestamp
+- **tests/security/audit-trail-functionality.test.js:633** - Date.now() call creates non-deterministic timestamp
+- **tests/security/audit-trail-functionality.test.js:640** - Date.now() call creates non-deterministic timestamp
+- **tests/security/audit-trail-functionality.test.js:649** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/security/audit-trail-functionality.test.js:669** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/security/audit-trail-functionality.test.js:695** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/security/audit-trail-functionality.test.js:718** - Date.now() call creates non-deterministic timestamp
+- **tests/security/audit-trail-functionality.test.js:719** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/security/clean-room/comprehensive-security-audit.test.js:23** - Date.now() call creates non-deterministic timestamp
+- **tests/security/clean-room/comprehensive-security-audit.test.js:79** - Date.now() call creates non-deterministic timestamp
+- **tests/security/clean-room/comprehensive-security-audit.test.js:97** - Date.now() call creates non-deterministic timestamp
+- **tests/security/clean-room/comprehensive-security-audit.test.js:145** - Date.now() call creates non-deterministic timestamp
+- **tests/security/clean-room/comprehensive-security-audit.test.js:481** - Date.now() call creates non-deterministic timestamp
+- **tests/security/clean-room/comprehensive-security-audit.test.js:488** - Date.now() call creates non-deterministic timestamp
+- **tests/security/clean-room/comprehensive-security-audit.test.js:502** - Date.now() call creates non-deterministic timestamp
+- **tests/security/clean-room/comprehensive-security-audit.test.js:539** - Date.now() call creates non-deterministic timestamp
+- **tests/security/clean-room/enterprise-compliance-validation.js:55** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/security/clean-room/enterprise-compliance-validation.js:77** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/security/clean-room/enterprise-compliance-validation.js:113** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/security/clean-room/enterprise-compliance-validation.js:171** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/security/clean-room/enterprise-compliance-validation.js:230** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/security/clean-room/enterprise-compliance-validation.js:242** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/security/clean-room/enterprise-compliance-validation.js:269** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/security/clean-room/enterprise-compliance-validation.js:283** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/security/compliance-automation.test.js:62** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/security/compliance-automation.test.js:156** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/security/compliance-automation.test.js:169** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/security/compliance-automation.test.js:170** - Date.now() call creates non-deterministic timestamp
+- **tests/security/compliance-validation.test.js:366** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/security/crypto-audit.test.js:42** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/security/data-protection-encryption.test.js:136** - Date.now() call creates non-deterministic timestamp
+- **tests/security/data-protection-encryption.test.js:366** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/security/data-protection-encryption.test.js:401** - Date.now() call creates non-deterministic timestamp
+- **tests/security/data-protection-encryption.test.js:406** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/security/data-protection-encryption.test.js:412** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/security/data-protection-encryption.test.js:439** - Date.now() call creates non-deterministic timestamp
+- **tests/security/docker-security-compliance.js:416** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/security/dos-simulation.test.js:16** - Date.now() call creates non-deterministic timestamp
+- **tests/security/dos-simulation.test.js:45** - Date.now() call creates non-deterministic timestamp
+- **tests/security/dos-simulation.test.js:61** - Date.now() call creates non-deterministic timestamp
+- **tests/security/dos-simulation.test.js:90** - Date.now() call creates non-deterministic timestamp
+- **tests/security/dos-simulation.test.js:107** - Date.now() call creates non-deterministic timestamp
+- **tests/security/dos-simulation.test.js:150** - Date.now() call creates non-deterministic timestamp
+- **tests/security/dos-simulation.test.js:164** - Date.now() call creates non-deterministic timestamp
+- **tests/security/dos-simulation.test.js:199** - Date.now() call creates non-deterministic timestamp
+- **tests/security/dos-simulation.test.js:203** - Date.now() call creates non-deterministic timestamp
+- **tests/security/dos-simulation.test.js:211** - Date.now() call creates non-deterministic timestamp
+- **tests/security/dos-simulation.test.js:247** - Date.now() call creates non-deterministic timestamp
+- **tests/security/dos-simulation.test.js:267** - Date.now() call creates non-deterministic timestamp
+- **tests/security/dos-simulation.test.js:291** - Date.now() call creates non-deterministic timestamp
+- **tests/security/dos-simulation.test.js:321** - Date.now() call creates non-deterministic timestamp
+- **tests/security/dos-simulation.test.js:351** - Date.now() call creates non-deterministic timestamp
+- **tests/security/dos-simulation.test.js:355** - Date.now() call creates non-deterministic timestamp
+- **tests/security/dos-simulation.test.js:363** - Date.now() call creates non-deterministic timestamp
+- **tests/security/dos-simulation.test.js:380** - Date.now() call creates non-deterministic timestamp
+- **tests/security/dos-simulation.test.js:401** - Date.now() call creates non-deterministic timestamp
+- **tests/security/dos-simulation.test.js:405** - Date.now() call creates non-deterministic timestamp
+- **tests/security/dos-simulation.test.js:413** - Date.now() call creates non-deterministic timestamp
+- **tests/security/dos-simulation.test.js:430** - Date.now() call creates non-deterministic timestamp
+- **tests/security/enterprise-security-integration.test.js:112** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/security/enterprise-security-integration.test.js:396** - Date.now() call creates non-deterministic timestamp
+- **tests/security/enterprise-security-integration.test.js:398** - Date.now() call creates non-deterministic timestamp
+- **tests/security/input-sanitization.test.js:563** - Date.now() call creates non-deterministic timestamp
+- **tests/security/input-sanitization.test.js:570** - Date.now() call creates non-deterministic timestamp
+- **tests/security/input-sanitization.test.js:582** - Date.now() call creates non-deterministic timestamp
+- **tests/security/input-sanitization.test.js:588** - Date.now() call creates non-deterministic timestamp
+- **tests/security/latex-security.test.js:20** - Date.now() call creates non-deterministic timestamp
+- **tests/security/multi-tenant-isolation.test.js:293** - Date.now() call creates non-deterministic timestamp
+- **tests/security/multi-tenant-isolation.test.js:299** - Date.now() call creates non-deterministic timestamp
+- **tests/security/path-traversal.test.js:297** - Date.now() call creates non-deterministic timestamp
+- **tests/security/path-traversal.test.js:308** - Date.now() call creates non-deterministic timestamp
+- **tests/security/rbac-authorization.test.js:93** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/security/rbac-authorization.test.js:286** - Date.now() call creates non-deterministic timestamp
+- **tests/security/rbac-authorization.test.js:293** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/security/rbac-authorization.test.js:308** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/security/rbac-authorization.test.js:340** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/security/rbac-authorization.test.js:381** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/security/rbac-authorization.test.js:404** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/security/rbac-authorization.test.js:467** - Date.now() call creates non-deterministic timestamp
+- **tests/security/rbac-authorization.test.js:482** - Date.now() call creates non-deterministic timestamp
+- **tests/security/rbac-authorization.test.js:486** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/security/rbac-authorization.test.js:487** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/security/rbac-authorization.test.js:498** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/security/secret-management.test.js:30** - Date.now() call creates non-deterministic timestamp
+- **tests/security/secret-management.test.js:85** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/security/secret-management.test.js:111** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/security/secret-management.test.js:121** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/security/secret-management.test.js:142** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/security/secret-management.test.js:174** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/security/secret-management.test.js:184** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/security/secret-management.test.js:286** - Date.now() call creates non-deterministic timestamp
+- **tests/security/secret-management.test.js:297** - Date.now() call creates non-deterministic timestamp
+- **tests/security/secret-management.test.js:345** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/security/secret-management.test.js:460** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/security/secret-management.test.js:503** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/security/secret-management.test.js:526** - Date.now() call creates non-deterministic timestamp
+- **tests/security/security-validation.test.js:294** - Date.now() call creates non-deterministic timestamp
+- **tests/security/security-validation.test.js:296** - Date.now() call creates non-deterministic timestamp
+- **tests/security/template-injection.test.js:420** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/security/template-injection.test.js:480** - Date.now() call creates non-deterministic timestamp
+- **tests/security/template-injection.test.js:491** - Date.now() call creates non-deterministic timestamp
+- **tests/security/vulnerability-tests.test.js:237** - Date.now() call creates non-deterministic timestamp
+- **tests/security/vulnerability-tests.test.js:239** - Date.now() call creates non-deterministic timestamp
+- **tests/security/vulnerability-tests.test.js:277** - Date.now() call creates non-deterministic timestamp
+- **tests/security/vulnerability-tests.test.js:279** - Date.now() call creates non-deterministic timestamp
+- **tests/security/zero-trust-authentication.test.js:239** - Date.now() call creates non-deterministic timestamp
+- **tests/security/zero-trust-authentication.test.js:240** - Date.now() call creates non-deterministic timestamp
+- **tests/security/zero-trust-authentication.test.js:289** - Date.now() call creates non-deterministic timestamp
+- **tests/security/zero-trust-authentication.test.js:290** - Date.now() call creates non-deterministic timestamp
+- **tests/security/zero-trust-authentication.test.js:294** - Date.now() call creates non-deterministic timestamp
+- **tests/security/zero-trust-authentication.test.js:326** - Date.now() call creates non-deterministic timestamp
+- **tests/security/zero-trust-authentication.test.js:334** - Date.now() call creates non-deterministic timestamp
+- **tests/security/zero-trust-authentication.test.js:340** - Date.now() call creates non-deterministic timestamp
+- **tests/security/zero-trust-authentication.test.js:407** - Date.now() call creates non-deterministic timestamp
+- **tests/security/zero-trust-authentication.test.js:412** - Date.now() call creates non-deterministic timestamp
+- **tests/semantic/processor.test.js:303** - Date.now() call creates non-deterministic timestamp
+- **tests/semantic/processor.test.js:305** - Date.now() call creates non-deterministic timestamp
+- **tests/semantic/reasoning/n3-reasoning-engine.test.js:424** - Date.now() call creates non-deterministic timestamp
+- **tests/semantic/reasoning/n3-reasoning-engine.test.js:426** - Date.now() call creates non-deterministic timestamp
+- **tests/semantic/reasoning/n3-reasoning-engine.test.js:429** - Date.now() call creates non-deterministic timestamp
+- **tests/semantic/reasoning/n3-reasoning-engine.test.js:431** - Date.now() call creates non-deterministic timestamp
+- **tests/semantic/reasoning/n3-reasoning-engine.test.js:451** - Date.now() call creates non-deterministic timestamp
+- **tests/semantic/reasoning/n3-reasoning-engine.test.js:453** - Date.now() call creates non-deterministic timestamp
+- **tests/semantic/validation/shacl-validator.test.js:667** - Date.now() call creates non-deterministic timestamp
+- **tests/semantic/validation/shacl-validator.test.js:669** - Date.now() call creates non-deterministic timestamp
+- **tests/semantic-drift-detection.test.js:139** - Date.now() call creates non-deterministic timestamp
+- **tests/semantic-drift-detection.test.js:145** - Date.now() call creates non-deterministic timestamp
+- **tests/semantic-drift-detection.test.js:333** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/semantic-web-cleanroom/semantic-validation-master-test.js:15** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/semantic-web-cleanroom/semantic-validation-master-test.js:149** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/semantic-web-cleanroom/semantic-validation-master-test.js:292** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/semantic-workflow-demo.js:260** - Date.now() call creates non-deterministic timestamp
+- **tests/semantic-workflow-demo.js:262** - Date.now() call creates non-deterministic timestamp
+- **tests/semantic-workflow-demo.js:264** - Date.now() call creates non-deterministic timestamp
+- **tests/semantic-workflow-demo.js:266** - Date.now() call creates non-deterministic timestamp
+- **tests/setup/global-setup.js:20** - Date.now() call creates non-deterministic timestamp
+- **tests/setup/global-setup.js:160** - Date.now() call creates non-deterministic timestamp
+- **tests/simple-artifact-test.js:159** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/singularization-unit.test.js:301** - Date.now() call creates non-deterministic timestamp
+- **tests/singularization-unit.test.js:309** - Date.now() call creates non-deterministic timestamp
+- **tests/smoke/00-smoke-runner.js:28** - Date.now() call creates non-deterministic timestamp
+- **tests/smoke/00-smoke-runner.js:85** - Date.now() call creates non-deterministic timestamp
+- **tests/smoke/00-smoke-runner.js:181** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/smoke/00-smoke-runner.js:182** - Date.now() call creates non-deterministic timestamp
+- **tests/smoke/03-template-rendering.test.js:153** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/smoke/api-endpoints.test.js:21** - Date.now() call creates non-deterministic timestamp
+- **tests/smoke/api-endpoints.test.js:27** - Date.now() call creates non-deterministic timestamp
+- **tests/smoke/api-endpoints.test.js:145** - Date.now() call creates non-deterministic timestamp
+- **tests/smoke/api-endpoints.test.js:155** - Date.now() call creates non-deterministic timestamp
+- **tests/smoke/api-endpoints.test.js:165** - Date.now() call creates non-deterministic timestamp
+- **tests/smoke/api-endpoints.test.js:228** - Date.now() call creates non-deterministic timestamp
+- **tests/smoke/cli-smoke.test.js:121** - Date.now() call creates non-deterministic timestamp
+- **tests/smoke/cli-smoke.test.js:123** - Date.now() call creates non-deterministic timestamp
+- **tests/smoke/critical-paths.test.js:23** - Date.now() call creates non-deterministic timestamp
+- **tests/smoke/critical-paths.test.js:41** - Date.now() call creates non-deterministic timestamp
+- **tests/smoke/critical-paths.test.js:53** - Date.now() call creates non-deterministic timestamp
+- **tests/smoke/critical-paths.test.js:68** - Date.now() call creates non-deterministic timestamp
+- **tests/smoke/critical-paths.test.js:81** - Date.now() call creates non-deterministic timestamp
+- **tests/smoke/critical-paths.test.js:155** - Date.now() call creates non-deterministic timestamp
+- **tests/smoke/database-connectivity.test.js:20** - Date.now() call creates non-deterministic timestamp
+- **tests/smoke/database-connectivity.test.js:25** - Date.now() call creates non-deterministic timestamp
+- **tests/smoke/database-connectivity.test.js:78** - Date.now() call creates non-deterministic timestamp
+- **tests/smoke/database-connectivity.test.js:88** - Date.now() call creates non-deterministic timestamp
+- **tests/smoke/database-connectivity.test.js:98** - Date.now() call creates non-deterministic timestamp
+- **tests/smoke/database-connectivity.test.js:275** - Date.now() call creates non-deterministic timestamp
+- **tests/smoke/fast-runner.js:20** - Date.now() call creates non-deterministic timestamp
+- **tests/smoke/fast-runner.js:26** - Date.now() call creates non-deterministic timestamp
+- **tests/smoke/fast-runner.js:61** - Date.now() call creates non-deterministic timestamp
+- **tests/smoke/fast-runner.js:64** - Date.now() call creates non-deterministic timestamp
+- **tests/smoke/fast-runner.js:78** - Date.now() call creates non-deterministic timestamp
+- **tests/smoke/fast-runner.js:209** - Date.now() call creates non-deterministic timestamp
+- **tests/smoke/smoke-runner.js:19** - Date.now() call creates non-deterministic timestamp
+- **tests/smoke/smoke-runner.js:29** - Date.now() call creates non-deterministic timestamp
+- **tests/smoke/smoke-runner.js:58** - Date.now() call creates non-deterministic timestamp
+- **tests/smoke/smoke-runner.js:106** - Date.now() call creates non-deterministic timestamp
+- **tests/smoke/smoke-runner.js:191** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/smoke/smoke-runner.js:192** - Date.now() call creates non-deterministic timestamp
+- **tests/smoke/user-journeys.test.js:22** - Date.now() call creates non-deterministic timestamp
+- **tests/smoke/user-journeys.test.js:36** - Date.now() call creates non-deterministic timestamp
+- **tests/smoke/user-journeys.test.js:75** - Date.now() call creates non-deterministic timestamp
+- **tests/smoke/user-journeys.test.js:84** - Date.now() call creates non-deterministic timestamp
+- **tests/smoke/user-journeys.test.js:86** - Date.now() call creates non-deterministic timestamp
+- **tests/smoke/user-journeys.test.js:104** - Date.now() call creates non-deterministic timestamp
+- **tests/smoke/user-journeys.test.js:116** - Date.now() call creates non-deterministic timestamp
+- **tests/smoke/user-journeys.test.js:133** - Date.now() call creates non-deterministic timestamp
+- **tests/smoke/user-journeys.test.js:373** - Date.now() call creates non-deterministic timestamp
+- **tests/smoke/user-journeys.test.js:375** - Date.now() call creates non-deterministic timestamp
+- **tests/smoke/user-journeys.test.js:388** - Date.now() call creates non-deterministic timestamp
+- **tests/smoke/user-journeys.test.js:390** - Date.now() call creates non-deterministic timestamp
+- **tests/smoke/user-journeys.test.js:403** - Date.now() call creates non-deterministic timestamp
+- **tests/smoke/user-journeys.test.js:405** - Date.now() call creates non-deterministic timestamp
+- **tests/sparql-frontmatter-validation.test.js:355** - Date.now() call creates non-deterministic timestamp
+- **tests/sparql-frontmatter-validation.test.js:357** - Date.now() call creates non-deterministic timestamp
+- **tests/steps/datetime-filters.steps.js:26** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/steps/latex-steps.js:529** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/stress/concurrent-export-test.js:16** - Date.now() call creates non-deterministic timestamp
+- **tests/stress/concurrent-export-test.js:32** - Date.now() call creates non-deterministic timestamp
+- **tests/stress/concurrent-export-test.js:48** - Date.now() call creates non-deterministic timestamp
+- **tests/stress/concurrent-export-test.js:61** - Date.now() call creates non-deterministic timestamp
+- **tests/stress/concurrent-export-test.js:77** - Date.now() call creates non-deterministic timestamp
+- **tests/stress/concurrent-export-test.js:93** - Date.now() call creates non-deterministic timestamp
+- **tests/stress/concurrent-export-test.js:110** - Date.now() call creates non-deterministic timestamp
+- **tests/stress/edge-case-test.js:149** - Date.now() call creates non-deterministic timestamp
+- **tests/stress/edge-case-test.js:158** - Date.now() call creates non-deterministic timestamp
+- **tests/stress/edge-case-test.js:204** - Date.now() call creates non-deterministic timestamp
+- **tests/stress/edge-case-test.js:216** - Date.now() call creates non-deterministic timestamp
+- **tests/stress/export-stress-test.js:35** - Date.now() call creates non-deterministic timestamp
+- **tests/stress/export-stress-test.js:45** - Date.now() call creates non-deterministic timestamp
+- **tests/stress/export-stress-test.js:302** - Date.now() call creates non-deterministic timestamp
+- **tests/stress/export-stress-test.js:304** - Date.now() call creates non-deterministic timestamp
+- **tests/stress/export-stress-test.js:469** - Date.now() call creates non-deterministic timestamp
+- **tests/stress/export-stress-test.js:477** - Date.now() call creates non-deterministic timestamp
+- **tests/stress/export-validation-test.js:95** - Date.now() call creates non-deterministic timestamp
+- **tests/stress/export-validation-test.js:97** - Date.now() call creates non-deterministic timestamp
+- **tests/stress/export-validation-test.js:283** - Date.now() call creates non-deterministic timestamp
+- **tests/stress/export-validation-test.js:285** - Date.now() call creates non-deterministic timestamp
+- **tests/stress/load-test.js:15** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/stress/memory-test.js:15** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/support/builders.js:146** - Date.now() call creates non-deterministic timestamp
+- **tests/support/helpers.js:24** - Date.now() call creates non-deterministic timestamp
+- **tests/support/test-utilities.js:303** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/support/world.js:80** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/system-boundaries/boundary-test-framework.js:389** - Date.now() call creates non-deterministic timestamp
+- **tests/system-boundaries/boundary-test-framework.js:602** - Date.now() call creates non-deterministic timestamp
+- **tests/template-engine-basic.test.js:19** - Date.now() call creates non-deterministic timestamp
+- **tests/template-generation/advanced-test-runner.js:12** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/template-generation/advanced-test-runner.js:19** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/template-generation/advanced-test-runner.js:148** - Date.now() call creates non-deterministic timestamp
+- **tests/template-generation/advanced-test-runner.js:156** - Date.now() call creates non-deterministic timestamp
+- **tests/template-generation/advanced-test-runner.js:173** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/template-generation/test-runner.js:12** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/template-generation/test-runner.js:19** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/template-generation/test-runner.js:41** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/template-generation/test-runner.js:54** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/template-generation/test-runner.js:119** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/template-generation/test-runner.js:143** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/template-linter.test.js:91** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/template-linter.test.js:92** - Date.now() call creates non-deterministic timestamp
+- **tests/template-linter.test.js:93** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/templating/template-optimization.test.js:61** - Date.now() call creates non-deterministic timestamp
+- **tests/templating/template-optimization.test.js:184** - Date.now() call creates non-deterministic timestamp
+- **tests/templating/template-optimization.test.js:185** - Date.now() call creates non-deterministic timestamp
+- **tests/templating/template-optimization.test.js:228** - Date.now() call creates non-deterministic timestamp
+- **tests/templating/template-optimization.test.js:494** - Date.now() call creates non-deterministic timestamp
+- **tests/templating/template-optimization.test.js:593** - Date.now() call creates non-deterministic timestamp
+- **tests/templating/template-optimization.test.js:702** - Date.now() call creates non-deterministic timestamp
+- **tests/templating/template-optimization.test.js:898** - Date.now() call creates non-deterministic timestamp
+- **tests/templating/template-optimization.test.js:1073** - Date.now() call creates non-deterministic timestamp
+- **tests/test-ajv-validation.mjs:233** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/test-shacl-direct.mjs:447** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/test-shacl-validation.mjs:50** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/test-shacl-validation.mjs:67** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/test-shacl-validation.mjs:454** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/test-sparql-actual.js:272** - Date.now() call creates non-deterministic timestamp
+- **tests/test-sparql-actual.js:281** - Date.now() call creates non-deterministic timestamp
+- **tests/unit/claude-flow-integration.test.js:19** - Date.now() call creates non-deterministic timestamp
+- **tests/unit/claude-flow-integration.test.js:109** - Date.now() call creates non-deterministic timestamp
+- **tests/unit/claude-flow-integration.test.js:114** - Date.now() call creates non-deterministic timestamp
+- **tests/unit/cli-commands-real.test.js:21** - Date.now() call creates non-deterministic timestamp
+- **tests/unit/cli-commands-real.test.js:37** - Date.now() call creates non-deterministic timestamp
+- **tests/unit/cli-core.test.js:178** - Date.now() call creates non-deterministic timestamp
+- **tests/unit/cli-core.test.js:180** - Date.now() call creates non-deterministic timestamp
+- **tests/unit/cli-integration-workflow.test.js:19** - Date.now() call creates non-deterministic timestamp
+- **tests/unit/cli-integration-workflow.test.js:381** - Date.now() call creates non-deterministic timestamp
+- **tests/unit/cli-integration-workflow.test.js:399** - Date.now() call creates non-deterministic timestamp
+- **tests/unit/core-functionality-simple.test.js:13** - Date.now() call creates non-deterministic timestamp
+- **tests/unit/core-functionality-simple.test.js:290** - Date.now() call creates non-deterministic timestamp
+- **tests/unit/core-functionality-simple.test.js:298** - Date.now() call creates non-deterministic timestamp
+- **tests/unit/core-functionality-simple.test.js:303** - Date.now() call creates non-deterministic timestamp
+- **tests/unit/core-functionality-simple.test.js:313** - Date.now() call creates non-deterministic timestamp
+- **tests/unit/date-filters.test.js:53** - Date.now() call creates non-deterministic timestamp
+- **tests/unit/date-filters.test.js:59** - Date.now() call creates non-deterministic timestamp
+- **tests/unit/date-filters.test.js:80** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/unit/date-filters.test.js:121** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/unit/date-filters.test.js:127** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/unit/date-filters.test.js:150** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/unit/error-handling-rollback.test.js:21** - Date.now() call creates non-deterministic timestamp
+- **tests/unit/faker-filters.test.js:112** - Date.now() call creates non-deterministic timestamp
+- **tests/unit/file-injector-real.test.js:31** - Date.now() call creates non-deterministic timestamp
+- **tests/unit/file-injector.test.js:19** - Date.now() call creates non-deterministic timestamp
+- **tests/unit/file-injector.test.js:722** - Date.now() call creates non-deterministic timestamp
+- **tests/unit/file-injector.test.js:729** - Date.now() call creates non-deterministic timestamp
+- **tests/unit/frontmatter-parser-real.test.js:26** - Date.now() call creates non-deterministic timestamp
+- **tests/unit/frontmatter-parser.test.js:752** - Date.now() call creates non-deterministic timestamp
+- **tests/unit/frontmatter-parser.test.js:754** - Date.now() call creates non-deterministic timestamp
+- **tests/unit/frontmatter-parser.test.js:768** - Date.now() call creates non-deterministic timestamp
+- **tests/unit/frontmatter-parser.test.js:770** - Date.now() call creates non-deterministic timestamp
+- **tests/unit/generator-core.test.js:18** - Date.now() call creates non-deterministic timestamp
+- **tests/unit/generator-core.test.js:410** - Date.now() call creates non-deterministic timestamp
+- **tests/unit/generator-core.test.js:412** - Date.now() call creates non-deterministic timestamp
+- **tests/unit/generator-core.test.js:414** - Date.now() call creates non-deterministic timestamp
+- **tests/unit/generator-core.test.js:416** - Date.now() call creates non-deterministic timestamp
+- **tests/unit/generator-real.test.js:437** - Date.now() call creates non-deterministic timestamp
+- **tests/unit/generator-real.test.js:450** - Date.now() call creates non-deterministic timestamp
+- **tests/unit/generator.test.js:293** - Date.now() call creates non-deterministic timestamp
+- **tests/unit/generator.test.js:295** - Date.now() call creates non-deterministic timestamp
+- **tests/unit/jtbd-workflows.test.js:23** - Date.now() call creates non-deterministic timestamp
+- **tests/unit/jtbd-workflows.test.js:385** - Date.now() call creates non-deterministic timestamp
+- **tests/unit/jtbd-workflows.test.js:390** - Date.now() call creates non-deterministic timestamp
+- **tests/unit/jtbd-workflows.test.js:406** - Date.now() call creates non-deterministic timestamp
+- **tests/unit/jtbd-workflows.test.js:408** - Date.now() call creates non-deterministic timestamp
+- **tests/unit/mcp-claude-flow-connector.test.js:19** - Date.now() call creates non-deterministic timestamp
+- **tests/unit/property/frontmatter-scanner.property.test.js:267** - Date.now() call creates non-deterministic timestamp
+- **tests/unit/property/generator.property.test.js:12** - Date.now() call creates non-deterministic timestamp
+- **tests/unit/property/injection.property.test.js:13** - Date.now() call creates non-deterministic timestamp
+- **tests/unit/property/template.property.test.js:13** - Date.now() call creates non-deterministic timestamp
+- **tests/unit/rdf-graph-processor.test.js:242** - Date.now() call creates non-deterministic timestamp
+- **tests/unit/rdf-graph-processor.test.js:244** - Date.now() call creates non-deterministic timestamp
+- **tests/unit/rdf-graph-processor.test.js:247** - Date.now() call creates non-deterministic timestamp
+- **tests/unit/rdf-graph-processor.test.js:249** - Date.now() call creates non-deterministic timestamp
+- **tests/unit/rdf-graph-processor.test.js:268** - Date.now() call creates non-deterministic timestamp
+- **tests/unit/rdf-graph-processor.test.js:271** - Date.now() call creates non-deterministic timestamp
+- **tests/unit/rdf-graph-processor.test.js:277** - Date.now() call creates non-deterministic timestamp
+- **tests/unit/rdf-graph-processor.test.js:279** - Date.now() call creates non-deterministic timestamp
+- **tests/unit/rdf-graph-processor.test.js:558** - Date.now() call creates non-deterministic timestamp
+- **tests/unit/rdf-graph-processor.test.js:560** - Date.now() call creates non-deterministic timestamp
+- **tests/unit/rdf-graph-processor.test.js:563** - Date.now() call creates non-deterministic timestamp
+- **tests/unit/rdf-graph-processor.test.js:565** - Date.now() call creates non-deterministic timestamp
+- **tests/unit/rdf-graph-processor.test.js:609** - Date.now() call creates non-deterministic timestamp
+- **tests/unit/rdf-graph-processor.test.js:787** - Date.now() call creates non-deterministic timestamp
+- **tests/unit/rdf-turtle-integration.test.js:146** - Date.now() call creates non-deterministic timestamp
+- **tests/unit/rdf-turtle-integration.test.js:328** - Date.now() call creates non-deterministic timestamp
+- **tests/unit/rdf-turtle-integration.test.js:332** - Date.now() call creates non-deterministic timestamp
+- **tests/unit/rdf-turtle-integration.test.js:337** - Date.now() call creates non-deterministic timestamp
+- **tests/unit/rdf-turtle-integration.test.js:341** - Date.now() call creates non-deterministic timestamp
+- **tests/unit/rdf-turtle-integration.test.js:389** - Date.now() call creates non-deterministic timestamp
+- **tests/unit/rdf-turtle-integration.test.js:393** - Date.now() call creates non-deterministic timestamp
+- **tests/unit/rdf-turtle-integration.test.js:400** - Date.now() call creates non-deterministic timestamp
+- **tests/unit/shared-memory-interface.test.js:14** - Date.now() call creates non-deterministic timestamp
+- **tests/unit/swarm-topologies.test.js:17** - Date.now() call creates non-deterministic timestamp
+- **tests/unit/swarm-topologies.test.js:135** - Date.now() call creates non-deterministic timestamp
+- **tests/unit/swarm-topologies.test.js:141** - Date.now() call creates non-deterministic timestamp
+- **tests/unit/task-orchestrator.test.js:16** - Date.now() call creates non-deterministic timestamp
+- **tests/unit/task-orchestrator.test.js:52** - Date.now() call creates non-deterministic timestamp
+- **tests/unit/task-orchestrator.test.js:54** - Date.now() call creates non-deterministic timestamp
+- **tests/unit/task-orchestrator.test.js:261** - Date.now() call creates non-deterministic timestamp
+- **tests/unit/task-orchestrator.test.js:263** - Date.now() call creates non-deterministic timestamp
+- **tests/unit/template-engine-integration.test.js:43** - Date.now() call creates non-deterministic timestamp
+- **tests/unit/template-engine-integration.test.js:402** - Date.now() call creates non-deterministic timestamp
+- **tests/unit/template-engine-integration.test.js:405** - Date.now() call creates non-deterministic timestamp
+- **tests/unit/template-engine-integration.test.js:419** - Date.now() call creates non-deterministic timestamp
+- **tests/unit/template-engine-integration.test.js:421** - Date.now() call creates non-deterministic timestamp
+- **tests/unit/template-engine-integration.test.js:424** - Date.now() call creates non-deterministic timestamp
+- **tests/unit/template-engine-integration.test.js:426** - Date.now() call creates non-deterministic timestamp
+- **tests/unit/template-engine.test.js:18** - Date.now() call creates non-deterministic timestamp
+- **tests/unit/template-engine.test.js:424** - Date.now() call creates non-deterministic timestamp
+- **tests/unit/template-optimization-validation.test.js:181** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/unit/template-scanner-real.test.js:17** - Date.now() call creates non-deterministic timestamp
+- **tests/unit/template-scanner.test.js:318** - Date.now() call creates non-deterministic timestamp
+- **tests/unit/template-scanner.test.js:320** - Date.now() call creates non-deterministic timestamp
+- **tests/unit/template-scanner.test.js:356** - Date.now() call creates non-deterministic timestamp
+- **tests/unit/template-scanner.test.js:360** - Date.now() call creates non-deterministic timestamp
+- **tests/unit/turtle-parser.test.js:125** - Date.now() call creates non-deterministic timestamp
+- **tests/unit/turtle-parser.test.js:127** - Date.now() call creates non-deterministic timestamp
+- **tests/utils/test-helpers.js:165** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/validate-all-fixes.js:18** - Date.now() call creates non-deterministic timestamp
+- **tests/validate-all-fixes.js:38** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/validate-all-fixes.js:65** - Date.now() call creates non-deterministic timestamp
+- **tests/validate-all-fixes.js:72** - Date.now() call creates non-deterministic timestamp
+- **tests/validate-all-fixes.js:407** - Date.now() call creates non-deterministic timestamp
+- **tests/validate-all-fixes.js:410** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/validate-template-engine.mjs:15** - Date.now() call creates non-deterministic timestamp
+- **tests/validation/artifact-validation.test.js:347** - Date.now() call creates non-deterministic timestamp
+- **tests/validation/artifact-validation.test.js:353** - Date.now() call creates non-deterministic timestamp
+- **tests/validation/drift-detection.test.js:297** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/validation/drift-detection.test.js:366** - Date.now() call creates non-deterministic timestamp
+- **tests/validation/drift-detection.test.js:371** - Date.now() call creates non-deterministic timestamp
+- **tests/validation/rdf-security-focused.test.js:30** - Date.now() call creates non-deterministic timestamp
+- **tests/validation/rdf-security-focused.test.js:32** - Date.now() call creates non-deterministic timestamp
+- **tests/validation/rdf-security-focused.test.js:43** - Date.now() call creates non-deterministic timestamp
+- **tests/validation/rdf-security-focused.test.js:46** - Date.now() call creates non-deterministic timestamp
+- **tests/validation/rdf-security-focused.test.js:105** - Date.now() call creates non-deterministic timestamp
+- **tests/validation/rdf-security-focused.test.js:126** - Date.now() call creates non-deterministic timestamp
+- **tests/validation/rdf-security-focused.test.js:131** - Date.now() call creates non-deterministic timestamp
+- **tests/validation/rdf-security-validation.test.js:34** - Date.now() call creates non-deterministic timestamp
+- **tests/validation/rdf-security-validation.test.js:36** - Date.now() call creates non-deterministic timestamp
+- **tests/validation/rdf-security-validation.test.js:76** - Date.now() call creates non-deterministic timestamp
+- **tests/validation/rdf-security-validation.test.js:79** - Date.now() call creates non-deterministic timestamp
+- **tests/validation/rdf-security-validation.test.js:106** - Date.now() call creates non-deterministic timestamp
+- **tests/validation/rdf-security-validation.test.js:109** - Date.now() call creates non-deterministic timestamp
+- **tests/validation/rdf-security-validation.test.js:159** - Date.now() call creates non-deterministic timestamp
+- **tests/validation/rdf-security-validation.test.js:182** - Date.now() call creates non-deterministic timestamp
+- **tests/validation/rdf-security-validation.test.js:187** - Date.now() call creates non-deterministic timestamp
+- **tests/validation/rdf-security-validation.test.js:209** - Date.now() call creates non-deterministic timestamp
+- **tests/validation/rdf-security-validation.test.js:212** - Date.now() call creates non-deterministic timestamp
+- **tests/validation/rdf-security-validation.test.js:412** - Date.now() call creates non-deterministic timestamp
+- **tests/validation/rdf-security-validation.test.js:417** - Date.now() call creates non-deterministic timestamp
+- **tests/validation-script.js:26** - Date.now() call creates non-deterministic timestamp
+- **tests/workflows/act-regression-suite.js:67** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/workflows/act-regression-suite.js:151** - Date.now() call creates non-deterministic timestamp
+- **tests/workflows/act-regression-suite.js:204** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/workflows/act-regression-suite.js:418** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/workflows/act-regression-suite.js:445** - Date.now() call creates non-deterministic timestamp
+- **tests/workflows/act-validation-framework.js:217** - Date.now() call creates non-deterministic timestamp
+- **tests/workflows/act-validation-framework.js:221** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/workflows/act-validation-framework.js:247** - Date.now() call creates non-deterministic timestamp
+- **tests/workflows/act-validation-framework.js:255** - Date.now() call creates non-deterministic timestamp
+- **tests/workflows/act-validation-framework.js:273** - Date.now() call creates non-deterministic timestamp
+- **tests/workflows/act-validation-framework.js:489** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/workflows/act-validation-framework.js:507** - Date.now() call creates non-deterministic timestamp
+- **tests/workflows/error-simulation-suite.js:95** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/workflows/error-simulation-suite.js:105** - Date.now() call creates non-deterministic timestamp
+- **tests/workflows/error-simulation-suite.js:118** - Date.now() call creates non-deterministic timestamp
+- **tests/workflows/error-simulation-suite.js:143** - Date.now() call creates non-deterministic timestamp
+- **tests/workflows/error-simulation-suite.js:489** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/workflows/error-simulation-suite.js:504** - Date.now() call creates non-deterministic timestamp
+- **tests/workflows/integration.test.js:24** - Date.now() call creates non-deterministic timestamp
+- **tests/workflows/integration.test.js:364** - Date.now() call creates non-deterministic timestamp
+- **tests/workflows/integration.test.js:366** - Date.now() call creates non-deterministic timestamp
+- **tests/workflows/integration.test.js:579** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/workflows/performance-benchmarker.js:38** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **tests/workflows/performance-benchmarker.js:262** - Date.now() call creates non-deterministic timestamp
+- **tests/workflows/performance-benchmarker.js:280** - Date.now() call creates non-deterministic timestamp
+- **tests/workflows/performance-benchmarker.js:294** - Date.now() call creates non-deterministic timestamp
+- **tests/workflows/performance-benchmarker.js:537** - Date.now() call creates non-deterministic timestamp
+- **workshop/bootstrap/kgen-bootstrap.js:88** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **workshop/bootstrap/kgen-bootstrap.js:117** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **workshop/bootstrap/kgen-bootstrap.js:358** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **workshop/bootstrap/kgen-bootstrap.js:484** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **workshop/bootstrap/kgen-bootstrap.js:521** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **workshop/bootstrap/kgen-bootstrap.js:556** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **workshop/validation/test-self-hosting.js:28** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **workshop/validation/test-self-hosting.js:34** - Date.now() call creates non-deterministic timestamp
+- **workshop/validation/test-self-hosting.js:38** - Date.now() call creates non-deterministic timestamp
+- **workshop/validation/test-self-hosting.js:47** - Date.now() call creates non-deterministic timestamp
+- **workshop/validation/test-self-hosting.js:235** - new Date() without fixed timestamp creates non-deterministic timestamp
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+- **kgen.lock.json:0** - Lock file contains file modification timestamps
+
+## Applied Fixes
+
+### 1. Deterministic Timestamp Helpers
+
+Created utility functions to replace non-deterministic timestamp calls:
+
+```javascript
+// Before
+const timestamp = Date.now();
+const date = new Date();
+
+// After  
+const timestamp = this.getDeterministicTimestamp();
+const date = this.getDeterministicDate();
+```
+
+### 2. Lock File Cleanup
+
+Removed dynamic timestamps from kgen.lock.json:
+- Removed top-level timestamp field
+- Removed file modification timestamps
+- Kept only content hashes and sizes for reproducibility
+
+### 3. Environment Variable Support
+
+All timestamp functions now respect `SOURCE_DATE_EPOCH` for reproducible builds:
+
+```bash
+# For reproducible builds
+export SOURCE_DATE_EPOCH=1704067200  # 2024-01-01T00:00:00Z
+
+# Build will now be deterministic
+npm run build
+```
+
+## Usage Instructions
+
+### For Developers
+
+1. Import deterministic time utilities:
+   ```javascript
+   import { getDeterministicTimestamp, getDeterministicDate } from './src/utils/deterministic-time.js';
+   ```
+
+2. Use in classes with mixin:
+   ```javascript
+   import { withDeterministicTime } from './src/utils/deterministic-time-mixin.js';
+   
+   class MyClass extends withDeterministicTime(BaseClass) {
+     generateTimestamp() {
+       return this.getDeterministicTimestamp();
+     }
+   }
+   ```
+
+### For CI/CD
+
+Set SOURCE_DATE_EPOCH for reproducible builds:
+
+```yaml
+env:
+  SOURCE_DATE_EPOCH: 1704067200
+```
+
+## Verification
+
+Run the reproducibility test suite to verify fixes:
+
+```bash
+node tests/reproducibility/test-build-reproducibility.js
+```
+
+---
+*Generated by KGEN Timestamp Fixer - 2025-09-12T19:02:02.814Z*

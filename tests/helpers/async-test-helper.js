@@ -207,10 +207,10 @@ export class AsyncTestHelper extends EventEmitter {
       description = 'condition'
     } = options;
 
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     return this.withTimeout(async () => {
-      while (Date.now() - startTime < timeout) {
+      while (this.getDeterministicTimestamp() - startTime < timeout) {
         try {
           const result = await conditionFn();
           if (result) {
@@ -257,7 +257,7 @@ export class AsyncTestHelper extends EventEmitter {
     }
 
     const state = this.circuitBreakerState;
-    const now = Date.now();
+    const now = this.getDeterministicTimestamp();
 
     // Check if circuit should be reset
     if (state.state === 'open' && (now - state.lastFailureTime) > resetTimeout) {

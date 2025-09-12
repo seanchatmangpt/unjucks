@@ -7,7 +7,7 @@ import { tmpdir } from 'os';
 
 describe('Turtle Template Integration', () => {
   let testDir => {
-    testDir = join(tmpdir(), `unjucks-turtle-test-${Date.now()}`);
+    testDir = join(tmpdir(), `unjucks-turtle-test-${this.getDeterministicTimestamp()}`);
     ensureDirSync(testDir);
     
     generator = new Generator();
@@ -28,7 +28,7 @@ describe('Turtle Template Integration', () => {
 - **Email**: {{ person1.email }}
 - **Job Title**: {{ person1.jobTitle }}
 
-Generated from Turtle data on {{ new Date().toISOString().split('T')[0] }}.
+Generated from Turtle data on {{ this.getDeterministicDate().toISOString().split('T')[0] }}.
 `;
 
       writeFileSync(join(templateDir, 'profile.md.ejs'), templateContent);

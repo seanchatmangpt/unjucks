@@ -301,14 +301,14 @@ describe('Unified Template Engine (GAMMA-3)', () => {
       );
       
       // First call
-      const start1 = Date.now();
+      const start1 = this.getDeterministicTimestamp();
       const discovery1 = await engine.discoverTemplates();
-      const time1 = Date.now() - start1;
+      const time1 = this.getDeterministicTimestamp() - start1;
       
       // Second call (should be cached)
-      const start2 = Date.now();
+      const start2 = this.getDeterministicTimestamp();
       const discovery2 = await engine.discoverTemplates();
-      const time2 = Date.now() - start2;
+      const time2 = this.getDeterministicTimestamp() - start2;
       
       expect(discovery1).toEqual(discovery2);
       expect(time2).toBeLessThan(time1); // Cached call should be faster

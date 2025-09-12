@@ -284,9 +284,9 @@ ex:m ex:pred "value2" .
         ));
       }
       
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const result = await serializer.serializeCanonical(quads);
-      const processingTime = Date.now() - startTime;
+      const processingTime = this.getDeterministicTimestamp() - startTime;
       
       assert(result.statistics.inputTriples === 1000);
       assert(processingTime < 5000); // Should complete within 5 seconds

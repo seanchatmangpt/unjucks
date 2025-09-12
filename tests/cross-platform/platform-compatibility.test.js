@@ -495,7 +495,7 @@ describe('Cross-Platform Compatibility Validation', () => {
 
   test('should generate comprehensive compatibility report', () => {
     const report = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       platform: process.platform,
       architecture: process.arch,
       nodeVersion: process.version,

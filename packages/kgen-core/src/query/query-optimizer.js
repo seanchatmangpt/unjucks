@@ -5,7 +5,7 @@
  * and statistical optimization for high-performance SPARQL execution.
  */
 
-import { Logger } from 'consola';
+import { Consola } from 'consola';
 
 export class QueryOptimizer {
   constructor(config = {}) {
@@ -19,7 +19,7 @@ export class QueryOptimizer {
       ...config
     };
     
-    this.logger = new Logger({ tag: 'query-optimizer' });
+    this.logger = new Consola({ tag: 'query-optimizer' });
     this.statistics = new Map();
     this.costModel = new CostModel(config);
   }
@@ -442,7 +442,7 @@ export class QueryOptimizer {
 class CostModel {
   constructor(config = {}) {
     this.config = config;
-    this.logger = new Logger({ tag: 'cost-model' });
+    this.logger = new Consola({ tag: 'cost-model' });
   }
 
   async estimateQueryCost(query, context = {}) {

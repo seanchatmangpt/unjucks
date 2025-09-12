@@ -10,7 +10,7 @@ const execAsync = promisify(exec);
 describe('CLI Integration Tests', () => {
   let testDir => {
     // Create temporary test directory
-    testDir = path.join(process.cwd(), `test-cli-${Date.now()}`);
+    testDir = path.join(process.cwd(), `test-cli-${this.getDeterministicTimestamp()}`);
     templatesDir = path.join(testDir, '_templates');
     
     await fs.ensureDir(testDir);
@@ -274,9 +274,9 @@ describe('CLI Integration Tests', () => {
         await createTestGenerator('component', `template${i}`);
       }
 
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const { stdout } = await execAsync('node ../../dist/cli.mjs list');
-      const endTime = Date.now();
+      const endTime = this.getDeterministicTimestamp();
 
       expect(stdout).toContain('component');
       expect(endTime - startTime).toBeLessThan(5000); // Should complete in under 5 seconds
@@ -285,11 +285,11 @@ describe('CLI Integration Tests', () => {
     it('should generate multiple files quickly', async () => {
       await createMultiFileGenerator('feature', 'full-stack');
 
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const { stdout } = await execAsync(
         'node ../../dist/cli.mjs generate feature full-stack UserManager'
       );
-      const endTime = Date.now();
+      const endTime = this.getDeterministicTimestamp();
 
       expect(stdout).toContain('Generated');
       expect(endTime - startTime).toBeLessThan(3000); // Should be reasonably fast

@@ -13,7 +13,7 @@ import os from 'os'
 async function verifyCacheSystem() {
   console.log('🔍 Verifying KGEN Cache System...\n')
   
-  const testCacheDir = path.join(os.tmpdir(), 'kgen-verify-' + Date.now())
+  const testCacheDir = path.join(os.tmpdir(), 'kgen-verify-' + this.getDeterministicTimestamp())
   
   try {
     // Initialize cache manager

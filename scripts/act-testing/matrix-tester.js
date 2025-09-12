@@ -265,7 +265,7 @@ class MatrixTester {
       console.log(`        💻 Executing: ${command}`);
     }
     
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       if (this.options.dryRun) {
@@ -281,7 +281,7 @@ class MatrixTester {
         exitCode: 0,
         stdout,
         stderr,
-        duration: Date.now() - startTime
+        duration: this.getDeterministicTimestamp() - startTime
       };
       
     } catch (error) {
@@ -289,7 +289,7 @@ class MatrixTester {
         exitCode: error.code || 1,
         stdout: error.stdout || '',
         stderr: error.stderr || error.message,
-        duration: Date.now() - startTime
+        duration: this.getDeterministicTimestamp() - startTime
       };
     }
   }

@@ -1006,7 +1006,7 @@ class SecurityComplianceValidator {
    * @returns {SecurityValidationReport}
    */
   generateComplianceReport() {
-    const timestamp = new Date();
+    const timestamp = this.getDeterministicDate();
     const totalResults = this.results.length;
     const compliantResults = this.results.filter(r => r.compliant).length;
     const nonCompliantResults = totalResults - compliantResults;

@@ -34,7 +34,7 @@ export class PerformanceRegressionDetector {
       this.logger.success('Performance regression detector initialized');
     } catch (error) {
       this.logger.warn('No baseline found, will create new one');
-      this.baseline = { metrics: {}, created: new Date().toISOString() };
+      this.baseline = { metrics: {}, created: this.getDeterministicDate().toISOString() };
     }
   }
 
@@ -81,7 +81,7 @@ export class PerformanceRegressionDetector {
 
     this.currentMetrics.get(name).push({
       value,
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       metadata
     });
 
@@ -129,7 +129,7 @@ export class PerformanceRegressionDetector {
         total: totalMetrics,
         regressions: regressionCount,
         regressionRate: totalMetrics > 0 ? regressionCount / totalMetrics : 0,
-        timestamp: new Date().toISOString()
+        timestamp: this.getDeterministicDate().toISOString()
       }
     };
 
@@ -255,12 +255,12 @@ export class PerformanceRegressionDetector {
    */
   async _triggerAlert(regression) {
     const alert = {
-      id: `regression-${Date.now()}`,
+      id: `regression-${this.getDeterministicTimestamp()}`,
       type: 'performance_regression',
       severity: regression.severity,
       metric: regression.metric,
       degradation: `${regression.deltaPercentage.toFixed(1)}%`,
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       details: regression
     };
 
@@ -295,7 +295,7 @@ export class PerformanceRegressionDetector {
    */
   async updateBaseline() {
     if (!this.baseline) {
-      this.baseline = { metrics: {}, created: new Date().toISOString() };
+      this.baseline = { metrics: {}, created: this.getDeterministicDate().toISOString() };
     }
 
     let updatedCount = 0;
@@ -314,14 +314,14 @@ export class PerformanceRegressionDetector {
         min: Math.min(...values),
         max: Math.max(...values),
         samples: values.length,
-        lastUpdated: new Date().toISOString()
+        lastUpdated: this.getDeterministicDate().toISOString()
       };
 
       this.baseline.metrics[metricName] = statistics;
       updatedCount++;
     }
 
-    this.baseline.lastUpdated = new Date().toISOString();
+    this.baseline.lastUpdated = this.getDeterministicDate().toISOString();
     await this.saveBaseline();
     
     this.logger.success(`Updated baseline with ${updatedCount} metrics`);
@@ -333,7 +333,7 @@ export class PerformanceRegressionDetector {
    */
   generateReport() {
     const report = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       baseline: {
         created: this.baseline?.created,
         lastUpdated: this.baseline?.lastUpdated,

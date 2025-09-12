@@ -69,7 +69,7 @@ export class SSOProvider extends EventEmitter {
     this.providers.set(name, {
       ...config,
       id: name,
-      createdAt: new Date(),
+      createdAt: this.getDeterministicDate(),
       status: 'active'
     });
     
@@ -171,15 +171,15 @@ export class SSOProvider extends EventEmitter {
 
   async createSession(user, provider, context = {}) {
     const sessionId = crypto.randomUUID();
-    const expiresAt = new Date(Date.now() + this.config.sessionTimeout);
+    const expiresAt = new Date(this.getDeterministicTimestamp() + this.config.sessionTimeout);
     
     const session = {
       id: sessionId,
       userId: user.id,
       provider,
-      createdAt: new Date(),
+      createdAt: this.getDeterministicDate(),
       expiresAt,
-      lastActivity: new Date(),
+      lastActivity: this.getDeterministicDate(),
       ipAddress: context.ipAddress,
       userAgent: context.userAgent,
       roles: user.roles || [],
@@ -217,12 +217,12 @@ export class SSOProvider extends EventEmitter {
       const decoded = jwt.verify(token, this.config.jwtSecret);
       const session = this.activeSessions.get(decoded.sessionId);
       
-      if (!session || session.expiresAt < new Date()) {
+      if (!session || session.expiresAt < this.getDeterministicDate()) {
         return { valid: false, reason: 'Session expired' };
       }
 
       // Update last activity
-      session.lastActivity = new Date();
+      session.lastActivity = this.getDeterministicDate();
       
       return { 
         valid: true, 
@@ -322,7 +322,7 @@ export class SSOProvider extends EventEmitter {
 
   async cleanup() {
     // Clean up expired sessions
-    const now = new Date();
+    const now = this.getDeterministicDate();
     let cleaned = 0;
     
     for (const [sessionId, session] of this.activeSessions) {

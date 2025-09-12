@@ -17,7 +17,7 @@ const testDir = join(projectRoot, 'tests/.tmp/clean-room-test');
 class CleanRoomTester {
   constructor() {
     this.results = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       platform: process.platform,
       architecture: process.arch,
       nodeVersion: process.version,

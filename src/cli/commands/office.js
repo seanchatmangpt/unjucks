@@ -144,7 +144,7 @@ class ProgressBar {
     this.total = total;
     this.current = 0;
     this.description = description;
-    this.startTime = Date.now();
+    this.startTime = this.getDeterministicTimestamp();
   }
 
   update(current = this.current + 1) {
@@ -153,7 +153,7 @@ class ProgressBar {
     const filled = Math.round((this.current / this.total) * 30);
     const bar = '█'.repeat(filled) + '░'.repeat(30 - filled);
     
-    const elapsed = Date.now() - this.startTime;
+    const elapsed = this.getDeterministicTimestamp() - this.startTime;
     const rate = this.current / (elapsed / 1000);
     const eta = this.current > 0 ? (this.total - this.current) / rate : 0;
     
@@ -436,7 +436,7 @@ const extractCommand = defineCommand({
         file: args.file,
         fileType: fileInfo.type,
         fileFormat: fileInfo.format,
-        extractedAt: new Date().toISOString(),
+        extractedAt: this.getDeterministicDate().toISOString(),
         variableCount: variables.length,
         variables
       } : variables.reduce((acc, v) => {
@@ -574,7 +574,7 @@ const injectCommand = defineCommand({
     try {
       // Create backup if requested
       if (args.backup) {
-        const backupPath = `${args.file}.backup.${Date.now()}`;
+        const backupPath = `${args.file}.backup.${this.getDeterministicTimestamp()}`;
         const originalContent = readFileSync(args.file);
         writeFileSync(backupPath, originalContent);
         console.log(chalk.green(`✅ Backup created: ${backupPath}`));

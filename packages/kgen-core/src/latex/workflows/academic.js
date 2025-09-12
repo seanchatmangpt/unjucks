@@ -181,7 +181,7 @@ export class AcademicPaperWorkflow extends EventEmitter {
         auxiliaryFiles,
         metadata: {
           paperType: config.type,
-          generatedAt: new Date().toISOString(),
+          generatedAt: this.getDeterministicDate().toISOString(),
           sections: sections.length,
           wordCount: this.estimateWordCount(renderedDocument.content)
         }
@@ -355,7 +355,7 @@ export class AcademicPaperWorkflow extends EventEmitter {
       // Document metadata
       title: config.data.title,
       author: config.data.author,
-      date: config.data.date || new Date().toISOString().split('T')[0],
+      date: config.data.date || this.getDeterministicDate().toISOString().split('T')[0],
       
       // Document configuration
       documentClass: templateSelection.template.file.includes('thesis') ? 'book' : 'article',
@@ -503,7 +503,7 @@ export class AcademicPaperWorkflow extends EventEmitter {
       .replace(/\s+/g, '-')
       .substring(0, 50);
     
-    const timestamp = new Date().toISOString().split('T')[0];
+    const timestamp = this.getDeterministicDate().toISOString().split('T')[0];
     return `${title}-${timestamp}.tex`;
   }
   
@@ -606,7 +606,7 @@ export class AcademicPaperWorkflow extends EventEmitter {
 
 - **Type**: ${config.documentType.name}
 - **Author**: ${context.author}
-- **Generated**: ${new Date().toISOString()}
+- **Generated**: ${this.getDeterministicDate().toISOString()}
 - **KGEN Version**: ${process.env.KGEN_VERSION || '1.0.0'}
 
 ## Compilation Instructions

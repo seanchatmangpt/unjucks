@@ -166,9 +166,9 @@ export default {{ organization.name | replace(' ', '') }}ApiClient;`;
       expect(await fs.access(schemaPath)).resolves;
 
       // Performance check
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       await mockTemplateRender(semanticTemplate, enterpriseData);
-      const renderTime = Date.now() - startTime;
+      const renderTime = this.getDeterministicTimestamp() - startTime;
       expect(renderTime).toBeLessThan(1000); // Should be fast
     });
 
@@ -207,9 +207,9 @@ ent:{{ emp.id }} ent:hasSkill "{{ skill }}" .
 {% endfor %}
 {% endfor %}`;
 
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const result = await mockTemplateRender(largeTemplate, complexData);
-      const endTime = Date.now();
+      const endTime = this.getDeterministicTimestamp();
 
       expect(result).toContain('a foaf:Organization');
       expect(result).toContain('ent:dept-0 a foaf:Group');
@@ -270,9 +270,9 @@ ex:{{ entity.id }} a ex:{{ entity.type }} ;
         const data = generateMockData(benchmark.size);
         const template = createPerformanceTemplate();
 
-        const startTime = Date.now();
+        const startTime = this.getDeterministicTimestamp();
         const result = await mockTemplateRender(template, data);
-        const endTime = Date.now();
+        const endTime = this.getDeterministicTimestamp();
 
         const renderTime = endTime - startTime;
         

@@ -169,7 +169,7 @@ export class SecurityManager extends EventEmitter {
         iv: iv.toString('hex'),
         salt: salt.toString('hex'),
         authTag: authTag?.toString('hex'),
-        timestamp: new Date().toISOString()
+        timestamp: this.getDeterministicDate().toISOString()
       };
       
       // Audit encryption operation
@@ -262,7 +262,7 @@ export class SecurityManager extends EventEmitter {
       return {
         signature,
         algorithm: this.config.signatures.algorithm,
-        timestamp: new Date().toISOString()
+        timestamp: this.getDeterministicDate().toISOString()
       };
       
     } catch (error) {
@@ -355,7 +355,7 @@ export class SecurityManager extends EventEmitter {
     }
     
     // Simple in-memory rate limiting (production should use Redis)
-    const now = Date.now();
+    const now = this.getDeterministicTimestamp();
     const windowStart = now - this.config.rateLimit.windowMs;
     
     if (!this.rateLimitMap) {
@@ -448,7 +448,7 @@ export class SecurityManager extends EventEmitter {
     if (!this.config.audit.enabled) return;
     
     const entry = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       operation,
       details,
       environment: env.NODE_ENV

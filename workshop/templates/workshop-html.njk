@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ workshop.title }} - KGEN Workshop</title>
+    <style>
+        :root {
+            --kgen-blue: #0066cc;
+            --kgen-gray: #555555;
+            --kgen-light: #f8f9fa;
+            --kgen-border: #e9ecef;
+            --success: #28a745;
+            --warning: #ffc107;
+            --danger: #dc3545;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--kgen-gray);
+            background-color: #ffffff;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--kgen-blue), #004499);
+            color: white;
+            padding: 2rem 0;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .header .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .nav {
+            background: var(--kgen-light);
+            border-bottom: 1px solid var(--kgen-border);
+            padding: 1rem 0;
+        }
+
+        .nav-list {
+            list-style: none;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 2rem;
+        }
+
+        .nav-list a {
+            text-decoration: none;
+            color: var(--kgen-blue);
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+
+        .nav-list a:hover {
+            background-color: white;
+        }
+
+        .main {
+            padding: 3rem 0;
+        }
+
+        .section {
+            margin-bottom: 3rem;
+        }
+
+        .section h2 {
+            color: var(--kgen-blue);
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            border-bottom: 2px solid var(--kgen-border);
+            padding-bottom: 0.5rem;
+        }
+
+        .section h3 {
+            color: var(--kgen-gray);
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            margin-top: 2rem;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        .card {
+            border: 1px solid var(--kgen-border);
+            border-radius: 8px;
+            padding: 1.5rem;
+            background: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+
+        .card h4 {
+            color: var(--kgen-blue);
+            margin-bottom: 0.5rem;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: white;
+        }
+
+        .badge.success { background: var(--success); }
+        .badge.warning { background: var(--warning); color: var(--kgen-gray); }
+        .badge.danger { background: var(--danger); }
+        .badge.primary { background: var(--kgen-blue); }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: var(--kgen-light);
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 0.5rem 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--success), #20c997);
+            transition: width 0.3s ease;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            margin: 1.5rem 0;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .table th, .table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--kgen-border);
+        }
+
+        .table th {
+            background: var(--kgen-light);
+            font-weight: 600;
+            color: var(--kgen-gray);
+        }
+
+        .table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .code-block {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 1.5rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1rem 0;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            border-left: 4px solid;
+        }
+
+        .alert.info {
+            background: #e7f3ff;
+            border-color: var(--kgen-blue);
+            color: #004085;
+        }
+
+        .alert.success {
+            background: #d4edda;
+            border-color: var(--success);
+            color: #155724;
+        }
+
+        .alert.warning {
+            background: #fff3cd;
+            border-color: var(--warning);
+            color: #856404;
+        }
+
+        .footer {
+            background: var(--kgen-gray);
+            color: white;
+            text-align: center;
+            padding: 2rem 0;
+            margin-top: 4rem;
+        }
+
+        .architecture-diagram {
+            text-align: center;
+            margin: 2rem 0;
+        }
+
+        .component-box {
+            display: inline-block;
+            background: var(--kgen-light);
+            border: 2px solid var(--kgen-blue);
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 0.5rem;
+            min-width: 150px;
+        }
+
+        .component-box h5 {
+            color: var(--kgen-blue);
+            margin-bottom: 0.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 { font-size: 2rem; }
+            .nav-list { flex-direction: column; gap: 0.5rem; }
+            .container { padding: 0 1rem; }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <h1>{{ workshop.title }}</h1>
+            <p class="subtitle">{{ project.title }} - Revolutionary RDF-Based Code Generation</p>
+            <p>Generated: {{ generation.date | date('MMMM Do, YYYY [at] HH:mm') }}</p>
+        </div>
+    </header>
+
+    <nav class="nav">
+        <div class="container">
+            <ul class="nav-list">
+                <li><a href="#overview">Overview</a></li>
+                <li><a href="#architecture">Architecture</a></li>
+                <li><a href="#self-hosting">Self-Hosting</a></li>
+                <li><a href="#milestones">Milestones</a></li>
+                <li><a href="#hands-on">Hands-On Labs</a></li>
+                <li><a href="#validation">Testing</a></li>
+                <li><a href="#next-steps">Next Steps</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="main">
+        <div class="container">
+            <!-- Project Overview Section -->
+            <section id="overview" class="section">
+                <h2>Project Overview</h2>
+                <div class="alert info">
+                    <strong>Welcome to the KGEN Workshop!</strong> This comprehensive training demonstrates how KGEN uses RDF graphs and SHACL validation for revolutionary code generation.
+                </div>
+                
+                <p>{{ project.description }}</p>
+
+                <div class="grid">
+                    <div class="card">
+                        <h4>🎯 Key Benefits</h4>
+                        <ul>
+                            <li>RDF-based semantic code generation</li>
+                            <li>SHACL validation for quality assurance</li>
+                            <li>Self-hosting bootstrap capabilities</li>
+                            <li>Enterprise-grade security and scalability</li>
+                        </ul>
+                    </div>
+                    <div class="card">
+                        <h4>📊 Project Status</h4>
+                        <p><span class="badge primary">{{ project.status | title }}</span></p>
+                        <p><strong>Version:</strong> {{ project.version }}</p>
+                        <p><strong>Duration:</strong> {{ workshop.duration | replace('_', ' ') | title }}</p>
+                        <p><strong>Format:</strong> {{ workshop.format | title }}</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Architecture Section -->
+            <section id="architecture" class="section">
+                <h2>Technical Architecture</h2>
+                <p>KGEN follows a <strong>{{ architecture.pattern }}</strong> architecture with <strong>{{ architecture.deployment }}</strong> deployment.</p>
+                
+                <div class="architecture-diagram">
+                    {% for component in components %}
+                    <div class="component-box">
+                        <h5>{{ component.title }}</h5>
+                        <p><small>{{ component.responsibility }}</small></p>
+                        <p><span class="badge primary">{{ component.technology.split(',')[0] }}</span></p>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <h3>Component Details</h3>
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Component</th>
+                                <th>Responsibility</th>
+                                <th>Technology</th>
+                                <th>Interface</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for component in components %}
+                            <tr>
+                                <td><strong>{{ component.title }}</strong></td>
+                                <td>{{ component.responsibility }}</td>
+                                <td>{{ component.technology }}</td>
+                                <td>{{ component.interface }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Self-Hosting Section -->
+            <section id="self-hosting" class="section">
+                <h2>Self-Hosting Bootstrap System</h2>
+                <div class="alert success">
+                    <strong>Dogfooding Demonstration:</strong> This workshop itself was generated by KGEN from RDF data, showcasing complete self-hosting capabilities.
+                </div>
+
+                <p>{{ selfHosting.title }} demonstrates KGEN's ability to generate its own documentation and validate outputs.</p>
+
+                <h3>Generated Artifacts</h3>
+                <div class="grid">
+                    {% for artifact in generatedArtifacts %}
+                    <div class="card">
+                        <h4>{{ artifact.title }}</h4>
+                        <p><strong>Source:</strong> {{ artifact.sourceRDF }}</p>
+                        <p><strong>Template:</strong> {{ artifact.template }}</p>
+                        <p><strong>Formats:</strong> 
+                            {% for format in artifact.outputFormat %}
+                            <span class="badge primary">{{ format }}</span>
+                            {% endfor %}
+                        </p>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <h3>Self-Generation Example</h3>
+                <div class="code-block">
+# Generate this workshop from RDF data
+kgen generate workshop-html workshop.ttl \
+    --template workshop-html.njk \
+    --output workshop.html \
+    --validate
+
+# Generate charter PDF from same RDF
+kgen generate charter-latex workshop.ttl \
+    --template charter-latex.njk \
+    --output charter.pdf \
+    --validate
+                </div>
+            </section>
+
+            <!-- Project Milestones Section -->
+            <section id="milestones" class="section">
+                <h2>Project Milestones</h2>
+                
+                <div class="grid">
+                    {% for milestone in milestones %}
+                    <div class="card">
+                        <h4>{{ milestone.title }}</h4>
+                        <p><span class="badge {{ 'success' if milestone.status == 'completed' else 'warning' if milestone.status == 'in_progress' else 'primary' }}">{{ milestone.status | replace('_', ' ') | title }}</span></p>
+                        <p><strong>Due:</strong> {{ milestone.dueDate | date('MMMM Do, YYYY') }}</p>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: {{ milestone.progress }}%"></div>
+                        </div>
+                        <p><small>{{ milestone.progress }}% Complete</small></p>
+                        <p><strong>Deliverables:</strong> {{ milestone.deliverables }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </section>
+
+            <!-- Hands-On Labs Section -->
+            <section id="hands-on" class="section">
+                <h2>Hands-On Laboratory Exercises</h2>
+                
+                <div class="alert info">
+                    <strong>Lab Duration:</strong> {{ handsonLabs.duration }} - {{ handsonLabs.format | replace('_', ' ') | title }}
+                </div>
+
+                <h3>Lab 1: RDF Data Modeling</h3>
+                <div class="code-block">
+# Create your first RDF model
+@prefix : &lt;https://mycompany.com/ontology#&gt; .
+@prefix rdf: &lt;http://www.w3.org/1999/02/22-rdf-syntax-ns#&gt; .
+
+:MyProject a :Project ;
+    :title "My Application" ;
+    :hasComponent :UserService, :PaymentService .
+
+:UserService a :Component ;
+    :technology "Node.js, Express" ;
+    :interface "REST API" .
+                </div>
+
+                <h3>Lab 2: SHACL Validation</h3>
+                <div class="code-block">
+# Validate RDF data with SHACL shapes
+kgen validate myproject.ttl \
+    --shapes project-shapes.ttl \
+    --report validation-report.ttl
+                </div>
+
+                <h3>Lab 3: Code Generation</h3>
+                <div class="code-block">
+# Generate Express.js API from RDF
+kgen generate api-express myproject.ttl \
+    --template express-api.njk \
+    --output ./src \
+    --validate
+                </div>
+
+                <h3>Lab 4: Self-Hosting Demonstration</h3>
+                <div class="code-block">
+# Generate documentation for your own project
+kgen generate project-docs myproject.ttl \
+    --template project-docs.njk \
+    --output ./docs \
+    --recursive-validate
+                </div>
+            </section>
+
+            <!-- Testing and Validation Section -->
+            <section id="validation" class="section">
+                <h2>Testing and Validation Framework</h2>
+                
+                <p>KGEN includes a comprehensive testing suite with <strong>{{ testSuite.coverage }}%</strong> coverage and <strong>{{ testSuite.automation }}</strong> automation.</p>
+
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Test</th>
+                                <th>Purpose</th>
+                                <th>Validation Criteria</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for test in tests %}
+                            <tr>
+                                <td><strong>{{ test.title }}</strong></td>
+                                <td>{{ test.verifies }}</td>
+                                <td>{{ test.criteria }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3>Continuous Validation Pipeline</h3>
+                <div class="code-block">
+# Automated testing pipeline
+kgen test suite \
+    --coverage-threshold 90 \
+    --include-integration \
+    --self-validate \
+    --report junit.xml
+                </div>
+            </section>
+
+            <!-- Next Steps Section -->
+            <section id="next-steps" class="section">
+                <h2>Next Steps & Enterprise Adoption</h2>
+                
+                <div class="grid">
+                    <div class="card">
+                        <h4>🚀 Getting Started</h4>
+                        <p>{{ gettingStarted.title }} - {{ gettingStarted.duration }}</p>
+                        <p>{{ gettingStarted.format | replace('_', ' ') | title }}</p>
+                    </div>
+                    <div class="card">
+                        <h4>📚 Best Practices</h4>
+                        <p>{{ bestPractices.title }} - {{ bestPractices.duration }}</p>
+                        <p>{{ bestPractices.format | replace('_', ' ') | title }}</p>
+                    </div>
+                    <div class="card">
+                        <h4>🎯 CTQ Metrics</h4>
+                        <ul>
+                            {% for ctq in ctqMetrics %}
+                            <li><strong>{{ ctq.title }}:</strong> {{ ctq.threshold }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+
+                <h3>Implementation Roadmap</h3>
+                <ol>
+                    <li><strong>Pilot Project:</strong> Start with a small project to validate KGEN capabilities</li>
+                    <li><strong>Team Training:</strong> Conduct comprehensive workshops for development teams</li>
+                    <li><strong>Template Library:</strong> Build organization-specific templates and patterns</li>
+                    <li><strong>Integration:</strong> Integrate with existing CI/CD and development workflows</li>
+                    <li><strong>Scaling:</strong> Roll out across multiple teams and projects</li>
+                    <li><strong>Governance:</strong> Establish standards and best practices</li>
+                </ol>
+
+                <div class="alert warning">
+                    <strong>Pro Tip:</strong> Start with the self-hosting examples to understand KGEN's full potential before building your own templates.
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2025 KGEN Project - Generated by KGEN Self-Hosting Bootstrap System</p>
+            <p>Workshop materials automatically generated from workshop.ttl RDF graph</p>
+        </div>
+    </footer>
+
+    <script>
+        // Add smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+
+        // Animate progress bars when they come into view
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const progressObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const progressFill = entry.target.querySelector('.progress-fill');
+                    const targetWidth = progressFill.style.width;
+                    progressFill.style.width = '0%';
+                    setTimeout(() => {
+                        progressFill.style.width = targetWidth;
+                    }, 100);
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.progress-bar').forEach(bar => {
+            progressObserver.observe(bar);
+        });
+    </script>
+</body>
+</html>

@@ -264,7 +264,7 @@ describe("Template Scanner Property Tests", () => {
   const numRuns = 20;
 
   beforeEach(async () => {
-    tmpDir = path.join(process.cwd(), "test-bzyH4B", `scanner-prop-${Date.now()}`);
+    tmpDir = path.join(process.cwd(), "test-bzyH4B", `scanner-prop-${this.getDeterministicTimestamp()}`);
     await fs.ensureDir(tmpDir);
     templateScanner = new TemplateScanner();
   });

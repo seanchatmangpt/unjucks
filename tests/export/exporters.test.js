@@ -567,12 +567,12 @@ describe('Individual Export Format Handlers', () => {
 
       const jsonExporter = new JSONExporter();
       
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const result = await jsonExporter.export(largeData, {
         outputDir,
         filename: 'large_dataset.json'
       });
-      const endTime = Date.now();
+      const endTime = this.getDeterministicTimestamp();
 
       expect(result.format).toBe('json');
       expect(result.metadata.dataRecords).toBe(1000);

@@ -7,7 +7,7 @@
  */
 
 import { EventEmitter } from 'events';
-import { Logger } from 'consola';
+import { Consola } from 'consola';
 import { SemanticProcessor } from '../semantic/processor.js';
 import { QueryEngine } from '../query/engine.js';
 import { ProvenanceTracker } from '../provenance/tracker.js';
@@ -41,7 +41,7 @@ export class FederatedReasoningCoordinator extends EventEmitter {
       ...config
     };
     
-    this.logger = new Logger({ tag: 'federated-reasoning' });
+    this.logger = new Consola({ tag: 'federated-reasoning' });
     this.state = 'initialized';
     
     // Agent coordination
@@ -145,7 +145,7 @@ export class FederatedReasoningCoordinator extends EventEmitter {
         
         // Fault tolerance
         isHealthy: true,
-        lastHeartbeat: Date.now(),
+        lastHeartbeat: this.getDeterministicTimestamp(),
         faultCount: 0,
         recoveryAttempts: 0,
         
@@ -154,7 +154,7 @@ export class FederatedReasoningCoordinator extends EventEmitter {
         reasoningEngine: agent.reasoningEngine || 'n3',
         knowledgeDomains: agent.knowledgeDomains || [],
         
-        registeredAt: new Date()
+        registeredAt: this.getDeterministicDate()
       };
       
       this.agents.set(agentId, agentConfig);
@@ -188,7 +188,7 @@ export class FederatedReasoningCoordinator extends EventEmitter {
    */
   async orchestrateReasoning(reasoningRequest) {
     const taskId = this._generateTaskId();
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       this.logger.info(`Starting federated reasoning task ${taskId}`);
@@ -215,7 +215,7 @@ export class FederatedReasoningCoordinator extends EventEmitter {
         operationId: taskId,
         type: 'federated_reasoning',
         request: reasoningRequest,
-        timestamp: new Date()
+        timestamp: this.getDeterministicDate()
       });
       
       // Shard knowledge graph for distributed processing
@@ -255,7 +255,7 @@ export class FederatedReasoningCoordinator extends EventEmitter {
       }
       
       // Update performance metrics
-      const executionTime = Date.now() - startTime;
+      const executionTime = this.getDeterministicTimestamp() - startTime;
       this._updatePerformanceMetrics(taskId, executionTime, true);
       
       // Complete provenance tracking
@@ -291,7 +291,7 @@ export class FederatedReasoningCoordinator extends EventEmitter {
       };
       
     } catch (error) {
-      const executionTime = Date.now() - startTime;
+      const executionTime = this.getDeterministicTimestamp() - startTime;
       this._updatePerformanceMetrics(taskId, executionTime, false);
       
       this.activeReasoningTasks.delete(taskId);
@@ -317,7 +317,7 @@ export class FederatedReasoningCoordinator extends EventEmitter {
       const syncContext = {
         syncId: this._generateSyncId(),
         request: syncRequest,
-        startTime: Date.now(),
+        startTime: this.getDeterministicTimestamp(),
         participatingAgents: new Set(),
         cacheUpdates: new Map(),
         conflicts: []
@@ -338,7 +338,7 @@ export class FederatedReasoningCoordinator extends EventEmitter {
       // Validate synchronization completion
       await this._validateCacheSynchronization(updateResults);
       
-      const syncTime = Date.now() - syncContext.startTime;
+      const syncTime = this.getDeterministicTimestamp() - syncContext.startTime;
       
       this.emit('cache:synchronized', {
         syncId: syncContext.syncId,
@@ -536,15 +536,15 @@ export class FederatedReasoningCoordinator extends EventEmitter {
   }
 
   _generateAgentId() {
-    return `agent_${Date.now()}_${crypto.randomBytes(4).toString('hex')}`;
+    return `agent_${this.getDeterministicTimestamp()}_${crypto.randomBytes(4).toString('hex')}`;
   }
 
   _generateTaskId() {
-    return `task_${Date.now()}_${crypto.randomBytes(4).toString('hex')}`;
+    return `task_${this.getDeterministicTimestamp()}_${crypto.randomBytes(4).toString('hex')}`;
   }
 
   _generateSyncId() {
-    return `sync_${Date.now()}_${crypto.randomBytes(4).toString('hex')}`;
+    return `sync_${this.getDeterministicTimestamp()}_${crypto.randomBytes(4).toString('hex')}`;
   }
 
   async _validateReasoningRequest(request) {

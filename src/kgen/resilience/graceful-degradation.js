@@ -159,7 +159,7 @@ export class GracefulDegradationManager extends EventEmitter {
       previousLevel: this.currentDegradationLevel,
       currentLevel: targetLevel,
       reason,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     };
   }
   
@@ -206,7 +206,7 @@ export class GracefulDegradationManager extends EventEmitter {
     
     const oldStatus = service.status;
     service.status = status;
-    service.lastCheck = Date.now();
+    service.lastCheck = this.getDeterministicTimestamp();
     
     // Update metrics
     if (metrics.responseTime) {
@@ -231,7 +231,7 @@ export class GracefulDegradationManager extends EventEmitter {
       oldStatus,
       newStatus: status,
       metrics,
-      timestamp: Date.now()
+      timestamp: this.getDeterministicTimestamp()
     });
   }
   
@@ -257,7 +257,7 @@ export class GracefulDegradationManager extends EventEmitter {
       operationType,
       fallback,
       context,
-      timestamp: Date.now()
+      timestamp: this.getDeterministicTimestamp()
     });
     
     return fallback;
@@ -304,7 +304,7 @@ export class GracefulDegradationManager extends EventEmitter {
         memoryUsage: process.memoryUsage(),
         uptime: process.uptime()
       },
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     };
   }
   
@@ -554,7 +554,7 @@ export class GracefulDegradationManager extends EventEmitter {
       disabledFeatures: Array.from(this.disabledFeatures),
       policy,
       context,
-      timestamp: Date.now()
+      timestamp: this.getDeterministicTimestamp()
     });
   }
   

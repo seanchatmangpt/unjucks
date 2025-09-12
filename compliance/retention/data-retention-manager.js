@@ -165,8 +165,8 @@ class DataRetentionManager {
     const policy = {
       id: policyId,
       ...policyDetails,
-      createdAt: new Date().toISOString(),
-      lastReviewed: new Date().toISOString(),
+      createdAt: this.getDeterministicDate().toISOString(),
+      lastReviewed: this.getDeterministicDate().toISOString(),
       status: 'active',
       version: 1
     };
@@ -191,7 +191,7 @@ class DataRetentionManager {
     }
 
     const policy = this.retentionPolicies.get(dataDetails.policyId);
-    const registrationDate = new Date().toISOString();
+    const registrationDate = this.getDeterministicDate().toISOString();
     
     const dataRecord = {
       id: dataId,
@@ -243,7 +243,7 @@ class DataRetentionManager {
       dataId,
       scheduledDate: deletionDate,
       processed: false,
-      scheduledAt: new Date().toISOString()
+      scheduledAt: this.getDeterministicDate().toISOString()
     });
   }
 
@@ -251,7 +251,7 @@ class DataRetentionManager {
    * Apply legal hold to data
    */
   applyLegalHold(dataIds, holdDetails) {
-    const holdId = `hold_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const holdId = `hold_${this.getDeterministicTimestamp()}_${Math.random().toString(36).substr(2, 9)}`;
     
     const legalHold = {
       id: holdId,
@@ -261,7 +261,7 @@ class DataRetentionManager {
       approvedBy: holdDetails.approvedBy,
       legalCase: holdDetails.legalCase || null,
       jurisdiction: holdDetails.jurisdiction,
-      startDate: new Date().toISOString(),
+      startDate: this.getDeterministicDate().toISOString(),
       endDate: holdDetails.endDate || null,
       status: 'active',
       reviewDate: holdDetails.reviewDate || null
@@ -299,7 +299,7 @@ class DataRetentionManager {
     }
 
     legalHold.status = 'released';
-    legalHold.endDate = new Date().toISOString();
+    legalHold.endDate = this.getDeterministicDate().toISOString();
     legalHold.releasedBy = releaseDetails.releasedBy;
     legalHold.releaseReason = releaseDetails.reason;
 
@@ -330,7 +330,7 @@ class DataRetentionManager {
    * Process retention schedule
    */
   processRetentionSchedule() {
-    const now = new Date();
+    const now = this.getDeterministicDate();
     const processed = {
       deleted: 0,
       archived: 0,
@@ -384,7 +384,7 @@ class DataRetentionManager {
         }
 
         schedule.processed = true;
-        schedule.processedAt = new Date().toISOString();
+        schedule.processedAt = this.getDeterministicDate().toISOString();
         
       } catch (error) {
         processed.errors++;
@@ -413,20 +413,20 @@ class DataRetentionManager {
       throw new Error(`Data record ${dataId} not found`);
     }
 
-    const archiveId = `archive_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const archiveId = `archive_${this.getDeterministicTimestamp()}_${Math.random().toString(36).substr(2, 9)}`;
     
     const archiveRecord = {
       id: archiveId,
       originalDataId: dataId,
       category: dataRecord.category,
-      archivedAt: new Date().toISOString(),
+      archivedAt: this.getDeterministicDate().toISOString(),
       archiveLocation: this.generateArchiveLocation(dataRecord),
       originalLocation: dataRecord.location,
       size: dataRecord.size,
       checksum: this.calculateChecksum(dataRecord),
       retentionPeriod: this.config.backupRetentionPeriod,
       expirationDate: this.calculateDeletionDate(
-        new Date().toISOString(), 
+        this.getDeterministicDate().toISOString(), 
         this.config.backupRetentionPeriod
       ),
       metadata: dataRecord.metadata
@@ -465,7 +465,7 @@ class DataRetentionManager {
     // In real implementation, would perform actual data deletion
     const deletionRecord = {
       dataId,
-      deletedAt: new Date().toISOString(),
+      deletedAt: this.getDeterministicDate().toISOString(),
       originalLocation: dataRecord.location,
       category: dataRecord.category,
       size: dataRecord.size,
@@ -501,7 +501,7 @@ class DataRetentionManager {
 
     const queueEntry = {
       dataId,
-      queuedAt: new Date().toISOString(),
+      queuedAt: this.getDeterministicDate().toISOString(),
       category: dataRecord.category,
       location: dataRecord.location,
       size: dataRecord.size,
@@ -545,8 +545,8 @@ class DataRetentionManager {
    * Generate archive location
    */
   generateArchiveLocation(dataRecord) {
-    const year = new Date().getFullYear();
-    const month = String(new Date().getMonth() + 1).padStart(2, '0');
+    const year = this.getDeterministicDate().getFullYear();
+    const month = String(this.getDeterministicDate().getMonth() + 1).padStart(2, '0');
     return `archive/${year}/${month}/${dataRecord.category}/${dataRecord.id}`;
   }
 
@@ -593,12 +593,12 @@ class DataRetentionManager {
       .filter(schedule => !schedule.processed)
       .filter(schedule => {
         const scheduledDate = new Date(schedule.scheduledDate);
-        const thirtyDaysFromNow = new Date(Date.now() + (30 * 24 * 60 * 60 * 1000));
+        const thirtyDaysFromNow = new Date(this.getDeterministicTimestamp() + (30 * 24 * 60 * 60 * 1000));
         return scheduledDate <= thirtyDaysFromNow;
       }).length;
 
     return {
-      reportDate: new Date().toISOString(),
+      reportDate: this.getDeterministicDate().toISOString(),
       organization: this.config.organizationName,
       summary: {
         totalDataRecords: totalData,
@@ -650,7 +650,7 @@ class DataRetentionManager {
     const activeRecords = Array.from(this.dataInventory.values())
       .filter(record => record.status === 'active');
     
-    const now = new Date();
+    const now = this.getDeterministicDate();
     const overdue = activeRecords.filter(record => 
       new Date(record.deletionDate) < now && !record.legalHold
     ).length;
@@ -672,7 +672,7 @@ class DataRetentionManager {
     
     const expiredHolds = activeLegalHolds.filter(hold => {
       if (!hold.reviewDate) return false;
-      return new Date(hold.reviewDate) < new Date();
+      return new Date(hold.reviewDate) < this.getDeterministicDate();
     }).length;
 
     return {
@@ -688,7 +688,7 @@ class DataRetentionManager {
    */
   logEvent(eventType, data) {
     const logEntry = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       eventType,
       data,
       organization: this.config.organizationName

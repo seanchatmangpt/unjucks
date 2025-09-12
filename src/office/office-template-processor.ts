@@ -168,7 +168,7 @@ export class OfficeTemplateProcessor {
   ): Promise<ProcessingSummary> {
     this.logger.info(`Processing batch of ${templates.length} templates`);
     
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       // Validate inputs
@@ -189,7 +189,7 @@ export class OfficeTemplateProcessor {
       });
       
       // Generate summary
-      const summary = this.generateProcessingSummary(batchResult, Date.now() - startTime);
+      const summary = this.generateProcessingSummary(batchResult, this.getDeterministicTimestamp() - startTime);
       
       this.logger.info(`Batch processing completed: ${summary.successful}/${summary.totalProcessed} successful`);
       return summary;

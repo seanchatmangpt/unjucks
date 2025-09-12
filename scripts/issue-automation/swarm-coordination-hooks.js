@@ -10,7 +10,7 @@ import { execSync } from 'child_process';
 
 class SwarmCoordinationHooks {
   constructor(options = {}) {
-    this.sessionId = options.sessionId || `swarm-${Date.now()}`;
+    this.sessionId = options.sessionId || `swarm-${this.getDeterministicTimestamp()}`;
     this.taskType = options.taskType || 'issue-tracking';
     this.agentRole = options.agentRole || 'coordinator';
     this.memoryNamespace = options.memoryNamespace || 'issue-tracking';
@@ -24,7 +24,7 @@ class SwarmCoordinationHooks {
     
     const swarmConfig = {
       session_id: this.sessionId,
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       topology: config.topology || 'mesh',
       max_agents: config.maxAgents || 6,
       coordination_strategy: config.strategy || 'adaptive',
@@ -81,12 +81,12 @@ class SwarmCoordinationHooks {
       
       // Store issue coordination data
       const coordinationData = {
-        issue_id: issueData.id || `issue-${Date.now()}`,
+        issue_id: issueData.id || `issue-${this.getDeterministicTimestamp()}`,
         issue_type: issueData.type,
         severity: issueData.severity || 'medium',
         assigned_agents: assignedAgents,
         coordination_strategy: this.determineCoordinationStrategy(issueData),
-        created_at: new Date().toISOString(),
+        created_at: this.getDeterministicDate().toISOString(),
         status: 'active'
       };
       
@@ -132,7 +132,7 @@ class SwarmCoordinationHooks {
       
       // Update progress
       coordinationData.progress = progressData;
-      coordinationData.last_updated = new Date().toISOString();
+      coordinationData.last_updated = this.getDeterministicDate().toISOString();
       
       // Determine if coordination strategy needs adjustment
       if (progressData.status === 'blocked' || progressData.status === 'escalated') {
@@ -177,7 +177,7 @@ class SwarmCoordinationHooks {
       // Update with resolution data
       coordinationData.resolution = resolutionData;
       coordinationData.status = 'resolved';
-      coordinationData.resolved_at = new Date().toISOString();
+      coordinationData.resolved_at = this.getDeterministicDate().toISOString();
       
       // Calculate resolution metrics
       const resolutionMetrics = this.calculateResolutionMetrics(coordinationData);
@@ -250,11 +250,11 @@ class SwarmCoordinationHooks {
     const agentTemplate = agentMatrix[issueData.type] || agentMatrix['ci-failure'];
     
     return agentTemplate.map(template => ({
-      id: `agent-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
+      id: `agent-${this.getDeterministicTimestamp()}-${Math.random().toString(36).substr(2, 6)}`,
       role: template.role,
       priority: template.priority,
       capabilities: template.capabilities,
-      assigned_at: new Date().toISOString(),
+      assigned_at: this.getDeterministicDate().toISOString(),
       status: 'active'
     }));
   }
@@ -385,11 +385,11 @@ class SwarmCoordinationHooks {
       agent_id: agent.id,
       agent_role: agent.role,
       notification_type: notification.action,
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       data: notification
     };
     
-    await this.storeInMemory(`agent/${agent.id}/notifications/${Date.now()}`, agentNotification);
+    await this.storeInMemory(`agent/${agent.id}/notifications/${this.getDeterministicTimestamp()}`, agentNotification);
     
     // Execute notification hook
     await this.executeHook('notify', {
@@ -422,16 +422,16 @@ class SwarmCoordinationHooks {
     
     // Add escalation agent
     const escalationAgent = {
-      id: `escalation-agent-${Date.now()}`,
+      id: `escalation-agent-${this.getDeterministicTimestamp()}`,
       role: 'escalation-coordinator',
       priority: 'critical',
       capabilities: ['escalation-management', 'expert-coordination'],
-      assigned_at: new Date().toISOString(),
+      assigned_at: this.getDeterministicDate().toISOString(),
       status: 'active'
     };
     
     coordinationData.assigned_agents.push(escalationAgent);
-    coordinationData.escalated_at = new Date().toISOString();
+    coordinationData.escalated_at = this.getDeterministicDate().toISOString();
     
     await this.notifyAgent(escalationAgent, {
       action: 'issue_escalated',
@@ -471,10 +471,10 @@ class SwarmCoordinationHooks {
       resolution_time: coordinationData.metrics.resolution_time_hours,
       success_factors: coordinationData.resolution?.success_factors || [],
       lessons_learned: coordinationData.resolution?.lessons_learned || [],
-      archived_at: new Date().toISOString()
+      archived_at: this.getDeterministicDate().toISOString()
     };
     
-    await this.storeInMemory(`patterns/resolution/${Date.now()}`, pattern);
+    await this.storeInMemory(`patterns/resolution/${this.getDeterministicTimestamp()}`, pattern);
     
     console.log(`📚 Resolution pattern archived for ${coordinationData.issue_type}`);
   }
@@ -513,8 +513,8 @@ class SwarmCoordinationHooks {
     // This would collect and summarize all session activities
     return {
       session_id: this.sessionId,
-      start_time: new Date().toISOString(), // Would be stored at session start
-      end_time: new Date().toISOString(),
+      start_time: this.getDeterministicDate().toISOString(), // Would be stored at session start
+      end_time: this.getDeterministicDate().toISOString(),
       issues_processed: 0, // Would count from memory
       resolutions_achieved: 0, // Would count from memory
       agents_utilized: [], // Would collect from memory

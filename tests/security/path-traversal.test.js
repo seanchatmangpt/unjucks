@@ -294,7 +294,7 @@ describe('Path Traversal Security Tests', () => {
 
   describe('Performance and DoS Protection', () => {
     it('should handle path validation efficiently', () => {
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
       // Test 1000 path validations
       for (let i = 0; i < 1000; i++) {
@@ -305,7 +305,7 @@ describe('Path Traversal Security Tests', () => {
         }
       }
       
-      const endTime = Date.now();
+      const endTime = this.getDeterministicTimestamp();
       const duration = endTime - startTime;
       
       // Should complete within reasonable time (< 1 second for 1000 paths)

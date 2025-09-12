@@ -294,7 +294,7 @@ describe('KGEN Drift Detection', () => {
       const attestationFile = join(testDir, '.attest.json');
       const attestation = {
         version: "1.0.0",
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         predicateType: "https://in-toto.io/Statement/v1",
         subject: [{
           name: "test-artifact",
@@ -363,12 +363,12 @@ describe('KGEN Drift Detection', () => {
         `);
       }
 
-      const start = Date.now();
+      const start = this.getDeterministicTimestamp();
       const result = execSync(
         `node "${cliPath}" drift baseline -o "${join(testDir, 'large-baseline.json')}" -p "*.ttl"`,
         { cwd: testDir, encoding: 'utf8' }
       );
-      const duration = Date.now() - start;
+      const duration = this.getDeterministicTimestamp() - start;
 
       expect(result).toContain('Baseline created successfully');
       expect(result).toContain(`Tracked files: ${numFiles + 1}`); // +1 for existing test file

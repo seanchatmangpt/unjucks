@@ -107,8 +107,8 @@ console.log(message);
     const mockContext = {
       operationId: 'test-hash-001',
       type: 'generation',
-      startTime: new Date(),
-      endTime: new Date(),
+      startTime: this.getDeterministicDate(),
+      endTime: this.getDeterministicDate(),
       agent: {
         id: 'hash-test-agent',
         type: 'software',
@@ -142,8 +142,8 @@ console.log(message);
     const mockContext = {
       operationId: 'test-verify-001',
       type: 'generation',
-      startTime: new Date(),
-      endTime: new Date(),
+      startTime: this.getDeterministicDate(),
+      endTime: this.getDeterministicDate(),
       agent: {
         id: 'verify-test-agent',
         type: 'software',
@@ -171,8 +171,8 @@ console.log(message);
     const mockContext = {
       operationId: 'test-sidecar-001',
       type: 'generation',
-      startTime: new Date(),
-      endTime: new Date(),
+      startTime: this.getDeterministicDate(),
+      endTime: this.getDeterministicDate(),
       agent: {
         id: 'sidecar-test-agent',
         type: 'software',
@@ -210,8 +210,8 @@ console.log(message);
     const mockContext = {
       operationId: 'test-tamper-001',
       type: 'generation',
-      startTime: new Date(),
-      endTime: new Date(),
+      startTime: this.getDeterministicDate(),
+      endTime: this.getDeterministicDate(),
       agent: {
         id: 'tamper-test-agent',
         type: 'software',

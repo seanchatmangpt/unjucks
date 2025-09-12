@@ -123,7 +123,7 @@ export class EnterpriseTestSuite extends EventEmitter {
         duration: endTime - startTime,
         memoryDelta: endMemory.heapUsed - startMemory.heapUsed,
         success: true,
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
       };
       
       this.metrics.record(testFn.name, metrics);
@@ -139,7 +139,7 @@ export class EnterpriseTestSuite extends EventEmitter {
         memoryDelta: endMemory.heapUsed - startMemory.heapUsed,
         success: false,
         error: error.message,
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
       };
       
       this.metrics.record(testFn.name, metrics);

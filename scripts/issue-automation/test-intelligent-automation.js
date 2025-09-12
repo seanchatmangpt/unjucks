@@ -128,7 +128,7 @@ class AutomationSystemValidator {
           html_url: 'https://github.com/test/repo/actions/runs/123',
           head_sha: 'abc123def456',
           head_branch: 'main',
-          created_at: new Date().toISOString()
+          created_at: this.getDeterministicDate().toISOString()
         }
       };
       
@@ -236,14 +236,14 @@ class AutomationSystemValidator {
       
       const mockExecutionResult = {
         issue_id: 'test-learning-123',
-        started_at: new Date().toISOString(),
+        started_at: this.getDeterministicDate().toISOString(),
         actions_executed: [
           { status: 'success', action: { type: 'create_issue' } },
           { status: 'success', action: { type: 'send_notification' } }
         ],
         final_status: 'success',
         success_metrics: { overall_success: 1.0, total_actions: 2 },
-        completed_at: new Date().toISOString()
+        completed_at: this.getDeterministicDate().toISOString()
       };
       
       await engine.learningFeedback(mockExecutionResult);
@@ -268,7 +268,7 @@ class AutomationSystemValidator {
       test: testName,
       passed: passed,
       details: details,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     });
     
     const status = passed ? '✅' : '❌';
@@ -294,7 +294,7 @@ class AutomationSystemValidator {
         learning_system: this.testResults.test_details.find(t => t.test === 'learning-feedback')?.passed || false
       },
       recommendations: this.generateRecommendations(),
-      generated_at: new Date().toISOString()
+      generated_at: this.getDeterministicDate().toISOString()
     };
     
     // Save JSON report

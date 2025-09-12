@@ -105,7 +105,7 @@ export class ComplianceOptimizer extends EventEmitter {
    * Process compliance events with optimized rule evaluation
    */
   async processComplianceEvents(events, framework = 'ALL', options = {}) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     const operationId = crypto.randomBytes(8).toString('hex');
     
     try {
@@ -139,13 +139,13 @@ export class ComplianceOptimizer extends EventEmitter {
         strategy,
         eventCount: events.length,
         framework,
-        executionTime: Date.now() - startTime
+        executionTime: this.getDeterministicTimestamp() - startTime
       });
       
       // Update metrics
       this._updateProcessingMetrics(results, startTime);
       
-      this.logger.debug(`Compliance processing completed in ${Date.now() - startTime}ms: ${operationId}`);
+      this.logger.debug(`Compliance processing completed in ${this.getDeterministicTimestamp() - startTime}ms: ${operationId}`);
       this.emit('compliance-processed', { operationId, results });
       
       return results;
@@ -165,7 +165,7 @@ export class ComplianceOptimizer extends EventEmitter {
     // Check cache first
     if (this.config.smartCachingEnabled && this.ruleCache.has(ruleKey)) {
       const cached = this.ruleCache.get(ruleKey);
-      if (Date.now() - cached.timestamp < this.config.cacheTTL) {
+      if (this.getDeterministicTimestamp() - cached.timestamp < this.config.cacheTTL) {
         this.metrics.fastPathHits++;
         return cached.result;
       }
@@ -178,7 +178,7 @@ export class ComplianceOptimizer extends EventEmitter {
     if (this.config.smartCachingEnabled) {
       this.ruleCache.set(ruleKey, {
         result,
-        timestamp: Date.now()
+        timestamp: this.getDeterministicTimestamp()
       });
       
       // Limit cache size
@@ -369,7 +369,7 @@ export class ComplianceOptimizer extends EventEmitter {
       if (this.resultCache.has(cacheKey)) {
         // Cache hit
         const cached = this.resultCache.get(cacheKey);
-        if (Date.now() - cached.timestamp < this.config.cacheTTL) {
+        if (this.getDeterministicTimestamp() - cached.timestamp < this.config.cacheTTL) {
           results.cacheHits += group.length;
           this._mergeResults(results, cached.result);
           results.processed += group.length;
@@ -384,7 +384,7 @@ export class ComplianceOptimizer extends EventEmitter {
       // Cache result
       this.resultCache.set(cacheKey, {
         result: groupResult,
-        timestamp: Date.now()
+        timestamp: this.getDeterministicTimestamp()
       });
       
       this._mergeResults(results, groupResult);
@@ -753,7 +753,7 @@ export class ComplianceOptimizer extends EventEmitter {
    * Update processing metrics
    */
   _updateProcessingMetrics(results, startTime) {
-    const executionTime = Date.now() - startTime;
+    const executionTime = this.getDeterministicTimestamp() - startTime;
     
     this.metrics.rulesProcessed += (results.violations?.length || 0) + 
                                    (results.warnings?.length || 0) + 

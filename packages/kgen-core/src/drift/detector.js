@@ -125,7 +125,7 @@ export class DriftDetector extends EventEmitter {
       
       const results = {
         detectionId,
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         options,
         driftDetected: false,
         exitCode: this.config.exitCodes.success,
@@ -202,7 +202,7 @@ export class DriftDetector extends EventEmitter {
       
       const errorResult = {
         detectionId,
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         error: error.message,
         exitCode: this.config.exitCodes.error,
         processingTime
@@ -241,7 +241,7 @@ export class DriftDetector extends EventEmitter {
         path: filePath,
         size: content.length,
         hash: crypto.createHash('sha256').update(content).digest('hex'),
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         type: this.getFileType(ext),
         semanticHash: null
       };
@@ -280,7 +280,7 @@ export class DriftDetector extends EventEmitter {
         path: filePath,
         error: error.message,
         hash: null,
-        timestamp: new Date().toISOString()
+        timestamp: this.getDeterministicDate().toISOString()
       };
     }
   }
@@ -637,7 +637,7 @@ export class DriftDetector extends EventEmitter {
     const baseline = {
       path: artifactPath,
       fingerprint,
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       version: '1.0.0'
     };
     
@@ -689,7 +689,7 @@ export class DriftDetector extends EventEmitter {
    * Generate comprehensive drift report
    */
   async generateDriftReport(results) {
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const timestamp = this.getDeterministicDate().toISOString().replace(/[:.]/g, '-');
     const reportFilename = `drift-report-${timestamp}.json`;
     const reportPath = path.join(this.config.storage.reportsPath, reportFilename);
 

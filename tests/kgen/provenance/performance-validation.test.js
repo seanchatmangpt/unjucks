@@ -119,11 +119,11 @@ describe('Performance Optimization Suite', () => {
       const graphA = new Store(quadsA);
       const graphB = new Store(quadsB);
 
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const diff = await graphDiffOptimizer.computeGraphDiff(graphA, graphB, {
         strategy: 'streaming'
       });
-      const executionTime = Date.now() - startTime;
+      const executionTime = this.getDeterministicTimestamp() - startTime;
 
       expect(diff).toBeDefined();
       expect(diff.added.length).toBeGreaterThan(0);
@@ -147,9 +147,9 @@ describe('Performance Optimization Suite', () => {
       const diff1 = await graphDiffOptimizer.computeGraphDiff(graphA, graphB);
       
       // Second diff should be faster due to caching
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const diff2 = await graphDiffOptimizer.computeGraphDiff(graphA, graphB);
-      const executionTime = Date.now() - startTime;
+      const executionTime = this.getDeterministicTimestamp() - startTime;
 
       expect(diff1).toEqual(diff2);
       expect(executionTime).toBeLessThan(10); // Should be very fast due to cache
@@ -174,7 +174,7 @@ describe('Performance Optimization Suite', () => {
         events.push({
           id: `event-${i}`,
           type: i % 3 === 0 ? 'data_processing' : 'data_access',
-          timestamp: new Date(),
+          timestamp: this.getDeterministicDate(),
           data: {
             dataTypes: ['personal_data'],
             legalBasis: i % 2 === 0 ? 'consent' : 'legitimate_interest',
@@ -190,9 +190,9 @@ describe('Performance Optimization Suite', () => {
     it('should process GDPR compliance events', async () => {
       const events = createTestEvents(50);
       
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const results = await complianceOptimizer.processComplianceEvents(events, 'GDPR');
-      const executionTime = Date.now() - startTime;
+      const executionTime = this.getDeterministicTimestamp() - startTime;
 
       expect(results).toBeDefined();
       expect(results.processed).toBe(50);
@@ -209,11 +209,11 @@ describe('Performance Optimization Suite', () => {
     it('should handle large compliance datasets efficiently', async () => {
       const events = createTestEvents(1000);
       
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const results = await complianceOptimizer.processComplianceEvents(events, 'ALL', {
         strategy: 'batch'
       });
-      const executionTime = Date.now() - startTime;
+      const executionTime = this.getDeterministicTimestamp() - startTime;
 
       expect(results.processed).toBe(1000);
       expect(executionTime).toBeLessThan(10000); // Should complete within 10 seconds
@@ -236,11 +236,11 @@ describe('Performance Optimization Suite', () => {
         });
       }
 
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const results = await complianceOptimizer.processComplianceEvents(events, 'GDPR', {
         strategy: 'cached'
       });
-      const executionTime = Date.now() - startTime;
+      const executionTime = this.getDeterministicTimestamp() - startTime;
 
       expect(results.processed).toBe(100);
       expect(results.cacheHits).toBeGreaterThan(0);
@@ -383,11 +383,11 @@ describe('Performance Optimization Suite', () => {
       const testData = createTestTurtleData(50);
       const inputStream = Readable.from([testData]);
       
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const result = await streamProcessor.processStream(inputStream, {
         format: 'turtle'
       });
-      const executionTime = Date.now() - startTime;
+      const executionTime = this.getDeterministicTimestamp() - startTime;
 
       expect(result).toBeDefined();
       expect(result.quadsProcessed).toBe(50);
@@ -401,12 +401,12 @@ describe('Performance Optimization Suite', () => {
       const testData = createTestTurtleData(1000);
       const inputStream = Readable.from([testData]);
       
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const result = await streamProcessor.processStream(inputStream, {
         format: 'turtle',
         validate: true
       });
-      const executionTime = Date.now() - startTime;
+      const executionTime = this.getDeterministicTimestamp() - startTime;
 
       expect(result.quadsProcessed).toBe(1000);
       expect(result.parseErrors).toBe(0);
@@ -513,7 +513,7 @@ describe('Performance Optimization Suite', () => {
         });
       }
       
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
       // Process compliance events
       const complianceResults = await complianceOptimizer.processComplianceEvents(
@@ -522,7 +522,7 @@ describe('Performance Optimization Suite', () => {
         { strategy: 'batch' }
       );
       
-      const executionTime = Date.now() - startTime;
+      const executionTime = this.getDeterministicTimestamp() - startTime;
       
       expect(complianceResults.processed).toBe(500);
       expect(executionTime).toBeLessThan(15000); // Should complete within 15 seconds

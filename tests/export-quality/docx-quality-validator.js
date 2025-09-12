@@ -707,7 +707,7 @@ export class DOCXQualityValidator {
       test: testName,
       status,
       message,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     });
 
     if (status === 'passed') {
@@ -733,7 +733,7 @@ export class DOCXQualityValidator {
         failed: this.testResults.failed,
         warnings: this.testResults.warnings,
         successRate: this.testResults.passed / (this.testResults.passed + this.testResults.failed) * 100,
-        timestamp: new Date().toISOString()
+        timestamp: this.getDeterministicDate().toISOString()
       },
       details: this.testResults.details,
       recommendations: this.generateRecommendations()

@@ -211,9 +211,9 @@ export const OWLValidationMethods = {
     try {
       // Run each OWL validation rule
       for (const [ruleName, rule] of this.owlRules.entries()) {
-        const startTime = Date.now();
+        const startTime = this.getDeterministicTimestamp();
         const ruleResult = await rule.execute(dataGraph);
-        const executionTime = Date.now() - startTime;
+        const executionTime = this.getDeterministicTimestamp() - startTime;
         
         results.ruleResults.push({
           rule: ruleName,

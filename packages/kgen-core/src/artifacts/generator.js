@@ -27,7 +27,7 @@ export class DeterministicTemplateEnvironment {
       ...options
     };
 
-    this.logger = new Logger({ 
+    this.logger = new Consola({ 
       component: 'DeterministicGenerator',
       level: options.debug ? 'debug' : 'info'
     });
@@ -253,7 +253,7 @@ export class DeterministicTemplateEnvironment {
 export class ContentAddressedGenerator {
   constructor(options = {}) {
     this.options = options;
-    this.logger = new Logger({ 
+    this.logger = new Consola({ 
       component: 'ContentAddressedGenerator',
       level: options.debug ? 'debug' : 'info'
     });
@@ -473,7 +473,7 @@ export class DeterministicArtifactGenerator {
       ...options
     };
 
-    this.logger = new Logger({ 
+    this.logger = new Consola({ 
       component: 'DeterministicArtifactGenerator',
       level: options.debug ? 'debug' : 'info'
     });
@@ -575,7 +575,7 @@ export class DeterministicArtifactGenerator {
   async createLockfile(templates, outputPath) {
     const lockfile = {
       version: '1.0.0',
-      generatedAt: new Date().toISOString(),
+      generatedAt: this.getDeterministicDate().toISOString(),
       environment: {
         nodeVersion: process.version,
         platform: process.platform,

@@ -167,7 +167,7 @@ class SecurityHeaders {
     
     // Log CSP violation
     console.warn('CSP Violation:', {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       userAgent: req.get('User-Agent'),
       ip: req.ip,
       report: report
@@ -190,7 +190,7 @@ class SecurityHeaders {
     const report = req.body;
     
     console.warn('CT Report:', {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       report: report
     });
 
@@ -324,7 +324,7 @@ class SecurityHeaders {
   logSecurityEvent(event) {
     // Implementation would integrate with security monitoring system
     const securityLog = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       ...event
     };
 

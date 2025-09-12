@@ -136,10 +136,10 @@ export class RESTFederationEngine extends EventEmitter {
         ...validatedConfig,
         id: endpointId,
         apiSpec,
-        registeredAt: new Date().toISOString(),
+        registeredAt: this.getDeterministicDate().toISOString(),
         status: 'active',
         health: {
-          lastCheck: new Date().toISOString(),
+          lastCheck: this.getDeterministicDate().toISOString(),
           consecutive_failures: 0,
           avg_response_time: 0
         },
@@ -159,7 +159,7 @@ export class RESTFederationEngine extends EventEmitter {
         success: true,
         endpointId,
         apiSpec: apiSpec.discovered ? apiSpec : null,
-        timestamp: new Date().toISOString()
+        timestamp: this.getDeterministicDate().toISOString()
       };
       
     } catch (error) {
@@ -173,7 +173,7 @@ export class RESTFederationEngine extends EventEmitter {
    */
   async execute(requestConfig, executionPlan, provenanceContext) {
     const requestId = crypto.randomUUID();
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       console.log(`🔄 Executing federated REST request: ${requestId}`);
@@ -211,12 +211,12 @@ export class RESTFederationEngine extends EventEmitter {
       const processedResult = await this.postProcessResult(result, federationPlan);
       
       // Update statistics
-      this.updateStatistics(requestId, 'success', Date.now() - startTime, federationPlan);
+      this.updateStatistics(requestId, 'success', this.getDeterministicTimestamp() - startTime, federationPlan);
       
       // Clean up
       this.state.activeRequests.delete(requestId);
       
-      console.log(`✅ REST request completed: ${requestId} (${Date.now() - startTime}ms)`);
+      console.log(`✅ REST request completed: ${requestId} (${this.getDeterministicTimestamp() - startTime}ms)`);
       
       return {
         success: true,
@@ -226,7 +226,7 @@ export class RESTFederationEngine extends EventEmitter {
           requestType: 'rest',
           orchestrationStrategy: strategy,
           endpointsInvolved: federationPlan.endpoints.length,
-          executionTime: Date.now() - startTime,
+          executionTime: this.getDeterministicTimestamp() - startTime,
           aggregated: federationPlan.endpoints.length > 1,
           statusCodes: processedResult.statusCodes || []
         },
@@ -237,7 +237,7 @@ export class RESTFederationEngine extends EventEmitter {
     } catch (error) {
       console.error(`❌ REST request failed (${requestId}):`, error);
       
-      this.updateStatistics(requestId, 'failure', Date.now() - startTime);
+      this.updateStatistics(requestId, 'failure', this.getDeterministicTimestamp() - startTime);
       this.state.activeRequests.delete(requestId);
       
       throw new Error(`REST request execution failed: ${error.message}`);
@@ -441,7 +441,7 @@ export class RESTFederationEngine extends EventEmitter {
     
     console.log(`📊 Executing on endpoint: ${endpointId} (${endpoint.baseUrl})`);
     
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       // Check circuit breaker
@@ -483,7 +483,7 @@ export class RESTFederationEngine extends EventEmitter {
       
       const response = await fetch(fullUrl, requestOptions);
       
-      const executionTime = Date.now() - startTime;
+      const executionTime = this.getDeterministicTimestamp() - startTime;
       
       // Parse response
       let responseData;
@@ -529,7 +529,7 @@ export class RESTFederationEngine extends EventEmitter {
       return result;
       
     } catch (error) {
-      const executionTime = Date.now() - startTime;
+      const executionTime = this.getDeterministicTimestamp() - startTime;
       
       // Update endpoint metrics for failure
       this.updateEndpointMetrics(endpoint, { success: false, error: error.message }, executionTime);
@@ -591,7 +591,7 @@ export class RESTFederationEngine extends EventEmitter {
             version: parsedSpec.version,
             specification: parsedSpec.spec,
             url: specUrl,
-            timestamp: new Date().toISOString()
+            timestamp: this.getDeterministicDate().toISOString()
           };
         }
         
@@ -606,7 +606,7 @@ export class RESTFederationEngine extends EventEmitter {
     return {
       discovered: false,
       error: 'No API specification found',
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     };
   }
   
@@ -870,7 +870,7 @@ export class RESTFederationEngine extends EventEmitter {
       endpoint.health.consecutive_failures++;
     }
     
-    endpoint.statistics.lastRequested = new Date().toISOString();
+    endpoint.statistics.lastRequested = this.getDeterministicDate().toISOString();
     
     // Update average response time
     const total = endpoint.statistics.totalRequests;
@@ -878,7 +878,7 @@ export class RESTFederationEngine extends EventEmitter {
     endpoint.statistics.avgResponseTime = ((currentAvg * (total - 1)) + executionTime) / total;
     
     endpoint.health.avg_response_time = endpoint.statistics.avgResponseTime;
-    endpoint.health.lastCheck = new Date().toISOString();
+    endpoint.health.lastCheck = this.getDeterministicDate().toISOString();
   }
   
   async testConnectivity(config) {
@@ -949,7 +949,7 @@ export class RESTFederationEngine extends EventEmitter {
   initializeEndpointRateLimiter(endpointId, config) {
     this.state.rateLimiters.set(endpointId, {
       requests: 0,
-      windowStart: Date.now(),
+      windowStart: this.getDeterministicTimestamp(),
       limit: config.rateLimit || 100,
       window: config.rateLimitWindow || 60000
     });
@@ -964,7 +964,7 @@ export class RESTFederationEngine extends EventEmitter {
     const limiter = this.state.rateLimiters.get(endpointId);
     if (!limiter) return true;
     
-    const now = Date.now();
+    const now = this.getDeterministicTimestamp();
     if (now - limiter.windowStart > limiter.window) {
       limiter.requests = 0;
       limiter.windowStart = now;
@@ -983,7 +983,7 @@ export class RESTFederationEngine extends EventEmitter {
       breaker.failures++;
       if (breaker.failures >= 5) {
         breaker.state = 'open';
-        breaker.nextAttempt = Date.now() + 30000; // 30 second timeout
+        breaker.nextAttempt = this.getDeterministicTimestamp() + 30000; // 30 second timeout
       }
     }
   }
@@ -1047,7 +1047,7 @@ export class RESTFederationEngine extends EventEmitter {
       engine: 'rest',
       orchestration: plan.orchestration,
       endpoints: plan.endpoints,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     };
   }
   

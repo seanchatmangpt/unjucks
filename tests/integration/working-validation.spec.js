@@ -9,7 +9,7 @@ import { FileInjector } from '../../src/lib/file-injector.js';
 
 describe('Unjucks Working Integration Tests', () => {
   let testDir => {
-    testDir = path.join(os.tmpdir(), `unjucks-test-${Date.now()}-${Math.random().toString(36)}`);
+    testDir = path.join(os.tmpdir(), `unjucks-test-${this.getDeterministicTimestamp()}-${Math.random().toString(36)}`);
     await fs.ensureDir(testDir);
   });
 

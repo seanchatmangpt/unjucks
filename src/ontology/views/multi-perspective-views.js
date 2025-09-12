@@ -44,7 +44,7 @@ export class MultiPerspectiveViewsEngine extends EventEmitter {
    * Generate personalized ontology view for user
    */
   async generatePersonalizedView(ontologyStore, userProfile, viewContext = {}) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     const viewId = this.generateViewId(userProfile, viewContext);
     
     try {
@@ -94,8 +94,8 @@ export class MultiPerspectiveViewsEngine extends EventEmitter {
         navigation: this.generateNavigationStructure(optimizedView.store),
         visualization: this.generateVisualizationConfig(optimizedView.store, userProfile),
         interactions: this.generateInteractionConfig(userProfile, viewContext),
-        timestamp: new Date().toISOString(),
-        expiresAt: new Date(Date.now() + this.options.viewUpdateInterval).toISOString()
+        timestamp: this.getDeterministicDate().toISOString(),
+        expiresAt: new Date(this.getDeterministicTimestamp() + this.options.viewUpdateInterval).toISOString()
       };
       
       // Cache the view
@@ -109,7 +109,7 @@ export class MultiPerspectiveViewsEngine extends EventEmitter {
       this.emit('view-generated', {
         viewId,
         userProfile: userProfile.id,
-        processingTime: Date.now() - startTime
+        processingTime: this.getDeterministicTimestamp() - startTime
       });
       
       return personalizedView;
@@ -185,7 +185,7 @@ export class MultiPerspectiveViewsEngine extends EventEmitter {
       project,
       features: collaborativeFeatures,
       metadata: sharedView.metadata,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     };
     
     this.collaborativeViews.set(collaborativeViewId, collaborativeView);
@@ -371,16 +371,16 @@ export class MultiPerspectiveViewsEngine extends EventEmitter {
       viewContext.task || 'general'
     ];
     
-    return `view_${components.join('_')}_${Date.now()}`;
+    return `view_${components.join('_')}_${this.getDeterministicTimestamp()}`;
   }
 
   generateCollaborativeViewId(teamMembers, project) {
     const memberIds = teamMembers.map(m => m.id).sort().join('_');
-    return `collab_${project.id}_${memberIds}_${Date.now()}`;
+    return `collab_${project.id}_${memberIds}_${this.getDeterministicTimestamp()}`;
   }
 
   isViewExpired(view) {
-    return new Date() > new Date(view.expiresAt);
+    return this.getDeterministicDate() > new Date(view.expiresAt);
   }
 
   generateViewMetadata(view, userProfile, viewContext, startTime) {
@@ -389,7 +389,7 @@ export class MultiPerspectiveViewsEngine extends EventEmitter {
       role: userProfile.role,
       context: viewContext.context,
       task: viewContext.task,
-      generationTime: Date.now() - startTime,
+      generationTime: this.getDeterministicTimestamp() - startTime,
       elementCount: view.store.size,
       complexity: this.calculateComplexityScore(view.store),
       customizations: this.listAppliedCustomizations(view),
@@ -426,7 +426,7 @@ export class MultiPerspectiveViewsEngine extends EventEmitter {
       viewId,
       userId: userProfile.id,
       action,
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       context: {
         role: userProfile.role,
         preferences: userProfile.preferences

@@ -166,7 +166,7 @@ export class SemanticMonitor extends EventEmitter {
     /** @type {ComplianceEvent} */
     const complianceEvent = {
       ...event,
-      timestamp: Date.now()
+      timestamp: this.getDeterministicTimestamp()
     };
 
     this.complianceEvents.push(complianceEvent);
@@ -198,7 +198,7 @@ export class SemanticMonitor extends EventEmitter {
     /** @type {SecurityEvent} */
     const securityEvent = {
       ...event,
-      timestamp: Date.now()
+      timestamp: this.getDeterministicTimestamp()
     };
 
     this.securityEvents.push(securityEvent);
@@ -301,7 +301,7 @@ export class SemanticMonitor extends EventEmitter {
     const alert = this.activeAlerts.get(alertId);
     if (alert && !alert.resolved) {
       alert.resolved = true;
-      alert.resolvedAt = Date.now();
+      alert.resolvedAt = this.getDeterministicTimestamp();
       this.emit('alert:resolved', alert);
       return true;
     }
@@ -335,7 +335,7 @@ export class SemanticMonitor extends EventEmitter {
 
     return {
       status,
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       uptime: process.uptime(),
       checks,
       activeAlerts: activeAlerts.length,
@@ -353,7 +353,7 @@ export class SemanticMonitor extends EventEmitter {
       config: this.config,
       metrics: this.metrics,
       alerts: Array.from(this.activeAlerts.values()),
-      exportedAt: Date.now()
+      exportedAt: this.getDeterministicTimestamp()
     };
 
     if (includeEvents) {
@@ -370,7 +370,7 @@ export class SemanticMonitor extends EventEmitter {
    * @returns {void}
    */
   collectMetrics() {
-    const now = Date.now();
+    const now = this.getDeterministicTimestamp();
     const memUsage = process.memoryUsage();
     const cpuUsage = process.cpuUsage();
 
@@ -476,8 +476,8 @@ export class SemanticMonitor extends EventEmitter {
     /** @type {Alert} */
     const alert = {
       ...alertData,
-      id: `alert-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      timestamp: Date.now()
+      id: `alert-${this.getDeterministicTimestamp()}-${Math.random().toString(36).substr(2, 9)}`,
+      timestamp: this.getDeterministicTimestamp()
     };
 
     this.activeAlerts.set(alert.id, alert);

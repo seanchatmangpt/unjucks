@@ -301,7 +301,7 @@ export class SecurityHeadersManager {
    */
   generateSecurityReport() {
     return {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       headers: this.securityHeaders,
       csp: {
         policy: this.defaultCSP,

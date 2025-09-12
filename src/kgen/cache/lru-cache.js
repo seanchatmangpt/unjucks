@@ -61,7 +61,7 @@ export class LRUCache extends EventEmitter {
     
     // Update access order (LRU)
     this.accessOrder.set(key, ++this.accessCounter);
-    entry.lastAccessed = Date.now();
+    entry.lastAccessed = this.getDeterministicTimestamp();
     
     if (this.enableStats) this.stats.hits++;
     this.emit('hit', key);
@@ -79,8 +79,8 @@ export class LRUCache extends EventEmitter {
     
     const entry = {
       value,
-      cachedAt: Date.now(),
-      lastAccessed: Date.now(),
+      cachedAt: this.getDeterministicTimestamp(),
+      lastAccessed: this.getDeterministicTimestamp(),
       ttl: options.ttl || this.ttl,
       size: this._calculateSize(value)
     };
@@ -200,7 +200,7 @@ export class LRUCache extends EventEmitter {
       ttl: this.ttl,
       entries,
       stats: this.stats,
-      exportedAt: Date.now()
+      exportedAt: this.getDeterministicTimestamp()
     };
   }
   
@@ -271,7 +271,7 @@ export class LRUCache extends EventEmitter {
     if (!this.ttl) return;
     
     let cleaned = 0;
-    const now = Date.now();
+    const now = this.getDeterministicTimestamp();
     
     for (const [key, entry] of this.cache.entries()) {
       if (this._isExpired(entry, now)) {
@@ -292,7 +292,7 @@ export class LRUCache extends EventEmitter {
   /**
    * Check if entry is expired
    */
-  _isExpired(entry, now = Date.now()) {
+  _isExpired(entry, now = this.getDeterministicTimestamp()) {
     if (!entry.ttl) return false;
     return (now - entry.cachedAt) > entry.ttl;
   }
@@ -340,7 +340,7 @@ export class LRUCache extends EventEmitter {
     return oldestKey ? {
       key: oldestKey,
       lastAccessed: oldestTime,
-      age: Date.now() - oldestTime
+      age: this.getDeterministicTimestamp() - oldestTime
     } : null;
   }
   
@@ -363,7 +363,7 @@ export class LRUCache extends EventEmitter {
     return newestKey ? {
       key: newestKey,
       lastAccessed: newestTime,
-      age: Date.now() - newestTime
+      age: this.getDeterministicTimestamp() - newestTime
     } : null;
   }
   
@@ -409,7 +409,7 @@ export class SPARQLQueryCache extends LRUCache {
     const key = this.generateKey(query, options);
     const value = {
       ...results,
-      cachedAt: new Date(),
+      cachedAt: this.getDeterministicDate(),
       query: options.includeQuery ? query : undefined
     };
     

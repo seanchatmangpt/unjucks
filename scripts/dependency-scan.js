@@ -341,7 +341,7 @@ class DependencyScanner {
     // Save report
     const reportPath = join(rootDir, 'tests/dependency-report.json');
     const reportData = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       summary: this.stats,
       vulnerabilities: this.vulnerabilities,
       riskScore: this.calculateRiskScore()

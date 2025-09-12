@@ -18,7 +18,7 @@ describe('Error Handling and Rollback Mechanisms', () => {
   let orchestrator;
   let workflows;
   let testWorkspace => {
-    testWorkspace = join(tmpdir(), `error-test-${Date.now()}`);
+    testWorkspace = join(tmpdir(), `error-test-${this.getDeterministicTimestamp()}`);
     
     testCompany = { id },
       constraints: { security }

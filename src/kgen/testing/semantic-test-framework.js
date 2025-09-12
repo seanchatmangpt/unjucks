@@ -107,7 +107,7 @@ export class SemanticTestFramework extends EventEmitter {
   async runAllTests(options = {}) {
     const testRun = {
       id: this._generateTestRunId(),
-      startTime: Date.now(),
+      startTime: this.getDeterministicTimestamp(),
       options: { ...this.config, ...options },
       results: {
         bdd: null,
@@ -168,7 +168,7 @@ export class SemanticTestFramework extends EventEmitter {
       // Generate reports
       await this._generateTestReports(testRun);
       
-      testRun.endTime = Date.now();
+      testRun.endTime = this.getDeterministicTimestamp();
       testRun.duration = testRun.endTime - testRun.startTime;
       
       this.logger.success(`✅ Test run completed in ${testRun.duration}ms`);
@@ -183,7 +183,7 @@ export class SemanticTestFramework extends EventEmitter {
     } catch (error) {
       this.logger.error(`❌ Test run ${testRun.id} failed:`, error);
       testRun.error = error.message;
-      testRun.endTime = Date.now();
+      testRun.endTime = this.getDeterministicTimestamp();
       process.exitCode = 1;
       throw error;
     }
@@ -197,7 +197,7 @@ export class SemanticTestFramework extends EventEmitter {
       this.logger.info('🔍 Running semantic validation tests');
       
       const validation = {
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         targets: targets.length,
         results: [],
         summary: {
@@ -236,7 +236,7 @@ export class SemanticTestFramework extends EventEmitter {
       this.logger.info('🏗️  Running ontology validation tests');
       
       const validation = {
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         ontologies: ontologies.length,
         results: [],
         summary: {
@@ -275,7 +275,7 @@ export class SemanticTestFramework extends EventEmitter {
       this.logger.info('📋 Running template validation tests');
       
       const validation = {
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         templates: templates.length,
         results: [],
         summary: {
@@ -314,7 +314,7 @@ export class SemanticTestFramework extends EventEmitter {
       this.logger.info('📜 Running compliance validation tests');
       
       const validation = {
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         targets: targets.length,
         standards: standards.length,
         results: [],
@@ -361,7 +361,7 @@ export class SemanticTestFramework extends EventEmitter {
         relationships: [],
         templates: [],
         metadata: {
-          generated: new Date().toISOString(),
+          generated: this.getDeterministicDate().toISOString(),
           specification
         }
       };
@@ -651,7 +651,7 @@ export class SemanticTestFramework extends EventEmitter {
   }
 
   _generateTestRunId() {
-    return `test_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    return `test_${this.getDeterministicTimestamp()}_${Math.random().toString(36).substr(2, 9)}`;
   }
 
   // Helper method stubs for comprehensive implementation

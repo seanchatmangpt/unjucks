@@ -115,7 +115,7 @@ async function runSimpleTests() {
   try {
     results.total++;
     const cache = new Map();
-    cache.set('test-key', { data: 'test-value', timestamp: Date.now() });
+    cache.set('test-key', { data: 'test-value', timestamp: this.getDeterministicTimestamp() });
     const retrieved = cache.get('test-key');
     
     if (retrieved && retrieved.data === 'test-value') {
@@ -243,7 +243,7 @@ async function generateReport() {
 
   // Save final report
   const finalReport = {
-    timestamp: new Date().toISOString(),
+    timestamp: this.getDeterministicDate().toISOString(),
     summary: {
       total: results.total,
       working: results.working,

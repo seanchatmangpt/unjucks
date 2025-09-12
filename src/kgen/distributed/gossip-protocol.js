@@ -40,7 +40,7 @@ export class GossipProtocol extends EventEmitter {
       incarnation: 0,
       status: 'alive',
       metadata: options.metadata || {},
-      lastUpdated: Date.now()
+      lastUpdated: this.getDeterministicTimestamp()
     };
     
     // Message handling
@@ -86,8 +86,8 @@ export class GossipProtocol extends EventEmitter {
         status: 'alive',
         incarnation: this.localState.incarnation,
         metadata: this.localState.metadata,
-        lastSeen: Date.now(),
-        firstSeen: Date.now(),
+        lastSeen: this.getDeterministicTimestamp(),
+        firstSeen: this.getDeterministicTimestamp(),
         roundTripTime: 0
       });
       
@@ -175,7 +175,7 @@ export class GossipProtocol extends EventEmitter {
       type: 'join',
       from: this.nodeId,
       nodeInfo: this.nodes.get(this.nodeId),
-      timestamp: Date.now()
+      timestamp: this.getDeterministicTimestamp()
     };
     
     const response = await this.sendMessage(seedNodeId, joinMessage);
@@ -203,8 +203,8 @@ export class GossipProtocol extends EventEmitter {
     if (!existingNode || nodeInfo.incarnation > existingNode.incarnation) {
       const updatedNode = {
         ...nodeInfo,
-        lastSeen: Date.now(),
-        firstSeen: existingNode?.firstSeen || Date.now()
+        lastSeen: this.getDeterministicTimestamp(),
+        firstSeen: existingNode?.firstSeen || this.getDeterministicTimestamp()
       };
       
       this.nodes.set(nodeInfo.nodeId, updatedNode);
@@ -243,7 +243,7 @@ export class GossipProtocol extends EventEmitter {
       this.suspiciousNodes.set(nodeId, {
         nodeId,
         reason,
-        suspectedAt: Date.now(),
+        suspectedAt: this.getDeterministicTimestamp(),
         indirectPingCount: 0
       });
       
@@ -274,7 +274,7 @@ export class GossipProtocol extends EventEmitter {
     const nodeInfo = this.nodes.get(nodeId);
     if (nodeInfo) {
       nodeInfo.status = 'failed';
-      nodeInfo.failedAt = Date.now();
+      nodeInfo.failedAt = this.getDeterministicTimestamp();
     }
     
     this.statistics.nodesFailed++;
@@ -323,7 +323,7 @@ export class GossipProtocol extends EventEmitter {
           type: 'indirect_ping',
           from: this.nodeId,
           target: suspiciousNodeId,
-          timestamp: Date.now()
+          timestamp: this.getDeterministicTimestamp()
         });
         
         return response && response.success;
@@ -395,7 +395,7 @@ export class GossipProtocol extends EventEmitter {
       type: 'gossip',
       from: this.nodeId,
       nodes: this.getGossipableNodes(),
-      timestamp: Date.now()
+      timestamp: this.getDeterministicTimestamp()
     };
     
     // Send gossip to selected peers
@@ -456,7 +456,7 @@ export class GossipProtocol extends EventEmitter {
     }
     
     // Include recently failed nodes (for propagation)
-    const recentFailureThreshold = Date.now() - (this.config.failureTimeout * 2);
+    const recentFailureThreshold = this.getDeterministicTimestamp() - (this.config.failureTimeout * 2);
     for (const nodeId of this.failedNodes) {
       const node = this.nodes.get(nodeId);
       if (node && node.failedAt && node.failedAt > recentFailureThreshold) {
@@ -535,7 +535,7 @@ export class GossipProtocol extends EventEmitter {
     // Update last seen time for sender
     const senderNode = this.nodes.get(fromNodeId);
     if (senderNode) {
-      senderNode.lastSeen = Date.now();
+      senderNode.lastSeen = this.getDeterministicTimestamp();
     }
     
     switch (message.type) {
@@ -573,7 +573,7 @@ export class GossipProtocol extends EventEmitter {
       type: 'welcome',
       from: this.nodeId,
       nodes: Array.from(this.nodes.values()),
-      timestamp: Date.now()
+      timestamp: this.getDeterministicTimestamp()
     };
   }
   
@@ -594,7 +594,7 @@ export class GossipProtocol extends EventEmitter {
       }
     }
     
-    return { type: 'ack', from: this.nodeId, timestamp: Date.now() };
+    return { type: 'ack', from: this.nodeId, timestamp: this.getDeterministicTimestamp() };
   }
   
   /**
@@ -604,7 +604,7 @@ export class GossipProtocol extends EventEmitter {
     return {
       type: 'pong',
       from: this.nodeId,
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       originalTimestamp: message.timestamp
     };
   }
@@ -620,7 +620,7 @@ export class GossipProtocol extends EventEmitter {
       const response = await this.sendMessage(target, {
         type: 'ping',
         from: this.nodeId,
-        timestamp: Date.now()
+        timestamp: this.getDeterministicTimestamp()
       });
       
       return {
@@ -628,7 +628,7 @@ export class GossipProtocol extends EventEmitter {
         from: this.nodeId,
         target,
         success: response && response.type === 'pong',
-        timestamp: Date.now()
+        timestamp: this.getDeterministicTimestamp()
       };
       
     } catch (error) {
@@ -638,7 +638,7 @@ export class GossipProtocol extends EventEmitter {
         target,
         success: false,
         error: error.message,
-        timestamp: Date.now()
+        timestamp: this.getDeterministicTimestamp()
       };
     }
   }
@@ -652,7 +652,7 @@ export class GossipProtocol extends EventEmitter {
       return null; // Already processed
     }
     
-    this.messageHistory.set(message.messageId, Date.now());
+    this.messageHistory.set(message.messageId, this.getDeterministicTimestamp());
     
     // Emit the broadcast event
     this.emit('broadcast', message.payload);
@@ -660,7 +660,7 @@ export class GossipProtocol extends EventEmitter {
     // Retransmit to other nodes
     this.retransmitBroadcast(message);
     
-    return { type: 'ack', from: this.nodeId, timestamp: Date.now() };
+    return { type: 'ack', from: this.nodeId, timestamp: this.getDeterministicTimestamp() };
   }
   
   /**
@@ -673,12 +673,12 @@ export class GossipProtocol extends EventEmitter {
       messageId: crypto.randomUUID(),
       eventType,
       payload,
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       ttl: this.config.retransmitMultiplier
     };
     
     // Add to message history
-    this.messageHistory.set(message.messageId, Date.now());
+    this.messageHistory.set(message.messageId, this.getDeterministicTimestamp());
     
     // Send to all alive nodes
     const promises = [];
@@ -726,7 +726,7 @@ export class GossipProtocol extends EventEmitter {
         return;
       }
       
-      const now = Date.now();
+      const now = this.getDeterministicTimestamp();
       const suspicionThreshold = now - this.config.suspicionTimeout;
       const failureThreshold = now - this.config.failureTimeout;
       
@@ -771,7 +771,7 @@ export class GossipProtocol extends EventEmitter {
    * Cleanup old data
    */
   cleanup() {
-    const now = Date.now();
+    const now = this.getDeterministicTimestamp();
     const cleanupThreshold = now - (this.config.failureTimeout * 10); // Keep failed nodes for 10x failure timeout
     
     // Clean up old message history
@@ -809,7 +809,7 @@ export class GossipProtocol extends EventEmitter {
     await this.broadcast('node:failed', {
       nodeId,
       reason: 'failure_detection',
-      timestamp: Date.now()
+      timestamp: this.getDeterministicTimestamp()
     });
   }
   
@@ -883,7 +883,7 @@ export class GossipProtocol extends EventEmitter {
     try {
       await this.broadcast('node:leaving', {
         nodeId: this.nodeId,
-        timestamp: Date.now()
+        timestamp: this.getDeterministicTimestamp()
       });
     } catch (error) {
       // Ignore errors during shutdown

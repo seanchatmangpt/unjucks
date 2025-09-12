@@ -100,7 +100,7 @@ export class ProjectManager {
         lockfilePath,
         lockfile,
         projectContext,
-        generatedAt: new Date().toISOString()
+        generatedAt: this.getDeterministicDate().toISOString()
       };
 
       this.logger.success(`Lockfile generated successfully: ${lockfilePath}`);

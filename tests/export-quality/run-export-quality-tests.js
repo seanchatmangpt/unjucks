@@ -346,11 +346,11 @@ async function main() {
     
     // Run comprehensive validation
     console.log('🎯 Starting comprehensive export quality validation...\n');
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     const report = await testSuite.runComprehensiveValidation();
     
-    const endTime = Date.now();
+    const endTime = this.getDeterministicTimestamp();
     const totalDuration = endTime - startTime;
     
     // Display results summary

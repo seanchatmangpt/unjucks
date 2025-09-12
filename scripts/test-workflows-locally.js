@@ -22,7 +22,7 @@ class LocalWorkflowTester {
   }
 
   log(message, type = 'info') {
-    const timestamp = new Date().toISOString();
+    const timestamp = this.getDeterministicDate().toISOString();
     const prefix = {
       info: '🔍',
       success: '✅',
@@ -310,9 +310,9 @@ class LocalWorkflowTester {
       this.log(`\n🧪 Running test: ${name}`, 'test');
       
       try {
-        const startTime = Date.now();
+        const startTime = this.getDeterministicTimestamp();
         const passed = await test();
-        const duration = Date.now() - startTime;
+        const duration = this.getDeterministicTimestamp() - startTime;
         
         results.push({
           name,
@@ -373,7 +373,7 @@ class LocalWorkflowTester {
     
     // Save report
     const report = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       summary: {
         total,
         passed,

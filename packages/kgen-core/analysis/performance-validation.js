@@ -211,7 +211,7 @@ class PerformanceValidator {
       templates.push({
         id: `template-${i}`,
         content: `Template ${i} with content: ${'X'.repeat(1000)}`,
-        variables: { index: i, timestamp: Date.now() }
+        variables: { index: i, timestamp: this.getDeterministicTimestamp() }
       });
     }
 

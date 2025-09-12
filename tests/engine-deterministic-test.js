@@ -35,7 +35,7 @@ console.log('   Duration:', duration1);
 
 console.log('\n🎉 All deterministic ID tests passed!');
 console.log('\n📋 Summary:');
-console.log('- All Date.now() calls replaced with deterministic IDs');
-console.log('- All new Date() calls replaced with deterministic timestamps');
+console.log('- All this.getDeterministicTimestamp() calls replaced with deterministic IDs');
+console.log('- All this.getDeterministicDate() calls replaced with deterministic timestamps');
 console.log('- Operation IDs now based on session and operation count');
 console.log('- Time measurements replaced with content-addressed hashes');

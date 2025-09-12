@@ -215,9 +215,9 @@ to });
 to });
 
     when('I perform the injection', async () => {
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       lastResult = await testHelper.runCli('generate large inject');
-      safetyMetrics.largeFileInjectionTime = Date.now() - startTime;
+      safetyMetrics.largeFileInjectionTime = this.getDeterministicTimestamp() - startTime;
     });
 
     then('the operation should complete in under {int} seconds', async (maxSeconds) => {

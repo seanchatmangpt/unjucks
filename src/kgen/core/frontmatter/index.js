@@ -5,20 +5,22 @@
  * template processing with deterministic output, provenance tracking, and audit trails.
  */
 
-export { FrontmatterWorkflowEngine } from './workflow-engine.js';
-export { FrontmatterParser } from './parser.js';
-export { PathResolver } from './path-resolver.js';
-export { ConditionalProcessor } from './conditional-processor.js';
-export { OperationEngine } from './operation-engine.js';
-export { SchemaValidator } from './schema-validator.js';
-export { MetadataExtractor } from './metadata-extractor.js';
+import { FrontmatterWorkflowEngine } from './workflow-engine.js';
+import { FrontmatterParser } from './parser.js';
+import { PathResolver } from './path-resolver.js';
+import { ConditionalProcessor } from './conditional-processor.js';
+import { OperationEngine } from './operation-engine.js';
+import { SchemaValidator } from './schema-validator.js';
+import { MetadataExtractor } from './metadata-extractor.js';
+
+export { FrontmatterWorkflowEngine, FrontmatterParser, PathResolver, ConditionalProcessor, OperationEngine, SchemaValidator, MetadataExtractor };
 
 /**
  * Create a configured frontmatter workflow engine
  * @param {Object} config - Configuration options
  * @returns {FrontmatterWorkflowEngine} Configured workflow engine
  */
-export function createFrontmatterWorkflow(config = {}) {
+export async function createFrontmatterWorkflow(config = {}) {
   const { FrontmatterWorkflowEngine } = await import('./workflow-engine.js');
   return new FrontmatterWorkflowEngine(config);
 }

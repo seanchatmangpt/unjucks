@@ -41,13 +41,13 @@ class WorkflowMetricsCollector {
     console.log(`🔍 Collecting workflow metrics for ${this.owner}/${this.repo}`);
     
     const daysBack = parseInt(options.daysBack);
-    const since = subDays(new Date(), daysBack);
+    const since = subDays(this.getDeterministicDate(), daysBack);
     const metrics = {
-      collection_time: new Date().toISOString(),
+      collection_time: this.getDeterministicDate().toISOString(),
       period: {
         days_back: daysBack,
         since: since.toISOString(),
-        until: new Date().toISOString()
+        until: this.getDeterministicDate().toISOString()
       },
       workflows: {},
       summary: {
@@ -284,7 +284,7 @@ class WorkflowMetricsCollector {
   async saveMetrics(metrics) {
     const reportDir = path.join(process.cwd(), '.github/monitoring-reports');
     const reportType = options.reportType;
-    const timestamp = format(new Date(), 'yyyy-MM-dd');
+    const timestamp = format(this.getDeterministicDate(), 'yyyy-MM-dd');
     
     await fs.ensureDir(path.join(reportDir, reportType));
     
@@ -299,7 +299,7 @@ class WorkflowMetricsCollector {
   }
 
   getReportPath() {
-    const timestamp = format(new Date(), 'yyyy-MM-dd');
+    const timestamp = format(this.getDeterministicDate(), 'yyyy-MM-dd');
     return `.github/monitoring-reports/${options.reportType}/metrics-${timestamp}.json`;
   }
 }

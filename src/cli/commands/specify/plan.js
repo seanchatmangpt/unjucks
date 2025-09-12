@@ -73,7 +73,7 @@ export const planCommand = defineCommand({
   },
   async run(context) {
     const { args } = context;
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
 
     try {
       console.log(chalk.blue("🗺️  Generating Technical Development Plan"));
@@ -152,7 +152,7 @@ export const planCommand = defineCommand({
         console.log(formattedPlan.substring(0, 1000) + (formattedPlan.length > 1000 ? '...\n[truncated]' : ''));
         console.log(chalk.gray("=" * 60));
         
-        console.log(chalk.blue(`\n✨ Plan generation completed in ${Date.now() - startTime}ms`));
+        console.log(chalk.blue(`\n✨ Plan generation completed in ${this.getDeterministicTimestamp() - startTime}ms`));
         console.log(chalk.gray(`Run without --dry to save to: ${args.output}`));
         
         return {
@@ -166,7 +166,7 @@ export const planCommand = defineCommand({
       await fs.ensureDir(path.dirname(args.output));
       await fs.writeFile(args.output, formattedPlan, 'utf8');
 
-      const duration = Date.now() - startTime;
+      const duration = this.getDeterministicTimestamp() - startTime;
 
       console.log(chalk.green("\n✅ Development plan generated successfully"));
       console.log(chalk.cyan(`📄 Plan saved to: ${args.output}`));
@@ -433,7 +433,7 @@ class DevelopmentPlanner {
       metadata: {
         projectName: this.analysisResult.metadata.name || 'Unnamed Project',
         version: '1.0.0',
-        generated: new Date().toISOString(),
+        generated: this.getDeterministicDate().toISOString(),
         planType: 'specification-driven',
         estimatedEffort: null,
         riskLevel: 'medium'

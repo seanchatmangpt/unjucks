@@ -181,7 +181,7 @@ db.test_performance_data.createIndex({ 'dataType': 1 });
 db.test_performance_data.createIndex({ 'createdAt': 1 });
 
 // Insert initial test configuration
-const now = new Date();
+const now = this.getDeterministicDate();
 db.test_configs.insertMany([
   {
     key: 'max_template_size',
@@ -293,7 +293,7 @@ db.system.js.save({
       status: 'healthy',
       details: {
         database: 'unjucks_test',
-        timestamp: new Date(),
+        timestamp: this.getDeterministicDate(),
         collections: {
           templates: templateCount,
           generators: generatorCount,

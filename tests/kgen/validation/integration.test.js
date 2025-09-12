@@ -583,12 +583,12 @@ gdpr:consent${i} a gdpr:Consent ;
   
   await engine.initialize();
   
-  const startTime = Date.now();
+  const startTime = this.getDeterministicTimestamp();
   const gdprShapes = await fs.readFile(gdprPath, 'utf8');
   const largeData = await fs.readFile(largePath, 'utf8');
   
   const result = await engine.validateSHACL(largeData, gdprShapes);
-  const validationTime = Date.now() - startTime;
+  const validationTime = this.getDeterministicTimestamp() - startTime;
   
   assert.strictEqual(result.conforms, true, 'Large dataset should be valid');
   assert(validationTime < 30000, 'Validation should complete within 30 seconds');

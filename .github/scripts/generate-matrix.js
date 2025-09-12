@@ -408,7 +408,7 @@ class IntelligentMatrixGenerator {
       excluded,
       metrics,
       metadata: {
-        generatedAt: new Date().toISOString(),
+        generatedAt: this.getDeterministicDate().toISOString(),
         generator: 'intelligent-matrix-v1.0.0',
         context,
         reasoning: [

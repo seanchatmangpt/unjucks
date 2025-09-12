@@ -80,7 +80,7 @@ describe('Production Integration Smoke Tests', () => {
     
     // Generate smoke test report
     const report = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       environment: 'production-smoke',
       results: smokeResults,
       summary: {
@@ -99,7 +99,7 @@ describe('Production Integration Smoke Tests', () => {
     test('Template rendering with RDF filters - End-to-end', async () => {
       console.log('Testing template rendering with RDF filters...');
       
-      const workflowStart = Date.now();
+      const workflowStart = this.getDeterministicTimestamp();
       
       try {
         // Test complete template rendering workflow
@@ -128,7 +128,7 @@ describe('Production Integration Smoke Tests', () => {
 `;
 
         const rendered = nunjucksEnv.renderString(template);
-        const workflowDuration = Date.now() - workflowStart;
+        const workflowDuration = this.getDeterministicTimestamp() - workflowStart;
         
         // Validate rendered output
         expect(rendered).toContain('<h1>People Directory</h1>');
@@ -165,14 +165,14 @@ describe('Production Integration Smoke Tests', () => {
           name: 'Template Rendering with RDF',
           status: 'FAIL',
           error: error.message,
-          duration: Date.now() - workflowStart
+          duration: this.getDeterministicTimestamp() - workflowStart
         });
         
         smokeResults.issues.push({
           workflow: 'Template Rendering',
           error: error.message,
           severity: 'CRITICAL',
-          timestamp: Date.now()
+          timestamp: this.getDeterministicTimestamp()
         });
         
         throw error;
@@ -182,7 +182,7 @@ describe('Production Integration Smoke Tests', () => {
     test('Data loading and querying pipeline', async () => {
       console.log('Testing data loading and querying pipeline...');
       
-      const workflowStart = Date.now();
+      const workflowStart = this.getDeterministicTimestamp();
       
       try {
         // Test complete data processing pipeline
@@ -285,7 +285,7 @@ ex:carol a foaf:Person ;
           }
         }
         
-        const workflowDuration = Date.now() - workflowStart;
+        const workflowDuration = this.getDeterministicTimestamp() - workflowStart;
         const querySuccessRate = (successfulQueries / queries.length) * 100;
         
         smokeResults.workflows.push({
@@ -308,7 +308,7 @@ ex:carol a foaf:Person ;
           name: 'Data Loading and Querying',
           status: 'FAIL',
           error: error.message,
-          duration: Date.now() - workflowStart
+          duration: this.getDeterministicTimestamp() - workflowStart
         });
         
         throw error;
@@ -318,7 +318,7 @@ ex:carol a foaf:Person ;
     test('Filter registration and usage integration', async () => {
       console.log('Testing filter registration and usage...');
       
-      const workflowStart = Date.now();
+      const workflowStart = this.getDeterministicTimestamp();
       
       try {
         // Test filter registration process
@@ -415,7 +415,7 @@ ex:carol a foaf:Person ;
           }
         }
         
-        const workflowDuration = Date.now() - workflowStart;
+        const workflowDuration = this.getDeterministicTimestamp() - workflowStart;
         const filterSuccessRate = (filtersWorking / filterTests.length) * 100;
         
         smokeResults.workflows.push({
@@ -444,7 +444,7 @@ ex:carol a foaf:Person ;
           name: 'Filter Registration and Usage',
           status: 'FAIL',
           error: error.message,
-          duration: Date.now() - workflowStart
+          duration: this.getDeterministicTimestamp() - workflowStart
         });
         
         throw error;
@@ -454,7 +454,7 @@ ex:carol a foaf:Person ;
     test('Semantic reasoning basic workflow', async () => {
       console.log('Testing semantic reasoning workflow...');
       
-      const workflowStart = Date.now();
+      const workflowStart = this.getDeterministicTimestamp();
       
       try {
         // Test semantic reasoning capabilities
@@ -548,7 +548,7 @@ ex:carol a foaf:Person ;
           }
         }
         
-        const workflowDuration = Date.now() - workflowStart;
+        const workflowDuration = this.getDeterministicTimestamp() - workflowStart;
         const reasoningSuccessRate = (reasoningSuccess / reasoningTests.length) * 100;
         
         smokeResults.workflows.push({
@@ -571,7 +571,7 @@ ex:carol a foaf:Person ;
           name: 'Semantic Reasoning Basic',
           status: 'FAIL', 
           error: error.message,
-          duration: Date.now() - workflowStart
+          duration: this.getDeterministicTimestamp() - workflowStart
         });
         
         throw error;
@@ -581,7 +581,7 @@ ex:carol a foaf:Person ;
     test('Error handling graceful degradation', async () => {
       console.log('Testing graceful error handling...');
       
-      const workflowStart = Date.now();
+      const workflowStart = this.getDeterministicTimestamp();
       
       try {
         // Test error handling across the system
@@ -718,7 +718,7 @@ ex:carol a foaf:Person ;
           }
         }
         
-        const workflowDuration = Date.now() - workflowStart;
+        const workflowDuration = this.getDeterministicTimestamp() - workflowStart;
         const totalScenarios = errorScenarios.length + templateErrors.length;
         const gracefulRate = (gracefulHandling / totalScenarios) * 100;
         
@@ -741,7 +741,7 @@ ex:carol a foaf:Person ;
           name: 'Error Handling Graceful',
           status: 'FAIL',
           error: error.message,
-          duration: Date.now() - workflowStart
+          duration: this.getDeterministicTimestamp() - workflowStart
         });
         
         throw error;
@@ -751,7 +751,7 @@ ex:carol a foaf:Person ;
     test('Performance acceptance criteria', async () => {
       console.log('Testing performance acceptance criteria...');
       
-      const workflowStart = Date.now();
+      const workflowStart = this.getDeterministicTimestamp();
       
       try {
         // Test performance under typical production loads
@@ -797,7 +797,7 @@ ex:carol a foaf:Person ;
         
         for (const perfTest of performanceTests) {
           const iterations = perfTest.iterations;
-          const startTime = Date.now();
+          const startTime = this.getDeterministicTimestamp();
           
           try {
             // Run test multiple times to get average
@@ -805,7 +805,7 @@ ex:carol a foaf:Person ;
               perfTest.test();
             }
             
-            const endTime = Date.now();
+            const endTime = this.getDeterministicTimestamp();
             const totalTime = endTime - startTime;
             const avgTime = totalTime / iterations;
             const withinLimit = avgTime <= perfTest.maxTime;
@@ -839,7 +839,7 @@ ex:carol a foaf:Person ;
           }
         }
         
-        const workflowDuration = Date.now() - workflowStart;
+        const workflowDuration = this.getDeterministicTimestamp() - workflowStart;
         const performanceSuccessRate = (performancePassing / performanceTests.length) * 100;
         
         smokeResults.workflows.push({
@@ -861,7 +861,7 @@ ex:carol a foaf:Person ;
           name: 'Performance Acceptance',
           status: 'FAIL',
           error: error.message,
-          duration: Date.now() - workflowStart
+          duration: this.getDeterministicTimestamp() - workflowStart
         });
         
         throw error;
@@ -900,7 +900,7 @@ ex:carol a foaf:Person ;
               batch: batch,
               memoryGrowthMB: memoryGrowthMB,
               severity: 'HIGH',
-              timestamp: Date.now()
+              timestamp: this.getDeterministicTimestamp()
             });
             break;
           }
@@ -987,7 +987,7 @@ ex:carol a foaf:Person ;
     console.log('\n=== PRODUCTION READINESS ASSESSMENT ===');
     
     const assessment = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       criticalWorkflows: smokeResults.workflows.length,
       workflowsPassed: smokeResults.workflows.filter(w => w.status === 'PASS').length,
       integrationComponents: smokeResults.integrations.length,

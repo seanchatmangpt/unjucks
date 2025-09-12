@@ -105,7 +105,7 @@ export class ComplianceAttestor {
         // Bundle metadata
         bundleId: uuidv4(),
         bundleVersion: '1.0',
-        generatedAt: new Date().toISOString(),
+        generatedAt: this.getDeterministicDate().toISOString(),
         generatedBy: context.agent || { id: 'system', type: 'software' },
         
         // Operation reference
@@ -180,13 +180,13 @@ export class ComplianceAttestor {
         bundleId: uuidv4(),
         bundleType: 'comprehensive',
         bundleVersion: '2.0',
-        generatedAt: new Date().toISOString(),
+        generatedAt: this.getDeterministicDate().toISOString(),
         scope: criteria.scope || 'full_audit',
         
         // Time period
         period: {
-          start: criteria.startDate || new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString(),
-          end: criteria.endDate || new Date().toISOString()
+          start: criteria.startDate || new Date(this.getDeterministicTimestamp() - 365 * 24 * 60 * 60 * 1000).toISOString(),
+          end: criteria.endDate || this.getDeterministicDate().toISOString()
         },
         
         // Provenance summary
@@ -601,7 +601,7 @@ export class ComplianceAttestor {
       totalRisks: risks.length,
       riskLevel: this._calculateOverallRiskLevel(risks),
       risks: risks,
-      assessedAt: new Date().toISOString()
+      assessedAt: this.getDeterministicDate().toISOString()
     };
   }
 
@@ -648,7 +648,7 @@ export class ComplianceAttestor {
       type: 'compliance',
       statement: `Operation complies with configured frameworks: ${this.config.frameworks.join(', ')}`,
       attestor: { id: 'compliance-system', type: 'software' },
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       frameworks: this.config.frameworks
     });
     
@@ -717,7 +717,7 @@ export class ComplianceAttestor {
       maxScore: 100,
       grade: this._scoreToGrade(score),
       factors: factors,
-      calculatedAt: new Date().toISOString()
+      calculatedAt: this.getDeterministicDate().toISOString()
     };
   }
 
@@ -775,7 +775,7 @@ export class ComplianceAttestor {
     return {
       algorithm: this.config.sealAlgorithm,
       hash: hash.digest('hex'),
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       version: '1.0'
     };
   }
@@ -807,7 +807,7 @@ export class ComplianceAttestor {
     if (!match) return null;
     
     const [, amount, unit] = match;
-    const now = new Date();
+    const now = this.getDeterministicDate();
     
     switch (unit) {
       case 'year':
@@ -879,7 +879,7 @@ export class ComplianceAttestor {
   async _generateComplianceCertificate(bundle) {
     return {
       certificateId: uuidv4(),
-      issuedAt: new Date().toISOString(),
+      issuedAt: this.getDeterministicDate().toISOString(),
       validUntil: this._calculateRetentionDate(),
       status: 'valid'
     };

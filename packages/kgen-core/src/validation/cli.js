@@ -413,7 +413,7 @@ const reportCommand = defineCommand({
 
         case 'cleanup':
           const daysToKeep = parseInt(args.days);
-          const cutoffDate = new Date();
+          const cutoffDate = this.getDeterministicDate();
           cutoffDate.setDate(cutoffDate.getDate() - daysToKeep);
 
           if (!await fs.pathExists(reportsDir)) {

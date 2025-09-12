@@ -351,7 +351,7 @@ User6,"=HYPERLINK(""http://evil.com"",""Click me"")",Hyperlink injection
         arrayValue: [1, 2, 3, { nested: 'object' }],
         objectValue: { a: 1, b: { c: 2 } },
         functionValue: () => 'function result',
-        dateValue: new Date(),
+        dateValue: this.getDeterministicDate(),
         regexValue: /test/gi,
         symbolValue: Symbol('test'),
         circularObject: {}

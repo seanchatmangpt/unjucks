@@ -142,7 +142,7 @@ class DistributedTracer {
   // Execute function within a span
   async withSpan(name, fn, options = {}) {
     const span = this.startSpan(name, options);
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
 
     try {
       const result = await context.with(trace.setSpan(context.active(), span), fn);
@@ -150,7 +150,7 @@ class DistributedTracer {
       span.setStatus({ code: SpanStatusCode.OK });
       
       // Record operation duration
-      const duration = (Date.now() - startTime) / 1000;
+      const duration = (this.getDeterministicTimestamp() - startTime) / 1000;
       this.operationDuration.record(duration, {
         operation: name,
         status: 'success'
@@ -171,7 +171,7 @@ class DistributedTracer {
       });
 
       // Record operation duration for failed operations
-      const duration = (Date.now() - startTime) / 1000;
+      const duration = (this.getDeterministicTimestamp() - startTime) / 1000;
       this.operationDuration.record(duration, {
         operation: name,
         status: 'error'
@@ -210,7 +210,7 @@ class DistributedTracer {
   // Express middleware for automatic tracing
   middleware() {
     return (req, res, next) => {
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
       // Increment active connections
       this.activeConnections.add(1);
@@ -233,7 +233,7 @@ class DistributedTracer {
       req.span = span;
 
       res.on('finish', () => {
-        const duration = (Date.now() - startTime) / 1000;
+        const duration = (this.getDeterministicTimestamp() - startTime) / 1000;
         
         // Update span attributes
         span.setAttributes({

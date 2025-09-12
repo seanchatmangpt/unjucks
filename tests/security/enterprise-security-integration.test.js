@@ -109,7 +109,7 @@ describe('Enterprise Security Framework Integration', () => {
       requestId: 'test-request-001',
       userAgent: 'KGEN-Security-Test/1.0',
       ipAddress: '127.0.0.1',
-      timestamp: new Date()
+      timestamp: this.getDeterministicDate()
     };
   });
 
@@ -393,9 +393,9 @@ describe('Enterprise Security Framework Integration', () => {
         );
       }
       
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const results = await Promise.allSettled(operations);
-      const endTime = Date.now();
+      const endTime = this.getDeterministicTimestamp();
       
       const executionTime = endTime - startTime;
       expect(executionTime).toBeLessThan(5000); // Should complete in under 5 seconds

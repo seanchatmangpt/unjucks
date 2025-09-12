@@ -87,7 +87,7 @@ env.addFilter('tojson', (obj) => {
 });
 
 env.addGlobal('now', () => {
-  return new Date().toISOString();
+  return this.getDeterministicDate().toISOString();
 });
 
 // Test context

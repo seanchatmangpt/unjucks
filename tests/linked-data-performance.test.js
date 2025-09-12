@@ -221,7 +221,7 @@ describe('Linked Data Performance Benchmarks', () => {
             title: `Person ${i}`,
             description: `Description for person ${i}`,
             creator: 'system',
-            createdDate: new Date().toISOString()
+            createdDate: this.getDeterministicDate().toISOString()
           };
           
           const rendered = nunjucksEnv.render('resource-description.ttl.njk', templateData);
@@ -415,7 +415,7 @@ describe('Linked Data Performance Benchmarks', () => {
         type: 'article',
         description: `Description for article ${i}`,
         creator: `author-${i % 100}`,
-        created: new Date(Date.now() - Math.random() * 1000 * 60 * 60 * 24 * 365).toISOString()
+        created: new Date(this.getDeterministicTimestamp() - Math.random() * 1000 * 60 * 60 * 24 * 365).toISOString()
       }));
       
       const totalPages = Math.ceil(collectionSize / pageSize);

@@ -253,7 +253,7 @@ export const rootResolver = {
         health() {
             return {
                 status: 'healthy',
-                timestamp: new Date().toISOString(),
+                timestamp: this.getDeterministicDate().toISOString(),
                 uptime: process.uptime(),
                 memory: process.memoryUsage()
             };

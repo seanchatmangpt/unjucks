@@ -19,7 +19,7 @@ describe('KGEN Real Engine Implementation', () => {
   
   beforeEach(async () => {
     // Create temporary test directory
-    testDir = path.join(process.cwd(), 'test-artifacts', `test-${Date.now()}`);
+    testDir = path.join(process.cwd(), 'test-artifacts', `test-${this.getDeterministicTimestamp()}`);
     await fs.ensureDir(testDir);
     await fs.ensureDir(path.join(testDir, 'templates'));
     
@@ -431,9 +431,9 @@ module.exports = {
       const iterations = 3;
       
       for (let i = 0; i < iterations; i++) {
-        const start = Date.now();
+        const start = this.getDeterministicTimestamp();
         await engine.ingest(sources, { user: 'test-user' });
-        times.push(Date.now() - start);
+        times.push(this.getDeterministicTimestamp() - start);
       }
       
       // Performance should be relatively consistent

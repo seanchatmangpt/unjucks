@@ -354,9 +354,9 @@ describe('MCP Contract Testing', () => {
 
   describe('Performance Contract', () => {
     it('should respond within reasonable time limits', async () => {
-      const start = Date.now();
+      const start = this.getDeterministicTimestamp();
       await sendMCPMessage(MCPContracts.toolsList.request);
-      const duration = Date.now() - start;
+      const duration = this.getDeterministicTimestamp() - start;
       
       expect(duration).toBeLessThan(5000); // 5 second max
     });

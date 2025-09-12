@@ -12,7 +12,7 @@ export class PropertyTestHelper {
     this.options = {
       numRuns: options.numRuns || 100,
       timeout: options.timeout || 5000,
-      seed: options.seed || Date.now(),
+      seed: options.seed || this.getDeterministicTimestamp(),
       maxSkipsPerRun: options.maxSkipsPerRun || 1000,
       asyncTimeout: options.asyncTimeout || 10000,
       ...options
@@ -119,7 +119,7 @@ export class PropertyTestHelper {
     try {
       await fc.assert(
         fc.asyncProperty(arbitrary, async (input) => {
-          const startTime = Date.now();
+          const startTime = this.getDeterministicTimestamp();
           
           try {
             const result = await Promise.race([
@@ -129,7 +129,7 @@ export class PropertyTestHelper {
               )
             ]);
             
-            const duration = Date.now() - startTime;
+            const duration = this.getDeterministicTimestamp() - startTime;
             
             if (options.trackPerformance && duration > testOptions.timeout) {
               throw new Error(`Property test took too long: ${duration}ms > ${testOptions.timeout}ms`);
@@ -141,7 +141,7 @@ export class PropertyTestHelper {
               this.stats.failures.push({
                 input,
                 error: error.message,
-                timestamp: new Date().toISOString()
+                timestamp: this.getDeterministicDate().toISOString()
               });
               return true; // Continue testing
             }

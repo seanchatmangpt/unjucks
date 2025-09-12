@@ -60,7 +60,7 @@ export class InputValidator extends EventEmitter {
    * @returns {Promise<object>} Validation result
    */
   async validateRDFGraph(input, options = {}) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     this.metrics.validationsPerformed++;
     
     try {
@@ -75,7 +75,7 @@ export class InputValidator extends EventEmitter {
         threats: [],
         metadata: {
           validationType: 'rdf-graph',
-          timestamp: new Date(),
+          timestamp: this.getDeterministicDate(),
           size: this._getInputSize(input)
         }
       };
@@ -166,12 +166,12 @@ export class InputValidator extends EventEmitter {
         threats: [],
         metadata: {
           validationType: 'rdf-graph',
-          timestamp: new Date(),
+          timestamp: this.getDeterministicDate(),
           error: error.message
         }
       };
     } finally {
-      const validationTime = Date.now() - startTime;
+      const validationTime = this.getDeterministicTimestamp() - startTime;
       this._updateValidationMetrics(validationTime);
     }
   }
@@ -184,7 +184,7 @@ export class InputValidator extends EventEmitter {
    * @returns {Promise<object>} Validation result
    */
   async validateTemplate(template, variables = {}, options = {}) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     this.metrics.validationsPerformed++;
     
     try {
@@ -204,7 +204,7 @@ export class InputValidator extends EventEmitter {
         },
         metadata: {
           validationType: 'template',
-          timestamp: new Date(),
+          timestamp: this.getDeterministicDate(),
           size: template?.length || 0
         }
       };
@@ -288,12 +288,12 @@ export class InputValidator extends EventEmitter {
         analysis: {},
         metadata: {
           validationType: 'template',
-          timestamp: new Date(),
+          timestamp: this.getDeterministicDate(),
           error: error.message
         }
       };
     } finally {
-      const validationTime = Date.now() - startTime;
+      const validationTime = this.getDeterministicTimestamp() - startTime;
       this._updateValidationMetrics(validationTime);
     }
   }
@@ -316,7 +316,7 @@ export class InputValidator extends EventEmitter {
         threats: [],
         metadata: {
           validationType: 'file-path',
-          timestamp: new Date(),
+          timestamp: this.getDeterministicDate(),
           originalPath: filePath
         }
       };
@@ -375,7 +375,7 @@ export class InputValidator extends EventEmitter {
         threats: [],
         metadata: {
           validationType: 'file-path',
-          timestamp: new Date(),
+          timestamp: this.getDeterministicDate(),
           error: error.message
         }
       };
@@ -405,7 +405,7 @@ export class InputValidator extends EventEmitter {
         },
         metadata: {
           validationType: 'sparql-query',
-          timestamp: new Date(),
+          timestamp: this.getDeterministicDate(),
           size: query?.length || 0
         }
       };
@@ -473,7 +473,7 @@ export class InputValidator extends EventEmitter {
         analysis: {},
         metadata: {
           validationType: 'sparql-query',
-          timestamp: new Date(),
+          timestamp: this.getDeterministicDate(),
           error: error.message
         }
       };
@@ -487,7 +487,7 @@ export class InputValidator extends EventEmitter {
     return {
       ...this.metrics,
       cacheSize: this.validationCache.size,
-      uptime: Date.now() - (this.startTime || Date.now())
+      uptime: this.getDeterministicTimestamp() - (this.startTime || this.getDeterministicTimestamp())
     };
   }
 

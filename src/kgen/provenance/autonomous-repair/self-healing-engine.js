@@ -62,7 +62,7 @@ export class AutonomousProvenanceRepairEngine extends EventEmitter {
       overall: 1.0,
       components: new Map(),
       trends: [],
-      lastCheck: new Date()
+      lastCheck: this.getDeterministicDate()
     };
     
     // Repair Knowledge Base
@@ -149,7 +149,7 @@ export class AutonomousProvenanceRepairEngine extends EventEmitter {
       const detectionId = crypto.randomUUID();
       this.logger.info(`Starting autonomous detection and repair: ${detectionId}`);
       
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
       // Run comprehensive health check
       const healthAssessment = await this._performHealthAssessment(systemState);
@@ -186,7 +186,7 @@ export class AutonomousProvenanceRepairEngine extends EventEmitter {
       // Update system health
       const updatedHealth = await this._performHealthAssessment(systemState);
       
-      const detectionTime = Date.now() - startTime;
+      const detectionTime = this.getDeterministicTimestamp() - startTime;
       
       const result = {
         detectionId,
@@ -221,7 +221,7 @@ export class AutonomousProvenanceRepairEngine extends EventEmitter {
       const repairId = crypto.randomUUID();
       this.logger.info(`Starting repair for issue: ${issue.type} (${repairId})`);
       
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
       // Select optimal repair strategy
       const repairStrategy = await this._selectRepairStrategy(issue, repairOptions);
@@ -246,7 +246,7 @@ export class AutonomousProvenanceRepairEngine extends EventEmitter {
       // Verify repair success
       const verificationResult = await this._verifyRepair(repairContext, repairResult);
       
-      const repairTime = Date.now() - startTime;
+      const repairTime = this.getDeterministicTimestamp() - startTime;
       
       // Update repair knowledge base
       await this._updateRepairKnowledge(repairContext, repairResult, verificationResult);
@@ -274,7 +274,7 @@ export class AutonomousProvenanceRepairEngine extends EventEmitter {
       // Store in repair history
       this.repairHistory.push({
         ...finalResult,
-        timestamp: new Date(),
+        timestamp: this.getDeterministicDate(),
         repairData: repairResult
       });
       
@@ -299,7 +299,7 @@ export class AutonomousProvenanceRepairEngine extends EventEmitter {
       const maintenanceId = crypto.randomUUID();
       this.logger.info(`Starting preventive maintenance: ${maintenanceId}`);
       
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
       // Analyze system trends
       const trendAnalysis = await this._analyzeTrends();
@@ -318,7 +318,7 @@ export class AutonomousProvenanceRepairEngine extends EventEmitter {
       // Optimize system parameters
       const optimizations = await this._optimizeSystemParameters(trendAnalysis);
       
-      const maintenanceTime = Date.now() - startTime;
+      const maintenanceTime = this.getDeterministicTimestamp() - startTime;
       
       const result = {
         maintenanceId,
@@ -326,7 +326,7 @@ export class AutonomousProvenanceRepairEngine extends EventEmitter {
         preventiveActions,
         optimizations,
         maintenanceTime,
-        timestamp: new Date()
+        timestamp: this.getDeterministicDate()
       };
       
       this.metrics.preventedFailures += potentialIssues.length;
@@ -475,7 +475,7 @@ export class AutonomousProvenanceRepairEngine extends EventEmitter {
       overall: 1.0,
       components: new Map(),
       issues: [],
-      timestamp: new Date()
+      timestamp: this.getDeterministicDate()
     };
     
     // Run all health checkers
@@ -516,7 +516,7 @@ export class AutonomousProvenanceRepairEngine extends EventEmitter {
           description: anomaly.description,
           detector: name,
           confidence: anomaly.confidence,
-          timestamp: new Date(),
+          timestamp: this.getDeterministicDate(),
           data: anomaly.data
         });
       }
@@ -531,7 +531,7 @@ export class AutonomousProvenanceRepairEngine extends EventEmitter {
           description: `${componentIssue.component} health degraded`,
           detector: 'health_monitor',
           confidence: 0.9,
-          timestamp: new Date(),
+          timestamp: this.getDeterministicDate(),
           data: componentIssue
         });
       }

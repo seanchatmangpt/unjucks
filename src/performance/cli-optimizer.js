@@ -319,12 +319,12 @@ export function memoize(ttl = 60000) {
       const key = JSON.stringify(args);
       const cached = cache.get(key);
       
-      if (cached && Date.now() - cached.timestamp < ttl) {
+      if (cached && this.getDeterministicTimestamp() - cached.timestamp < ttl) {
         return cached.value;
       }
       
       const result = originalMethod.apply(this, args);
-      cache.set(key, { value: result, timestamp: Date.now() });
+      cache.set(key, { value: result, timestamp: this.getDeterministicTimestamp() });
       
       return result;
     };

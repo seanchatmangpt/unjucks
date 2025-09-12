@@ -48,7 +48,7 @@ class MemoryOptimizer {
     const usage = process.memoryUsage();
     const snapshot = {
       label,
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       performance: performance.now(),
       ...usage,
       heapUsedMB: Math.round(usage.heapUsed / 1024 / 1024 * 100) / 100,

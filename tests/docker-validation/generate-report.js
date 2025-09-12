@@ -21,7 +21,7 @@ const execAsync = promisify(exec);
 class ComprehensiveTestReportGenerator {
   constructor() {
     this.reportData = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       version: '2025.9.8',
       environment: {
         node: process.version,
@@ -209,7 +209,7 @@ class ComprehensiveTestReportGenerator {
         cliResponsive: responseTime < 500,
         responseTime: `${responseTime.toFixed(0)}ms`,
         helpCommand: stdout.includes('Usage:'),
-        timestamp: new Date().toISOString()
+        timestamp: this.getDeterministicDate().toISOString()
       };
       
       console.log(`✅ CLI responds in ${responseTime.toFixed(0)}ms`);
@@ -218,7 +218,7 @@ class ComprehensiveTestReportGenerator {
       this.reportData.metrics.liveValidation = {
         cliResponsive: false,
         error: error.message,
-        timestamp: new Date().toISOString()
+        timestamp: this.getDeterministicDate().toISOString()
       };
     }
   }

@@ -9,14 +9,14 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 console.log('=== COMPREHENSIVE TEMPLATE GENERATION TEST SUITE ===');
-console.log('Started at:', new Date().toISOString());
+console.log('Started at:', this.getDeterministicDate().toISOString());
 
 const testResults = {
   totalTests: 0,
   passedTests: 0,
   failedTests: 0,
   results: [],
-  startTime: new Date(),
+  startTime: this.getDeterministicDate(),
 };
 
 function runTest(testName, command, description) {
@@ -38,7 +38,7 @@ function runTest(testName, command, description) {
       description,
       command,
       output: result.substring(0, 500) + (result.length > 500 ? '...' : ''),
-      duration: new Date() - testResults.startTime
+      duration: this.getDeterministicDate() - testResults.startTime
     });
     
     console.log('✅ PASSED');
@@ -51,7 +51,7 @@ function runTest(testName, command, description) {
       description,
       command,
       error: error.message.substring(0, 500),
-      duration: new Date() - testResults.startTime
+      duration: this.getDeterministicDate() - testResults.startTime
     });
     
     console.log('❌ FAILED:', error.message.substring(0, 200));
@@ -116,7 +116,7 @@ runTest(
 );
 
 // Generate final report
-const endTime = new Date();
+const endTime = this.getDeterministicDate();
 const duration = endTime - testResults.startTime;
 
 const report = {
@@ -140,7 +140,7 @@ console.log('\n📊 Detailed results saved to comprehensive-test-results.json');
 // Create summary for memory storage
 const memorySummary = {
   testSuite: 'Template Generation Comprehensive Test',
-  timestamp: new Date().toISOString(),
+  timestamp: this.getDeterministicDate().toISOString(),
   totalTests: report.totalTests,
   passedTests: report.passedTests,
   failedTests: report.failedTests,

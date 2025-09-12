@@ -97,7 +97,7 @@ async function triggerRepositoryDispatch(repoInfo, options, token) {
       dry_run: options.dryRun || false,
       environment: options.environment || 'production',
       triggered_by: 'cli',
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     }
   };
   

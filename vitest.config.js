@@ -57,6 +57,8 @@ export default defineConfig({
       "tests/documentation/**/*.test.js", // Documentation tests
       "tests/atomic-*.test.js", // Atomic operation tests
       "tests/template-scanner.test.js", // Template scanner tests
+      "tests/kgen/**/*.test.js", // KGEN specific tests
+      "tests/semantic-drift-detection.test.js", // Semantic drift tests
     ],
     exclude: [
       "node_modules/**",

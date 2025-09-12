@@ -410,8 +410,8 @@ describe('KGEN Enterprise Security Framework', () => {
     
     test('should generate audit summary', async () => {
       const timeframe = {
-        start: new Date(Date.now() - 24 * 60 * 60 * 1000), // 24 hours ago
-        end: new Date()
+        start: new Date(this.getDeterministicTimestamp() - 24 * 60 * 60 * 1000), // 24 hours ago
+        end: this.getDeterministicDate()
       };
       
       const summary = await securityFramework.auditLogger.generateSummary(timeframe);
@@ -425,8 +425,8 @@ describe('KGEN Enterprise Security Framework', () => {
   describe('Compliance Reporting', () => {
     test('should generate comprehensive compliance report', async () => {
       const timeframe = {
-        start: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // 7 days ago
-        end: new Date()
+        start: new Date(this.getDeterministicTimestamp() - 7 * 24 * 60 * 60 * 1000), // 7 days ago
+        end: this.getDeterministicDate()
       };
       
       const report = await securityFramework.generateComplianceReport(timeframe);
@@ -500,8 +500,8 @@ describe('KGEN Enterprise Security Framework', () => {
       
       // 2. Generate governance report
       const governanceReport = await securityFramework.governanceEngine.generateGovernanceReport({
-        start: new Date(Date.now() - 24 * 60 * 60 * 1000),
-        end: new Date()
+        start: new Date(this.getDeterministicTimestamp() - 24 * 60 * 60 * 1000),
+        end: this.getDeterministicDate()
       });
       
       expect(governanceReport.summary).toBeDefined();
@@ -533,7 +533,7 @@ describe('KGEN Enterprise Security Framework', () => {
     });
     
     test('should maintain performance under load', async () => {
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
       // Perform 50 security validations
       const operations = Array.from({ length: 50 }, (_, i) =>
@@ -546,7 +546,7 @@ describe('KGEN Enterprise Security Framework', () => {
       
       await Promise.all(operations);
       
-      const endTime = Date.now();
+      const endTime = this.getDeterministicTimestamp();
       const duration = endTime - startTime;
       
       // Should complete within reasonable time (< 5 seconds)

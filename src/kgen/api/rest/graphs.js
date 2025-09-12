@@ -6,7 +6,7 @@
  */
 
 import { Router } from 'express';
-import { Logger } from 'consola';
+import { Consola } from 'consola';
 import { body, param, query, validationResult } from 'express-validator';
 
 export class KnowledgeGraphAPI {
@@ -21,7 +21,7 @@ export class KnowledgeGraphAPI {
       ...config
     };
     
-    this.logger = new Logger({ tag: 'kgen-api-graphs' });
+    this.logger = new Consola({ tag: 'kgen-api-graphs' });
     this.router = Router();
     
     // Request statistics
@@ -125,7 +125,7 @@ export class KnowledgeGraphAPI {
    * Create a new knowledge graph
    */
   async _createKnowledgeGraph(req, res) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       this._incrementRequestStats();
@@ -172,13 +172,13 @@ export class KnowledgeGraphAPI {
       knowledgeGraph.metadata = {
         ...knowledgeGraph.metadata,
         createdBy: req.user?.id,
-        createdAt: new Date(),
+        createdAt: this.getDeterministicDate(),
         apiVersion: '1.0.0',
         name: graphData.name,
         description: graphData.description
       };
       
-      const responseTime = Date.now() - startTime;
+      const responseTime = this.getDeterministicTimestamp() - startTime;
       this._updateResponseTimeStats(responseTime);
       this.requestStats.successfulRequests++;
       
@@ -188,7 +188,7 @@ export class KnowledgeGraphAPI {
           graph: this._formatGraphResponse(knowledgeGraph),
           metadata: {
             responseTime,
-            timestamp: new Date()
+            timestamp: this.getDeterministicDate()
           }
         }
       });
@@ -206,7 +206,7 @@ export class KnowledgeGraphAPI {
    * List knowledge graphs
    */
   async _listKnowledgeGraphs(req, res) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       this._incrementRequestStats();
@@ -232,7 +232,7 @@ export class KnowledgeGraphAPI {
       // Get graphs from storage (placeholder implementation)
       const graphs = await this._getStoredGraphs(queryOptions, req.user);
       
-      const responseTime = Date.now() - startTime;
+      const responseTime = this.getDeterministicTimestamp() - startTime;
       this._updateResponseTimeStats(responseTime);
       this.requestStats.successfulRequests++;
       
@@ -248,7 +248,7 @@ export class KnowledgeGraphAPI {
           },
           metadata: {
             responseTime,
-            timestamp: new Date()
+            timestamp: this.getDeterministicDate()
           }
         }
       });
@@ -264,7 +264,7 @@ export class KnowledgeGraphAPI {
    * Get a specific knowledge graph
    */
   async _getKnowledgeGraph(req, res) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       this._incrementRequestStats();
@@ -313,7 +313,7 @@ export class KnowledgeGraphAPI {
         return res.json(await this._formatAsJSONLD(graph));
       }
       
-      const responseTime = Date.now() - startTime;
+      const responseTime = this.getDeterministicTimestamp() - startTime;
       this._updateResponseTimeStats(responseTime);
       this.requestStats.successfulRequests++;
       
@@ -323,7 +323,7 @@ export class KnowledgeGraphAPI {
           graph: responseData,
           metadata: {
             responseTime,
-            timestamp: new Date()
+            timestamp: this.getDeterministicDate()
           }
         }
       });
@@ -339,7 +339,7 @@ export class KnowledgeGraphAPI {
    * Update a knowledge graph
    */
   async _updateKnowledgeGraph(req, res) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       this._incrementRequestStats();
@@ -371,7 +371,7 @@ export class KnowledgeGraphAPI {
         relationships: req.body.relationships,
         metadata: { ...existingGraph.metadata, ...req.body.metadata },
         updatedBy: req.user?.id,
-        updatedAt: new Date()
+        updatedAt: this.getDeterministicDate()
       };
       
       // Validate updated graph size
@@ -404,7 +404,7 @@ export class KnowledgeGraphAPI {
       // Store updated graph
       await this._storeGraph(graphId, updatedGraph);
       
-      const responseTime = Date.now() - startTime;
+      const responseTime = this.getDeterministicTimestamp() - startTime;
       this._updateResponseTimeStats(responseTime);
       this.requestStats.successfulRequests++;
       
@@ -414,7 +414,7 @@ export class KnowledgeGraphAPI {
           graph: this._formatGraphResponse(updatedGraph),
           metadata: {
             responseTime,
-            timestamp: new Date()
+            timestamp: this.getDeterministicDate()
           }
         }
       });
@@ -432,7 +432,7 @@ export class KnowledgeGraphAPI {
    * Delete a knowledge graph
    */
   async _deleteKnowledgeGraph(req, res) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       this._incrementRequestStats();
@@ -461,7 +461,7 @@ export class KnowledgeGraphAPI {
         await this._softDeleteGraph(graphId, req.user);
       }
       
-      const responseTime = Date.now() - startTime;
+      const responseTime = this.getDeterministicTimestamp() - startTime;
       this._updateResponseTimeStats(responseTime);
       this.requestStats.successfulRequests++;
       
@@ -473,7 +473,7 @@ export class KnowledgeGraphAPI {
           deleteMode,
           metadata: {
             responseTime,
-            timestamp: new Date()
+            timestamp: this.getDeterministicDate()
           }
         }
       });
@@ -491,7 +491,7 @@ export class KnowledgeGraphAPI {
    * Validate a knowledge graph
    */
   async _validateKnowledgeGraph(req, res) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       this._incrementRequestStats();
@@ -523,7 +523,7 @@ export class KnowledgeGraphAPI {
       // Perform validation
       const validationReport = await this.kgenEngine.validate(graph, constraints, validationOptions);
       
-      const responseTime = Date.now() - startTime;
+      const responseTime = this.getDeterministicTimestamp() - startTime;
       this._updateResponseTimeStats(responseTime);
       this.requestStats.successfulRequests++;
       
@@ -533,7 +533,7 @@ export class KnowledgeGraphAPI {
           validationReport,
           metadata: {
             responseTime,
-            timestamp: new Date()
+            timestamp: this.getDeterministicDate()
           }
         }
       });
@@ -590,7 +590,7 @@ export class KnowledgeGraphAPI {
       error: {
         message,
         details,
-        timestamp: new Date()
+        timestamp: this.getDeterministicDate()
       }
     });
   }

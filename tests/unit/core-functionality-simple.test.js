@@ -10,7 +10,7 @@ describe('Core Functionality - No Process Change', () => {
   let testDir;
 
   beforeEach(async () => {
-    testDir = path.join(process.cwd(), 'tests', 'temp', `core-test-${Date.now()}`);
+    testDir = path.join(process.cwd(), 'tests', 'temp', `core-test-${this.getDeterministicTimestamp()}`);
     await fs.ensureDir(testDir);
   });
 
@@ -287,7 +287,7 @@ This is the content.`;
       const template = 'Hello {{ name }}!';
       const variables = { name: 'World' };
       
-      const start = Date.now();
+      const start = this.getDeterministicTimestamp();
       const env = nunjucks.default.configure({ autoescape: false });
       
       // Process template 100 times
@@ -295,12 +295,12 @@ This is the content.`;
         env.renderString(template, variables);
       }
       
-      const duration = Date.now() - start;
+      const duration = this.getDeterministicTimestamp() - start;
       expect(duration).toBeLessThan(1000); // Should complete in under 1 second
     });
 
     it('should handle multiple file operations efficiently', async () => {
-      const start = Date.now();
+      const start = this.getDeterministicTimestamp();
       
       // Create and read multiple files
       const operations = Array.from({ length: 10 }, async (_, i) => {
@@ -310,7 +310,7 @@ This is the content.`;
       });
       
       const results = await Promise.all(operations);
-      const duration = Date.now() - start;
+      const duration = this.getDeterministicTimestamp() - start;
       
       expect(results.length).toBe(10);
       expect(duration).toBeLessThan(500); // Should complete quickly

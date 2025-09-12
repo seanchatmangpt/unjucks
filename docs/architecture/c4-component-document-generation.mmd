@@ -1,0 +1,135 @@
+```mermaid
+C4Component
+    title Component Diagram for Office/LaTeX Document Generation Pipeline
+    
+    Container_Boundary(cli, "KGEN CLI") {
+        Component(generateCmd, "Generate Docs Command", "Citty Command", "CLI interface for document generation")
+        Component(latexCmd, "LaTeX Command", "Command", "LaTeX-specific generation")
+        Component(exportCmd, "Export Command", "Command", "Document export operations")
+    }
+    
+    Container_Boundary(generation, "Document Generation Engine") {
+        Component(docGenerator, "Document Generator", "Generator", "Main document generation orchestrator")
+        Component(templateSelector, "Template Selector", "Selector", "Selects appropriate document templates")
+        Component(contentProcessor, "Content Processor", "Processor", "Processes RDF content for documents")
+        Component(formatDetector, "Format Detector", "Detector", "Detects target document format")
+    }
+    
+    Container_Boundary(latex, "LaTeX Processing") {
+        Component(latexEngine, "LaTeX Engine", "Engine", "LaTeX document processing")
+        Component(bibtexProcessor, "BibTeX Processor", "Processor", "Bibliography processing")
+        Component(packageManager, "Package Manager", "Manager", "LaTeX package management")
+        Component(pdfGenerator, "PDF Generator", "Generator", "PDF output generation")
+    }
+    
+    Container_Boundary(office, "Office Document Processing") {
+        Component(docxGenerator, "DOCX Generator", "Generator", "Microsoft Word document generation")
+        Component(odtGenerator, "ODT Generator", "Generator", "OpenDocument Text generation")
+        Component(rtfGenerator, "RTF Generator", "Generator", "Rich Text Format generation")
+        Component(htmlGenerator, "HTML Generator", "Generator", "HTML document generation")
+    }
+    
+    Container_Boundary(templating, "Document Templates") {
+        Component(latexTemplates, "LaTeX Templates", "Templates", "LaTeX document templates")
+        Component(wordTemplates, "Word Templates", "Templates", "Microsoft Word templates")
+        Component(htmlTemplates, "HTML Templates", "Templates", "HTML document templates")
+        Component(customTemplates, "Custom Templates", "Templates", "User-defined templates")
+    }
+    
+    Container_Boundary(content, "Content Processing") {
+        Component(rdfExtractor, "RDF Extractor", "Extractor", "Extracts content from RDF graphs")
+        Component(semanticEnricher, "Semantic Enricher", "Enricher", "Enriches content with semantic data")
+        Component(structureAnalyzer, "Structure Analyzer", "Analyzer", "Analyzes document structure")
+        Component(metadataExtractor, "Metadata Extractor", "Extractor", "Extracts document metadata")
+    }
+    
+    Container_Boundary(formatting, "Document Formatting") {
+        Component(styleProcessor, "Style Processor", "Processor", "Processes document styles")
+        Component(layoutEngine, "Layout Engine", "Engine", "Handles document layout")
+        Component(imageProcessor, "Image Processor", "Processor", "Processes embedded images")
+        Component(tableGenerator, "Table Generator", "Generator", "Generates tables from data")
+    }
+    
+    Container_Boundary(conversion, "Format Conversion") {
+        Component(pandocBridge, "Pandoc Bridge", "Bridge", "Interface to Pandoc converter")
+        Component(libreOfficeBridge, "LibreOffice Bridge", "Bridge", "Interface to LibreOffice")
+        Component(wkhtmltopdfBridge, "wkhtmltopdf Bridge", "Bridge", "HTML to PDF conversion")
+        Component(customConverters, "Custom Converters", "Converters", "Custom format converters")
+    }
+    
+    Container_Boundary(validation, "Document Validation") {
+        Component(schemaValidator, "Schema Validator", "Validator", "Validates document against schema")
+        Component(accessibilityChecker, "Accessibility Checker", "Checker", "Checks document accessibility")
+        Component(qualityAssurance, "Quality Assurance", "QA", "Document quality validation")
+        Component(complianceChecker, "Compliance Checker", "Checker", "Regulatory compliance checking")
+    }
+    
+    Container_Boundary(output, "Output Management") {
+        Component(fileManager, "File Manager", "Manager", "Manages output files")
+        Component(versionControl, "Version Control", "Control", "Manages document versions")
+        Component(archiveManager, "Archive Manager", "Manager", "Archives generated documents")
+        Component(distributionManager, "Distribution Manager", "Manager", "Distributes documents")
+    }
+    
+    Container_Boundary(integration, "External Integration") {
+        Component(gitIntegration, "Git Integration", "Integration", "Version control integration")
+        Component(cloudStorage, "Cloud Storage", "Storage", "Cloud storage integration")
+        Component(emailService, "Email Service", "Service", "Document distribution via email")
+        Component(printService, "Print Service", "Service", "Document printing service")
+    }
+    
+    Rel(generateCmd, docGenerator, "delegates to")
+    Rel(latexCmd, latexEngine, "uses for LaTeX processing")
+    Rel(exportCmd, docGenerator, "exports documents with")
+    
+    Rel(docGenerator, templateSelector, "selects templates with")
+    Rel(docGenerator, contentProcessor, "processes content with")
+    Rel(docGenerator, formatDetector, "detects format with")
+    
+    Rel(docGenerator, latexEngine, "generates LaTeX with")
+    Rel(latexEngine, bibtexProcessor, "processes bibliography with")
+    Rel(latexEngine, packageManager, "manages packages with")
+    Rel(latexEngine, pdfGenerator, "generates PDF with")
+    
+    Rel(docGenerator, docxGenerator, "generates DOCX with")
+    Rel(docGenerator, odtGenerator, "generates ODT with")
+    Rel(docGenerator, rtfGenerator, "generates RTF with")
+    Rel(docGenerator, htmlGenerator, "generates HTML with")
+    
+    Rel(templateSelector, latexTemplates, "selects LaTeX templates from")
+    Rel(templateSelector, wordTemplates, "selects Word templates from")
+    Rel(templateSelector, htmlTemplates, "selects HTML templates from")
+    Rel(templateSelector, customTemplates, "selects custom templates from")
+    
+    Rel(contentProcessor, rdfExtractor, "extracts RDF with")
+    Rel(contentProcessor, semanticEnricher, "enriches content with")
+    Rel(contentProcessor, structureAnalyzer, "analyzes structure with")
+    Rel(contentProcessor, metadataExtractor, "extracts metadata with")
+    
+    Rel(docGenerator, styleProcessor, "processes styles with")
+    Rel(styleProcessor, layoutEngine, "handles layout with")
+    Rel(layoutEngine, imageProcessor, "processes images with")
+    Rel(layoutEngine, tableGenerator, "generates tables with")
+    
+    Rel(docGenerator, pandocBridge, "converts with Pandoc")
+    Rel(docGenerator, libreOfficeBridge, "converts with LibreOffice")
+    Rel(htmlGenerator, wkhtmltopdfBridge, "converts HTML to PDF")
+    Rel(docGenerator, customConverters, "uses custom converters")
+    
+    Rel(docGenerator, schemaValidator, "validates documents with")
+    Rel(schemaValidator, accessibilityChecker, "checks accessibility with")
+    Rel(accessibilityChecker, qualityAssurance, "ensures quality with")
+    Rel(qualityAssurance, complianceChecker, "checks compliance with")
+    
+    Rel(docGenerator, fileManager, "manages files with")
+    Rel(fileManager, versionControl, "controls versions with")
+    Rel(versionControl, archiveManager, "archives with")
+    Rel(archiveManager, distributionManager, "distributes with")
+    
+    Rel(versionControl, gitIntegration, "integrates with Git")
+    Rel(distributionManager, cloudStorage, "stores in cloud")
+    Rel(distributionManager, emailService, "distributes via email")
+    Rel(distributionManager, printService, "prints documents with")
+    
+    UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="3")
+```

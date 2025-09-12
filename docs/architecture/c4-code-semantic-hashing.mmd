@@ -1,0 +1,100 @@
+```mermaid
+C4Component
+    title Code Diagram - Semantic Hashing Engine
+    
+    Container_Boundary(hashing, "Semantic Hashing Core") {
+        Component(semanticHasher, "SemanticHasher", "Main Engine", "Orchestrates meaning-aware content hashing")
+        Component(meaningExtractor, "MeaningExtractor", "NLP Engine", "Extracts semantic meaning from content")
+        Component(featureNormalizer, "FeatureNormalizer", "Normalizer", "Normalizes semantic features")
+        Component(hashStabilizer, "HashStabilizer", "Stabilizer", "Ensures stable hashes across variations")
+    }
+    
+    Container_Boundary(analysis, "Content Analysis") {
+        Component(syntaxAnalyzer, "SyntaxAnalyzer", "Parser", "Analyzes code syntax and structure")
+        Component(semanticParser, "SemanticParser", "AST Parser", "Parses content into semantic trees")
+        Component(intentClassifier, "IntentClassifier", "ML Classifier", "Classifies content intent")
+        Component(contextAnalyzer, "ContextAnalyzer", "Analyzer", "Analyzes semantic context")
+    }
+    
+    Container_Boundary(features, "Feature Extraction") {
+        Component(structuralExtractor, "StructuralFeatureExtractor", "Extractor", "Extracts structural features")
+        Component(semanticVectorizer, "SemanticVectorizer", "Vectorizer", "Creates semantic vectors")
+        Component(patternExtractor, "PatternExtractor", "ML Extractor", "Extracts semantic patterns")
+        Component(relationshipMapper, "RelationshipMapper", "Mapper", "Maps semantic relationships")
+    }
+    
+    Container_Boundary(normalization, "Semantic Normalization") {
+        Component(synonymResolver, "SynonymResolver", "Resolver", "Resolves synonyms and equivalent terms")
+        Component(variableNormalizer, "VariableNormalizer", "Normalizer", "Normalizes variable names")
+        Component(structureCanonicalizer, "StructureCanonicalizer", "Canonicalizer", "Canonicalizes code structure")
+        Component(commentStripper, "CommentStripper", "Stripper", "Removes non-semantic content")
+    }
+    
+    Container_Boundary(hashing_algos, "Hashing Algorithms") {
+        Component(contentHasher, "ContentHasher", "Hasher", "Hashes normalized content")
+        Component(treeHasher, "TreeHasher", "Tree Hasher", "Hashes semantic tree structures")
+        Component(vectorHasher, "VectorHasher", "Vector Hasher", "Hashes semantic vectors")
+        Component(compositeHasher, "CompositeHasher", "Composite", "Combines multiple hash types")
+    }
+    
+    Container_Boundary(ml, "Machine Learning Components") {
+        Component(embeddingModel, "EmbeddingModel", "Transformer", "Generates semantic embeddings")
+        Component(similarityCalculator, "SimilarityCalculator", "Calculator", "Calculates semantic similarity")
+        Component(clusteringEngine, "ClusteringEngine", "ML Engine", "Clusters semantically similar content")
+        Component(anomalyDetector, "AnomalyDetector", "Detector", "Detects semantic anomalies")
+    }
+    
+    Container_Boundary(caching, "Semantic Cache") {
+        Component(semanticCache, "SemanticCache", "Cache", "Caches semantic analysis results")
+        Component(hashLookup, "HashLookup", "Lookup", "Fast hash collision detection")
+        Component(similarityIndex, "SimilarityIndex", "Index", "Indexes by semantic similarity")
+        Component(bloomFilter, "BloomFilter", "Filter", "Probabilistic hash existence filter")
+    }
+    
+    Container_Boundary(validation, "Hash Validation") {
+        Component(stabilityTester, "StabilityTester", "Tester", "Tests hash stability")
+        Component(collisionDetector, "CollisionDetector", "Detector", "Detects semantic hash collisions")
+        Component(qualityAnalyzer, "QualityAnalyzer", "Analyzer", "Analyzes hash quality")
+        Component(entropyMeasurer, "EntropyMeasurer", "Measurer", "Measures hash entropy")
+    }
+    
+    Rel(semanticHasher, meaningExtractor, "extracts meaning with")
+    Rel(semanticHasher, featureNormalizer, "normalizes features with")
+    Rel(semanticHasher, hashStabilizer, "stabilizes hashes with")
+    
+    Rel(meaningExtractor, syntaxAnalyzer, "analyzes syntax with")
+    Rel(meaningExtractor, semanticParser, "parses semantics with")
+    Rel(meaningExtractor, intentClassifier, "classifies intent with")
+    Rel(meaningExtractor, contextAnalyzer, "analyzes context with")
+    
+    Rel(featureNormalizer, structuralExtractor, "extracts structure with")
+    Rel(featureNormalizer, semanticVectorizer, "vectorizes with")
+    Rel(featureNormalizer, patternExtractor, "extracts patterns with")
+    Rel(featureNormalizer, relationshipMapper, "maps relationships with")
+    
+    Rel(hashStabilizer, synonymResolver, "resolves synonyms with")
+    Rel(hashStabilizer, variableNormalizer, "normalizes variables with")
+    Rel(hashStabilizer, structureCanonicalizer, "canonicalizes with")
+    Rel(hashStabilizer, commentStripper, "strips comments with")
+    
+    Rel(semanticHasher, contentHasher, "hashes content with")
+    Rel(semanticHasher, treeHasher, "hashes trees with")
+    Rel(semanticHasher, vectorHasher, "hashes vectors with")
+    Rel(semanticHasher, compositeHasher, "combines hashes with")
+    
+    Rel(meaningExtractor, embeddingModel, "generates embeddings with")
+    Rel(similarityCalculator, clusteringEngine, "clusters with")
+    Rel(semanticHasher, anomalyDetector, "detects anomalies with")
+    
+    Rel(semanticHasher, semanticCache, "caches results in")
+    Rel(semanticCache, hashLookup, "looks up hashes with")
+    Rel(semanticCache, similarityIndex, "indexes similarity with")
+    Rel(semanticCache, bloomFilter, "filters with")
+    
+    Rel(semanticHasher, stabilityTester, "tests stability with")
+    Rel(semanticHasher, collisionDetector, "detects collisions with")
+    Rel(semanticHasher, qualityAnalyzer, "analyzes quality with")
+    Rel(semanticHasher, entropyMeasurer, "measures entropy with")
+    
+    UpdateLayoutConfig($c4ShapeInRow="4", $c4BoundaryInRow="2")
+```

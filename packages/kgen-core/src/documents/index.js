@@ -198,7 +198,7 @@ export async function generateDocuments(documents, sharedConfig = {}) {
  * 
  * const result = await processor.generateDocument({
  *   template: 'contract.docx',
- *   context: { clientName: 'Acme Corp', date: new Date() }
+ *   context: { clientName: 'Acme Corp', date: this.getDeterministicDate() }
  * });
  * ```
  */

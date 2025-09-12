@@ -43,9 +43,9 @@ defineFeature(feature, test => {
     });
 
     when('I run {string}', async (command) => {
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       lastResult = await testHelper.runCli(command);
-      performanceData.discoveryTime = Date.now() - startTime;
+      performanceData.discoveryTime = this.getDeterministicTimestamp() - startTime;
     });
 
     then('I should see generator {string} with templates {string}', async (generator, templates) => {
@@ -97,9 +97,9 @@ export default class Generated {}`;
     });
 
     when('I discover templates', async () => {
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       lastResult = await testHelper.runCli('list');
-      performanceData.mixedDiscoveryTime = Date.now() - startTime;
+      performanceData.mixedDiscoveryTime = this.getDeterministicTimestamp() - startTime;
     });
 
     then('I should find {int} generators', async (expectedCount) => {
@@ -146,9 +146,9 @@ to) %>Generated {}`
     });
 
     when('I run template discovery', async () => {
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       lastResult = await testHelper.runCli('list');
-      performanceData.largeSetDiscoveryTime = Date.now() - startTime;
+      performanceData.largeSetDiscoveryTime = this.getDeterministicTimestamp() - startTime;
     });
 
     then('discovery should complete in under {int}ms', async (maxTime) => {
@@ -166,9 +166,9 @@ to) %>Generated {}`
     });
 
     then('the results should be cached for subsequent calls', async () => {
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const secondResult = await testHelper.runCli('list');
-      const secondCallTime = Date.now() - startTime;
+      const secondCallTime = this.getDeterministicTimestamp() - startTime;
       
       expect(secondResult.exitCode).toBe(0);
       // Second call might be faster due to caching

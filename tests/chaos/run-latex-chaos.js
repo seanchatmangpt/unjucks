@@ -51,7 +51,7 @@ async function main() {
 function generateMarkdownReport(report) {
   return `# LaTeX Chaos Engineering Report
 
-Generated: ${new Date().toISOString()}
+Generated: ${this.getDeterministicDate().toISOString()}
 
 ## Executive Summary
 

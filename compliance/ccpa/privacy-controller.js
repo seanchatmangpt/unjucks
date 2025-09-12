@@ -30,8 +30,8 @@ class CCPAPrivacyController {
       sources: personalInfo.sources || [],
       businessPurposes: personalInfo.businessPurposes || [],
       thirdParties: personalInfo.thirdParties || [],
-      recordedAt: new Date().toISOString(),
-      lastUpdated: new Date().toISOString(),
+      recordedAt: this.getDeterministicDate().toISOString(),
+      lastUpdated: this.getDeterministicDate().toISOString(),
       requests: [],
       optedOut: false,
       verificationMethod: this.config.verificationMethod
@@ -42,7 +42,7 @@ class CCPAPrivacyController {
     this.logEvent('consumer_recorded', {
       consumerId,
       categories: consumer.categories,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     });
 
     return consumerId;
@@ -92,7 +92,7 @@ class CCPAPrivacyController {
    * Handle Right to Know request (CCPA Section 1798.110)
    */
   handleRightToKnowRequest(consumerId, requestType = 'categories', verificationData = {}) {
-    const requestId = `know_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const requestId = `know_${this.getDeterministicTimestamp()}_${Math.random().toString(36).substr(2, 9)}`;
     
     // Verify consumer identity
     const verificationResult = this.verifyConsumerIdentity(consumerId, verificationData);
@@ -135,7 +135,7 @@ class CCPAPrivacyController {
       type: 'right_to_know',
       subtype: requestType,
       consumerId,
-      requestedAt: new Date().toISOString(),
+      requestedAt: this.getDeterministicDate().toISOString(),
       status: 'fulfilled',
       verificationMethod: verificationResult.method,
       response: responseData
@@ -148,7 +148,7 @@ class CCPAPrivacyController {
       requestId,
       consumerId,
       requestType,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     });
 
     return { data: responseData, requestId };
@@ -158,7 +158,7 @@ class CCPAPrivacyController {
    * Handle Right to Delete request (CCPA Section 1798.105)
    */
   handleRightToDeleteRequest(consumerId, verificationData = {}) {
-    const requestId = `delete_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const requestId = `delete_${this.getDeterministicTimestamp()}_${Math.random().toString(36).substr(2, 9)}`;
     
     // Verify consumer identity
     const verificationResult = this.verifyConsumerIdentity(consumerId, verificationData);
@@ -192,7 +192,7 @@ class CCPAPrivacyController {
       id: requestId,
       type: 'right_to_delete',
       consumerId,
-      requestedAt: new Date().toISOString(),
+      requestedAt: this.getDeterministicDate().toISOString(),
       status: 'fulfilled',
       verificationMethod: verificationResult.method,
       result: deletionResult
@@ -204,7 +204,7 @@ class CCPAPrivacyController {
       requestId,
       consumerId,
       itemsDeleted: deletionResult.itemsDeleted,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     });
 
     return { result: deletionResult, requestId };
@@ -214,7 +214,7 @@ class CCPAPrivacyController {
    * Handle Opt-Out of Sale request (CCPA Section 1798.120)
    */
   handleOptOutRequest(consumerId, verificationData = {}) {
-    const requestId = `optout_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const requestId = `optout_${this.getDeterministicTimestamp()}_${Math.random().toString(36).substr(2, 9)}`;
     
     // For opt-out, verification requirements are lower
     const consumer = this.consumers.get(consumerId);
@@ -224,7 +224,7 @@ class CCPAPrivacyController {
 
     // Set opt-out status
     consumer.optedOut = true;
-    consumer.optedOutAt = new Date().toISOString();
+    consumer.optedOutAt = this.getDeterministicDate().toISOString();
 
     // Stop all current sales/sharing
     this.stopSalesForConsumer(consumerId);
@@ -233,7 +233,7 @@ class CCPAPrivacyController {
       id: requestId,
       type: 'opt_out_of_sale',
       consumerId,
-      requestedAt: new Date().toISOString(),
+      requestedAt: this.getDeterministicDate().toISOString(),
       status: 'fulfilled'
     };
 
@@ -243,7 +243,7 @@ class CCPAPrivacyController {
     this.logEvent('opt_out_fulfilled', {
       requestId,
       consumerId,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     });
 
     return { success: true, requestId };
@@ -253,7 +253,7 @@ class CCPAPrivacyController {
    * Handle Opt-In to Sale request
    */
   handleOptInRequest(consumerId, verificationData = {}) {
-    const requestId = `optin_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const requestId = `optin_${this.getDeterministicTimestamp()}_${Math.random().toString(36).substr(2, 9)}`;
     
     const verificationResult = this.verifyConsumerIdentity(consumerId, verificationData);
     if (!verificationResult.verified) {
@@ -271,13 +271,13 @@ class CCPAPrivacyController {
 
     // Set opt-in status
     consumer.optedOut = false;
-    consumer.optedInAt = new Date().toISOString();
+    consumer.optedInAt = this.getDeterministicDate().toISOString();
 
     const request = {
       id: requestId,
       type: 'opt_in_to_sale',
       consumerId,
-      requestedAt: new Date().toISOString(),
+      requestedAt: this.getDeterministicDate().toISOString(),
       status: 'fulfilled',
       verificationMethod: verificationResult.method
     };
@@ -288,7 +288,7 @@ class CCPAPrivacyController {
     this.logEvent('opt_in_fulfilled', {
       requestId,
       consumerId,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     });
 
     return { success: true, requestId };
@@ -308,7 +308,7 @@ class CCPAPrivacyController {
       throw new Error('Consumer has opted out of sales');
     }
 
-    const saleId = `sale_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const saleId = `sale_${this.getDeterministicTimestamp()}_${Math.random().toString(36).substr(2, 9)}`;
     
     const saleRecord = {
       id: saleId,
@@ -316,7 +316,7 @@ class CCPAPrivacyController {
       thirdParty,
       categories,
       value,
-      saleDate: new Date().toISOString(),
+      saleDate: this.getDeterministicDate().toISOString(),
       metadata
     };
 
@@ -328,7 +328,7 @@ class CCPAPrivacyController {
       thirdParty,
       categories,
       value,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     });
 
     return saleId;
@@ -346,7 +346,7 @@ class CCPAPrivacyController {
 
     this.logEvent('sales_stopped', {
       consumerId,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     });
   }
 
@@ -439,7 +439,7 @@ class CCPAPrivacyController {
 
     return {
       itemsDeleted,
-      deletedAt: new Date().toISOString(),
+      deletedAt: this.getDeterministicDate().toISOString(),
       categories: ['consumer_profile', 'sales_records']
     };
   }
@@ -490,7 +490,7 @@ class CCPAPrivacyController {
    */
   logEvent(eventType, data) {
     const logEntry = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       eventType,
       data,
       business: this.config.businessName
@@ -520,7 +520,7 @@ class CCPAPrivacyController {
       .reduce((sum, sale) => sum + sale.value, 0);
 
     return {
-      reportGeneratedAt: new Date().toISOString(),
+      reportGeneratedAt: this.getDeterministicDate().toISOString(),
       business: this.config.businessName,
       summary: {
         totalConsumers,
@@ -554,7 +554,7 @@ class CCPAPrivacyController {
 
     const responseTimes = requests.map(request => {
       const requested = new Date(request.requestedAt);
-      const responded = new Date(); // In real implementation, would use actual response time
+      const responded = this.getDeterministicDate(); // In real implementation, would use actual response time
       return responded - requested;
     });
 

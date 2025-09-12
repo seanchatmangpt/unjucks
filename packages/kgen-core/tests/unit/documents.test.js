@@ -606,9 +606,9 @@ describe('Document Generation', () => {
         content: 'Testing document generation performance'
       };
       
-      const start = Date.now();
+      const start = this.getDeterministicTimestamp();
       const result = await docGenerator.generateDocx(testData.simpleData, simpleTemplate);
-      const duration = Date.now() - start;
+      const duration = this.getDeterministicTimestamp() - start;
       
       expect(result.success).toBe(true);
       expect(duration).toBeLessThan(5000); // Should complete within 5 seconds
@@ -633,9 +633,9 @@ describe('Document Generation', () => {
         `
       };
       
-      const start = Date.now();
+      const start = this.getDeterministicTimestamp();
       const result = await latexProcessor.generate(largeData, largeTemplate);
-      const duration = Date.now() - start;
+      const duration = this.getDeterministicTimestamp() - start;
       
       expect(result.success).toBe(true);
       expect(duration).toBeLessThan(10000); // Should handle large documents within 10 seconds

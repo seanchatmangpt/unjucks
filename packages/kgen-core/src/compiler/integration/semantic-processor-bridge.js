@@ -100,7 +100,7 @@ export class SemanticProcessorBridge {
    * @param {string} outputPath - Path for compiled contexts
    */
   async migrateSemanticData(semanticDataPath, outputPath) {
-    this.migrationStats.startTime = Date.now();
+    this.migrationStats.startTime = this.getDeterministicTimestamp();
     
     try {
       this.logger.info(`Starting migration from ${semanticDataPath} to ${outputPath}`);
@@ -131,7 +131,7 @@ export class SemanticProcessorBridge {
       const report = await this._generateMigrationReport(migrationResults);
       await this._saveMigrationReport(outputPath, report);
       
-      this.migrationStats.endTime = Date.now();
+      this.migrationStats.endTime = this.getDeterministicTimestamp();
       
       this.logger.success(`Migration completed in ${this.migrationStats.endTime - this.migrationStats.startTime}ms`);
       
@@ -163,7 +163,7 @@ export class SemanticProcessorBridge {
           complianceLevel: this._assessComplianceLevel(context),
           securityRequirements: this._extractSecurityRequirements(context),
           auditTrail: {
-            compiledAt: new Date().toISOString(),
+            compiledAt: this.getDeterministicDate().toISOString(),
             rulesApplied: n3Rules.length,
             complianceChecks: context.facts ? Object.keys(context.facts).length : 0
           }
@@ -280,7 +280,7 @@ ${formatPatterns(conclusions)}
         },
         migration: {
           bridgeVersion: '1.0.0',
-          migratedAt: new Date().toISOString()
+          migratedAt: this.getDeterministicDate().toISOString()
         }
       }
     };

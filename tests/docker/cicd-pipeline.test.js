@@ -250,7 +250,7 @@ networks:
   });
 
   test('should validate docker-compose service startup', async () => {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     // Build and start services
     await execAsync(`docker-compose -f ${dockerComposeFile} build`);
@@ -275,7 +275,7 @@ networks:
       }
     }
     
-    const startupTime = Date.now() - startTime;
+    const startupTime = this.getDeterministicTimestamp() - startTime;
     
     // Stop services
     await execAsync(`docker-compose -f ${dockerComposeFile} down`);

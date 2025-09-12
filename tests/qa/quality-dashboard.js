@@ -26,7 +26,7 @@ class QualityDashboard {
     await fs.ensureDir(this.reportsDir);
     
     const metrics = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       coverage: await this.getCoverageMetrics(),
       performance: await this.getPerformanceMetrics(),
       workflows: await this.getWorkflowMetrics(),

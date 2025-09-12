@@ -49,7 +49,7 @@ export class EnhancedRDFProcessor extends EventEmitter {
       format: 'turtle', // Would detect format
       parseTime: 10,
       hashTime: 5,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     };
   }
 
@@ -124,7 +124,7 @@ export class EnhancedRDFProcessor extends EventEmitter {
       indexing: {
         processingTime: 20
       },
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     };
   }
 

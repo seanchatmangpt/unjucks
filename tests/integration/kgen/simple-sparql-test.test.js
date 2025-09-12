@@ -33,7 +33,7 @@ describe('Simple SPARQL CLI Integration', () => {
 
   beforeEach(async () => {
     // Create temporary test directory
-    testDir = path.join(process.cwd(), 'test-temp', `simple-${Date.now()}`);
+    testDir = path.join(process.cwd(), 'test-temp', `simple-${this.getDeterministicTimestamp()}`);
     await mkdir(testDir, { recursive: true });
 
     // Initialize components

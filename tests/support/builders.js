@@ -143,7 +143,7 @@ export class TestDataBuilder {
   }
   
   withTimestamp(name) {
-    this.data[name] = Date.now().toString();
+    this.data[name] = this.getDeterministicTimestamp().toString();
     return this;
   }
   

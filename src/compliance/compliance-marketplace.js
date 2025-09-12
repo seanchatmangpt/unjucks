@@ -291,14 +291,14 @@ export class ComplianceMarketplace {
       // Update existing review
       existingReview.rating = rating;
       existingReview.comment = comment;
-      existingReview.date = new Date();
+      existingReview.date = this.getDeterministicDate();
     } else {
       // Add new review
       template.reviews.push({
         userId,
         rating,
         comment,
-        date: new Date()
+        date: this.getDeterministicDate()
       });
     }
 
@@ -461,7 +461,7 @@ export class ComplianceMarketplace {
       legalReview: true,
       updateFrequency: 'Quarterly',
       version: '1.0.0',
-      lastUpdated: new Date(),
+      lastUpdated: this.getDeterministicDate(),
       certificationStatus: 'Certified',
       templatePath: category,
       metadata: {
@@ -585,7 +585,7 @@ export class ComplianceMarketplace {
    * @private
    */
   generateLicenseKey(templateId, orgId, licenseType) {
-    const timestamp = Date.now().toString(36);
+    const timestamp = this.getDeterministicTimestamp().toString(36);
     const hash = Buffer.from(`${templateId}-${orgId}-${licenseType}`).toString('base64');
     return `CT-${licenseType.toUpperCase()}-${timestamp}-${hash}`.substring(0, 32);
   }
@@ -594,7 +594,7 @@ export class ComplianceMarketplace {
    * @private
    */
   generateSubmissionId() {
-    return `sub_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
+    return `sub_${this.getDeterministicTimestamp()}_${Math.random().toString(36).substring(2, 8)}`;
   }
 
   /**

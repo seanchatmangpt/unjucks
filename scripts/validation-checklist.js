@@ -32,7 +32,7 @@ const config = {
 
 // Results tracking
 const results = {
-    timestamp: new Date().toISOString(),
+    timestamp: this.getDeterministicDate().toISOString(),
     environment: {
         nodeVersion: process.version,
         platform: process.platform,
@@ -63,23 +63,23 @@ const validationCategories = {
 const log = {
     info: (msg) => {
         console.log(`ℹ️  ${msg}`);
-        if (config.verbose) process.stdout.write(`[${new Date().toISOString()}] INFO: ${msg}\n`);
+        if (config.verbose) process.stdout.write(`[${this.getDeterministicDate().toISOString()}] INFO: ${msg}\n`);
     },
     success: (msg) => {
         console.log(`✅ ${msg}`);
-        if (config.verbose) process.stdout.write(`[${new Date().toISOString()}] SUCCESS: ${msg}\n`);
+        if (config.verbose) process.stdout.write(`[${this.getDeterministicDate().toISOString()}] SUCCESS: ${msg}\n`);
     },
     warning: (msg) => {
         console.log(`⚠️  ${msg}`);
-        if (config.verbose) process.stdout.write(`[${new Date().toISOString()}] WARNING: ${msg}\n`);
+        if (config.verbose) process.stdout.write(`[${this.getDeterministicDate().toISOString()}] WARNING: ${msg}\n`);
     },
     error: (msg) => {
         console.log(`❌ ${msg}`);
-        if (config.verbose) process.stdout.write(`[${new Date().toISOString()}] ERROR: ${msg}\n`);
+        if (config.verbose) process.stdout.write(`[${this.getDeterministicDate().toISOString()}] ERROR: ${msg}\n`);
     },
     skip: (msg) => {
         console.log(`⏭️  ${msg}`);
-        if (config.verbose) process.stdout.write(`[${new Date().toISOString()}] SKIP: ${msg}\n`);
+        if (config.verbose) process.stdout.write(`[${this.getDeterministicDate().toISOString()}] SKIP: ${msg}\n`);
     }
 };
 
@@ -109,7 +109,7 @@ class ValidationRunner {
     }
 
     async runValidation(validation) {
-        const startTime = Date.now();
+        const startTime = this.getDeterministicTimestamp();
         let lastError = null;
         
         for (let attempt = 1; attempt <= validation.retries; attempt++) {
@@ -130,7 +130,7 @@ class ValidationRunner {
                     category: validation.category,
                     name: validation.name,
                     status: 'passed',
-                    duration: Date.now() - startTime,
+                    duration: this.getDeterministicTimestamp() - startTime,
                     result: result || true,
                     error: null,
                     attempts: attempt
@@ -151,7 +151,7 @@ class ValidationRunner {
             category: validation.category,
             name: validation.name,
             status: validation.required ? 'failed' : 'warning',
-            duration: Date.now() - startTime,
+            duration: this.getDeterministicTimestamp() - startTime,
             result: null,
             error: lastError.message,
             attempts: validation.retries
@@ -464,9 +464,9 @@ runner.addValidation('semantic-features', validationCategories.RDF, 'Semantic we
 
 // Performance Validations
 runner.addValidation('cli-startup', validationCategories.PERFORMANCE, 'CLI starts up quickly (< 2s)', () => {
-    const start = Date.now();
+    const start = this.getDeterministicTimestamp();
     execCommand('node ../bin/unjucks.cjs --help', { cwd: __dirname });
-    const duration = Date.now() - start;
+    const duration = this.getDeterministicTimestamp() - start;
     
     if (duration > 2000) {
         throw new Error(`Startup too slow: ${duration}ms`);

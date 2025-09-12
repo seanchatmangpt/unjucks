@@ -162,7 +162,7 @@ export class TemplateHelper {
       [`${name}/new/file.js.njk`]: content || `// {{ name }} Component
 export const {{ name }} = {
   name: '{{ name }}',
-  created: new Date()
+  created: this.getDeterministicDate()
 };`
     };
   }

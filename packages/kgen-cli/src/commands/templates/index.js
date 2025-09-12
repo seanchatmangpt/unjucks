@@ -8,8 +8,7 @@ import { defineCommand } from 'citty';
 
 import lsCommand from './ls.js';
 import showCommand from './show.js';
-// import showEnhancedCommand from './show-enhanced.js';
-// import validateCommand from './validate.js';
+import validateCommand from './validate.js';
 
 export default defineCommand({
   meta: {
@@ -18,9 +17,8 @@ export default defineCommand({
   },
   subCommands: {
     ls: lsCommand,
-    show: showCommand
-    // 'show-enhanced': showEnhancedCommand,
-    // validate: validateCommand
+    show: showCommand,
+    validate: validateCommand
   },
   async run() {
     const result = {
@@ -51,7 +49,7 @@ export default defineCommand({
           }
         ]
       },
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     };
 
     console.log(JSON.stringify(result, null, 2));

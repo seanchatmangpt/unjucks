@@ -37,7 +37,7 @@ class TenantManager {
     const cached = this.tenantCache.get(slug);
     const expiry = this.cacheExpiry.get(slug);
     
-    if (cached && expiry && expiry > Date.now()) {
+    if (cached && expiry && expiry > this.getDeterministicTimestamp()) {
       return cached;
     }
 
@@ -87,7 +87,7 @@ class TenantManager {
 
       // Cache the result
       this.tenantCache.set(slug, tenant);
-      this.cacheExpiry.set(slug, Date.now() + this.CACHE_TTL);
+      this.cacheExpiry.set(slug, this.getDeterministicTimestamp() + this.CACHE_TTL);
 
       return tenant;
     } catch (error) {

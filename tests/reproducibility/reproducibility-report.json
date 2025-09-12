@@ -1,0 +1,96 @@
+{
+  "timestamp": "2024-01-01T00:00:00.000Z",
+  "environment": {
+    "platform": "darwin",
+    "nodeVersion": "v22.12.0",
+    "arch": "arm64",
+    "hostname": "Mac.lan",
+    "user": "sac"
+  },
+  "tests": [
+    {
+      "name": "Lock File Determinism",
+      "type": "lockfile",
+      "attempts": 3,
+      "identical": true,
+      "issues": []
+    },
+    {
+      "name": "Template Rendering Determinism",
+      "type": "template",
+      "renders": [
+        {
+          "attempt": 1,
+          "success": false,
+          "error": "Unexpected token 'K', \"[KGEN-TRACE\"... is not valid JSON"
+        },
+        {
+          "attempt": 2,
+          "success": false,
+          "error": "Unexpected token 'K', \"[KGEN-TRACE\"... is not valid JSON"
+        },
+        {
+          "attempt": 3,
+          "success": false,
+          "error": "Unexpected token 'K', \"[KGEN-TRACE\"... is not valid JSON"
+        }
+      ],
+      "identical": true,
+      "issues": []
+    },
+    {
+      "name": "Multiple Build Reproducibility",
+      "type": "build",
+      "builds": [
+        {
+          "attempt": 1,
+          "success": true,
+          "duration": 0,
+          "fileCount": 0
+        },
+        {
+          "attempt": 2,
+          "success": true,
+          "duration": 0,
+          "fileCount": 0
+        },
+        {
+          "attempt": 3,
+          "success": true,
+          "duration": 0,
+          "fileCount": 0
+        }
+      ],
+      "identical": true,
+      "issues": [],
+      "comparison": {
+        "build1vs2": {
+          "identical": true,
+          "differences": [],
+          "fileComparison": {
+            "onlyInBuild1": [],
+            "onlyInBuild2": [],
+            "different": [],
+            "identical": []
+          }
+        },
+        "build1vs3": {
+          "identical": true,
+          "differences": [],
+          "fileComparison": {
+            "onlyInBuild1": [],
+            "onlyInBuild2": [],
+            "different": [],
+            "identical": []
+          }
+        }
+      }
+    }
+  ],
+  "summary": {
+    "total": 3,
+    "passed": 3,
+    "failed": 0,
+    "reproducible": true
+  }
+}

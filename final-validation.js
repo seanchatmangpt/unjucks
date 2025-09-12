@@ -321,7 +321,7 @@ async function runFinalValidation() {
         
         // Create summary report
         const report = {
-            timestamp: new Date().toISOString(),
+            timestamp: this.getDeterministicDate().toISOString(),
             validation: "PASSED",
             features: {
                 semanticProcessing: "✅ WORKING",

@@ -121,8 +121,8 @@ class SOC2ControlsFramework {
       implementedDate: null,
       lastTested: null,
       nextTestDue: null,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      createdAt: this.getDeterministicDate().toISOString(),
+      updatedAt: this.getDeterministicDate().toISOString()
     };
 
     this.controls.set(controlId, control);
@@ -139,9 +139,9 @@ class SOC2ControlsFramework {
     }
 
     control.status = 'implemented';
-    control.implementedDate = new Date().toISOString();
+    control.implementedDate = this.getDeterministicDate().toISOString();
     control.implementationDetails = implementationDetails;
-    control.updatedAt = new Date().toISOString();
+    control.updatedAt = this.getDeterministicDate().toISOString();
 
     // Schedule next testing
     this.scheduleControlTesting(controlId);
@@ -150,7 +150,7 @@ class SOC2ControlsFramework {
       controlId,
       category: control.category,
       implementedBy: implementationDetails.implementedBy,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     });
 
     return true;
@@ -163,7 +163,7 @@ class SOC2ControlsFramework {
     const control = this.controls.get(controlId);
     if (!control) return;
 
-    const now = new Date();
+    const now = this.getDeterministicDate();
     let nextTestDate;
 
     switch (control.frequency) {
@@ -187,7 +187,7 @@ class SOC2ControlsFramework {
    * Execute control testing
    */
   executeControlTest(controlId, testDetails = {}) {
-    const testId = `test_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const testId = `test_${this.getDeterministicTimestamp()}_${Math.random().toString(36).substr(2, 9)}`;
     const control = this.controls.get(controlId);
     
     if (!control) {
@@ -201,7 +201,7 @@ class SOC2ControlsFramework {
     const testResult = {
       id: testId,
       controlId,
-      testDate: new Date().toISOString(),
+      testDate: this.getDeterministicDate().toISOString(),
       tester: testDetails.tester || 'System',
       testProcedure: control.testingProcedure,
       testSteps: testDetails.testSteps || [],
@@ -227,7 +227,7 @@ class SOC2ControlsFramework {
       testId,
       result: testResult.result,
       riskRating: testResult.riskRating,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     });
 
     return testId;
@@ -251,7 +251,7 @@ class SOC2ControlsFramework {
    * Record control exception
    */
   recordException(controlId, exceptionDetails) {
-    const exceptionId = `exc_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const exceptionId = `exc_${this.getDeterministicTimestamp()}_${Math.random().toString(36).substr(2, 9)}`;
     
     const exception = {
       id: exceptionId,
@@ -263,10 +263,10 @@ class SOC2ControlsFramework {
       businessJustification: exceptionDetails.businessJustification,
       compensatingControls: exceptionDetails.compensatingControls || [],
       approvedBy: exceptionDetails.approvedBy,
-      approvalDate: new Date().toISOString(),
+      approvalDate: this.getDeterministicDate().toISOString(),
       expirationDate: exceptionDetails.expirationDate,
       status: 'active',
-      createdAt: new Date().toISOString()
+      createdAt: this.getDeterministicDate().toISOString()
     };
 
     this.exceptions.set(exceptionId, exception);
@@ -276,7 +276,7 @@ class SOC2ControlsFramework {
       controlId,
       riskRating: exception.riskRating,
       approvedBy: exception.approvedBy,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     });
 
     return exceptionId;
@@ -286,7 +286,7 @@ class SOC2ControlsFramework {
    * Create remediation plan
    */
   createRemediationPlan(controlId, testId, planDetails) {
-    const planId = `plan_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const planId = `plan_${this.getDeterministicTimestamp()}_${Math.random().toString(36).substr(2, 9)}`;
     
     const plan = {
       id: planId,
@@ -300,8 +300,8 @@ class SOC2ControlsFramework {
       priority: planDetails.priority || 'medium',
       status: 'planned',
       progress: 0,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      createdAt: this.getDeterministicDate().toISOString(),
+      updatedAt: this.getDeterministicDate().toISOString()
     };
 
     this.remediationPlans.set(planId, plan);
@@ -312,7 +312,7 @@ class SOC2ControlsFramework {
       testId,
       owner: plan.owner,
       targetDate: plan.targetDate,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     });
 
     return planId;
@@ -329,11 +329,11 @@ class SOC2ControlsFramework {
 
     plan.progress = Math.min(100, Math.max(0, progress));
     plan.lastUpdate = statusUpdate;
-    plan.updatedAt = new Date().toISOString();
+    plan.updatedAt = this.getDeterministicDate().toISOString();
 
     if (plan.progress >= 100) {
       plan.status = 'completed';
-      plan.completedDate = new Date().toISOString();
+      plan.completedDate = this.getDeterministicDate().toISOString();
     } else if (plan.progress > 0) {
       plan.status = 'in_progress';
     }
@@ -342,7 +342,7 @@ class SOC2ControlsFramework {
       planId,
       progress: plan.progress,
       status: plan.status,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     });
 
     return true;
@@ -352,7 +352,7 @@ class SOC2ControlsFramework {
    * Add evidence to repository
    */
   addEvidence(controlId, evidenceDetails) {
-    const evidenceId = `ev_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const evidenceId = `ev_${this.getDeterministicTimestamp()}_${Math.random().toString(36).substr(2, 9)}`;
     
     const evidence = {
       id: evidenceId,
@@ -362,7 +362,7 @@ class SOC2ControlsFramework {
       description: evidenceDetails.description,
       source: evidenceDetails.source,
       collectedBy: evidenceDetails.collectedBy,
-      collectedDate: new Date().toISOString(),
+      collectedDate: this.getDeterministicDate().toISOString(),
       filePath: evidenceDetails.filePath,
       metadata: evidenceDetails.metadata || {},
       tags: evidenceDetails.tags || [],
@@ -376,7 +376,7 @@ class SOC2ControlsFramework {
       controlId,
       type: evidence.type,
       collectedBy: evidence.collectedBy,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     });
 
     return evidenceId;
@@ -386,7 +386,7 @@ class SOC2ControlsFramework {
    * Get controls due for testing
    */
   getControlsDueForTesting() {
-    const now = new Date();
+    const now = this.getDeterministicDate();
     const dueControls = [];
 
     for (const control of this.controls.values()) {
@@ -415,7 +415,7 @@ class SOC2ControlsFramework {
       overdue: 0
     };
 
-    const now = new Date();
+    const now = this.getDeterministicDate();
 
     for (const control of this.controls.values()) {
       if (control.status === 'implemented') {
@@ -457,7 +457,7 @@ class SOC2ControlsFramework {
     const readinessScore = this.calculateReadinessScore(effectiveness);
 
     return {
-      assessmentDate: new Date().toISOString(),
+      assessmentDate: this.getDeterministicDate().toISOString(),
       organization: this.config.organizationName,
       readinessScore,
       summary: {
@@ -592,7 +592,7 @@ class SOC2ControlsFramework {
     return {
       estimatedDays: totalDays,
       estimatedWeeks: Math.ceil(totalDays / 7),
-      readinessDate: new Date(Date.now() + (totalDays * 24 * 60 * 60 * 1000)).toISOString().split('T')[0],
+      readinessDate: new Date(this.getDeterministicTimestamp() + (totalDays * 24 * 60 * 60 * 1000)).toISOString().split('T')[0],
       phases: [
         {
           phase: 'Control Implementation',
@@ -618,7 +618,7 @@ class SOC2ControlsFramework {
    */
   logEvent(eventType, data) {
     const logEntry = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       eventType,
       data,
       organization: this.config.organizationName
@@ -637,7 +637,7 @@ class SOC2ControlsFramework {
     const exceptions = Array.from(this.exceptions.values());
 
     return {
-      exportDate: new Date().toISOString(),
+      exportDate: this.getDeterministicDate().toISOString(),
       organization: this.config.organizationName,
       auditPeriod: this.config.auditPeriod,
       controls,

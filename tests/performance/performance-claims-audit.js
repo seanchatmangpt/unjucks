@@ -25,7 +25,7 @@ const rootDir = resolve(__dirname, '../..');
 class PerformanceClaimsAuditor {
   constructor() {
     this.results = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       environment: {
         nodeVersion: process.version,
         platform: process.platform,
@@ -45,7 +45,7 @@ class PerformanceClaimsAuditor {
   }
 
   log(message, level = 'info') {
-    const timestamp = new Date().toISOString();
+    const timestamp = this.getDeterministicDate().toISOString();
     const prefix = level === 'error' ? '❌' : level === 'warn' ? '⚠️' : level === 'success' ? '✅' : 'ℹ️';
     console.log(`${prefix} [${timestamp}] ${message}`);
   }

@@ -119,13 +119,13 @@ describe('Consensus Security Manager', () => {
           nodeId: 'node-0',
           type: 'proposal',
           proposal: { value: 'A' },
-          timestamp: Date.now()
+          timestamp: this.getDeterministicTimestamp()
         },
         {
           nodeId: 'node-0', // Same node sending contradictory message
           type: 'proposal',
           proposal: { value: 'B' }, // Different proposal
-          timestamp: Date.now() + 1000
+          timestamp: this.getDeterministicTimestamp() + 1000
         }
       ],
       networkInfo: {
@@ -174,8 +174,8 @@ describe('Consensus Security Manager', () => {
 
   test('should generate comprehensive security reports', async () => {
     const timeframe = {
-      start: new Date(Date.now() - 3600000), // 1 hour ago
-      end: new Date()
+      start: new Date(this.getDeterministicTimestamp() - 3600000), // 1 hour ago
+      end: this.getDeterministicDate()
     };
 
     const report = await securityManager.generateSecurityReport(timeframe);
@@ -456,20 +456,20 @@ describe('Consensus Attack Detector', () => {
           nodeId: 'node-1',
           type: 'proposal',
           proposal: { value: 'A' },
-          timestamp: Date.now(),
+          timestamp: this.getDeterministicTimestamp(),
           responseTime: 500
         },
         {
           nodeId: 'node-2',
           type: 'vote',
           vote: 'accept',
-          timestamp: Date.now() + 1000,
+          timestamp: this.getDeterministicTimestamp() + 1000,
           responseTime: 1000
         }
       ],
       requests: [
-        { nodeId: 'node-1', timestamp: Date.now() },
-        { nodeId: 'node-2', timestamp: Date.now() + 500 }
+        { nodeId: 'node-1', timestamp: this.getDeterministicTimestamp() },
+        { nodeId: 'node-2', timestamp: this.getDeterministicTimestamp() + 500 }
       ],
       networkInfo: {
         connections: [
@@ -503,13 +503,13 @@ describe('Consensus Attack Detector', () => {
           nodeId: 'node-1',
           type: 'proposal',
           proposal: { value: 'A' },
-          timestamp: Date.now()
+          timestamp: this.getDeterministicTimestamp()
         },
         {
           nodeId: 'node-1', // Same node
           type: 'proposal',
           proposal: { value: 'B' }, // Contradictory proposal
-          timestamp: Date.now() + 1000
+          timestamp: this.getDeterministicTimestamp() + 1000
         }
       ]
     };
@@ -722,7 +722,7 @@ describe('Consensus Security Integration', () => {
           type: 'proposal',
           proposal: consensusOperation.data,
           signature: secureResult.securityProofs.signature,
-          timestamp: Date.now()
+          timestamp: this.getDeterministicTimestamp()
         }
       ],
       networkInfo: {
@@ -758,13 +758,13 @@ describe('Consensus Security Integration', () => {
           nodeId: 'attacker-1',
           type: 'proposal',
           proposal: { value: 'X' },
-          timestamp: Date.now()
+          timestamp: this.getDeterministicTimestamp()
         },
         {
           nodeId: 'attacker-1', // Same attacker
           type: 'proposal',
           proposal: { value: 'Y' }, // Contradictory proposal
-          timestamp: Date.now() + 1000
+          timestamp: this.getDeterministicTimestamp() + 1000
         }
       ],
       networkInfo: {
@@ -855,13 +855,13 @@ describe('Consensus Security Performance', () => {
 
   test('should handle high-throughput consensus operations', async () => {
     const operations = [];
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
 
     // Create 10 concurrent operations
     for (let i = 0; i < 10; i++) {
       const operation = {
         type: 'high_throughput_test',
-        data: { index: i, timestamp: Date.now() },
+        data: { index: i, timestamp: this.getDeterministicTimestamp() },
         requiresSignature: true,
         signatories: [`node-${i % 7}`, `node-${(i + 1) % 7}`, `node-${(i + 2) % 7}`]
       };
@@ -871,7 +871,7 @@ describe('Consensus Security Performance', () => {
 
     // Wait for all operations to complete
     const results = await Promise.all(operations);
-    const endTime = Date.now();
+    const endTime = this.getDeterministicTimestamp();
     const totalTime = endTime - startTime;
 
     // Verify all operations succeeded

@@ -57,7 +57,7 @@ export class FailureInjector extends EventEmitter {
 
   // Inject network failures
   injectNetworkFailure(probability = 0.1, duration = 5000) {
-    const failureId = `network-${Date.now()}`;
+    const failureId = `network-${this.getDeterministicTimestamp()}`;
     this.activeFailures.add(failureId);
     
     this.emit('failure:injected', {
@@ -78,7 +78,7 @@ export class FailureInjector extends EventEmitter {
 
   // Inject disk I/O failures
   injectDiskFailure(probability = 0.05, duration = 3000) {
-    const failureId = `disk-${Date.now()}`;
+    const failureId = `disk-${this.getDeterministicTimestamp()}`;
     this.activeFailures.add(failureId);
 
     this.emit('failure:injected', {
@@ -96,7 +96,7 @@ export class FailureInjector extends EventEmitter {
 
   // Inject memory pressure
   injectMemoryPressure(intensity = 0.5, duration = 10000) {
-    const failureId = `memory-${Date.now()}`;
+    const failureId = `memory-${this.getDeterministicTimestamp()}`;
     this.activeFailures.add(failureId);
 
     this.emit('failure:injected', {
@@ -119,7 +119,7 @@ export class FailureInjector extends EventEmitter {
 
   // Inject CPU stress
   injectCpuStress(intensity = 0.7, duration = 2000) {
-    const failureId = `cpu-${Date.now()}`;
+    const failureId = `cpu-${this.getDeterministicTimestamp()}`;
     this.activeFailures.add(failureId);
 
     this.emit('failure:injected', {
@@ -140,7 +140,7 @@ export class FailureInjector extends EventEmitter {
 
   // Inject dependency failures
   injectDependencyFailure(dependencies, probability = 0.1, duration = 8000) {
-    const failureId = `dependency-${Date.now()}`;
+    const failureId = `dependency-${this.getDeterministicTimestamp()}`;
     this.activeFailures.add(failureId);
 
     this.emit('failure:injected', {
@@ -159,7 +159,7 @@ export class FailureInjector extends EventEmitter {
 
   // Cascading failure simulation
   injectCascadingFailure(startingPoint, depth = 3, delay = 1000) {
-    const cascadeId = `cascade-${Date.now()}`;
+    const cascadeId = `cascade-${this.getDeterministicTimestamp()}`;
     
     this.emit('failure:cascade:start', {
       id: cascadeId,
@@ -259,8 +259,8 @@ export class FailureInjector extends EventEmitter {
     const stressInterval = Math.max(1, Math.floor(10 * (1 - intensity)));
     
     return setInterval(() => {
-      const endTime = Date.now() + (intensity * 100);
-      while (Date.now() < endTime) {
+      const endTime = this.getDeterministicTimestamp() + (intensity * 100);
+      while (this.getDeterministicTimestamp() < endTime) {
         // Busy work
         Math.random() * Math.random();
       }
@@ -349,7 +349,7 @@ export class FailureInjector extends EventEmitter {
     this.emit('failure:recovered', {
       id: failureId,
       type,
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
     });
   }
 
@@ -828,7 +828,7 @@ describe('KGEN Chaos Engineering Suite', () => {
       injector.injectNetworkFailure(0.3, testDuration);
       injector.injectDiskFailure(0.2, testDuration);
 
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
       // Continuously sample availability
       const sampler = setInterval(async () => {
@@ -840,12 +840,12 @@ describe('KGEN Chaos Engineering Suite', () => {
 
           const health = await mockHealthCheck();
           availabilityData.push({
-            timestamp: Date.now() - startTime,
+            timestamp: this.getDeterministicTimestamp() - startTime,
             available: health.status === 'healthy',
           });
         } catch (error) {
           availabilityData.push({
-            timestamp: Date.now() - startTime,
+            timestamp: this.getDeterministicTimestamp() - startTime,
             available: false,
             error: error.message,
           });

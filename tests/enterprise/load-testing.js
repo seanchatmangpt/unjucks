@@ -94,7 +94,7 @@ class VirtualUser extends EventEmitter {
       this.emit('request:success', {
         userId: this.id,
         responseTime,
-        timestamp: Date.now(),
+        timestamp: this.getDeterministicTimestamp(),
       });
       
     } catch (error) {
@@ -105,7 +105,7 @@ class VirtualUser extends EventEmitter {
         userId: this.id,
         error,
         responseTime,
-        timestamp: Date.now(),
+        timestamp: this.getDeterministicTimestamp(),
       });
     }
   }
@@ -118,7 +118,7 @@ class VirtualUser extends EventEmitter {
 
   shouldContinue() {
     return this.options.duration ? 
-      (Date.now() - this.startTime) < this.options.duration :
+      (this.getDeterministicTimestamp() - this.startTime) < this.options.duration :
       this.stats.requests < (this.options.maxRequests || 100);
   }
 
@@ -183,7 +183,7 @@ export class LoadTestController extends EventEmitter {
   }
 
   async runLoadTest(pattern, scenario, options = {}) {
-    this.startTime = Date.now();
+    this.startTime = this.getDeterministicTimestamp();
     this.emit('test:start', { pattern, scenario: scenario.name, options });
     
     try {
@@ -204,14 +204,14 @@ export class LoadTestController extends EventEmitter {
           throw new Error(`Unknown load pattern: ${pattern.type}`);
       }
       
-      this.endTime = Date.now();
+      this.endTime = this.getDeterministicTimestamp();
       const results = await this.metrics.generateReport();
       
       this.emit('test:complete', { results });
       return results;
       
     } catch (error) {
-      this.endTime = Date.now();
+      this.endTime = this.getDeterministicTimestamp();
       this.emit('test:error', { error });
       throw error;
     }
@@ -250,7 +250,7 @@ export class LoadTestController extends EventEmitter {
         
         for (let i = 0; i < usersToAdd; i++) {
           const user = new VirtualUser(userIndex++, scenario, {
-            duration: pattern.duration - (Date.now() - this.startTime),
+            duration: pattern.duration - (this.getDeterministicTimestamp() - this.startTime),
             ...options,
           });
           
@@ -348,7 +348,7 @@ class LoadTestMetrics {
     this.requests = [];
     this.errors = [];
     this.systemMetrics = [];
-    this.startTime = Date.now();
+    this.startTime = this.getDeterministicTimestamp();
   }
 
   recordRequest(data) {
@@ -364,7 +364,7 @@ class LoadTestMetrics {
     const cpuUsage = process.cpuUsage();
     
     this.systemMetrics.push({
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       memory: memoryUsage,
       cpu: cpuUsage,
     });
@@ -377,7 +377,7 @@ class LoadTestMetrics {
   }
 
   async generateReport() {
-    const endTime = Date.now();
+    const endTime = this.getDeterministicTimestamp();
     const duration = endTime - this.startTime;
     const responseTimes = this.requests.map(r => r.responseTime);
     
@@ -466,7 +466,7 @@ describe('KGEN Load Testing Suite', () => {
             @prefix ex: <http://example.org/> .
             ex:user${user.id} a ex:Person ;
                 ex:name "User ${user.id}" ;
-                ex:timestamp "${new Date().toISOString()}" .
+                ex:timestamp "${this.getDeterministicDate().toISOString()}" .
           `;
           
           // Mock RDF parsing
@@ -497,7 +497,7 @@ describe('KGEN Load Testing Suite', () => {
           const variables = {
             name: `Entity${user.id}`,
             type: 'Component',
-            timestamp: Date.now(),
+            timestamp: this.getDeterministicTimestamp(),
           };
           
           // Mock template generation
@@ -585,7 +585,7 @@ describe('KGEN Load Testing Suite', () => {
           const data = new Array(1000).fill(null).map((_, i) => ({
             id: i,
             user: user.id,
-            timestamp: Date.now(),
+            timestamp: this.getDeterministicTimestamp(),
             data: Math.random().toString(36),
           }));
           

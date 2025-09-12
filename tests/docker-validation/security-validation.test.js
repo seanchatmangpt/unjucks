@@ -359,7 +359,7 @@ SECURITY_TEST_CONTENT_THAT_SHOULD_NOT_EXIST_ON_SYSTEM`;
       attackResults.resourceExhaustion.attempted++;
       
       let cpuLimited = true;
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
       try {
         // CPU intensive task with limits
@@ -375,7 +375,7 @@ SECURITY_TEST_CONTENT_THAT_SHOULD_NOT_EXIST_ON_SYSTEM`;
           'sh', '-c', 'for i in $(seq 1 1000000); do echo $i > /dev/null; done; echo "CPU task completed"'
         ], { timeout: 5000 });
         
-        const duration = Date.now() - startTime;
+        const duration = this.getDeterministicTimestamp() - startTime;
         
         // Should be limited and potentially timeout
         if (result.success && duration < 2000) {
@@ -869,7 +869,7 @@ async function runSecureCommand(args, options = {}) {
  */
 function generateSecureFilename(prefix = 'test', extension = '.tmp') {
   const randomBytes = crypto.randomBytes(16).toString('hex');
-  return `${prefix}_${Date.now()}_${randomBytes}${extension}`;
+  return `${prefix}_${this.getDeterministicTimestamp()}_${randomBytes}${extension}`;
 }
 
 /**

@@ -465,7 +465,7 @@ async function getNpmVersion() {
 
 async function generateValidationReport() {
   const report = {
-    timestamp: new Date().toISOString(),
+    timestamp: this.getDeterministicDate().toISOString(),
     platform: {
       os: os.platform(),
       arch: os.arch(),

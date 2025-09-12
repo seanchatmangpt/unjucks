@@ -21,7 +21,7 @@ export class RuntimeSecurityMonitor extends EventEmitter {
       blockedRequests: 0,
       suspiciousActivity: 0,
       lastThreatTime: null,
-      uptime: Date.now()
+      uptime: this.getDeterministicTimestamp()
     };
     
     // Security thresholds
@@ -72,7 +72,7 @@ export class RuntimeSecurityMonitor extends EventEmitter {
     
     // Memory and CPU monitoring
     this.resourceMonitor = {
-      lastCheck: Date.now(),
+      lastCheck: this.getDeterministicTimestamp(),
       memoryAlerts: 0,
       cpuAlerts: 0
     };
@@ -315,7 +315,7 @@ export class RuntimeSecurityMonitor extends EventEmitter {
    * Check rate limits for client
    */
   checkRateLimit(clientId) {
-    const now = Date.now();
+    const now = this.getDeterministicTimestamp();
     const oneMinuteAgo = now - 60000;
 
     // Clean old entries
@@ -348,7 +348,7 @@ export class RuntimeSecurityMonitor extends EventEmitter {
    * Record failed authentication/operation attempt
    */
   recordFailedAttempt(clientId) {
-    const now = Date.now();
+    const now = this.getDeterministicTimestamp();
     const attempts = this.failedAttempts.get(clientId) || [];
     attempts.push(now);
     this.failedAttempts.set(clientId, attempts);
@@ -372,12 +372,12 @@ export class RuntimeSecurityMonitor extends EventEmitter {
   blockOperation(operationId, threatAnalysis) {
     this.threats.set(operationId, {
       ...threatAnalysis,
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       blocked: true
     });
 
     this.metrics.blockedRequests++;
-    this.metrics.lastThreatTime = Date.now();
+    this.metrics.lastThreatTime = this.getDeterministicTimestamp();
 
     this.recordSecurityEvent('operation-blocked', {
       operationId,
@@ -404,7 +404,7 @@ export class RuntimeSecurityMonitor extends EventEmitter {
    * Check for accumulating suspicious patterns
    */
   checkSuspiciousPatterns() {
-    const oneHourAgo = Date.now() - 3600000;
+    const oneHourAgo = this.getDeterministicTimestamp() - 3600000;
     const recentEvents = this.securityEvents.filter(e => e.timestamp > oneHourAgo);
     
     // Group events by type
@@ -430,7 +430,7 @@ export class RuntimeSecurityMonitor extends EventEmitter {
    * Check threat accumulation
    */
   checkThreatAccumulation() {
-    const tenMinutesAgo = Date.now() - 600000;
+    const tenMinutesAgo = this.getDeterministicTimestamp() - 600000;
     const recentThreats = Array.from(this.threats.values())
       .filter(t => t.timestamp > tenMinutesAgo);
 
@@ -524,7 +524,7 @@ export class RuntimeSecurityMonitor extends EventEmitter {
     const event = {
       id: this.generateEventId(),
       type,
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       data,
       severity: data.severity || 'info'
     };
@@ -563,7 +563,7 @@ export class RuntimeSecurityMonitor extends EventEmitter {
    * Clean up old events and data
    */
   cleanupOldEvents() {
-    const oneDayAgo = Date.now() - 86400000; // 24 hours
+    const oneDayAgo = this.getDeterministicTimestamp() - 86400000; // 24 hours
     
     // Remove old security events
     this.securityEvents = this.securityEvents.filter(e => e.timestamp > oneDayAgo);
@@ -590,14 +590,14 @@ export class RuntimeSecurityMonitor extends EventEmitter {
    * Generate unique operation ID
    */
   generateOperationId() {
-    return `op_${Date.now()}_${randomBytes(4).toString('hex')}`;
+    return `op_${this.getDeterministicTimestamp()}_${randomBytes(4).toString('hex')}`;
   }
 
   /**
    * Generate unique event ID
    */
   generateEventId() {
-    return `evt_${Date.now()}_${randomBytes(4).toString('hex')}`;
+    return `evt_${this.getDeterministicTimestamp()}_${randomBytes(4).toString('hex')}`;
   }
 
   /**
@@ -622,7 +622,7 @@ export class RuntimeSecurityMonitor extends EventEmitter {
    * Get security metrics and status
    */
   getSecurityStatus() {
-    const now = Date.now();
+    const now = this.getDeterministicTimestamp();
     const uptime = now - this.metrics.uptime;
     
     return {
@@ -649,7 +649,7 @@ export class RuntimeSecurityMonitor extends EventEmitter {
    * Calculate current requests per minute
    */
   calculateRequestsPerMinute() {
-    const oneMinuteAgo = Date.now() - 60000;
+    const oneMinuteAgo = this.getDeterministicTimestamp() - 60000;
     let totalRequests = 0;
     
     for (const timestamps of this.requestCounts.values()) {
@@ -663,7 +663,7 @@ export class RuntimeSecurityMonitor extends EventEmitter {
    * Calculate current threat level
    */
   calculateCurrentThreatLevel() {
-    const oneHourAgo = Date.now() - 3600000;
+    const oneHourAgo = this.getDeterministicTimestamp() - 3600000;
     const recentEvents = this.securityEvents.filter(e => e.timestamp > oneHourAgo);
     
     const criticalEvents = recentEvents.filter(e => e.severity === 'critical').length;

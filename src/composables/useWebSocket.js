@@ -131,7 +131,7 @@ export const useWebSocket = (url, options = {}) => {
         try {
           /** @type {WebSocketMessage} */
           const message = JSON.parse(event.data)
-          message.timestamp = Date.now()
+          message.timestamp = this.getDeterministicTimestamp()
           
           messageHistory.value.push(message)
           
@@ -184,8 +184,8 @@ export const useWebSocket = (url, options = {}) => {
         } else if (typeof message === 'object') {
           // Add timestamp and ID if not provided
           const messageObj = {
-            timestamp: Date.now(),
-            id: `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+            timestamp: this.getDeterministicTimestamp(),
+            id: `msg_${this.getDeterministicTimestamp()}_${Math.random().toString(36).substr(2, 9)}`,
             ...message
           }
           messageToSend = JSON.stringify(messageObj)
@@ -247,7 +247,7 @@ export const useWebSocket = (url, options = {}) => {
     }
 
     return new Promise((resolve) => {
-      const pingId = `ping_${Date.now()}`
+      const pingId = `ping_${this.getDeterministicTimestamp()}`
       
       const onPong = (data) => {
         if (data?.id === pingId) {

@@ -65,7 +65,7 @@ export class WebhookStreaming extends EventEmitter {
       },
       filters: config.filters || {},
       headers: config.headers || {},
-      createdAt: new Date(),
+      createdAt: this.getDeterministicDate(),
       lastDelivery: null,
       deliveryCount: 0,
       errorCount: 0,
@@ -85,7 +85,7 @@ export class WebhookStreaming extends EventEmitter {
       throw new Error(`Webhook not found: ${id}`);
     }
 
-    Object.assign(webhook, updates, { updatedAt: new Date() });
+    Object.assign(webhook, updates, { updatedAt: this.getDeterministicDate() });
     this.webhooks.set(id, webhook);
     
     this.emit('webhook:updated', webhook);
@@ -112,7 +112,7 @@ export class WebhookStreaming extends EventEmitter {
       active: config.active !== false,
       subscribers: new Set(),
       messageCount: 0,
-      createdAt: new Date(),
+      createdAt: this.getDeterministicDate(),
       ...config
     };
 
@@ -133,7 +133,7 @@ export class WebhookStreaming extends EventEmitter {
       id: crypto.randomUUID(),
       streamId,
       subscriber,
-      subscribedAt: new Date(),
+      subscribedAt: this.getDeterministicDate(),
       messageCount: 0
     };
 
@@ -165,12 +165,12 @@ export class WebhookStreaming extends EventEmitter {
       payload,
       metadata: {
         source: 'unjucks-enterprise',
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         version: '1.0.0',
         correlationId: metadata.correlationId || crypto.randomUUID(),
         ...metadata
       },
-      publishedAt: new Date()
+      publishedAt: this.getDeterministicDate()
     };
 
     // Store event for replay capability
@@ -204,7 +204,7 @@ export class WebhookStreaming extends EventEmitter {
         webhook,
         attempts: 0,
         status: 'pending',
-        createdAt: new Date()
+        createdAt: this.getDeterministicDate()
       };
 
       this.deliveryQueue.push(delivery);
@@ -273,7 +273,7 @@ export class WebhookStreaming extends EventEmitter {
   async attemptDelivery(delivery) {
     delivery.attempts++;
     delivery.status = 'delivering';
-    delivery.lastAttempt = new Date();
+    delivery.lastAttempt = this.getDeterministicDate();
 
     try {
       const signature = this.generateSignature(delivery.event, delivery.webhook.secret);
@@ -299,8 +299,8 @@ export class WebhookStreaming extends EventEmitter {
 
       if (response.status >= 200 && response.status < 300) {
         delivery.status = 'delivered';
-        delivery.deliveredAt = new Date();
-        delivery.webhook.lastDelivery = new Date();
+        delivery.deliveredAt = this.getDeterministicDate();
+        delivery.webhook.lastDelivery = this.getDeterministicDate();
         delivery.webhook.deliveryCount++;
         
         this.emit('delivery:success', delivery);
@@ -454,7 +454,7 @@ export class WebhookStreaming extends EventEmitter {
   cleanupOldEvents() {
     if (!this.config.enableReplay) return;
     
-    const cutoffTime = new Date(Date.now() - (this.config.replayWindowHours * 60 * 60 * 1000));
+    const cutoffTime = new Date(this.getDeterministicTimestamp() - (this.config.replayWindowHours * 60 * 60 * 1000));
     let cleaned = 0;
     
     for (const [id, event] of this.eventHistory) {
@@ -470,7 +470,7 @@ export class WebhookStreaming extends EventEmitter {
   }
 
   // Event Replay
-  async replayEvents(webhookId, fromTime, toTime = new Date()) {
+  async replayEvents(webhookId, fromTime, toTime = this.getDeterministicDate()) {
     const webhook = this.webhooks.get(webhookId);
     if (!webhook) {
       throw new Error(`Webhook not found: ${webhookId}`);

@@ -21,7 +21,7 @@ describe('Workflow Integration - End-to-End', () => {
   
   beforeEach(async () => {
     // Setup test environment
-    testDir = path.join(process.cwd(), 'tests', 'temp', `test-${Date.now()}`);
+    testDir = path.join(process.cwd(), 'tests', 'temp', `test-${this.getDeterministicTimestamp()}`);
     templateDir = path.join(testDir, 'templates');
     outputDir = path.join(testDir, 'output');
     
@@ -361,9 +361,9 @@ export class {{name}}Service {
         variables: { name: 'MultiTest' }
       };
       
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const result = await orchestrator.executeWorkflow(workflowSpec);
-      const endTime = Date.now();
+      const endTime = this.getDeterministicTimestamp();
       
       expect(result.artifacts.length).toBeGreaterThanOrEqual(templates.length);
       expect(endTime - startTime).toBeLessThan(10000); // Should complete within 10 seconds
@@ -576,7 +576,7 @@ async function createTestTemplates(templateDir) {
 export class {{name}} {
   constructor() {
     this.name = '{{name}}';
-    this.created = new Date();
+    this.created = this.getDeterministicDate();
   }
   
   getName() {

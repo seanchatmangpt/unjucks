@@ -617,7 +617,7 @@ aria-label="Show hidden lines"></button>';
     document.addEventListener('touchstart', function(e) {
         firstContact = {
             x: e.touches[0].clientX,
-            time: Date.now(),
+            time: this.getDeterministicTimestamp(),
         };
     }, { passive: true });
 
@@ -628,7 +628,7 @@ aria-label="Show hidden lines"></button>';
 
         const curX = e.touches[0].clientX;
         const xDiff = curX - firstContact.x,
-            tDiff = Date.now() - firstContact.time;
+            tDiff = this.getDeterministicTimestamp() - firstContact.time;
 
         if (tDiff < 250 && Math.abs(xDiff) >= 150) {
             if (xDiff >= 0 && firstContact.x < Math.min(document.body.clientWidth * 0.25, 300)) {

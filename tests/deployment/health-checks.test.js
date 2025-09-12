@@ -127,7 +127,7 @@ describe('Production Health Checks', () => {
     it('should handle file system operations efficiently', async () => {
       const testDir = '/tmp/unjucks-health-test';
       
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
       // Create test directory
       await fs.ensureDir(testDir);
@@ -144,7 +144,7 @@ describe('Production Health Checks', () => {
       // Cleanup
       await fs.remove(testDir);
       
-      const endTime = Date.now();
+      const endTime = this.getDeterministicTimestamp();
       const duration = endTime - startTime;
       
       // File operations should complete within reasonable time
@@ -277,7 +277,7 @@ describe('Production Health Checks', () => {
 
   describe('Performance Health', () => {
     it('should complete template generation within reasonable time', () => {
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
       try {
         execSync('node bin/unjucks.cjs generate component perftest --dry', { 
@@ -290,7 +290,7 @@ describe('Production Health Checks', () => {
         }
       }
       
-      const duration = Date.now() - startTime;
+      const duration = this.getDeterministicTimestamp() - startTime;
       expect(duration).toBeLessThan(5000); // Should complete within 5 seconds
     });
 
@@ -300,7 +300,7 @@ describe('Production Health Checks', () => {
       
       await fs.writeFile(largeTemplate, largeContent);
       
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
       try {
         // Simulate processing large template
@@ -310,7 +310,7 @@ describe('Production Health Checks', () => {
         // Template processing should not crash
       }
       
-      const duration = Date.now() - startTime;
+      const duration = this.getDeterministicTimestamp() - startTime;
       expect(duration).toBeLessThan(2000); // Should process within 2 seconds
       
       await fs.remove(largeTemplate);

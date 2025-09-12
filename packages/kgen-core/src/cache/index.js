@@ -81,8 +81,8 @@ export class CacheManager {
       content,
       metadata: {
         ...metadata,
-        createdAt: Date.now(),
-        accessedAt: Date.now(),
+        createdAt: this.getDeterministicTimestamp(),
+        accessedAt: this.getDeterministicTimestamp(),
         size: this.calculateSize(content)
       }
     }
@@ -106,7 +106,7 @@ export class CacheManager {
     if (!entry) return null
     
     // Update access time for LRU
-    entry.metadata.accessedAt = Date.now()
+    entry.metadata.accessedAt = this.getDeterministicTimestamp()
     await this.storage.store(hash, entry)
     
     return {
@@ -136,7 +136,7 @@ export class CacheManager {
     if (!entry) return null
     
     // Update access time
-    entry.metadata.accessedAt = Date.now()
+    entry.metadata.accessedAt = this.getDeterministicTimestamp()
     await this.storage.store(hash, entry)
     
     return {

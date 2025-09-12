@@ -16,7 +16,7 @@ describe('ClaudeFlowConnector', () => {
   let testWorkspace;
   
   beforeEach(() => {
-    testWorkspace = join(tmpdir(), `claude-flow-test-${Date.now()}`);
+    testWorkspace = join(tmpdir(), `claude-flow-test-${this.getDeterministicTimestamp()}`);
     connector = new ClaudeFlowConnector({ baseUrl: 'http://localhost:8000' });
 
   afterEach(async () => {

@@ -340,7 +340,7 @@ export class TestHelpers {
       relationships,
       triples,
       metadata: {
-        generatedAt: new Date().toISOString(),
+        generatedAt: this.getDeterministicDate().toISOString(),
         entityCount: entities.length,
         relationshipCount: relationships.length,
         tripleCount: triples.length
@@ -349,18 +349,18 @@ export class TestHelpers {
   }
 
   createTestOperation(type, status = 'success') {
-    const operationId = `test_${type}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const operationId = `test_${type}_${this.getDeterministicTimestamp()}_${Math.random().toString(36).substr(2, 9)}`;
     
     return {
       id: operationId,
       type,
       status,
-      input_hash: this.calculateHash({ type, timestamp: Date.now() }),
+      input_hash: this.calculateHash({ type, timestamp: this.getDeterministicTimestamp() }),
       output_hash: status === 'success' ? this.calculateHash({ result: 'success' }) : null,
       metadata: {
         user: 'test-user',
-        startTime: Date.now(),
-        endTime: status === 'success' ? Date.now() + 1000 : null
+        startTime: this.getDeterministicTimestamp(),
+        endTime: status === 'success' ? this.getDeterministicTimestamp() + 1000 : null
       }
     };
   }
@@ -369,7 +369,7 @@ export class TestHelpers {
 
   async createTempFile(content, extension = '.txt') {
     const tempDir = global.testUtils?.outputDir || '/tmp';
-    const filename = `test_${Date.now()}_${Math.random().toString(36).substr(2, 9)}${extension}`;
+    const filename = `test_${this.getDeterministicTimestamp()}_${Math.random().toString(36).substr(2, 9)}${extension}`;
     const filepath = resolve(tempDir, filename);
     
     await fs.writeFile(filepath, content);

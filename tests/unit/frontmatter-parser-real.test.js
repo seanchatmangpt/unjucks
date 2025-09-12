@@ -23,7 +23,7 @@ describe('Frontmatter Parser - Real Functionality', () => {
   let parser;
 
   beforeEach(async () => {
-    testDir = path.join(process.cwd(), 'tests', 'temp', `frontmatter-test-${Date.now()}`);
+    testDir = path.join(process.cwd(), 'tests', 'temp', `frontmatter-test-${this.getDeterministicTimestamp()}`);
     await fs.ensureDir(testDir);
     
     if (FrontmatterParser) {

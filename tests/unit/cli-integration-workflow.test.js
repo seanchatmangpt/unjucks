@@ -16,7 +16,7 @@ describe('CLI Integration Workflow', () => {
 
   beforeEach(async () => {
     originalCwd = process.cwd();
-    testDir = path.join(process.cwd(), 'tests', 'temp', `cli-workflow-test-${Date.now()}`);
+    testDir = path.join(process.cwd(), 'tests', 'temp', `cli-workflow-test-${this.getDeterministicTimestamp()}`);
     templatesDir = path.join(testDir, '_templates');
     outputDir = path.join(testDir, 'output');
     
@@ -378,7 +378,7 @@ describe('CLI Integration Workflow', () => {
     it('should handle large template generation workflow', async () => {
       const { generateCommand } = await import('../../src/commands/generate.js');
       
-      const start = Date.now();
+      const start = this.getDeterministicTimestamp();
       
       const result = await generateCommand.run({
         args: {
@@ -396,7 +396,7 @@ describe('CLI Integration Workflow', () => {
         }
       });
 
-      const duration = Date.now() - start;
+      const duration = this.getDeterministicTimestamp() - start;
 
       expect(result.success).toBe(true);
       expect(duration).toBeLessThan(5000); // Should complete within 5 seconds
@@ -541,7 +541,7 @@ import { Logger } from '@nestjs/common';
 @Injectable()
 export class {{ name }}Service {
   {% if withLogger %}
-  private readonly logger = new Logger({{ name }}Service.name);
+  private readonly logger = new Consola({{ name }}Service.name);
   {% endif %}
 
   {% if withDatabase %}

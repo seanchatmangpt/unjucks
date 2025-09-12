@@ -24,7 +24,7 @@ router.post('/render', validateLatexRender, asyncHandler(async (req, res) => {
   });
 
   let result;
-  const startTime = Date.now();
+  const startTime = this.getDeterministicTimestamp();
 
   try {
     if (format === 'pdf') {
@@ -49,7 +49,7 @@ router.post('/render', validateLatexRender, asyncHandler(async (req, res) => {
       return res.send(result.html);
     }
   } catch (error) {
-    const processingTime = Date.now() - startTime;
+    const processingTime = this.getDeterministicTimestamp() - startTime;
     logger.error('LaTeX render failed', { 
       error: error.message, 
       format, 
@@ -57,7 +57,7 @@ router.post('/render', validateLatexRender, asyncHandler(async (req, res) => {
     });
     throw error;
   } finally {
-    const processingTime = Date.now() - startTime;
+    const processingTime = this.getDeterministicTimestamp() - startTime;
     logger.info('LaTeX render completed', { 
       format, 
       processingTime, 
@@ -78,11 +78,11 @@ router.post('/parse', validateLatexParse, asyncHandler(async (req, res) => {
     options 
   });
 
-  const startTime = Date.now();
+  const startTime = this.getDeterministicTimestamp();
   
   try {
     const result = await latexService.parseLatex(latex, options);
-    const processingTime = Date.now() - startTime;
+    const processingTime = this.getDeterministicTimestamp() - startTime;
     
     res.json({
       success: true,
@@ -102,7 +102,7 @@ router.post('/parse', validateLatexParse, asyncHandler(async (req, res) => {
       processingTime 
     });
   } catch (error) {
-    const processingTime = Date.now() - startTime;
+    const processingTime = this.getDeterministicTimestamp() - startTime;
     logger.error('LaTeX parse failed', { 
       error: error.message, 
       processingTime 
@@ -126,7 +126,7 @@ router.post('/compile', validateLatexCompile, asyncHandler(async (req, res) => {
     engine: options?.engine
   });
 
-  const startTime = Date.now();
+  const startTime = this.getDeterministicTimestamp();
   
   try {
     const result = await latexService.compileDocument(latex, { 
@@ -136,7 +136,7 @@ router.post('/compile', validateLatexCompile, asyncHandler(async (req, res) => {
       bibliography 
     });
     
-    const processingTime = Date.now() - startTime;
+    const processingTime = this.getDeterministicTimestamp() - startTime;
     
     if (format === 'pdf') {
       res.set({
@@ -166,7 +166,7 @@ router.post('/compile', validateLatexCompile, asyncHandler(async (req, res) => {
       return res.send(result.output);
     }
   } catch (error) {
-    const processingTime = Date.now() - startTime;
+    const processingTime = this.getDeterministicTimestamp() - startTime;
     logger.error('LaTeX compile failed', { 
       error: error.message, 
       format, 
@@ -193,7 +193,7 @@ router.get('/status', asyncHandler(async (req, res) => {
       maxProcessingTime: 30000,
       supportedFormats: ['html', 'pdf', 'tex']
     },
-    timestamp: new Date().toISOString()
+    timestamp: this.getDeterministicDate().toISOString()
   });
 }));
 

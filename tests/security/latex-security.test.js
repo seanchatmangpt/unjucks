@@ -17,7 +17,7 @@ describe('LaTeX Security Tests', () => {
   let pathSecurity;
 
   beforeEach(async () => {
-    tempDir = path.join(__dirname, 'temp', `test-${Date.now()}`);
+    tempDir = path.join(__dirname, 'temp', `test-${this.getDeterministicTimestamp()}`);
     await fs.mkdir(tempDir, { recursive: true });
     
     pathSecurity = new PathSecurityManager({

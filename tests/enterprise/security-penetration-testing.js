@@ -236,7 +236,7 @@ export class SecurityTestEngine extends EventEmitter {
             response,
             responseTime,
             vulnerability,
-            timestamp: Date.now(),
+            timestamp: this.getDeterministicTimestamp(),
           });
 
           if (vulnerability.detected) {
@@ -262,7 +262,7 @@ export class SecurityTestEngine extends EventEmitter {
             attackType,
             payload,
             error: error.message,
-            timestamp: Date.now(),
+            timestamp: this.getDeterministicTimestamp(),
           });
         }
       }
@@ -1095,7 +1095,7 @@ describe('KGEN Security Penetration Testing Suite', () => {
         const sessionId = randomBytes(32).toString('hex');
         sessions.set(sessionId, {
           username: credentials.username,
-          created: Date.now(),
+          created: this.getDeterministicTimestamp(),
         });
         
         return {

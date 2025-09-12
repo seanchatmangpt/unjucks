@@ -13,7 +13,7 @@ import chalk from 'chalk';
 class ProductionValidator {
   constructor() {
     this.validationResults = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       environment: process.env.NODE_ENV || 'development',
       validations: {},
       errors: [],
@@ -22,7 +22,7 @@ class ProductionValidator {
   }
 
   log(level, message, details = null) {
-    const timestamp = new Date().toISOString();
+    const timestamp = this.getDeterministicDate().toISOString();
     const logEntry = { timestamp, level, message, details };
     
     console.log(
@@ -170,9 +170,9 @@ class ProductionValidator {
       }
       
       // Test build performance
-      const buildStart = Date.now();
+      const buildStart = this.getDeterministicTimestamp();
       execSync('npm run build:validate', { stdio: 'pipe' });
-      const buildTime = Date.now() - buildStart;
+      const buildTime = this.getDeterministicTimestamp() - buildStart;
       
       if (buildTime > 60000) { // 1 minute
         this.log('warning', `Build time exceeds 1 minute: ${(buildTime / 1000).toFixed(2)}s`);

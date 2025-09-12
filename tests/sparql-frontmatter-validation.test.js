@@ -352,9 +352,9 @@ WHERE {
 ${largePatterns}
 }`;
 
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const result = await parser.parse(largeSparql);
-      const endTime = Date.now();
+      const endTime = this.getDeterministicTimestamp();
 
       expect(result.hasValidFrontmatter).toBe(true);
       expect(result.content).toContain('?entity999');

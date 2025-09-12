@@ -239,14 +239,14 @@ describe('RDF Graph Processor Tests', () => {
       const pattern = { predicate: 'http://xmlns.com/foaf/0.1/name' };
       
       // First query
-      const start1 = Date.now();
+      const start1 = this.getDeterministicTimestamp();
       const results1 = processor.query(pattern);
-      const time1 = Date.now() - start1;
+      const time1 = this.getDeterministicTimestamp() - start1;
       
       // Second query (should be cached)
-      const start2 = Date.now();
+      const start2 = this.getDeterministicTimestamp();
       const results2 = processor.query(pattern);
-      const time2 = Date.now() - start2;
+      const time2 = this.getDeterministicTimestamp() - start2;
       
       assert.deepEqual(results1, results2, 'Cached results should be identical');
       assert.ok(time2 <= time1, 'Cached query should be faster or equal');
@@ -265,18 +265,18 @@ describe('RDF Graph Processor Tests', () => {
         largeData += `\nex:person${i} foaf:age "${20 + i}" .`;
       }
       
-      const start = Date.now();
+      const start = this.getDeterministicTimestamp();
       const result = await processor.parseRDF(largeData);
       processor.addQuads(result.quads);
-      const parseTime = Date.now() - start;
+      const parseTime = this.getDeterministicTimestamp() - start;
       
       assert.ok(result.quads.length >= 200, 'Should parse all triples');
       assert.ok(parseTime < 5000, 'Should parse within reasonable time');
       
       // Test hash calculation performance
-      const hashStart = Date.now();
+      const hashStart = this.getDeterministicTimestamp();
       const hash = processor.calculateContentHash();
-      const hashTime = Date.now() - hashStart;
+      const hashTime = this.getDeterministicTimestamp() - hashStart;
       
       assert.ok(typeof hash === 'string', 'Should calculate hash');
       assert.ok(hashTime < 1000, 'Hash calculation should be fast');
@@ -555,14 +555,14 @@ describe('SPARQL Interface Tests', () => {
       const query = 'SELECT * WHERE { ?s ?p ?o } LIMIT 10';
       
       // First execution
-      const start1 = Date.now();
+      const start1 = this.getDeterministicTimestamp();
       const results1 = await sparqlInterface.select(processor.store, query);
-      const time1 = Date.now() - start1;
+      const time1 = this.getDeterministicTimestamp() - start1;
       
       // Second execution (should be cached)
-      const start2 = Date.now();
+      const start2 = this.getDeterministicTimestamp();
       const results2 = await sparqlInterface.select(processor.store, query);
-      const time2 = Date.now() - start2;
+      const time2 = this.getDeterministicTimestamp() - start2;
       
       const stats = sparqlInterface.getStats();
       assert.ok(stats.cacheHits > 0 || stats.cacheMisses > 0, 'Should track cache statistics');
@@ -606,7 +606,7 @@ describe('Content-Addressed Cache Tests', () => {
   let tempCacheDir;
   
   beforeEach(async () => {
-    tempCacheDir = '/tmp/kgen-test-cache-' + Date.now();
+    tempCacheDir = '/tmp/kgen-test-cache-' + this.getDeterministicTimestamp();
     cache = new ContentAddressedCache({
       cacheDir: tempCacheDir,
       maxCacheSize: 100
@@ -784,7 +784,7 @@ describe('KGEN RDF Processing Integration', () => {
     diffEngine = new GraphDiffEngine();
     sparqlInterface = new SparqlInterface();
     cache = new ContentAddressedCache({
-      cacheDir: '/tmp/kgen-integration-test-' + Date.now()
+      cacheDir: '/tmp/kgen-integration-test-' + this.getDeterministicTimestamp()
     });
   });
   

@@ -1,0 +1,156 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "KGEN API Documentation",
+    "version": "1.0.0",
+    "description": "Auto-generated API documentation for KGEN components"
+  },
+  "servers": [
+    {
+      "url": "https://api.kgen.dev/v1",
+      "description": "Production server"
+    },
+    {
+      "url": "https://staging-api.kgen.dev/v1",
+      "description": "Staging server"
+    }
+  ],
+  "paths": {
+    "/rdf-processing-engine": {
+      "get": {
+        "summary": "Get RDF Processing Engine status",
+        "description": "Parse and query RDF graphs",
+        "tags": [
+          "RDF Processing Engine"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string"
+                    },
+                    "technology": {
+                      "type": "string",
+                      "example": "Apache Jena, SPARQL"
+                    },
+                    "interface": {
+                      "type": "string",
+                      "example": "REST API, GraphQL"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/shacl-validation-engine": {
+      "get": {
+        "summary": "Get SHACL Validation Engine status",
+        "description": "Validate RDF data against shapes",
+        "tags": [
+          "SHACL Validation Engine"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string"
+                    },
+                    "technology": {
+                      "type": "string",
+                      "example": "TopBraid SHACL API"
+                    },
+                    "interface": {
+                      "type": "string",
+                      "example": "Validation API"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/code-generation-engine": {
+      "get": {
+        "summary": "Get Code Generation Engine status",
+        "description": "Generate code from RDF templates",
+        "tags": [
+          "Code Generation Engine"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string"
+                    },
+                    "technology": {
+                      "type": "string",
+                      "example": "Nunjucks, AST manipulation"
+                    },
+                    "interface": {
+                      "type": "string",
+                      "example": "Generation API"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/template-processing-engine": {
+      "get": {
+        "summary": "Get Template Processing Engine status",
+        "description": "Process and render templates",
+        "tags": [
+          "Template Processing Engine"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string"
+                    },
+                    "technology": {
+                      "type": "string",
+                      "example": "Nunjucks, Handlebars"
+                    },
+                    "interface": {
+                      "type": "string",
+                      "example": "Template API"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -207,7 +207,7 @@ export async function unjucksDryRun(params) {
           fileCount: dryRunFiles.length,
           hasWarnings: summary.warnings > 0,
           hasConflicts: summary.existingFiles > 0,
-          timestamp: new Date().toISOString()
+          timestamp: this.getDeterministicDate().toISOString()
         }
       };
       

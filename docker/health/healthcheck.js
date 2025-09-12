@@ -26,10 +26,10 @@ class HealthChecker {
     }
 
     async runCheck(check) {
-        const start = Date.now();
+        const start = this.getDeterministicTimestamp();
         try {
             const result = await check.checkFn();
-            const duration = Date.now() - start;
+            const duration = this.getDeterministicTimestamp() - start;
             
             if (result.success) {
                 this.results.passed++;
@@ -58,7 +58,7 @@ class HealthChecker {
                 return false;
             }
         } catch (error) {
-            const duration = Date.now() - start;
+            const duration = this.getDeterministicTimestamp() - start;
             if (check.critical) {
                 this.results.failed++;
             } else {
@@ -379,13 +379,13 @@ class HealthChecker {
 
         await this.setupChecks();
 
-        const startTime = Date.now();
+        const startTime = this.getDeterministicTimestamp();
         
         for (const check of this.checks) {
             await this.runCheck(check);
         }
 
-        const totalTime = Date.now() - startTime;
+        const totalTime = this.getDeterministicTimestamp() - startTime;
         
         // Print results
         console.log('\n📊 Health Check Results:');
@@ -411,7 +411,7 @@ class HealthChecker {
         if (this.isTesting && fs.existsSync('/app/test-results')) {
             const reportPath = '/app/test-results/health-check.json';
             fs.writeFileSync(reportPath, JSON.stringify({
-                timestamp: new Date().toISOString(),
+                timestamp: this.getDeterministicDate().toISOString(),
                 environment: process.env.NODE_ENV,
                 duration: totalTime,
                 summary: {

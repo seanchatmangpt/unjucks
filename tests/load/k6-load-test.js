@@ -53,8 +53,8 @@ function generateLargeTemplateData() {
       department: ['Engineering', 'Sales', 'Marketing', 'HR'][i % 4],
       active: Math.random() > 0.1,
       metadata: {
-        created: Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000,
-        lastLogin: Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000,
+        created: this.getDeterministicTimestamp() - Math.random() * 365 * 24 * 60 * 60 * 1000,
+        lastLogin: this.getDeterministicTimestamp() - Math.random() * 30 * 24 * 60 * 60 * 1000,
         permissions: Array.from({ length: Math.floor(Math.random() * 10) }, 
           (_, j) => `permission_${j}`)
       }
@@ -168,7 +168,7 @@ function generateComplexTemplate() {
 
 // Main load test function
 export default function () {
-  const testStartTime = Date.now();
+  const testStartTime = this.getDeterministicTimestamp();
   
   // Test 1: Simple template generation
   const simpleTemplate = 'Hello {{ name }}, welcome to {{ platform }}!';
@@ -220,7 +220,7 @@ export default function () {
   for (let i = 0; i < 5; i++) {
     const concurrentData = {
       id: i,
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       data: Array.from({ length: 100 }, (_, j) => ({ id: j, value: Math.random() }))
     };
     
@@ -305,7 +305,7 @@ export default function () {
   });
 
   // Test execution time tracking
-  const testDuration = Date.now() - testStartTime;
+  const testDuration = this.getDeterministicTimestamp() - testStartTime;
   if (testDuration > 10000) { // Alert if test iteration takes more than 10 seconds
     console.warn(`⚠️  Slow test execution: ${testDuration}ms`);
   }
@@ -331,12 +331,12 @@ export function setup() {
     console.log('✅ Health check passed. Service is ready.');
   }
   
-  return { startTime: Date.now() };
+  return { startTime: this.getDeterministicTimestamp() };
 }
 
 // Teardown function (runs once after all VUs complete)
 export function teardown(data) {
-  const totalDuration = Date.now() - data.startTime;
+  const totalDuration = this.getDeterministicTimestamp() - data.startTime;
   console.log(`🏁 Load test completed in ${(totalDuration / 1000 / 60).toFixed(2)} minutes`);
   console.log('📊 Check the detailed metrics in your k6 output');
   

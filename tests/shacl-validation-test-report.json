@@ -1,0 +1,117 @@
+{
+  "summary": {
+    "timestamp": "2025-09-12T18:27:33.850Z",
+    "totalTests": 9,
+    "passed": 2,
+    "failed": 7,
+    "successRate": 22,
+    "totalDuration": 49.36062499999997,
+    "averageDuration": 5.484513888888886
+  },
+  "performance": {
+    "totalTests": 2,
+    "averageValidationTime": 18.596541749999993,
+    "fastestValidation": 0.5119170000000111,
+    "slowestValidation": 36.93712499999998
+  },
+  "testResults": [
+    {
+      "name": "SHACL Engine Initialization",
+      "passed": false,
+      "duration": 5.057249999999982,
+      "error": "SHACL engine initialization failed: clownface(...).dataset is not a function",
+      "stack": "Error: SHACL engine initialization failed: clownface(...).dataset is not a function\n    at SHACLValidationEngine.initialize (file:///Users/sac/unjucks/src/kgen/validation/shacl-validation-engine.js:109:13)\n    at async SHACLValidationTester.testSHACLEngineInitialization (file:///Users/sac/unjucks/tests/test-shacl-validation.mjs:94:5)\n    at async SHACLValidationTester.runTest (file:///Users/sac/unjucks/tests/test-shacl-validation.mjs:42:22)\n    at async SHACLValidationTester.runAllTests (file:///Users/sac/unjucks/tests/test-shacl-validation.mjs:517:9)",
+      "timestamp": "2025-09-12T18:27:33.803Z"
+    },
+    {
+      "name": "Valid Data Validation",
+      "passed": false,
+      "duration": 1.6312499999999943,
+      "error": "SHACL engine initialization failed: clownface(...).dataset is not a function",
+      "stack": "Error: SHACL engine initialization failed: clownface(...).dataset is not a function\n    at SHACLValidationEngine.initialize (file:///Users/sac/unjucks/src/kgen/validation/shacl-validation-engine.js:109:13)\n    at async SHACLValidationTester.testValidDataValidation (file:///Users/sac/unjucks/tests/test-shacl-validation.mjs:117:5)\n    at async SHACLValidationTester.runTest (file:///Users/sac/unjucks/tests/test-shacl-validation.mjs:42:22)\n    at async SHACLValidationTester.runAllTests (file:///Users/sac/unjucks/tests/test-shacl-validation.mjs:517:9)",
+      "timestamp": "2025-09-12T18:27:33.805Z"
+    },
+    {
+      "name": "Invalid Data Validation",
+      "passed": false,
+      "duration": 1.4137090000000114,
+      "error": "SHACL engine initialization failed: clownface(...).dataset is not a function",
+      "stack": "Error: SHACL engine initialization failed: clownface(...).dataset is not a function\n    at SHACLValidationEngine.initialize (file:///Users/sac/unjucks/src/kgen/validation/shacl-validation-engine.js:109:13)\n    at async SHACLValidationTester.testInvalidDataValidation (file:///Users/sac/unjucks/tests/test-shacl-validation.mjs:140:5)\n    at async SHACLValidationTester.runTest (file:///Users/sac/unjucks/tests/test-shacl-validation.mjs:42:22)\n    at async SHACLValidationTester.runAllTests (file:///Users/sac/unjucks/tests/test-shacl-validation.mjs:517:9)",
+      "timestamp": "2025-09-12T18:27:33.807Z"
+    },
+    {
+      "name": "Constraint Types Coverage",
+      "passed": false,
+      "duration": 1.1329580000000021,
+      "error": "SHACL engine initialization failed: clownface(...).dataset is not a function",
+      "stack": "Error: SHACL engine initialization failed: clownface(...).dataset is not a function\n    at SHACLValidationEngine.initialize (file:///Users/sac/unjucks/src/kgen/validation/shacl-validation-engine.js:109:13)\n    at async SHACLValidationTester.testConstraintTypes (file:///Users/sac/unjucks/tests/test-shacl-validation.mjs:197:5)\n    at async SHACLValidationTester.runTest (file:///Users/sac/unjucks/tests/test-shacl-validation.mjs:42:22)\n    at async SHACLValidationTester.runAllTests (file:///Users/sac/unjucks/tests/test-shacl-validation.mjs:517:9)",
+      "timestamp": "2025-09-12T18:27:33.808Z"
+    },
+    {
+      "name": "Performance Targets",
+      "passed": false,
+      "duration": 1.1608329999999967,
+      "error": "SHACL engine initialization failed: clownface(...).dataset is not a function",
+      "stack": "Error: SHACL engine initialization failed: clownface(...).dataset is not a function\n    at SHACLValidationEngine.initialize (file:///Users/sac/unjucks/src/kgen/validation/shacl-validation-engine.js:109:13)\n    at async SHACLValidationTester.testPerformanceTargets (file:///Users/sac/unjucks/tests/test-shacl-validation.mjs:229:5)\n    at async SHACLValidationTester.runTest (file:///Users/sac/unjucks/tests/test-shacl-validation.mjs:42:22)\n    at async SHACLValidationTester.runAllTests (file:///Users/sac/unjucks/tests/test-shacl-validation.mjs:517:9)",
+      "timestamp": "2025-09-12T18:27:33.810Z"
+    },
+    {
+      "name": "Error Reporting Quality",
+      "passed": false,
+      "duration": 0.37462500000000887,
+      "error": "SHACL engine initialization failed: clownface(...).dataset is not a function",
+      "stack": "Error: SHACL engine initialization failed: clownface(...).dataset is not a function\n    at SHACLValidationEngine.initialize (file:///Users/sac/unjucks/src/kgen/validation/shacl-validation-engine.js:109:13)\n    at async SHACLValidationTester.testErrorReporting (file:///Users/sac/unjucks/tests/test-shacl-validation.mjs:294:5)\n    at async SHACLValidationTester.runTest (file:///Users/sac/unjucks/tests/test-shacl-validation.mjs:42:22)\n    at async SHACLValidationTester.runAllTests (file:///Users/sac/unjucks/tests/test-shacl-validation.mjs:517:9)",
+      "timestamp": "2025-09-12T18:27:33.810Z"
+    },
+    {
+      "name": "Batch Validation",
+      "passed": false,
+      "duration": 1.1409579999999835,
+      "error": "SHACL engine initialization failed: clownface(...).dataset is not a function",
+      "stack": "Error: SHACL engine initialization failed: clownface(...).dataset is not a function\n    at SHACLValidationEngine.initialize (file:///Users/sac/unjucks/src/kgen/validation/shacl-validation-engine.js:109:13)\n    at async SHACLValidationTester.testBatchValidation (file:///Users/sac/unjucks/tests/test-shacl-validation.mjs:345:5)\n    at async SHACLValidationTester.runTest (file:///Users/sac/unjucks/tests/test-shacl-validation.mjs:42:22)\n    at async SHACLValidationTester.runAllTests (file:///Users/sac/unjucks/tests/test-shacl-validation.mjs:517:9)",
+      "timestamp": "2025-09-12T18:27:33.812Z"
+    },
+    {
+      "name": "External Validator Integration",
+      "passed": true,
+      "duration": 0.5119170000000111,
+      "result": {
+        "shaclEngineAvailable": true,
+        "rdfExtAvailable": true,
+        "clownfaceAvailable": true,
+        "integrationReady": true
+      },
+      "timestamp": "2025-09-12T18:27:33.813Z"
+    },
+    {
+      "name": "AJV Formats Integration",
+      "passed": true,
+      "duration": 36.93712499999998,
+      "result": {
+        "ajvAvailable": true,
+        "formatsLoaded": true,
+        "validDataPasses": true,
+        "invalidDataFails": true,
+        "errorCount": 1,
+        "sampleErrors": [
+          {
+            "instancePath": "/email",
+            "schemaPath": "#/properties/email/format",
+            "keyword": "format",
+            "params": {
+              "format": "email"
+            },
+            "message": "must match format \"email\""
+          }
+        ]
+      },
+      "timestamp": "2025-09-12T18:27:33.850Z"
+    }
+  ],
+  "conclusions": {
+    "shaclFrameworkWorking": false,
+    "performanceAcceptable": true,
+    "errorReportingGood": false,
+    "integrationComplete": true
+  }
+}

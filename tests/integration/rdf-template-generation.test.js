@@ -437,7 +437,7 @@ to: database/schema/{{ schemaName.toLowerCase() }}.sql
 ---
 -- Generated SQL Schema from RDF Data
 -- Source: {{ dataSource.source }}
--- Generated at: {{ new Date().toISOString() }}
+-- Generated at: {{ this.getDeterministicDate().toISOString() }}
 
 -- Organizations table
 CREATE TABLE organizations (
@@ -572,7 +572,7 @@ to: docs/api/{{ apiName }}.md
 ---
 # {{ apiName }} API Documentation
 
-Generated from RDF schema on {{ new Date().toISOString().split('T')[0] }}
+Generated from RDF schema on {{ this.getDeterministicDate().toISOString().split('T')[0] }}
 
 ## Overview
 

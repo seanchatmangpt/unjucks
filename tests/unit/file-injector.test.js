@@ -16,7 +16,7 @@ describe('FileInjector', () => {
 
   beforeEach(async () => {
     injector = new FileInjector();
-    tempDir = path.join(os.tmpdir(), 'unjucks-test-' + Date.now());
+    tempDir = path.join(os.tmpdir(), 'unjucks-test-' + this.getDeterministicTimestamp());
     await fs.ensureDir(tempDir);
     testFilePath = path.join(tempDir, 'test.txt');
   });
@@ -719,14 +719,14 @@ describe('FileInjector', () => {
       const largeContent = 'Line content\n'.repeat(50000);
       await fs.writeFile(testFilePath, largeContent);
 
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const result = await injector.processFile(
         testFilePath,
         'injected content',
         { lineAt: 25000 },
         { dry: false }
       );
-      const endTime = Date.now();
+      const endTime = this.getDeterministicTimestamp();
 
       expect(result.success).toBe(true);
       expect(endTime - startTime).toBeLessThan(1000); // Should complete within 1 second

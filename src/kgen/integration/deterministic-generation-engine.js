@@ -7,7 +7,7 @@
  */
 
 import { EventEmitter } from 'events';
-import { Logger } from 'consola';
+import { Consola } from 'consola';
 import { DeterministicRenderingSystem } from '../deterministic/index.js';
 import { ProvenanceTracker } from '../provenance/tracker.js';
 import { KGenErrorHandler } from '../utils/error-handler.js';
@@ -54,7 +54,7 @@ export class DeterministicGenerationEngine extends EventEmitter {
       ...config
     };
     
-    this.logger = new Logger({ tag: 'kgen-deterministic-generation' });
+    this.logger = new Consola({ tag: 'kgen-deterministic-generation' });
     this.state = 'initialized';
     
     // Initialize error handler
@@ -149,7 +149,7 @@ export class DeterministicGenerationEngine extends EventEmitter {
    */
   async generateDeterministic(generationRequest, options = {}) {
     const operationId = this._generateOperationId();
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       this.logger.info(`Starting deterministic generation ${operationId}`);
@@ -171,7 +171,7 @@ export class DeterministicGenerationEngine extends EventEmitter {
           type: 'deterministic_generation',
           request: generationRequest,
           options,
-          timestamp: new Date()
+          timestamp: this.getDeterministicDate()
         });
       }
       
@@ -220,7 +220,7 @@ export class DeterministicGenerationEngine extends EventEmitter {
             incrementalGeneration: incrementalAnalysis.canUseIncremental,
             contentAddressing: this.config.enableContentAddressing,
             integrityVerification: this.config.enableIntegrityVerification,
-            generationTime: Date.now() - startTime
+            generationTime: this.getDeterministicTimestamp() - startTime
           }
         });
       }
@@ -230,7 +230,7 @@ export class DeterministicGenerationEngine extends EventEmitter {
       if (incrementalAnalysis.canUseIncremental) {
         this.metrics.incrementalGenerations++;
       }
-      this.metrics.totalGenerationTime += (Date.now() - startTime);
+      this.metrics.totalGenerationTime += (this.getDeterministicTimestamp() - startTime);
       
       // Update active generation status
       this.activeGenerations.set(operationId, {
@@ -275,7 +275,7 @@ export class DeterministicGenerationEngine extends EventEmitter {
       };
       
       // Update metrics
-      this.metrics.totalGenerationTime += (Date.now() - startTime);
+      this.metrics.totalGenerationTime += (this.getDeterministicTimestamp() - startTime);
       
       // Handle error with recovery
       const handlingResult = await this.errorHandler.handleError(
@@ -313,7 +313,7 @@ export class DeterministicGenerationEngine extends EventEmitter {
    * @returns {Promise<string>} Content address hash
    */
   async computeContentAddress(artifact, options = {}) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       // Create canonical representation of artifact for hashing
@@ -327,12 +327,12 @@ export class DeterministicGenerationEngine extends EventEmitter {
         hash = await this._computeSequentialHash(canonicalArtifact, options);
       }
       
-      this.metrics.totalHashingTime += (Date.now() - startTime);
+      this.metrics.totalHashingTime += (this.getDeterministicTimestamp() - startTime);
       
       this.emit('content:addressed', {
         artifactId: artifact.id,
         contentAddress: hash,
-        hashTime: Date.now() - startTime
+        hashTime: this.getDeterministicTimestamp() - startTime
       });
       
       return hash;
@@ -369,7 +369,7 @@ export class DeterministicGenerationEngine extends EventEmitter {
       
       const overallResult = {
         operationId,
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         valid: verificationResults.every(r => r.valid),
         artifactsVerified: artifacts.length,
         validArtifacts: verificationResults.filter(r => r.valid).length,
@@ -508,13 +508,13 @@ export class DeterministicGenerationEngine extends EventEmitter {
   // Private methods
 
   _generateOperationId() {
-    return `dge_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    return `dge_${this.getDeterministicTimestamp()}_${Math.random().toString(36).substr(2, 9)}`;
   }
 
   async _createDeterministicPlan(generationRequest, options) {
     const plan = {
       operationId: options.operationId,
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       request: generationRequest,
       options,
       
@@ -642,7 +642,7 @@ export class DeterministicGenerationEngine extends EventEmitter {
     
     const result = {
       operationId: generationPlan.operationId,
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       artifacts: [],
       metadata: {
         deterministicPlan: generationPlan,
@@ -704,7 +704,7 @@ export class DeterministicGenerationEngine extends EventEmitter {
           this.contentAddressIndex.set(artifact.contentAddress, {
             operationId: generationPlan.operationId,
             artifactId: artifact.id,
-            timestamp: new Date().toISOString()
+            timestamp: this.getDeterministicDate().toISOString()
           });
         }
       }
@@ -775,7 +775,7 @@ export class DeterministicGenerationEngine extends EventEmitter {
       // Update generation state
       const stateEntry = {
         operationId,
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         plan: generationPlan,
         result: generationResult,
         validation: validationResult,
@@ -991,7 +991,7 @@ export class DeterministicGenerationEngine extends EventEmitter {
       
       const stateData = {
         version: this.getVersion(),
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         history: this.generationHistory,
         contentAddressIndex: Array.from(this.contentAddressIndex.entries()),
         previousGenerations: Array.from(this.previousGenerations.entries()),
@@ -1006,9 +1006,9 @@ export class DeterministicGenerationEngine extends EventEmitter {
   }
 
   async _waitForActiveGenerations(timeout = 30000) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
-    while (this.activeGenerations.size > 0 && (Date.now() - startTime) < timeout) {
+    while (this.activeGenerations.size > 0 && (this.getDeterministicTimestamp() - startTime) < timeout) {
       await new Promise(resolve => setTimeout(resolve, 100));
     }
     

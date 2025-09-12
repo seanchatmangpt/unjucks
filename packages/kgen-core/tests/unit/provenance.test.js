@@ -57,7 +57,7 @@ describe('Provenance Verification', () => {
         outputs: {
           file: resolve(outputDir, 'generated.ts')
         },
-        timestamp: new Date().toISOString()
+        timestamp: this.getDeterministicDate().toISOString()
       };
       
       const provenance = await tracker.track(operation);
@@ -462,13 +462,13 @@ describe('Provenance Verification', () => {
         });
       }
       
-      const start = Date.now();
+      const start = this.getDeterministicTimestamp();
       
       const provenances = await Promise.all(
         operations.map(op => tracker.track(op))
       );
       
-      const duration = Date.now() - start;
+      const duration = this.getDeterministicTimestamp() - start;
       
       expect(provenances).toHaveLength(100);
       expect(provenances.every(p => p.success)).toBe(true);

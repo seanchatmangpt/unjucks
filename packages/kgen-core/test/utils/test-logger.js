@@ -16,7 +16,7 @@ export class TestLogger {
     const entry = {
       type: 'log',
       message: args.join(' '),
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       args: [...args]
     };
     
@@ -31,7 +31,7 @@ export class TestLogger {
     const entry = {
       type: 'error',
       message: args.join(' '),
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       args: [...args]
     };
     
@@ -46,7 +46,7 @@ export class TestLogger {
     const entry = {
       type: 'warn',
       message: args.join(' '),
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       args: [...args]
     };
     
@@ -61,7 +61,7 @@ export class TestLogger {
     const entry = {
       type: 'info',
       message: args.join(' '),
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       args: [...args]
     };
     

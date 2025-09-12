@@ -153,7 +153,7 @@ class EnterpriseAPIServer {
             res.json({
                 status: 'healthy',
                 version: process.env.npm_package_version || '1.0.0',
-                timestamp: new Date().toISOString(),
+                timestamp: this.getDeterministicDate().toISOString(),
                 uptime: process.uptime(),
                 memory: process.memoryUsage(),
                 environment: process.env.NODE_ENV || 'development'
@@ -179,7 +179,7 @@ class EnterpriseAPIServer {
                 path: error.path,
                 extensions: {
                     code: error.extensions?.code || 'INTERNAL_ERROR',
-                    timestamp: new Date().toISOString()
+                    timestamp: this.getDeterministicDate().toISOString()
                 }
             })
         })));

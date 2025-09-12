@@ -27,7 +27,7 @@ class BenchmarkRunner {
       totalMemory: os.totalmem(),
       freeMemory: os.freemem(),
       loadAverage: os.loadavg(),
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
     };
   }
 
@@ -64,7 +64,7 @@ class BenchmarkRunner {
         external: memoryAfter.external - memoryBefore.external,
         arrayBuffers: memoryAfter.arrayBuffers - memoryBefore.arrayBuffers,
       },
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       metadata,
       error,
       success: !error,
@@ -268,7 +268,7 @@ class BenchmarkRunner {
     });
 
     await this.benchmark('Node.js Startup Time', async () => {
-      const { stdout } = await execAsync('node -e "console.log(Date.now())"');
+      const { stdout } = await execAsync('node -e "console.log(this.getDeterministicTimestamp())"');
       return parseInt(stdout.trim());
     });
 
@@ -319,7 +319,7 @@ class BenchmarkRunner {
 
     return {
       summary: {
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         totalOperations: this.results.length,
         successfulOperations: successful.length,
         failedOperations: failed.length,

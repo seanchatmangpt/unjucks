@@ -68,7 +68,7 @@ export class SpecPerformanceOptimizer {
         global.gc();
         const usage = process.memoryUsage();
         this.metrics.memoryUsage.push({
-          timestamp: Date.now(),
+          timestamp: this.getDeterministicTimestamp(),
           heapUsed: usage.heapUsed,
           heapTotal: usage.heapTotal,
           rss: usage.rss
@@ -144,7 +144,7 @@ export class SpecPerformanceOptimizer {
     const item = cache.get(key);
     if (!item) return null;
 
-    const now = Date.now();
+    const now = this.getDeterministicTimestamp();
     if (now > item.expires) {
       cache.delete(key);
       return null;
@@ -169,8 +169,8 @@ export class SpecPerformanceOptimizer {
 
     cache.set(key, {
       data,
-      expires: Date.now() + ttl,
-      created: Date.now()
+      expires: this.getDeterministicTimestamp() + ttl,
+      created: this.getDeterministicTimestamp()
     });
 
     this.metrics.cacheMisses++;
@@ -573,7 +573,7 @@ export class SpecPerformanceOptimizer {
     
     // Add performance helpers
     optimized._perf = {
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       nodeVersion: process.version,
       platform: process.platform
     };
@@ -611,7 +611,7 @@ export class SpecPerformanceOptimizer {
    */
   generatePerformanceReport() {
     const report = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       summary: this.generateSummaryStats(),
       cacheStats: this.generateCacheStats(),
       performanceMetrics: this.generatePerformanceMetrics(),

@@ -33,7 +33,7 @@ class CoverageMonitor {
   async runCoverage() {
     console.log('📋 Running Code Coverage Analysis...');
     
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       // Run tests with coverage
@@ -41,8 +41,8 @@ class CoverageMonitor {
       const coverage = await this.parseCoverageReport();
       
       const report = {
-        timestamp: new Date().toISOString(),
-        duration: Date.now() - startTime,
+        timestamp: this.getDeterministicDate().toISOString(),
+        duration: this.getDeterministicTimestamp() - startTime,
         coverage,
         thresholds: this.config.thresholds,
         passed: this.validateThresholds(coverage),

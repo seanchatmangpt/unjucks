@@ -374,12 +374,12 @@ export class LaTeXTemplateRenderer {
         ...context,
         latex: {
           escape: LaTeXFilters.latexEscape,
-          today: new Date().toISOString().split('T')[0],
-          timestamp: new Date().toISOString()
+          today: this.getDeterministicDate().toISOString().split('T')[0],
+          timestamp: this.getDeterministicDate().toISOString()
         },
         kgen: {
           version: process.env.KGEN_VERSION || '1.0.0',
-          generated_at: new Date().toISOString()
+          generated_at: this.getDeterministicDate().toISOString()
         }
       };
       
@@ -407,7 +407,7 @@ export class LaTeXTemplateRenderer {
         context: enhancedContext,
         validation: validationResult,
         metadata: {
-          renderedAt: new Date().toISOString(),
+          renderedAt: this.getDeterministicDate().toISOString(),
           templateName,
           contextKeys: Object.keys(enhancedContext),
           contentLength: rendered.length
@@ -434,12 +434,12 @@ export class LaTeXTemplateRenderer {
         ...context,
         latex: {
           escape: LaTeXFilters.latexEscape,
-          today: new Date().toISOString().split('T')[0],
-          timestamp: new Date().toISOString()
+          today: this.getDeterministicDate().toISOString().split('T')[0],
+          timestamp: this.getDeterministicDate().toISOString()
         },
         kgen: {
           version: process.env.KGEN_VERSION || '1.0.0',
-          generated_at: new Date().toISOString()
+          generated_at: this.getDeterministicDate().toISOString()
         }
       };
       
@@ -461,7 +461,7 @@ export class LaTeXTemplateRenderer {
         context: enhancedContext,
         validation: validationResult,
         metadata: {
-          renderedAt: new Date().toISOString(),
+          renderedAt: this.getDeterministicDate().toISOString(),
           templateLength: templateString.length,
           contentLength: rendered.length
         }

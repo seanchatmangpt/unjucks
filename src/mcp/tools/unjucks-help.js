@@ -179,7 +179,7 @@ export async function unjucksHelp(params) {
           template,
           variableCount: variables.length,
           fileCount: templateFiles.length,
-          timestamp: new Date().toISOString()
+          timestamp: this.getDeterministicDate().toISOString()
         }
       };
       

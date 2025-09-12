@@ -61,7 +61,7 @@ export class SecurityMetricsDashboard extends EventEmitter {
     this.metrics = {
       // Real-time metrics
       realTime: {
-        timestamp: Date.now(),
+        timestamp: this.getDeterministicTimestamp(),
         security: {
           threatLevel: 'low',
           activeThreats: 0,
@@ -160,10 +160,10 @@ export class SecurityMetricsDashboard extends EventEmitter {
       // Initialize chart configurations
       this._initializeChartConfigurations();
       
-      this.metrics.dashboard.lastUpdate = new Date();
+      this.metrics.dashboard.lastUpdate = this.getDeterministicDate();
       
       this.emit('dashboard-initialized', {
-        timestamp: new Date(),
+        timestamp: this.getDeterministicDate(),
         widgets: Array.from(this.widgets.keys()),
         charts: Array.from(this.chartConfigs.keys())
       });
@@ -182,7 +182,7 @@ export class SecurityMetricsDashboard extends EventEmitter {
       this.emit('error', {
         type: 'initialization-failed',
         error: error.message,
-        timestamp: new Date()
+        timestamp: this.getDeterministicDate()
       });
       
       throw new Error(`Dashboard initialization failed: ${error.message}`);
@@ -217,7 +217,7 @@ export class SecurityMetricsDashboard extends EventEmitter {
    * Update metrics from a data source
    */
   updateMetrics(sourceName, metricsData) {
-    const timestamp = Date.now();
+    const timestamp = this.getDeterministicTimestamp();
     
     try {
       // Update real-time metrics
@@ -249,7 +249,7 @@ export class SecurityMetricsDashboard extends EventEmitter {
         type: 'metrics-update-failed',
         source: sourceName,
         error: error.message,
-        timestamp: new Date()
+        timestamp: this.getDeterministicDate()
       });
     }
   }
@@ -258,7 +258,7 @@ export class SecurityMetricsDashboard extends EventEmitter {
    * Get dashboard data for visualization
    */
   getDashboardData(timeRange = '1h', widgets = []) {
-    const now = Date.now();
+    const now = this.getDeterministicTimestamp();
     const timeRangeMs = this._parseTimeRange(timeRange);
     const fromTime = now - timeRangeMs;
     
@@ -305,12 +305,12 @@ export class SecurityMetricsDashboard extends EventEmitter {
     };
     
     const timeRangeMs = this._parseTimeRange(reportConfig.timeRange);
-    const fromTime = Date.now() - timeRangeMs;
-    const toTime = Date.now();
+    const fromTime = this.getDeterministicTimestamp() - timeRangeMs;
+    const toTime = this.getDeterministicTimestamp();
     
     const report = {
       metadata: {
-        generated: new Date(),
+        generated: this.getDeterministicDate(),
         timeRange: reportConfig.timeRange,
         format: reportConfig.format,
         sections: reportConfig.sections
@@ -368,7 +368,7 @@ export class SecurityMetricsDashboard extends EventEmitter {
       format: reportConfig.format,
       timeRange: reportConfig.timeRange,
       size: typeof formattedReport === 'string' ? formattedReport.length : 'unknown',
-      timestamp: new Date()
+      timestamp: this.getDeterministicDate()
     });
     
     return {
@@ -389,7 +389,7 @@ export class SecurityMetricsDashboard extends EventEmitter {
       enabled: condition.enabled !== false,
       cooldown: condition.cooldown || 300000, // 5 minutes
       notifications: condition.notifications || [],
-      created: new Date(),
+      created: this.getDeterministicDate(),
       lastTriggered: null,
       triggerCount: 0
     };
@@ -399,7 +399,7 @@ export class SecurityMetricsDashboard extends EventEmitter {
     this.emit('alert-rule-created', {
       ruleName,
       rule: alertRule,
-      timestamp: new Date()
+      timestamp: this.getDeterministicDate()
     });
     
     if (this.config.debug) {
@@ -414,7 +414,7 @@ export class SecurityMetricsDashboard extends EventEmitter {
    */
   processAlert(source, alertData) {
     const alertId = this._generateAlertId(source, alertData);
-    const timestamp = Date.now();
+    const timestamp = this.getDeterministicTimestamp();
     
     const alert = {
       id: alertId,
@@ -468,7 +468,7 @@ export class SecurityMetricsDashboard extends EventEmitter {
     
     alert.acknowledged = true;
     alert.acknowledgedBy = acknowledgedBy;
-    alert.acknowledgedAt = new Date();
+    alert.acknowledgedAt = this.getDeterministicDate();
     
     this.emit('alert-acknowledged', {
       alertId,
@@ -489,7 +489,7 @@ export class SecurityMetricsDashboard extends EventEmitter {
     }
     
     alert.status = 'resolved';
-    alert.resolvedAt = new Date();
+    alert.resolvedAt = this.getDeterministicDate();
     alert.resolution = resolution;
     
     // Remove from active alerts
@@ -514,7 +514,7 @@ export class SecurityMetricsDashboard extends EventEmitter {
    * Get dashboard health status
    */
   async getHealth() {
-    const now = Date.now();
+    const now = this.getDeterministicTimestamp();
     const lastUpdateAge = now - (this.metrics.dashboard.lastUpdate?.getTime() || 0);
     
     const health = {
@@ -581,7 +581,7 @@ export class SecurityMetricsDashboard extends EventEmitter {
       this.widgets.clear();
       this.chartConfigs.clear();
       
-      this.emit('shutdown-complete', { timestamp: new Date() });
+      this.emit('shutdown-complete', { timestamp: this.getDeterministicDate() });
       
       if (this.config.debug) {
         console.log('Security Metrics Dashboard shutdown complete');
@@ -591,7 +591,7 @@ export class SecurityMetricsDashboard extends EventEmitter {
       this.emit('error', {
         type: 'shutdown-failed',
         error: error.message,
-        timestamp: new Date()
+        timestamp: this.getDeterministicDate()
       });
       throw error;
     }
@@ -695,7 +695,7 @@ export class SecurityMetricsDashboard extends EventEmitter {
     this.chartConfigs.set('threat-timeline', {
       type: 'line',
       title: 'Threat Level Over Time',
-      data: () => this._getTimeSeriesData(Date.now() - 3600000, Date.now()).security,
+      data: () => this._getTimeSeriesData(this.getDeterministicTimestamp() - 3600000, this.getDeterministicTimestamp()).security,
       options: {
         responsive: true,
         scales: {
@@ -708,7 +708,7 @@ export class SecurityMetricsDashboard extends EventEmitter {
     this.chartConfigs.set('performance-metrics', {
       type: 'multiline',
       title: 'Performance Metrics',
-      data: () => this._getTimeSeriesData(Date.now() - 3600000, Date.now()).performance,
+      data: () => this._getTimeSeriesData(this.getDeterministicTimestamp() - 3600000, this.getDeterministicTimestamp()).performance,
       options: {
         responsive: true,
         scales: {
@@ -759,13 +759,13 @@ export class SecurityMetricsDashboard extends EventEmitter {
         
         this.emit('scheduled-report', {
           report: report.report,
-          timestamp: new Date()
+          timestamp: this.getDeterministicDate()
         });
       } catch (error) {
         this.emit('error', {
           type: 'scheduled-report-failed',
           error: error.message,
-          timestamp: new Date()
+          timestamp: this.getDeterministicDate()
         });
       }
     }, this.config.export.reportInterval);
@@ -783,7 +783,7 @@ export class SecurityMetricsDashboard extends EventEmitter {
           type: 'data-collection-failed',
           source: sourceName,
           error: error.message,
-          timestamp: new Date()
+          timestamp: this.getDeterministicDate()
         });
       }
     }
@@ -879,7 +879,7 @@ export class SecurityMetricsDashboard extends EventEmitter {
         
         if (shouldTrigger) {
           // Check cooldown period
-          const now = Date.now();
+          const now = this.getDeterministicTimestamp();
           const cooldownExpired = !rule.lastTriggered || 
             (now - rule.lastTriggered.getTime()) > rule.cooldown;
           
@@ -908,7 +908,7 @@ export class SecurityMetricsDashboard extends EventEmitter {
           rule: ruleName,
           source: sourceName,
           error: error.message,
-          timestamp: new Date()
+          timestamp: this.getDeterministicDate()
         });
       }
     }
@@ -940,7 +940,7 @@ export class SecurityMetricsDashboard extends EventEmitter {
   }
   
   _generateAlertId(source, alertData) {
-    const content = `${source}-${alertData.type}-${Date.now()}`;
+    const content = `${source}-${alertData.type}-${this.getDeterministicTimestamp()}`;
     return createHash('md5').update(content).digest('hex').substring(0, 8);
   }
   
@@ -1041,7 +1041,7 @@ export class SecurityMetricsDashboard extends EventEmitter {
   
   _generateSummary(timeRange) {
     const timeRangeMs = this._parseTimeRange(timeRange);
-    const fromTime = Date.now() - timeRangeMs;
+    const fromTime = this.getDeterministicTimestamp() - timeRangeMs;
     
     const recentAlerts = this.alerts.history.filter(
       alert => alert.timestamp.getTime() >= fromTime
@@ -1081,7 +1081,7 @@ export class SecurityMetricsDashboard extends EventEmitter {
   }
   
   _calculateUpdateLatency() {
-    const now = Date.now();
+    const now = this.getDeterministicTimestamp();
     const lastUpdate = this.metrics.dashboard.lastUpdate?.getTime() || now;
     return now - lastUpdate;
   }

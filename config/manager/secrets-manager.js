@@ -147,7 +147,7 @@ export class SecretsManager {
     }
     
     const timestamp = this.cacheTimestamps.get(secretName);
-    const now = Date.now();
+    const now = this.getDeterministicTimestamp();
     const ttlMs = this.config.caching.ttl * 1000;
     
     if (now - timestamp > ttlMs) {
@@ -165,7 +165,7 @@ export class SecretsManager {
    */
   cacheSecret(secretName, secretValue) {
     this.cache.set(secretName, secretValue);
-    this.cacheTimestamps.set(secretName, Date.now());
+    this.cacheTimestamps.set(secretName, this.getDeterministicTimestamp());
   }
   
   /**

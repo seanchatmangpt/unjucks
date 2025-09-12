@@ -60,7 +60,7 @@ export class KGenCLIBridge {
         file: ttlFile,
         hash,
         algorithm: 'sha256',
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         triples: await this._countTriples(graphData)
       };
       
@@ -107,7 +107,7 @@ export class KGenCLIBridge {
       const result = {
         source: graph1Path,
         target: graph2Path,
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         summary: {
           added: diff.added.length,
           removed: diff.removed.length,
@@ -153,7 +153,7 @@ export class KGenCLIBridge {
       
       const result = {
         file: ttlFile,
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         statistics: {
           subjects: index.subjects.size,
           predicates: index.predicates.size,
@@ -226,7 +226,7 @@ export class KGenCLIBridge {
         attestations,
         sourceGraph: graphFile,
         graphHash: await this._computeGraphHash(graphData),
-        timestamp: new Date().toISOString()
+        timestamp: this.getDeterministicDate().toISOString()
       };
       
     } catch (error) {
@@ -282,7 +282,7 @@ export class KGenCLIBridge {
       return {
         file: artifactPath,
         status: 'no_drift',
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         verification: {
           content: 'verified',
           source: options.validateSource ? 'verified' : 'skipped',
@@ -360,7 +360,7 @@ export class KGenCLIBridge {
       // Generate component versions and hashes
       const lockData = {
         version: "1.0.0",
-        generated: new Date().toISOString(),
+        generated: this.getDeterministicDate().toISOString(),
         project: {
           name: options.projectName || 'unknown',
           version: options.projectVersion || '1.0.0'
@@ -421,7 +421,7 @@ export class KGenCLIBridge {
       // Generate comprehensive attestation
       const attestationData = {
         project: lockData.project,
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         artifacts,
         integrity: await this._verifyProjectIntegrity(lockData),
         compliance: await this._generateComplianceAttestation(artifacts),
@@ -456,7 +456,7 @@ export class KGenCLIBridge {
       const templates = await this._discoverTemplates(options.path);
       
       const result = {
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         count: templates.length,
         templates: templates.map(t => ({
           id: t.id,
@@ -493,7 +493,7 @@ export class KGenCLIBridge {
       const rules = await this._discoverRules(options.path);
       
       const result = {
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         count: rules.length,
         rules: rules.map(r => ({
           id: r.id,
@@ -568,7 +568,7 @@ export class KGenCLIBridge {
       );
       
       const exportData = {
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         timeframe: options.timeframe || '24h',
         metrics,
         format: options.format || 'json'
@@ -659,7 +659,7 @@ export class KGenCLIBridge {
       sourceGraph: options.sourceGraph,
       sourceGraphHash: options.graphHash,
       template: artifact.template,
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       engine: 'kgen-enterprise-compiler',
       version: '1.0.0'
     }));
@@ -694,7 +694,7 @@ export class KGenCLIBridge {
       status: 'drift_detected',
       driftType: type,
       message,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     };
     
     this.logger.warn(`⚠️  Drift detected: ${message}`);

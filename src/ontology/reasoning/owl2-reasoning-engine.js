@@ -55,7 +55,7 @@ export class OWL2ReasoningEngine extends EventEmitter {
    * Perform complete OWL 2 DL reasoning
    */
   async performCompleteReasoning(ontologyStore, options = {}) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       // Validate ontology before reasoning
@@ -97,14 +97,14 @@ export class OWL2ReasoningEngine extends EventEmitter {
       this.mergeStores(allInferences, customRulesResult.inferences);
       
       // Update reasoning state
-      this.updateReasoningState(sessionId, allInferences, Date.now() - startTime);
+      this.updateReasoningState(sessionId, allInferences, this.getDeterministicTimestamp() - startTime);
       
       const result = {
         success: true,
         sessionId,
         inferences: allInferences,
         statistics: {
-          processingTime: Date.now() - startTime,
+          processingTime: this.getDeterministicTimestamp() - startTime,
           inferenceCount: allInferences.size,
           classificationTime: classificationResult.processingTime,
           realizationTime: realizationResult.processingTime,
@@ -131,7 +131,7 @@ export class OWL2ReasoningEngine extends EventEmitter {
    * Perform optimized classification with class hierarchy computation
    */
   async performClassification(ontologyStore) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     // Extract class axioms
     const classAxioms = this.extractClassAxioms(ontologyStore);
@@ -153,7 +153,7 @@ export class OWL2ReasoningEngine extends EventEmitter {
     
     return {
       success: true,
-      processingTime: Date.now() - startTime,
+      processingTime: this.getDeterministicTimestamp() - startTime,
       hierarchy: completeHierarchy,
       equivalentClasses,
       inferences,
@@ -266,7 +266,7 @@ export class OWL2ReasoningEngine extends EventEmitter {
    * Perform realization (compute instance types)
    */
   async performRealization(ontologyStore) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     // Get all individuals
     const individuals = this.extractIndividuals(ontologyStore);
@@ -291,7 +291,7 @@ export class OWL2ReasoningEngine extends EventEmitter {
     
     return {
       success: true,
-      processingTime: Date.now() - startTime,
+      processingTime: this.getDeterministicTimestamp() - startTime,
       realization: realizationResult,
       inferences,
       statistics: {
@@ -305,7 +305,7 @@ export class OWL2ReasoningEngine extends EventEmitter {
    * Perform extended reasoning (temporal, spatial, fuzzy, probabilistic)
    */
   async performExtendedReasoning(ontologyStore, options) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     const extendedInferences = new Store();
     const results = {};
     
@@ -335,7 +335,7 @@ export class OWL2ReasoningEngine extends EventEmitter {
     
     return {
       success: true,
-      processingTime: Date.now() - startTime,
+      processingTime: this.getDeterministicTimestamp() - startTime,
       inferences: extendedInferences,
       results
     };
@@ -345,12 +345,12 @@ export class OWL2ReasoningEngine extends EventEmitter {
    * Apply custom reasoning rules
    */
   async applyCustomRules(ontologyStore, customRules = []) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     if (!customRules.length) {
       return {
         success: true,
-        processingTime: Date.now() - startTime,
+        processingTime: this.getDeterministicTimestamp() - startTime,
         inferences: new Store(),
         appliedRules: []
       };
@@ -360,7 +360,7 @@ export class OWL2ReasoningEngine extends EventEmitter {
     
     return {
       ...result,
-      processingTime: Date.now() - startTime
+      processingTime: this.getDeterministicTimestamp() - startTime
     };
   }
 

@@ -183,7 +183,7 @@ class ComplianceDashboard {
       lastUpdated: null,
       data: null,
       errors: [],
-      createdAt: new Date().toISOString()
+      createdAt: this.getDeterministicDate().toISOString()
     };
 
     this.widgets.set(widgetId, widget);
@@ -267,7 +267,7 @@ class ComplianceDashboard {
 
     // Update widget
     widget.data = data;
-    widget.lastUpdated = new Date().toISOString();
+    widget.lastUpdated = this.getDeterministicDate().toISOString();
     widget.errors = [];
 
     // Store metrics
@@ -276,7 +276,7 @@ class ComplianceDashboard {
       if (data[metric] !== undefined) {
         widgetMetrics.set(metric, {
           value: data[metric],
-          timestamp: new Date().toISOString(),
+          timestamp: this.getDeterministicDate().toISOString(),
           trend: this.calculateTrend(widgetId, metric, data[metric])
         });
       }
@@ -285,7 +285,7 @@ class ComplianceDashboard {
     // Store historical data
     const historical = this.historicalData.get(widgetId);
     historical.push({
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       data: { ...data }
     });
 
@@ -356,7 +356,7 @@ class ComplianceDashboard {
    */
   collectAuditData() {
     // In real implementation, would integrate with audit trail
-    const now = new Date();
+    const now = this.getDeterministicDate();
     const oneHourAgo = new Date(now.getTime() - (60 * 60 * 1000));
     
     return {
@@ -532,7 +532,7 @@ class ComplianceDashboard {
     if (this.alerts.has(alertId)) {
       // Update existing alert
       const alert = this.alerts.get(alertId);
-      alert.lastTriggered = new Date().toISOString();
+      alert.lastTriggered = this.getDeterministicDate().toISOString();
       alert.currentValue = value;
       alert.occurrences++;
     } else {
@@ -545,8 +545,8 @@ class ComplianceDashboard {
         threshold: alertConfig.threshold,
         operator: alertConfig.operator,
         currentValue: value,
-        firstTriggered: new Date().toISOString(),
-        lastTriggered: new Date().toISOString(),
+        firstTriggered: this.getDeterministicDate().toISOString(),
+        lastTriggered: this.getDeterministicDate().toISOString(),
         status: 'active',
         occurrences: 1,
         acknowledged: false
@@ -566,7 +566,7 @@ class ComplianceDashboard {
     
     if (alert && alert.status === 'active') {
       alert.status = 'resolved';
-      alert.resolvedAt = new Date().toISOString();
+      alert.resolvedAt = this.getDeterministicDate().toISOString();
       this.sendAlertResolution(alert);
     }
   }
@@ -623,7 +623,7 @@ class ComplianceDashboard {
       console.log('[CRITICAL ALERT ESCALATION]', {
         alertId: alert.id,
         metric: alert.metric,
-        duration: Date.now() - new Date(alert.firstTriggered).getTime()
+        duration: this.getDeterministicTimestamp() - new Date(alert.firstTriggered).getTime()
       });
     }
   }
@@ -632,7 +632,7 @@ class ComplianceDashboard {
    * Clean up old resolved alerts
    */
   cleanupResolvedAlerts() {
-    const cutoffDate = new Date(Date.now() - (7 * 24 * 60 * 60 * 1000)); // 7 days ago
+    const cutoffDate = new Date(this.getDeterministicTimestamp() - (7 * 24 * 60 * 60 * 1000)); // 7 days ago
     
     for (const [alertId, alert] of this.alerts.entries()) {
       if (alert.status === 'resolved' && 
@@ -665,7 +665,7 @@ class ComplianceDashboard {
    */
   getDashboardData() {
     const dashboardData = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       organization: this.config.organizationName,
       widgets: {},
       alerts: {
@@ -701,7 +701,7 @@ class ComplianceDashboard {
       activeAlertsCount: activeAlerts.length,
       criticalAlertsCount: activeAlerts.filter(a => a.severity === 'critical').length,
       widgetsActive: Array.from(this.widgets.values()).filter(w => w.status === 'active').length,
-      lastUpdated: new Date().toISOString(),
+      lastUpdated: this.getDeterministicDate().toISOString(),
       status: this.getDashboardStatus()
     };
   }
@@ -727,7 +727,7 @@ class ComplianceDashboard {
     if (alert) {
       alert.acknowledged = true;
       alert.acknowledgedBy = acknowledgedBy;
-      alert.acknowledgedAt = new Date().toISOString();
+      alert.acknowledgedAt = this.getDeterministicDate().toISOString();
       return true;
     }
     return false;
@@ -779,7 +779,7 @@ class ComplianceDashboard {
     if (widget) {
       widget.errors.push({
         message: error.message,
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         stack: error.stack
       });
       

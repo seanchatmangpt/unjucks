@@ -17,7 +17,7 @@ class SecretMigrator {
   constructor() {
     this.environment = process.env.NODE_ENV || 'development';
     this.envPath = '.env';
-    this.backupPath = `.env.backup.${Date.now()}`;
+    this.backupPath = `.env.backup.${this.getDeterministicTimestamp()}`;
     this.secretService = new EnterpriseSecretService({
       environment: this.environment
     });
@@ -206,7 +206,7 @@ class SecretMigrator {
           environment: this.environment,
           category: secret.category,
           rotationInterval: secret.rotationInterval,
-          lastRotated: new Date().toISOString(),
+          lastRotated: this.getDeterministicDate().toISOString(),
           tags: secret.tags,
           compliance: secret.compliance
         };
@@ -246,7 +246,7 @@ class SecretMigrator {
 # Secrets have been migrated to encrypted storage
 # Use EnterpriseSecretService to access secrets programmatically
 # 
-# Migration completed: ${new Date().toISOString()}
+# Migration completed: ${this.getDeterministicDate().toISOString()}
 # Environment: ${this.environment}
 #
 # To access secrets in your application:
@@ -286,11 +286,11 @@ ROTATION_CHECK_INTERVAL=86400
   }
 
   async generateMigrationReport(results) {
-    const reportPath = `./config/secret-migration-report-${Date.now()}.json`;
+    const reportPath = `./config/secret-migration-report-${this.getDeterministicTimestamp()}.json`;
     
     const report = {
       migrationId: crypto.randomUUID(),
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       environment: this.environment,
       totalSecrets: results.length,
       successfulMigrations: results.filter(r => r.status === 'success').length,

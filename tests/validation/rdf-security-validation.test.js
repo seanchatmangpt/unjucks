@@ -31,9 +31,9 @@ describe('RDF Security Validation', () => {
           @prefix ex } ex:contains _:node${i + 1} .`).join('\n')}
         `;
 
-        const startTime = Date.now();
+        const startTime = this.getDeterministicTimestamp();
         const result = await parser.parse(maliciousTurtle);
-        const endTime = Date.now();
+        const endTime = this.getDeterministicTimestamp();
         
         // Should parse successfully but not take excessive time
         expect(result.triples.length).toBe(10000);
@@ -73,10 +73,10 @@ describe('RDF Security Validation', () => {
         // Create a large turtle file that would take time to process
         const largeTurtle = `@prefix ex } ex:predicate${i} "Object value ${i}" .`).join('\n');
 
-        const startTime = Date.now();
+        const startTime = this.getDeterministicTimestamp();
         try {
           await parser.parse(largeTurtle);
-          const endTime = Date.now();
+          const endTime = this.getDeterministicTimestamp();
           expect(endTime - startTime).toBeLessThan(15000); // Should complete within 15 seconds
         } catch (error) {
           // Timeout is acceptable
@@ -103,10 +103,10 @@ describe('RDF Security Validation', () => {
           ).join('\n')}
         `;
 
-        const startTime = Date.now();
+        const startTime = this.getDeterministicTimestamp();
         try {
           const result = await parser.parse(billionLaughs);
-          const endTime = Date.now();
+          const endTime = this.getDeterministicTimestamp();
           
           // Should complete quickly or timeout
           expect(endTime - startTime).toBeLessThan(10000);
@@ -156,7 +156,7 @@ describe('RDF Security Validation', () => {
 
         await fs.writeFile(largeTurtlePath, largeContent);
 
-        const startTime = Date.now();
+        const startTime = this.getDeterministicTimestamp();
         const result = await dataLoader.loadFromSource({ type } else {
           // If it fails due to size limits, that's acceptable
           expect(result.errors.some(error => 
@@ -179,12 +179,12 @@ describe('RDF Security Validation', () => {
         const deepNesting = '@prefix ex } ex:contains ex:level${i + 1} .`
           ).join('\n');
 
-        const startTime = Date.now();
+        const startTime = this.getDeterministicTimestamp();
         const initialMemory = process.memoryUsage().heapUsed;
         
         const result = await parser.parse(deepNesting);
         
-        const endTime = Date.now();
+        const endTime = this.getDeterministicTimestamp();
         const finalMemory = process.memoryUsage().heapUsed;
         const memoryIncrease = finalMemory - initialMemory;
         
@@ -206,10 +206,10 @@ describe('RDF Security Validation', () => {
             return `${subject}\n    ${properties} .`;
           }).join('\n\n');
 
-        const startTime = Date.now();
+        const startTime = this.getDeterministicTimestamp();
         try {
           await parser.parse(slowContent);
-          const elapsed = Date.now() - startTime;
+          const elapsed = this.getDeterministicTimestamp() - startTime;
           expect(elapsed).toBeLessThan(15000); // Should complete within 15 seconds
         } catch (error) {
           // Timeout is acceptable
@@ -409,12 +409,12 @@ describe('RDF Security Validation', () => {
 
       const filters = new RDFFilters({ store });
       
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
       // This should complete quickly
       const results = filters.rdfQuery({ subject, predicate, object });
       
-      const endTime = Date.now();
+      const endTime = this.getDeterministicTimestamp();
       expect(endTime - startTime).toBeLessThan(5000); // Should complete within 5 seconds
       expect(Array.isArray(results)).toBe(true);
     });

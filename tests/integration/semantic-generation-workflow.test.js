@@ -342,10 +342,10 @@ input UpdateProjectInput { name }
       expect(await fs.access(schemaPath)).resolves;
 
       // Performance validation - check generation time for large dataset
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       await templateEngine.renderTemplate(templatePath, templateContent, { variables,
         semanticValidation });
-      const generationTime = Date.now() - startTime;
+      const generationTime = this.getDeterministicTimestamp() - startTime;
       
       expect(generationTime).toBeLessThan(5000); // Should complete within 5 seconds
     });
@@ -449,12 +449,12 @@ ex:{{ item.id }} a ex:Item ;
       const templatePath = join(tempDir, 'large-template.njk');
       await fs.writeFile(templatePath, largeTemplate);
 
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const templateContent = await fs.readFile(templatePath, 'utf-8');
       const renderResult = await templateEngine.renderTemplate(templatePath, templateContent, { variables,
         semanticValidation });
       const result = renderResult.content;
-      const endTime = Date.now();
+      const endTime = this.getDeterministicTimestamp();
 
       expect(result).toContain('ex:item-0 a ex:Item');
       expect(result).toContain('ex:item-9999 a ex:Item');

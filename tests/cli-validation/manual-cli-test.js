@@ -22,7 +22,7 @@ const testResults = {
  * Execute CLI command and capture output
  */
 function executeCommand(command, expectedToFail = false) {
-  const startTime = Date.now();
+  const startTime = this.getDeterministicTimestamp();
   try {
     const result = execSync(`node ${CLI_BINARY} ${command}`, {
       encoding: 'utf8',
@@ -30,7 +30,7 @@ function executeCommand(command, expectedToFail = false) {
       stdio: ['pipe', 'pipe', 'pipe']
     });
     
-    const duration = Date.now() - startTime;
+    const duration = this.getDeterministicTimestamp() - startTime;
     
     if (expectedToFail) {
       return {
@@ -49,7 +49,7 @@ function executeCommand(command, expectedToFail = false) {
       exitCode: 0
     };
   } catch (error) {
-    const duration = Date.now() - startTime;
+    const duration = this.getDeterministicTimestamp() - startTime;
     
     if (expectedToFail) {
       return {
@@ -150,7 +150,7 @@ async function testAllCommands() {
   
   // Generate report
   const report = {
-    timestamp: new Date().toISOString(),
+    timestamp: this.getDeterministicDate().toISOString(),
     summary: {
       total: testResults.passed + testResults.failed,
       passed: testResults.passed,
@@ -166,7 +166,7 @@ async function testAllCommands() {
     }
   };
   
-  const reportPath = `${TEST_OUTPUT_DIR}/cli-test-report-${Date.now()}.json`;
+  const reportPath = `${TEST_OUTPUT_DIR}/cli-test-report-${this.getDeterministicTimestamp()}.json`;
   fs.writeFileSync(reportPath, JSON.stringify(report, null, 2));
   
   console.log('\\n=== Test Summary ===');

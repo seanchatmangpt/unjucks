@@ -120,9 +120,9 @@ to) %>Generated {
       
       for (const test of tests) {
         console.log(`[TEST] Running ${test.name} benchmark...`);
-        const startTime = Date.now();
+        const startTime = this.getDeterministicTimestamp();
         const result = await testContext.helper.runCli(test.command);
-        const duration = Date.now() - startTime;
+        const duration = this.getDeterministicTimestamp() - startTime;
         
         performanceMetrics.benchmarks[test.name] = { duration,
           target };

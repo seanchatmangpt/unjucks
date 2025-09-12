@@ -232,7 +232,7 @@ async function testReportCommands() {
   
   // Create a sample report file
   const sampleReport = {
-    metadata: { validationId: 'test-123', timestamp: new Date().toISOString() },
+    metadata: { validationId: 'test-123', timestamp: this.getDeterministicDate().toISOString() },
     summary: { totalViolations: 0, totalWarnings: 0 }
   };
   

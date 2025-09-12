@@ -430,8 +430,8 @@ class PowerPointProcessor {
       slideCount: presentation.slides.length,
       layoutCount: presentation.layouts.length,
       themeCount: presentation.themes?.length || 0,
-      created: new Date(),
-      modified: new Date()
+      created: this.getDeterministicDate(),
+      modified: this.getDeterministicDate()
     };
   }
 
@@ -496,7 +496,7 @@ class PowerPointProcessor {
       target,
       content,
       mode,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     };
   }
 

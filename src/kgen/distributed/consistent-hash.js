@@ -45,7 +45,7 @@ export class ConsistentHash {
       nodeId,
       weight,
       virtualNodes: virtualNodeCount,
-      addedAt: Date.now(),
+      addedAt: this.getDeterministicTimestamp(),
       status: 'active'
     });
     
@@ -72,7 +72,7 @@ export class ConsistentHash {
     this.statistics.totalNodes++;
     this.statistics.totalVirtualNodes += virtualNodeCount;
     this.statistics.rebalanceOperations++;
-    this.statistics.lastRebalanceTime = Date.now();
+    this.statistics.lastRebalanceTime = this.getDeterministicTimestamp();
     
     if (this.debug) {
       console.log(`[ConsistentHash] Added node ${nodeId} with ${virtualNodeCount} virtual nodes`);
@@ -111,7 +111,7 @@ export class ConsistentHash {
     this.statistics.totalNodes--;
     this.statistics.totalVirtualNodes -= nodeInfo.virtualNodes;
     this.statistics.rebalanceOperations++;
-    this.statistics.lastRebalanceTime = Date.now();
+    this.statistics.lastRebalanceTime = this.getDeterministicTimestamp();
     
     if (this.debug) {
       console.log(`[ConsistentHash] Removed node ${nodeId} and ${hashesToRemove.length} virtual nodes`);
@@ -292,7 +292,7 @@ export class ConsistentHash {
     this.nodes.set(nodeId, {
       ...nodeInfo,
       ...updates,
-      lastUpdated: Date.now()
+      lastUpdated: this.getDeterministicTimestamp()
     });
     
     return true;
@@ -304,7 +304,7 @@ export class ConsistentHash {
   markNodeFailed(nodeId) {
     return this.updateNode(nodeId, {
       status: 'failed',
-      failedAt: Date.now()
+      failedAt: this.getDeterministicTimestamp()
     });
   }
   
@@ -314,7 +314,7 @@ export class ConsistentHash {
   markNodeActive(nodeId) {
     return this.updateNode(nodeId, {
       status: 'active',
-      recoveredAt: Date.now()
+      recoveredAt: this.getDeterministicTimestamp()
     });
   }
   

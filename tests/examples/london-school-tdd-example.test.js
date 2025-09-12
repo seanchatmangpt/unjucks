@@ -271,7 +271,7 @@ describe('London School TDD - Template Generation Service', () => {
         setTimeout(() => resolve('slow render'), 3000)
       );
 
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
       try {
         await asyncHelper.withTimeout(
@@ -283,7 +283,7 @@ describe('London School TDD - Template Generation Service', () => {
         // Should not reach here
         expect(false).toBe(true);
       } catch (error) {
-        const duration = Date.now() - startTime;
+        const duration = this.getDeterministicTimestamp() - startTime;
         expect(error.message).toContain('timeout');
         expect(duration).toBeLessThan(1500); // Should timeout around 1000ms
         
@@ -313,7 +313,7 @@ describe('London School TDD - Template Generation Service', () => {
       await storeInMemory('last-generation-result', {
         success: result.success,
         files: result.generatedFiles,
-        timestamp: Date.now()
+        timestamp: this.getDeterministicTimestamp()
       });
 
       // Verify generation succeeded

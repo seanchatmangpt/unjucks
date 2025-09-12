@@ -7,7 +7,7 @@
  */
 
 import { EventEmitter } from 'events';
-import { Logger } from 'consola';
+import { Consola } from 'consola';
 import crypto from 'crypto';
 
 export class ConsensusReasoningEngine extends EventEmitter {
@@ -43,7 +43,7 @@ export class ConsensusReasoningEngine extends EventEmitter {
       ...config
     };
     
-    this.logger = new Logger({ tag: 'consensus-reasoning' });
+    this.logger = new Consola({ tag: 'consensus-reasoning' });
     this.state = 'initialized';
     
     // Consensus state management
@@ -129,7 +129,7 @@ export class ConsensusReasoningEngine extends EventEmitter {
    */
   async achieveConsensus(reasoningProposal, participatingNodes, options = {}) {
     const consensusId = this._generateConsensusId();
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       this.logger.info(`Starting consensus round ${consensusId}`);
@@ -180,7 +180,7 @@ export class ConsensusReasoningEngine extends EventEmitter {
       this.activeProposals.delete(consensusId);
       
       // Update metrics
-      const consensusTime = Date.now() - startTime;
+      const consensusTime = this.getDeterministicTimestamp() - startTime;
       this._updateConsensusMetrics(consensusId, consensusTime, true);
       
       this.emit('consensus:achieved', {
@@ -207,7 +207,7 @@ export class ConsensusReasoningEngine extends EventEmitter {
       };
       
     } catch (error) {
-      const consensusTime = Date.now() - startTime;
+      const consensusTime = this.getDeterministicTimestamp() - startTime;
       this._updateConsensusMetrics(consensusId, consensusTime, false);
       
       this.activeProposals.delete(consensusId);
@@ -285,7 +285,7 @@ export class ConsensusReasoningEngine extends EventEmitter {
             // Add to suspicious activities tracking
             this.suspiciousActivities.set(node.id, {
               score: suspicionScore,
-              timestamp: Date.now(),
+              timestamp: this.getDeterministicTimestamp(),
               evidence: { voting: votingAnalysis, consistency: consistencyAnalysis, timing: timingAnalysis }
             });
           }
@@ -488,7 +488,7 @@ export class ConsensusReasoningEngine extends EventEmitter {
   }
 
   _generateConsensusId() {
-    return `consensus_${Date.now()}_${crypto.randomBytes(4).toString('hex')}`;
+    return `consensus_${this.getDeterministicTimestamp()}_${crypto.randomBytes(4).toString('hex')}`;
   }
 
   async _validateParticipatingNodes(nodes) {

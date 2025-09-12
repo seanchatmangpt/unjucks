@@ -42,7 +42,7 @@ export class SparqlInterface {
    */
   async select(store, query, options = {}) {
     try {
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       this.logger.debug('Executing SPARQL SELECT query');
       
       // Check cache first
@@ -69,7 +69,7 @@ export class SparqlInterface {
         this.queryCache.set(cacheKey, results);
       }
       
-      const queryTime = Date.now() - startTime;
+      const queryTime = this.getDeterministicTimestamp() - startTime;
       this.stats.queriesExecuted++;
       this.stats.totalQueryTime += queryTime;
       
@@ -91,7 +91,7 @@ export class SparqlInterface {
    */
   async construct(store, query, options = {}) {
     try {
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       this.logger.debug('Executing SPARQL CONSTRUCT query');
       
       // Parse SPARQL query
@@ -103,7 +103,7 @@ export class SparqlInterface {
       // Execute construct query
       const results = await this._executeConstructQuery(store, parsedQuery, options);
       
-      const queryTime = Date.now() - startTime;
+      const queryTime = this.getDeterministicTimestamp() - startTime;
       this.stats.queriesExecuted++;
       this.stats.totalQueryTime += queryTime;
       
@@ -125,7 +125,7 @@ export class SparqlInterface {
    */
   async ask(store, query, options = {}) {
     try {
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       this.logger.debug('Executing SPARQL ASK query');
       
       // Parse SPARQL query
@@ -137,7 +137,7 @@ export class SparqlInterface {
       // Execute ask query
       const result = await this._executeAskQuery(store, parsedQuery, options);
       
-      const queryTime = Date.now() - startTime;
+      const queryTime = this.getDeterministicTimestamp() - startTime;
       this.stats.queriesExecuted++;
       this.stats.totalQueryTime += queryTime;
       
@@ -159,7 +159,7 @@ export class SparqlInterface {
    */
   async describe(store, query, options = {}) {
     try {
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       this.logger.debug('Executing SPARQL DESCRIBE query');
       
       // Parse SPARQL query
@@ -171,7 +171,7 @@ export class SparqlInterface {
       // Execute describe query
       const results = await this._executeDescribeQuery(store, parsedQuery, options);
       
-      const queryTime = Date.now() - startTime;
+      const queryTime = this.getDeterministicTimestamp() - startTime;
       this.stats.queriesExecuted++;
       this.stats.totalQueryTime += queryTime;
       

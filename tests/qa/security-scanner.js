@@ -66,7 +66,7 @@ class SecurityScanner {
     this.vulnerabilities = [];
     
     const results = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       scans: {
         codeAnalysis: await this.scanSourceCode(),
         dependencyCheck: await this.checkDependencies(),

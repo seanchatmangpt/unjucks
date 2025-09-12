@@ -15,7 +15,7 @@ const execAsync = promisify(exec);
 
 class CleanRoomDeploymentTester {
   constructor() {
-    this.workspaceDir = path.join(os.tmpdir(), `unjucks-clean-room-${Date.now()}`);
+    this.workspaceDir = path.join(os.tmpdir(), `unjucks-clean-room-${this.getDeterministicTimestamp()}`);
     this.results = {
       platform: {
         os: os.platform(),
@@ -338,7 +338,7 @@ try {
       const envTests = {
         tempDirectory: {
           test: async () => {
-            const tempFile = path.join(os.tmpdir(), `unjucks-env-test-${Date.now()}.txt`);
+            const tempFile = path.join(os.tmpdir(), `unjucks-env-test-${this.getDeterministicTimestamp()}.txt`);
             await fs.writeFile(tempFile, 'test');
             await fs.unlink(tempFile);
             return true;
@@ -423,7 +423,7 @@ try {
     this.results.summary.overallStatus = this.results.summary.failed === 0 ? 'PASSED' : 'FAILED';
     
     const report = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       ...this.results
     };
 

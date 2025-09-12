@@ -151,7 +151,7 @@ async function testDocumentGeneration() {
         presenter: {
           name: 'Agent #10',
           title: 'Document Generator',
-          date: new Date().toISOString().split('T')[0]
+          date: this.getDeterministicDate().toISOString().split('T')[0]
         },
         agenda: [
           'Document Generation Overview',

@@ -24,7 +24,7 @@ class PerformanceAlerting {
     };
 
     this.alert = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       severity: this.options.severity,
       source: 'unjucks-performance-monitor',
       environment: process.env.NODE_ENV || 'unknown',
@@ -206,7 +206,7 @@ class PerformanceAlerting {
   extractMetadata(report) {
     const metadata = {
       reportType: this.detectReportType(report),
-      timestamp: report.timestamp || new Date().toISOString(),
+      timestamp: report.timestamp || this.getDeterministicDate().toISOString(),
       environment: this.alert.environment,
       source: this.alert.source
     };
@@ -268,7 +268,7 @@ class PerformanceAlerting {
               short: false
             }
           ],
-          ts: Math.floor(Date.now() / 1000)
+          ts: Math.floor(this.getDeterministicTimestamp() / 1000)
         }
       ]
     };
@@ -423,7 +423,7 @@ class PerformanceAlerting {
     if (outputFile) {
       const alertData = {
         alert: this.alert,
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         configuration: this.options
       };
       

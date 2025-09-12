@@ -61,7 +61,7 @@ export abstract class BaseOfficeProcessor extends EventEmitter {
     this.validationEngine = new ValidationEngine(options.validation);
     
     this.processingStats = {
-      startTime: new Date(),
+      startTime: this.getDeterministicDate(),
       variablesProcessed: 0,
       injectionsPerformed: 0,
       errors: 0,
@@ -371,7 +371,7 @@ export abstract class BaseOfficeProcessor extends EventEmitter {
    */
   protected resetStats(): void {
     this.processingStats = {
-      startTime: new Date(),
+      startTime: this.getDeterministicDate(),
       variablesProcessed: 0,
       injectionsPerformed: 0,
       errors: 0,
@@ -383,7 +383,7 @@ export abstract class BaseOfficeProcessor extends EventEmitter {
    * Finalizes processing statistics
    */
   protected finalizeStats(): void {
-    this.processingStats.endTime = new Date();
+    this.processingStats.endTime = this.getDeterministicDate();
     this.processingStats.duration = this.processingStats.endTime.getTime() - this.processingStats.startTime.getTime();
     
     if (process.memoryUsage) {

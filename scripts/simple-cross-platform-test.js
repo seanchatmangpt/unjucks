@@ -218,7 +218,7 @@ results.summary.total++;
 console.log('🌍 Testing environment compatibility...');
 try {
   const tempDir = os.tmpdir();
-  const testEnvFile = path.join(tempDir, `unjucks-env-test-${Date.now()}.txt`);
+  const testEnvFile = path.join(tempDir, `unjucks-env-test-${this.getDeterministicTimestamp()}.txt`);
   
   // Test temp directory write
   await fs.writeFile(testEnvFile, 'env test');

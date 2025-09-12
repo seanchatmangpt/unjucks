@@ -219,7 +219,7 @@ async function generateTestReport() {
   // For now, we'll just summarize
   
   const reportData = {
-    timestamp: new Date().toISOString(),
+    timestamp: this.getDeterministicDate().toISOString(),
     environment: {
       nodeVersion: process.version,
       platform: process.platform,

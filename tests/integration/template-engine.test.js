@@ -123,7 +123,7 @@ to: src/api/<%= name %>.js
 ---
 /**
  * API endpoint for <%= name %>
- * Generated on <%= new Date().toISOString() %>
+ * Generated on <%= this.getDeterministicDate().toISOString() %>
  */
 
 export default function handler(req, res) {
@@ -143,7 +143,7 @@ export default function handler(req, res) {
 function handleGet(req, res) {
   res.status(200).json({ 
     message: 'Hello from <%= name %>',
-    timestamp: new Date().toISOString()
+    timestamp: this.getDeterministicDate().toISOString()
   });
 }
 
@@ -183,9 +183,9 @@ skip_if: "routes.<%= name %>"
     console.log(`\n🧪 Running: ${testName}`);
     
     try {
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       await testFunction();
-      const duration = Date.now() - startTime;
+      const duration = this.getDeterministicTimestamp() - startTime;
       
       console.log(`✅ PASSED: ${testName} (${duration}ms)`);
       this.passedTests++;
@@ -463,13 +463,13 @@ Pascal: <%= h.changeCase && h.changeCase.pascal ? h.changeCase.pascal(name) : na
     const variables = { value: 'test' };
     
     // Render template multiple times
-    const start = Date.now();
+    const start = this.getDeterministicTimestamp();
     
     for (let i = 0; i < 5; i++) {
       await engine.renderTemplate(templatePath, variables);
     }
     
-    const duration = Date.now() - start;
+    const duration = this.getDeterministicTimestamp() - start;
     
     // Multiple renders should be reasonably fast (caching effect)
     assert(duration < 1000, 'Multiple template renders should be fast');
@@ -529,9 +529,9 @@ Age: <%= age %>
       items: Array.from({ length: 1000 }, (_, i) => `Value ${i}`)
     };
     
-    const start = Date.now();
+    const start = this.getDeterministicTimestamp();
     const result = await engine.renderTemplate(templatePath, variables);
-    const duration = Date.now() - start;
+    const duration = this.getDeterministicTimestamp() - start;
     
     assert(result.length > 0, 'Should render large template');
     assert(duration < 5000, 'Large template should render within 5 seconds');
@@ -544,7 +544,7 @@ Age: <%= age %>
     console.log('🚀 Starting Template Engine Integration Tests');
     console.log('==============================================');
     
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       await this.setup();
@@ -564,7 +564,7 @@ Age: <%= age %>
       await this.cleanup();
     }
     
-    const duration = Date.now() - startTime;
+    const duration = this.getDeterministicTimestamp() - startTime;
     
     console.log('\n📊 Template Engine Test Summary');
     console.log('================================');

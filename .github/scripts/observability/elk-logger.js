@@ -23,7 +23,7 @@ class ELKLogger {
       cloudId: process.env.ELASTIC_CLOUD_ID,
       cloudAuth: process.env.ELASTIC_CLOUD_AUTH,
       node: process.env.ELASTICSEARCH_NODE || 'http://localhost:9200',
-      index: `github-actions-${new Date().getFullYear()}.${String(new Date().getMonth() + 1).padStart(2, '0')}`
+      index: `github-actions-${this.getDeterministicDate().getFullYear()}.${String(this.getDeterministicDate().getMonth() + 1).padStart(2, '0')}`
     };
     
     this.logstashEndpoint = process.env.LOGSTASH_ENDPOINT;
@@ -370,7 +370,7 @@ class ELKLogger {
     const summary = {
       session_id: this.sessionId,
       trace_id: this.traceId,
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       log_sources: [],
       metrics: {
         total_logs: 0,

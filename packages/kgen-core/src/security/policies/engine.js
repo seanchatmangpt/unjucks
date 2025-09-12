@@ -97,7 +97,7 @@ export class PolicyEngine extends EventEmitter {
       this.emit('policy:engine_initialized', {
         policies: this.policies.size,
         policyGroups: this.policyGroups.size,
-        timestamp: new Date()
+        timestamp: this.getDeterministicDate()
       });
       
       return {
@@ -135,8 +135,8 @@ export class PolicyEngine extends EventEmitter {
         severity: policyDefinition.severity || 'MEDIUM',
         enabled: policyDefinition.enabled !== false,
         metadata: {
-          createdAt: new Date(),
-          updatedAt: new Date(),
+          createdAt: this.getDeterministicDate(),
+          updatedAt: this.getDeterministicDate(),
           createdBy: policyDefinition.createdBy,
           tags: policyDefinition.tags || []
         }
@@ -172,7 +172,7 @@ export class PolicyEngine extends EventEmitter {
    */
   async evaluateOperation(securityContext) {
     try {
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       this.metrics.policiesEvaluated++;
       
       this.logger.debug(`Evaluating policies for operation: ${securityContext.operationType}`);
@@ -181,14 +181,14 @@ export class PolicyEngine extends EventEmitter {
       const evaluationContext = {
         ...securityContext,
         evaluationId: this._generateEvaluationId(),
-        timestamp: new Date()
+        timestamp: this.getDeterministicDate()
       };
       
       // Check cache first
       const cacheKey = this._generateCacheKey(evaluationContext);
       if (this.config.enablePolicyCaching && this.policyCache.has(cacheKey)) {
         const cached = this.policyCache.get(cacheKey);
-        if (Date.now() - cached.timestamp < this.config.cacheTimeout) {
+        if (this.getDeterministicTimestamp() - cached.timestamp < this.config.cacheTimeout) {
           this.metrics.cacheHits++;
           return cached.result;
         }
@@ -228,11 +228,11 @@ export class PolicyEngine extends EventEmitter {
         operationType: securityContext.operationType,
         result: combinedResult,
         timestamp: evaluationContext.timestamp,
-        evaluationTime: Date.now() - startTime
+        evaluationTime: this.getDeterministicTimestamp() - startTime
       });
       
       // Update metrics
-      this.metrics.evaluationTime += Date.now() - startTime;
+      this.metrics.evaluationTime += this.getDeterministicTimestamp() - startTime;
       if (!combinedResult.compliant) {
         this.metrics.violations++;
       }
@@ -271,7 +271,7 @@ export class PolicyEngine extends EventEmitter {
         evaluationStrategy: groupDefinition.evaluationStrategy || 'ALL_MUST_PASS',
         enabled: groupDefinition.enabled !== false,
         metadata: {
-          createdAt: new Date(),
+          createdAt: this.getDeterministicDate(),
           createdBy: groupDefinition.createdBy
         }
       };
@@ -310,7 +310,7 @@ export class PolicyEngine extends EventEmitter {
       }
       
       policy.enabled = enabled;
-      policy.metadata.updatedAt = new Date();
+      policy.metadata.updatedAt = this.getDeterministicDate();
       
       // Clear caches
       this._clearPolicyCache();
@@ -526,8 +526,8 @@ export class PolicyEngine extends EventEmitter {
           version: '1.0.0',
           enabled: true,
           metadata: {
-            createdAt: new Date(),
-            updatedAt: new Date(),
+            createdAt: this.getDeterministicDate(),
+            updatedAt: this.getDeterministicDate(),
             createdBy: 'system',
             tags: ['default', 'security']
           }
@@ -674,7 +674,7 @@ export class PolicyEngine extends EventEmitter {
         policyName: policy.name,
         severity: policy.severity,
         violations: policyResult.violations,
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         context: evaluationContext
       });
       
@@ -883,15 +883,15 @@ export class PolicyEngine extends EventEmitter {
   }
 
   _generatePolicyId() {
-    return `policy_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    return `policy_${this.getDeterministicTimestamp()}_${Math.random().toString(36).substr(2, 9)}`;
   }
 
   _generateGroupId() {
-    return `group_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    return `group_${this.getDeterministicTimestamp()}_${Math.random().toString(36).substr(2, 9)}`;
   }
 
   _generateEvaluationId() {
-    return `eval_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    return `eval_${this.getDeterministicTimestamp()}_${Math.random().toString(36).substr(2, 9)}`;
   }
 
   _generateCacheKey(evaluationContext) {
@@ -907,7 +907,7 @@ export class PolicyEngine extends EventEmitter {
     if (this.config.enablePolicyCaching) {
       this.policyCache.set(cacheKey, {
         result,
-        timestamp: Date.now()
+        timestamp: this.getDeterministicTimestamp()
       });
     }
   }
@@ -917,7 +917,7 @@ export class PolicyEngine extends EventEmitter {
   }
 
   _cleanupExpiredCache() {
-    const now = Date.now();
+    const now = this.getDeterministicTimestamp();
     
     for (const [key, cached] of this.policyCache.entries()) {
       if (now - cached.timestamp > this.config.cacheTimeout) {

@@ -295,11 +295,11 @@ describe('OfficeInjector', () => {
         ]
       }));
 
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const result = await injector.batchInject(batchConfig, {
         concurrency: 2
       });
-      const endTime = Date.now();
+      const endTime = this.getDeterministicTimestamp();
 
       // Should have processed all files
       assert.strictEqual(result.success.length, 5);

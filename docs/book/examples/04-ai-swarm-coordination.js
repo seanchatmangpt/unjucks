@@ -132,7 +132,7 @@ class UnjucksSwarmCoordinator {
 
   // Orchestrate complex generation task across swarm
   async orchestrateGeneration(generationRequest) {
-    this.performance.startTime = Date.now();
+    this.performance.startTime = this.getDeterministicTimestamp();
     
     try {
       // Break down the generation into tasks
@@ -147,7 +147,7 @@ class UnjucksSwarmCoordinator {
       // Aggregate and validate results
       const finalResult = await this.aggregateResults(results);
       
-      this.performance.endTime = Date.now();
+      this.performance.endTime = this.getDeterministicTimestamp();
       this.performance.tasksCompleted = tasks.length;
       
       return {
@@ -362,7 +362,7 @@ class UnjucksSwarmCoordinator {
     }
 
     agent.status = 'busy';
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
 
     try {
       // Store task context in memory for agent coordination
@@ -381,7 +381,7 @@ class UnjucksSwarmCoordinator {
         taskId: result.taskId
       });
 
-      const executionTime = Date.now() - startTime;
+      const executionTime = this.getDeterministicTimestamp() - startTime;
       agent.tasksCompleted++;
       agent.performance.avgExecutionTime = 
         (agent.performance.avgExecutionTime + executionTime) / agent.tasksCompleted;
@@ -774,17 +774,17 @@ Store optimized code in memory under key: swarm/${agent.name}/${taskData.taskId}
     
     const mockResponses = {
       swarm_init: { 
-        swarmId: `swarm_${Date.now()}`,
+        swarmId: `swarm_${this.getDeterministicTimestamp()}`,
         topology: params.topology,
         status: 'initialized'
       },
       agent_spawn: {
-        agentId: `agent_${Date.now()}`,
+        agentId: `agent_${this.getDeterministicTimestamp()}`,
         type: params.type,
         status: 'spawned'
       },
       task_orchestrate: {
-        taskId: `task_${Date.now()}`,
+        taskId: `task_${this.getDeterministicTimestamp()}`,
         status: 'orchestrated'
       },
       task_results: {

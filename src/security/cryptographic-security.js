@@ -268,13 +268,13 @@ export class CryptographicSecurityManager {
    */
   generateSessionToken(userId, expiresIn = 3600) {
     const sessionId = this.generateSecureRandomString(32);
-    const expiresAt = Date.now() + (expiresIn * 1000);
+    const expiresAt = this.getDeterministicTimestamp() + (expiresIn * 1000);
     
     const sessionData = {
       sessionId,
       userId,
       expiresAt,
-      createdAt: Date.now(),
+      createdAt: this.getDeterministicTimestamp(),
       version: 1
     };
 
@@ -310,7 +310,7 @@ export class CryptographicSecurityManager {
         throw new SecurityError('Invalid session');
       }
 
-      if (Date.now() > sessionKey.expiresAt) {
+      if (this.getDeterministicTimestamp() > sessionKey.expiresAt) {
         this.sessionKeys.delete(sessionId);
         throw new SecurityError('Session expired');
       }
@@ -322,7 +322,7 @@ export class CryptographicSecurityManager {
         throw new SecurityError('Session ID mismatch');
       }
 
-      if (Date.now() > sessionData.expiresAt) {
+      if (this.getDeterministicTimestamp() > sessionData.expiresAt) {
         throw new SecurityError('Session expired');
       }
 
@@ -390,7 +390,7 @@ export class CryptographicSecurityManager {
       iv: encrypted.iv,
       tag: encrypted.tag,
       originalSize: data.length,
-      timestamp: Date.now()
+      timestamp: this.getDeterministicTimestamp()
     };
 
     await fs.writeFile(outputPath, JSON.stringify(encryptedFile, null, 2));
@@ -454,7 +454,7 @@ export class CryptographicSecurityManager {
    * Rotate expired keys
    */
   rotateKeys() {
-    const now = Date.now();
+    const now = this.getDeterministicTimestamp();
     let rotatedKeys = 0;
 
     // Rotate session keys
@@ -485,7 +485,7 @@ export class CryptographicSecurityManager {
     signingKey = signingKey || this.generateSecureRandom(this.keyLengths.hmac);
     
     // Create timestamp and nonce for replay protection
-    const timestamp = Date.now();
+    const timestamp = this.getDeterministicTimestamp();
     const nonce = this.generateSecureRandomString(16);
     
     // Create signature payload
@@ -508,7 +508,7 @@ export class CryptographicSecurityManager {
     const { signature, timestamp, nonce } = signatureData;
     
     // Check timestamp to prevent replay attacks
-    if (Date.now() - timestamp > maxAge) {
+    if (this.getDeterministicTimestamp() - timestamp > maxAge) {
       throw new SecurityError('Signature expired');
     }
 
@@ -538,7 +538,7 @@ export class CryptographicSecurityManager {
     return {
       checksum: hash.digest('hex'),
       algorithm: 'sha512',
-      timestamp: Date.now()
+      timestamp: this.getDeterministicTimestamp()
     };
   }
 
@@ -607,8 +607,8 @@ export class SecureKeyManager {
   storeKey(keyId, key, metadata = {}) {
     this.keyStore.set(keyId, key);
     this.keyMetadata.set(keyId, {
-      createdAt: Date.now(),
-      lastUsed: Date.now(),
+      createdAt: this.getDeterministicTimestamp(),
+      lastUsed: this.getDeterministicTimestamp(),
       usageCount: 0,
       algorithm: metadata.algorithm || 'unknown',
       purpose: metadata.purpose || 'general',
@@ -632,18 +632,18 @@ export class SecureKeyManager {
     const metadata = this.keyMetadata.get(keyId);
     
     // Check if key has expired
-    if (metadata.expiresAt && Date.now() > metadata.expiresAt) {
+    if (metadata.expiresAt && this.getDeterministicTimestamp() > metadata.expiresAt) {
       this.deleteKey(keyId);
       throw new SecurityError('Key expired');
     }
 
     // Update usage tracking
-    metadata.lastUsed = Date.now();
+    metadata.lastUsed = this.getDeterministicTimestamp();
     metadata.usageCount++;
     
     const usage = this.keyUsageTracking.get(keyId);
     usage.push({
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       purpose: purpose || 'unknown'
     });
 
@@ -687,7 +687,7 @@ export class SecureKeyManager {
    * Clean up expired keys
    */
   cleanupExpiredKeys() {
-    const now = Date.now();
+    const now = this.getDeterministicTimestamp();
     let cleanedCount = 0;
     
     for (const [keyId, metadata] of this.keyMetadata.entries()) {

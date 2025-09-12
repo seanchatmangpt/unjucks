@@ -473,7 +473,7 @@ describe('KGEN Performance Benchmarks', () => {
       const currentPerf = await testHelpers.measurePerformance(operation, 5);
 
       const performanceReport = {
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         version: engine.getVersion(),
         ingestion: {
           complex: {
@@ -542,11 +542,11 @@ describe('KGEN Performance Benchmarks', () => {
 
     it('should maintain stability under sustained load', async () => {
       const duration = 5000; // 5 seconds
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const operations = [];
       let operationCount = 0;
 
-      while (Date.now() - startTime < duration) {
+      while (this.getDeterministicTimestamp() - startTime < duration) {
         const sources = [
           {
             type: 'rdf',

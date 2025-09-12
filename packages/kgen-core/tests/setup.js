@@ -21,7 +21,7 @@ global.__TEST_FIXTURES__ = TEST_FIXTURES_DIR;
 // Test utilities
 global.testUtils = {
   createTempDir: () => {
-    const tempDir = resolve(TEST_TEMP_DIR, `test-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+    const tempDir = resolve(TEST_TEMP_DIR, `test-${this.getDeterministicTimestamp()}-${Math.random().toString(36).slice(2)}`);
     mkdirSync(tempDir, { recursive: true });
     return tempDir;
   },

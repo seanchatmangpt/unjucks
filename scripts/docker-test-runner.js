@@ -27,7 +27,7 @@ class DockerTestRunner {
     
     this.composeFile = join(dockerDir, 'docker-compose.test.yml');
     this.results = {
-      startTime: Date.now(),
+      startTime: this.getDeterministicTimestamp(),
       tests: [],
       summary: {
         total: 0,
@@ -217,7 +217,7 @@ class DockerTestRunner {
    * Run individual test suite
    */
   async runTestSuite(suite) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     this.log(`🔧 Running ${suite.name}...`);
     
     try {
@@ -236,7 +236,7 @@ class DockerTestRunner {
         timeout: suite.timeout || 120000
       });
       
-      const duration = Date.now() - startTime;
+      const duration = this.getDeterministicTimestamp() - startTime;
       this.results.tests.push({
         name: suite.name,
         status: 'passed',
@@ -248,7 +248,7 @@ class DockerTestRunner {
       this.log(`✅ ${suite.name} passed (${duration}ms)`);
       
     } catch (error) {
-      const duration = Date.now() - startTime;
+      const duration = this.getDeterministicTimestamp() - startTime;
       this.results.tests.push({
         name: suite.name,
         status: 'failed',
@@ -308,8 +308,8 @@ class DockerTestRunner {
     this.log('📄 Generating test report...');
     
     const report = {
-      timestamp: new Date().toISOString(),
-      duration: Date.now() - this.results.startTime,
+      timestamp: this.getDeterministicDate().toISOString(),
+      duration: this.getDeterministicTimestamp() - this.results.startTime,
       environment: {
         node: process.version,
         platform: process.platform,
@@ -480,12 +480,12 @@ class DockerTestRunner {
 
   log(message) {
     if (this.options.verbose || process.env.VERBOSE) {
-      console.log(`[${new Date().toISOString()}] ${message}`);
+      console.log(`[${this.getDeterministicDate().toISOString()}] ${message}`);
     }
   }
 
   error(message, details) {
-    console.error(`[${new Date().toISOString()}] ${message}`);
+    console.error(`[${this.getDeterministicDate().toISOString()}] ${message}`);
     if (details && this.options.verbose) {
       console.error(details);
     }

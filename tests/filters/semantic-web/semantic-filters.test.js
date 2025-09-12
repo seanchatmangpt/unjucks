@@ -322,7 +322,7 @@ describe('Semantic Web/RDF Filters (20+ filters)', () => {
 
   describe('Performance Tests', () => {
     it('should handle bulk RDF generation efficiently', () => {
-      const start = Date.now();
+      const start = this.getDeterministicTimestamp();
       
       for (let i = 0; i < 100; i++) {
         env.renderString(`
@@ -330,7 +330,7 @@ describe('Semantic Web/RDF Filters (20+ filters)', () => {
         `);
       }
       
-      const end = Date.now();
+      const end = this.getDeterministicTimestamp();
       expect(end - start).toBeLessThan(1000);
     });
 
@@ -341,11 +341,11 @@ describe('Semantic Web/RDF Filters (20+ filters)', () => {
         {{ "john" | rdfResource }} {{ "name" | foaf }} {{ "John Doe" | rdfLiteral("en") }} .
       `;
       
-      const start = Date.now();
+      const start = this.getDeterministicTimestamp();
       for (let i = 0; i < 50; i++) {
         env.renderString(template);
       }
-      const end = Date.now();
+      const end = this.getDeterministicTimestamp();
       
       expect(end - start).toBeLessThan(500);
     });

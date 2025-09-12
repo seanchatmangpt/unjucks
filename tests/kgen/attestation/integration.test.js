@@ -273,7 +273,7 @@ module.exports = router;`);
       const artifacts = [];
 
       // Generate many artifacts
-      const startGeneration = Date.now();
+      const startGeneration = this.getDeterministicTimestamp();
       for (let i = 0; i < numberOfArtifacts; i++) {
         const artifactPath = path.join(testProject.generated, `perf-${i}.js`);
         await fs.writeFile(artifactPath, `console.log("Performance test ${i}");`);
@@ -286,12 +286,12 @@ module.exports = router;`);
         const attestation = await attestationSystem.generateAttestation(artifactPath, context);
         artifacts.push(artifactPath);
       }
-      const generationTime = Date.now() - startGeneration;
+      const generationTime = this.getDeterministicTimestamp() - startGeneration;
 
       // Batch verify all artifacts
-      const startVerification = Date.now();
+      const startVerification = this.getDeterministicTimestamp();
       const batchResult = await attestationSystem.batchVerify(artifacts);
-      const verificationTime = Date.now() - startVerification;
+      const verificationTime = this.getDeterministicTimestamp() - startVerification;
 
       expect(batchResult.verified).toBe(numberOfArtifacts);
       expect(batchResult.failed).toBe(0);
@@ -313,14 +313,14 @@ module.exports = router;`);
       });
 
       // First verification (not cached)
-      const startFirst = Date.now();
+      const startFirst = this.getDeterministicTimestamp();
       const firstResult = await attestationSystem.verifyAttestation(artifactPath);
-      const firstTime = Date.now() - startFirst;
+      const firstTime = this.getDeterministicTimestamp() - startFirst;
 
       // Second verification (cached)
-      const startSecond = Date.now();
+      const startSecond = this.getDeterministicTimestamp();
       const secondResult = await attestationSystem.verifyAttestation(artifactPath);
-      const secondTime = Date.now() - startSecond;
+      const secondTime = this.getDeterministicTimestamp() - startSecond;
 
       expect(firstResult.verified).toBe(true);
       expect(secondResult.verified).toBe(true);

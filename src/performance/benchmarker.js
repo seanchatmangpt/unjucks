@@ -392,7 +392,7 @@ class PerformanceBenchmarker {
     const validation = this.validateTargets();
     
     const report = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       summary: {
         totalBenchmarks: this.results.size,
         targetsValidation: validation,

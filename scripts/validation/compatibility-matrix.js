@@ -15,7 +15,7 @@ const __dirname = fileURLToPath(new URL('.', import.meta.url));
 class CompatibilityMatrix {
   constructor() {
     this.matrix = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       currentPlatform: process.platform,
       currentArch: process.arch,
       currentNode: process.version,

@@ -45,7 +45,7 @@ class EnvironmentManager {
       },
       variables: new Map(),
       cleanup: [],
-      created: new Date(),
+      created: this.getDeterministicDate(),
       active: false
     };
 
@@ -499,7 +499,7 @@ class TestConfigManager {
     const configuration = {
       name,
       config: { ...config },
-      created: new Date(),
+      created: this.getDeterministicDate(),
       active: false
     };
 

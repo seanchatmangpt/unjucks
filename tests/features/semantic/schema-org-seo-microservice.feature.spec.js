@@ -35,7 +35,7 @@ defineFeature(feature, (test) => {
 
   beforeEach(() => {
     processedData = null;
-    startTime = Date.now();
+    startTime = this.getDeterministicTimestamp();
   });
 
   test('Generate Product Rich Snippets for E-commerce', ({ given, when, then }) => {
@@ -345,7 +345,7 @@ defineFeature(feature, (test) => {
     });
 
     when('I process the entire content library', async () => {
-      startTime = Date.now();
+      startTime = this.getDeterministicTimestamp();
       processedData = await processLargeContentLibrary(contentData, schemaOrgVocab);
     });
 
@@ -364,7 +364,7 @@ defineFeature(feature, (test) => {
     });
 
     then('processing should complete within 10 minutes', () => {
-      const processingTime = Date.now() - startTime;
+      const processingTime = this.getDeterministicTimestamp() - startTime;
       expect(processingTime).toBeLessThan(600000); // 10 minutes
     });
 
@@ -613,8 +613,8 @@ defineFeature(feature, (test) => {
 
   async function generateArticleStructuredData(item) { return {
       '@context' },
-      datePublished: item.datePublished || new Date().toISOString(),
-      dateModified: item.dateModified || new Date().toISOString()
+      datePublished: item.datePublished || this.getDeterministicDate().toISOString(),
+      dateModified: item.dateModified || this.getDeterministicDate().toISOString()
     };
   }
 

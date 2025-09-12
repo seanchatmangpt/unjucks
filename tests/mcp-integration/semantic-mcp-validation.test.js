@@ -259,14 +259,14 @@ describe('Semantic MCP Tool Validation', () => {
       expect(Array.isArray(result.errors)).toBe(true)
     })
 
-    it('should validate large RDF datasets efficiently', async () => { const startTime = Date.now()
+    it('should validate large RDF datasets efficiently', async () => { const startTime = this.getDeterministicTimestamp()
       
       const response = await semanticServer.send({
         jsonrpc }
         }
       })
 
-      const duration = Date.now() - startTime
+      const duration = this.getDeterministicTimestamp() - startTime
       
       expect(response.error).toBeUndefined()
       expect(response.result).toBeDefined()

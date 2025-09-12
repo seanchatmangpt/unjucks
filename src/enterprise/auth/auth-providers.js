@@ -242,7 +242,7 @@ export class LocalAuthProvider extends BaseAuthProvider {
                 roles: [USER_ROLES.SUPER_ADMIN],
                 name: 'System Administrator',
                 active: true,
-                createdAt: new Date().toISOString()
+                createdAt: this.getDeterministicDate().toISOString()
             });
         }
     }
@@ -265,7 +265,7 @@ export class LocalAuthProvider extends BaseAuthProvider {
         }
 
         // Update last login
-        user.lastLogin = new Date().toISOString();
+        user.lastLogin = this.getDeterministicDate().toISOString();
         
         this.emit('user:login', { userId: user.id, provider: 'local' });
         
@@ -311,7 +311,7 @@ export class LocalAuthProvider extends BaseAuthProvider {
             ...userInfo,
             id: userInfo.id || crypto.randomUUID(),
             passwordHash,
-            createdAt: userInfo.createdAt || new Date().toISOString(),
+            createdAt: userInfo.createdAt || this.getDeterministicDate().toISOString(),
             active: userInfo.active !== false
         };
 
@@ -335,7 +335,7 @@ export class LocalAuthProvider extends BaseAuthProvider {
 
         Object.assign(user, {
             ...updates,
-            updatedAt: new Date().toISOString()
+            updatedAt: this.getDeterministicDate().toISOString()
         });
 
         this.emit('user:updated', { userId });
@@ -445,7 +445,7 @@ export class OAuth2AuthProvider extends BaseAuthProvider {
             provider: this.name,
             oauthId: oauthUser.id || oauthUser.sub,
             oauthProfile: oauthUser,
-            lastLogin: new Date().toISOString(),
+            lastLogin: this.getDeterministicDate().toISOString(),
             active: true
         };
 
@@ -557,7 +557,7 @@ export class SAMLAuthProvider extends BaseAuthProvider {
             provider: 'saml',
             samlNameId: samlProfile.nameID,
             samlAttributes: samlProfile,
-            lastLogin: new Date().toISOString(),
+            lastLogin: this.getDeterministicDate().toISOString(),
             active: true
         };
 
@@ -752,7 +752,7 @@ export class LDAPAuthProvider extends BaseAuthProvider {
             roles: this.mapLDAPGroups(ldapUser.memberOf || []),
             provider: 'ldap',
             ldapDN: ldapUser.dn,
-            lastLogin: new Date().toISOString(),
+            lastLogin: this.getDeterministicDate().toISOString(),
             active: true
         };
 
@@ -809,12 +809,12 @@ export class APIKeyAuthProvider extends BaseAuthProvider {
             throw new Error('API key is deactivated');
         }
 
-        if (keyData.expiresAt && new Date() > new Date(keyData.expiresAt)) {
+        if (keyData.expiresAt && this.getDeterministicDate() > new Date(keyData.expiresAt)) {
             throw new Error('API key has expired');
         }
 
         // Update last used
-        keyData.lastUsed = new Date().toISOString();
+        keyData.lastUsed = this.getDeterministicDate().toISOString();
         keyData.usageCount = (keyData.usageCount || 0) + 1;
 
         const user = this.mapAPIKeyToUser(keyData);
@@ -844,7 +844,7 @@ export class APIKeyAuthProvider extends BaseAuthProvider {
             scopes: keyData.scopes || ['api:access'],
             active: keyData.active !== false,
             expiresAt: keyData.expiresAt,
-            createdAt: new Date().toISOString(),
+            createdAt: this.getDeterministicDate().toISOString(),
             usageCount: 0,
             metadata: keyData.metadata || {}
         };
@@ -863,7 +863,7 @@ export class APIKeyAuthProvider extends BaseAuthProvider {
         const keyData = this.apiKeys.get(apiKey);
         if (keyData) {
             keyData.active = false;
-            keyData.revokedAt = new Date().toISOString();
+            keyData.revokedAt = this.getDeterministicDate().toISOString();
             
             this.emit('apikey:revoked', { keyId: keyData.id });
             return true;
@@ -1064,8 +1064,8 @@ export class AuthenticationManager extends EventEmitter {
             id: sessionId,
             userId: user.id,
             user,
-            createdAt: new Date().toISOString(),
-            lastActivity: new Date().toISOString(),
+            createdAt: this.getDeterministicDate().toISOString(),
+            lastActivity: this.getDeterministicDate().toISOString(),
             metadata: {
                 userAgent: metadata.userAgent,
                 ipAddress: metadata.ipAddress,
@@ -1096,7 +1096,7 @@ export class AuthenticationManager extends EventEmitter {
 
     async cleanup() {
         // Clean up expired sessions and tokens
-        const now = new Date();
+        const now = this.getDeterministicDate();
         const sessionTimeout = this.parseTimeout(this.config.sessionTimeout);
         
         for (const [sessionId, session] of this.sessions) {

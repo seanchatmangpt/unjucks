@@ -246,8 +246,8 @@ export class OfficeInjector {
       skipIf: spec.skipIf,
       preserveFormatting: spec.preserveFormatting !== false,
       idempotent: spec.idempotent !== false,
-      timestamp: new Date().toISOString(),
-      id: spec.id || `injection_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+      timestamp: this.getDeterministicDate().toISOString(),
+      id: spec.id || `injection_${this.getDeterministicTimestamp()}_${Math.random().toString(36).substr(2, 9)}`
     };
   }
 

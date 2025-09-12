@@ -552,7 +552,7 @@ export const artifactCommand = defineCommand({
           // Save explanation to file if requested
           if (args.output) {
             const outputData = {
-              timestamp: new Date().toISOString(),
+              timestamp: this.getDeterministicDate().toISOString(),
               artifact: args.artifact,
               explanation: explanation
             };

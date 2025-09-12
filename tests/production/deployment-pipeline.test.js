@@ -71,7 +71,7 @@ describe('Production Deployment Pipeline Configuration Tests', () => {
       
       const buildStage = {
         name: 'build',
-        startTime: Date.now(),
+        startTime: this.getDeterministicTimestamp(),
         steps: [],
         status: 'running'
       };
@@ -90,7 +90,7 @@ describe('Production Deployment Pipeline Configuration Tests', () => {
         buildStage.steps.push(await validateAssetCompilation());
         
         buildStage.status = 'success';
-        buildStage.duration = Date.now() - buildStage.startTime;
+        buildStage.duration = this.getDeterministicTimestamp() - buildStage.startTime;
         
         deploymentResults.stages.push(buildStage);
         
@@ -99,7 +99,7 @@ describe('Production Deployment Pipeline Configuration Tests', () => {
           gate: 'Build Success',
           passed: buildStage.status === 'success',
           criteria: 'All build steps must complete successfully',
-          timestamp: Date.now()
+          timestamp: this.getDeterministicTimestamp()
         };
         
         deploymentResults.qualityGates.push(buildQualityGate);
@@ -112,7 +112,7 @@ describe('Production Deployment Pipeline Configuration Tests', () => {
       } catch (buildError) {
         buildStage.status = 'failed';
         buildStage.error = buildError.message;
-        buildStage.duration = Date.now() - buildStage.startTime;
+        buildStage.duration = this.getDeterministicTimestamp() - buildStage.startTime;
         
         deploymentResults.stages.push(buildStage);
         throw buildError;
@@ -124,7 +124,7 @@ describe('Production Deployment Pipeline Configuration Tests', () => {
       
       const testStage = {
         name: 'test',
-        startTime: Date.now(),
+        startTime: this.getDeterministicTimestamp(),
         testSuites: [],
         status: 'running'
       };
@@ -155,7 +155,7 @@ describe('Production Deployment Pipeline Configuration Tests', () => {
         testStage.passedTests = passedTests;
         testStage.testCoverage = testCoverage;
         testStage.status = passedTests === totalTests ? 'success' : 'failed';
-        testStage.duration = Date.now() - testStage.startTime;
+        testStage.duration = this.getDeterministicTimestamp() - testStage.startTime;
         
         deploymentResults.stages.push(testStage);
         
@@ -165,7 +165,7 @@ describe('Production Deployment Pipeline Configuration Tests', () => {
           passed: testCoverage >= DEPLOYMENT_CONFIG.QUALITY_GATES.TEST_COVERAGE_MIN,
           criteria: `Minimum ${DEPLOYMENT_CONFIG.QUALITY_GATES.TEST_COVERAGE_MIN}% test coverage`,
           actual: testCoverage,
-          timestamp: Date.now()
+          timestamp: this.getDeterministicTimestamp()
         };
         
         deploymentResults.qualityGates.push(coverageGate);
@@ -176,7 +176,7 @@ describe('Production Deployment Pipeline Configuration Tests', () => {
           passed: passedTests === totalTests,
           criteria: 'All tests must pass',
           actual: `${passedTests}/${totalTests} tests passed`,
-          timestamp: Date.now()
+          timestamp: this.getDeterministicTimestamp()
         };
         
         deploymentResults.qualityGates.push(brokenTestsGate);
@@ -190,7 +190,7 @@ describe('Production Deployment Pipeline Configuration Tests', () => {
       } catch (testError) {
         testStage.status = 'failed';
         testStage.error = testError.message;
-        testStage.duration = Date.now() - testStage.startTime;
+        testStage.duration = this.getDeterministicTimestamp() - testStage.startTime;
         
         deploymentResults.stages.push(testStage);
         throw testError;
@@ -202,7 +202,7 @@ describe('Production Deployment Pipeline Configuration Tests', () => {
       
       const securityStage = {
         name: 'security-scan',
-        startTime: Date.now(),
+        startTime: this.getDeterministicTimestamp(),
         scans: [],
         status: 'running'
       };
@@ -233,7 +233,7 @@ describe('Production Deployment Pipeline Configuration Tests', () => {
         securityStage.securityScore = securityScore;
         securityStage.criticalVulnerabilities = criticalVulnerabilities;
         securityStage.status = criticalVulnerabilities === 0 && securityScore >= DEPLOYMENT_CONFIG.QUALITY_GATES.SECURITY_SCORE_MIN ? 'success' : 'failed';
-        securityStage.duration = Date.now() - securityStage.startTime;
+        securityStage.duration = this.getDeterministicTimestamp() - securityStage.startTime;
         
         deploymentResults.stages.push(securityStage);
         
@@ -243,7 +243,7 @@ describe('Production Deployment Pipeline Configuration Tests', () => {
           passed: securityScore >= DEPLOYMENT_CONFIG.QUALITY_GATES.SECURITY_SCORE_MIN,
           criteria: `Minimum security score of ${DEPLOYMENT_CONFIG.QUALITY_GATES.SECURITY_SCORE_MIN}/10`,
           actual: securityScore,
-          timestamp: Date.now()
+          timestamp: this.getDeterministicTimestamp()
         };
         
         deploymentResults.qualityGates.push(securityScoreGate);
@@ -254,7 +254,7 @@ describe('Production Deployment Pipeline Configuration Tests', () => {
           passed: criticalVulnerabilities === 0,
           criteria: 'No critical vulnerabilities allowed',
           actual: `${criticalVulnerabilities} critical vulnerabilities`,
-          timestamp: Date.now()
+          timestamp: this.getDeterministicTimestamp()
         };
         
         deploymentResults.qualityGates.push(vulnerabilitiesGate);
@@ -268,7 +268,7 @@ describe('Production Deployment Pipeline Configuration Tests', () => {
       } catch (securityError) {
         securityStage.status = 'failed';
         securityStage.error = securityError.message;
-        securityStage.duration = Date.now() - securityStage.startTime;
+        securityStage.duration = this.getDeterministicTimestamp() - securityStage.startTime;
         
         deploymentResults.stages.push(securityStage);
         throw securityError;
@@ -280,7 +280,7 @@ describe('Production Deployment Pipeline Configuration Tests', () => {
       
       const performanceStage = {
         name: 'performance-test',
-        startTime: Date.now(),
+        startTime: this.getDeterministicTimestamp(),
         benchmarks: [],
         status: 'running'
       };
@@ -343,7 +343,7 @@ describe('Production Deployment Pipeline Configuration Tests', () => {
         
         performanceStage.avgResponseTime = avgResponseTime;
         performanceStage.status = passedBenchmarks === totalBenchmarks ? 'success' : 'failed';
-        performanceStage.duration = Date.now() - performanceStage.startTime;
+        performanceStage.duration = this.getDeterministicTimestamp() - performanceStage.startTime;
         
         deploymentResults.stages.push(performanceStage);
         
@@ -353,7 +353,7 @@ describe('Production Deployment Pipeline Configuration Tests', () => {
           passed: avgResponseTime <= DEPLOYMENT_CONFIG.QUALITY_GATES.PERFORMANCE_THRESHOLD_MS,
           criteria: `Average response time under ${DEPLOYMENT_CONFIG.QUALITY_GATES.PERFORMANCE_THRESHOLD_MS}ms`,
           actual: `${avgResponseTime.toFixed(2)}ms average`,
-          timestamp: Date.now()
+          timestamp: this.getDeterministicTimestamp()
         };
         
         deploymentResults.qualityGates.push(performanceGate);
@@ -366,7 +366,7 @@ describe('Production Deployment Pipeline Configuration Tests', () => {
       } catch (performanceError) {
         performanceStage.status = 'failed';
         performanceStage.error = performanceError.message;
-        performanceStage.duration = Date.now() - performanceStage.startTime;
+        performanceStage.duration = this.getDeterministicTimestamp() - performanceStage.startTime;
         
         deploymentResults.stages.push(performanceStage);
         throw performanceError;
@@ -381,7 +381,7 @@ describe('Production Deployment Pipeline Configuration Tests', () => {
       for (const env of DEPLOYMENT_CONFIG.ENVIRONMENTS) {
         const envConfig = {
           name: env,
-          startTime: Date.now(),
+          startTime: this.getDeterministicTimestamp(),
           validations: [],
           status: 'testing'
         };
@@ -407,7 +407,7 @@ describe('Production Deployment Pipeline Configuration Tests', () => {
           const totalValidations = envConfig.validations.length;
           
           envConfig.status = passedValidations === totalValidations ? 'valid' : 'invalid';
-          envConfig.duration = Date.now() - envConfig.startTime;
+          envConfig.duration = this.getDeterministicTimestamp() - envConfig.startTime;
           
           deploymentResults.environments.push(envConfig);
           
@@ -416,7 +416,7 @@ describe('Production Deployment Pipeline Configuration Tests', () => {
         } catch (envError) {
           envConfig.status = 'error';
           envConfig.error = envError.message;
-          envConfig.duration = Date.now() - envConfig.startTime;
+          envConfig.duration = this.getDeterministicTimestamp() - envConfig.startTime;
           
           deploymentResults.environments.push(envConfig);
           throw envError;
@@ -431,7 +431,7 @@ describe('Production Deployment Pipeline Configuration Tests', () => {
       
       const migrationTest = {
         name: 'database-migration',
-        startTime: Date.now(),
+        startTime: this.getDeterministicTimestamp(),
         migrations: [],
         status: 'running'
       };
@@ -457,7 +457,7 @@ describe('Production Deployment Pipeline Configuration Tests', () => {
         const totalMigrations = migrationTest.migrations.length;
         
         migrationTest.status = passedMigrations === totalMigrations ? 'success' : 'failed';
-        migrationTest.duration = Date.now() - migrationTest.startTime;
+        migrationTest.duration = this.getDeterministicTimestamp() - migrationTest.startTime;
         
         deploymentResults.stages.push(migrationTest);
         
@@ -468,7 +468,7 @@ describe('Production Deployment Pipeline Configuration Tests', () => {
       } catch (migrationError) {
         migrationTest.status = 'failed';
         migrationTest.error = migrationError.message;
-        migrationTest.duration = Date.now() - migrationTest.startTime;
+        migrationTest.duration = this.getDeterministicTimestamp() - migrationTest.startTime;
         
         deploymentResults.stages.push(migrationTest);
         throw migrationError;
@@ -480,7 +480,7 @@ describe('Production Deployment Pipeline Configuration Tests', () => {
       
       const configTest = {
         name: 'configuration-management',
-        startTime: Date.now(),
+        startTime: this.getDeterministicTimestamp(),
         checks: [],
         status: 'running'
       };
@@ -506,7 +506,7 @@ describe('Production Deployment Pipeline Configuration Tests', () => {
         const totalChecks = configTest.checks.length;
         
         configTest.status = passedChecks === totalChecks ? 'success' : 'failed';
-        configTest.duration = Date.now() - configTest.startTime;
+        configTest.duration = this.getDeterministicTimestamp() - configTest.startTime;
         
         deploymentResults.stages.push(configTest);
         
@@ -517,7 +517,7 @@ describe('Production Deployment Pipeline Configuration Tests', () => {
       } catch (configError) {
         configTest.status = 'failed';
         configTest.error = configError.message;
-        configTest.duration = Date.now() - configTest.startTime;
+        configTest.duration = this.getDeterministicTimestamp() - configTest.startTime;
         
         deploymentResults.stages.push(configTest);
         throw configError;
@@ -531,7 +531,7 @@ describe('Production Deployment Pipeline Configuration Tests', () => {
       
       const blueGreenTest = {
         name: 'blue-green-deployment',
-        startTime: Date.now(),
+        startTime: this.getDeterministicTimestamp(),
         phases: [],
         status: 'running'
       };
@@ -561,7 +561,7 @@ describe('Production Deployment Pipeline Configuration Tests', () => {
         const totalPhases = blueGreenTest.phases.length;
         
         blueGreenTest.status = passedPhases === totalPhases ? 'success' : 'failed';
-        blueGreenTest.duration = Date.now() - blueGreenTest.startTime;
+        blueGreenTest.duration = this.getDeterministicTimestamp() - blueGreenTest.startTime;
         
         deploymentResults.automation.push(blueGreenTest);
         
@@ -572,7 +572,7 @@ describe('Production Deployment Pipeline Configuration Tests', () => {
       } catch (deploymentError) {
         blueGreenTest.status = 'failed';
         blueGreenTest.error = deploymentError.message;
-        blueGreenTest.duration = Date.now() - blueGreenTest.startTime;
+        blueGreenTest.duration = this.getDeterministicTimestamp() - blueGreenTest.startTime;
         
         deploymentResults.automation.push(blueGreenTest);
         throw deploymentError;
@@ -584,7 +584,7 @@ describe('Production Deployment Pipeline Configuration Tests', () => {
       
       const rollbackTest = {
         name: 'rollback-mechanism',
-        startTime: Date.now(),
+        startTime: this.getDeterministicTimestamp(),
         scenarios: [],
         status: 'running'
       };
@@ -618,7 +618,7 @@ describe('Production Deployment Pipeline Configuration Tests', () => {
         const totalScenarios = rollbackTest.scenarios.length;
         
         rollbackTest.status = successfulRollbacks === totalScenarios ? 'success' : 'failed';
-        rollbackTest.duration = Date.now() - rollbackTest.startTime;
+        rollbackTest.duration = this.getDeterministicTimestamp() - rollbackTest.startTime;
         
         deploymentResults.rollbacks.push(rollbackTest);
         
@@ -629,7 +629,7 @@ describe('Production Deployment Pipeline Configuration Tests', () => {
       } catch (rollbackError) {
         rollbackTest.status = 'failed';
         rollbackTest.error = rollbackError.message;
-        rollbackTest.duration = Date.now() - rollbackTest.startTime;
+        rollbackTest.duration = this.getDeterministicTimestamp() - rollbackTest.startTime;
         
         deploymentResults.rollbacks.push(rollbackTest);
         throw rollbackError;
@@ -641,7 +641,7 @@ describe('Production Deployment Pipeline Configuration Tests', () => {
       
       const iacTest = {
         name: 'infrastructure-as-code',
-        startTime: Date.now(),
+        startTime: this.getDeterministicTimestamp(),
         validations: [],
         status: 'running'
       };
@@ -671,7 +671,7 @@ describe('Production Deployment Pipeline Configuration Tests', () => {
         const totalValidations = iacTest.validations.length;
         
         iacTest.status = passedValidations === totalValidations ? 'success' : 'failed';
-        iacTest.duration = Date.now() - iacTest.startTime;
+        iacTest.duration = this.getDeterministicTimestamp() - iacTest.startTime;
         
         deploymentResults.automation.push(iacTest);
         
@@ -682,7 +682,7 @@ describe('Production Deployment Pipeline Configuration Tests', () => {
       } catch (iacError) {
         iacTest.status = 'failed';
         iacTest.error = iacError.message;
-        iacTest.duration = Date.now() - iacTest.startTime;
+        iacTest.duration = this.getDeterministicTimestamp() - iacTest.startTime;
         
         deploymentResults.automation.push(iacTest);
         throw iacError;
@@ -961,7 +961,7 @@ function generateDeploymentReport(results) {
   }
   
   return {
-    timestamp: new Date().toISOString(),
+    timestamp: this.getDeterministicDate().toISOString(),
     overallHealth,
     stagesTotal,
     stagesSuccessful,

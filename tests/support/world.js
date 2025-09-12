@@ -77,7 +77,7 @@ export class UnjucksWorld {
     this.performanceMetrics.operations.push({
       operation,
       duration: endTime - startTime,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     });
   }
 

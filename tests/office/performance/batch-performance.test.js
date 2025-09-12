@@ -53,14 +53,14 @@ class PerformanceMonitor {
       operation,
       duration,
       success,
-      timestamp: Date.now()
+      timestamp: this.getDeterministicTimestamp()
     });
   }
 
   recordError(error) {
     this.metrics.errors.push({
       error: error.message,
-      timestamp: Date.now()
+      timestamp: this.getDeterministicTimestamp()
     });
   }
 
@@ -125,13 +125,13 @@ class OfficePerformanceProcessor {
     try {
       for (let i = 0; i < batches.length; i++) {
         const batch = batches[i];
-        const batchStartTime = Date.now();
+        const batchStartTime = this.getDeterministicTimestamp();
 
         // Process batch with concurrency control
         const batchResults = await this.processBatchChunk(batch, batchOptions.concurrency);
         results.push(...batchResults);
 
-        const batchDuration = Date.now() - batchStartTime;
+        const batchDuration = this.getDeterministicTimestamp() - batchStartTime;
         monitor.recordOperation(`batch_${i}`, batchDuration, true);
 
         this.stats.batchesProcessed++;
@@ -181,7 +181,7 @@ class OfficePerformanceProcessor {
    * Simulate intensive document processing
    */
   async processDocumentIntensive(document, processingTime = 50) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
 
     // Simulate memory allocation
     const largeArray = new Array(100000).fill(0).map(() => Math.random());
@@ -197,7 +197,7 @@ class OfficePerformanceProcessor {
 
     return {
       document: document.name || 'unknown',
-      processingTime: Date.now() - startTime,
+      processingTime: this.getDeterministicTimestamp() - startTime,
       memoryFootprint: largeArray.length * 8, // Rough estimate
       result: sum
     };
@@ -220,14 +220,14 @@ class OfficePerformanceProcessor {
       const data = new Array(1000).fill(0).map(() => ({
         id: i,
         content: 'Sample document content '.repeat(10),
-        metadata: { created: new Date(), size: Math.random() * 1000 }
+        metadata: { created: this.getDeterministicDate(), size: Math.random() * 1000 }
       }));
 
       // Process the data
       const processed = data.map(item => ({
         ...item,
         processed: true,
-        timestamp: Date.now()
+        timestamp: this.getDeterministicTimestamp()
       }));
 
       results.push(processed);
@@ -245,7 +245,7 @@ class OfficePerformanceProcessor {
         global.gc();
       }
 
-      monitor.recordOperation(`memory_test_${i}`, Date.now() - startMem, true);
+      monitor.recordOperation(`memory_test_${i}`, this.getDeterministicTimestamp() - startMem, true);
     }
 
     monitor.end();
@@ -487,7 +487,7 @@ export function registerTests(testRunner) {
         const documentsPerBatch = 20;
         const results = [];
 
-        const overallStart = Date.now();
+        const overallStart = this.getDeterministicTimestamp();
 
         for (let batch = 0; batch < batchCount; batch++) {
           const documents = Array.from({ length: documentsPerBatch }, (_, i) => ({
@@ -511,7 +511,7 @@ export function registerTests(testRunner) {
           assert.strictEqual(result.success, true);
         }
 
-        const overallDuration = Date.now() - overallStart;
+        const overallDuration = this.getDeterministicTimestamp() - overallStart;
         const totalDocuments = batchCount * documentsPerBatch;
         const avgDuration = results.reduce((sum, r) => sum + r.duration, 0) / results.length;
         const maxMemory = Math.max(...results.map(r => r.peakMemory));

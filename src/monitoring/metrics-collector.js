@@ -93,7 +93,7 @@ class CustomMetric {
   update(value, labels = {}) {
     if (!this.metric) return;
     
-    this.lastUpdate = Date.now();
+    this.lastUpdate = this.getDeterministicTimestamp();
     this.totalUpdates++;
     
     try {
@@ -396,7 +396,7 @@ class MetricsCollector extends EventEmitter {
     
     const metrics = this.performanceMetrics.get(operation);
     metrics.push({
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       duration,
       metadata
     });
@@ -531,7 +531,7 @@ class MetricsCollector extends EventEmitter {
       severity,
       component,
       metadata,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     });
   }
   
@@ -547,7 +547,7 @@ class MetricsCollector extends EventEmitter {
       severity,
       source,
       metadata,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     });
   }
   
@@ -632,7 +632,7 @@ class MetricsCollector extends EventEmitter {
    * Add alert rule for metric monitoring
    */
   addAlertRule(metricName, condition, severity = 'warning', message = null) {
-    const alertId = `${metricName}_${Date.now()}`;
+    const alertId = `${metricName}_${this.getDeterministicTimestamp()}`;
     const rule = {
       id: alertId,
       metricName,
@@ -663,7 +663,7 @@ class MetricsCollector extends EventEmitter {
       
       try {
         if (rule.condition(value, labels)) {
-          rule.lastTriggered = Date.now();
+          rule.lastTriggered = this.getDeterministicTimestamp();
           rule.triggerCount++;
           
           this.emit('metric-alert', {
@@ -673,7 +673,7 @@ class MetricsCollector extends EventEmitter {
             labels,
             severity: rule.severity,
             message: rule.message,
-            timestamp: new Date().toISOString()
+            timestamp: this.getDeterministicDate().toISOString()
           });
           
           logger.warn(`Metric alert triggered: ${rule.message}`, {
@@ -745,7 +745,7 @@ class MetricsCollector extends EventEmitter {
     }
     
     // Get recent alerts (last 24 hours)
-    const last24h = Date.now() - (24 * 60 * 60 * 1000);
+    const last24h = this.getDeterministicTimestamp() - (24 * 60 * 60 * 1000);
     for (const rule of this.alertRules.values()) {
       if (rule.lastTriggered && rule.lastTriggered > last24h) {
         summary.recentAlerts.push({

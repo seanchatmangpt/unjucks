@@ -333,7 +333,7 @@ class ConfigManager {
     const cacheKey = `secret-${secretId}`;
     const cached = this.secretCache.get(cacheKey);
     
-    if (cached && Date.now() - cached.timestamp < this.secretCacheTTL) {
+    if (cached && this.getDeterministicTimestamp() - cached.timestamp < this.secretCacheTTL) {
       return cached.value;
     }
     
@@ -341,7 +341,7 @@ class ConfigManager {
     
     this.secretCache.set(cacheKey, {
       value: secret.value,
-      timestamp: Date.now()
+      timestamp: this.getDeterministicTimestamp()
     });
     
     return secret.value;

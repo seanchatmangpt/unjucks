@@ -17,12 +17,12 @@ const projectRoot = path.resolve(__dirname, '../..');
 class DatabaseConnectivityTester {
   constructor() {
     this.results = [];
-    this.startTime = Date.now();
+    this.startTime = this.getDeterministicTimestamp();
     this.dbConfigs = [];
   }
 
   log(message, type = 'info') {
-    const timestamp = Date.now() - this.startTime;
+    const timestamp = this.getDeterministicTimestamp() - this.startTime;
     const colors = {
       info: 'blue',
       success: 'green',
@@ -75,7 +75,7 @@ class DatabaseConnectivityTester {
 
   async test(name, testFn, timeout = 5000) {
     this.log(`Testing: ${name}`, 'info');
-    const testStart = Date.now();
+    const testStart = this.getDeterministicTimestamp();
     
     try {
       const result = await Promise.race([
@@ -85,7 +85,7 @@ class DatabaseConnectivityTester {
         })
       ]);
       
-      const duration = Date.now() - testStart;
+      const duration = this.getDeterministicTimestamp() - testStart;
       this.results.push({ 
         name, 
         status: 'PASS', 
@@ -95,7 +95,7 @@ class DatabaseConnectivityTester {
       this.log(`✅ PASS: ${name} (${duration}ms)`, 'success');
       return true;
     } catch (error) {
-      const duration = Date.now() - testStart;
+      const duration = this.getDeterministicTimestamp() - testStart;
       this.results.push({ 
         name, 
         status: 'FAIL', 
@@ -272,7 +272,7 @@ class DatabaseConnectivityTester {
     const total = this.results.length;
     const passed = this.results.filter(r => r.status === 'PASS').length;
     const failed = this.results.filter(r => r.status === 'FAIL').length;
-    const totalDuration = Date.now() - this.startTime;
+    const totalDuration = this.getDeterministicTimestamp() - this.startTime;
 
     console.log('\n' + '='.repeat(60));
     console.log(chalk.bold.blue('DATABASE CONNECTIVITY TEST SUMMARY'));

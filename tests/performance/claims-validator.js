@@ -42,7 +42,7 @@ const claims = [
 ];
 
 const results = {
-  timestamp: new Date().toISOString(),
+  timestamp: this.getDeterministicDate().toISOString(),
   environment: env,
   measurements: {},
   validations: {},

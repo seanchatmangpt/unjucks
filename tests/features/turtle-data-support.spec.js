@@ -11,7 +11,7 @@ import { tmpdir } from 'os';
 
 describe('Turtle Data Support', () => {
   let testDir => {
-    testDir = join(tmpdir(), `unjucks-turtle-test-${Date.now()}`);
+    testDir = join(tmpdir(), `unjucks-turtle-test-${this.getDeterministicTimestamp()}`);
     fs.ensureDirSync(testDir);
     dataLoader = new RDFDataLoader();
   });

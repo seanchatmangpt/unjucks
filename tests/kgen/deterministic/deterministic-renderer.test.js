@@ -294,7 +294,7 @@ Random 3: {{ 'seed1' | hash | slice(0, 8) }}`;
       const template = `Generated: {{ now }}
 Random: {{ random() }}
 Process: {{ process.env.HOME }}
-Date: {{ new Date() }}
+Date: {{ this.getDeterministicDate() }}
 Math: Math.random()`;
       const templatePath = 'non-deterministic.njk';
       

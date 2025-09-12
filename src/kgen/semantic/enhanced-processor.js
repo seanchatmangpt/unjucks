@@ -205,7 +205,7 @@ export class EnhancedSemanticProcessor extends SemanticProcessor {
       
       const reasoningContext = {
         operationId: options.operationId || crypto.randomUUID(),
-        startTime: Date.now(),
+        startTime: this.getDeterministicTimestamp(),
         inputTriples: graph.triples?.length || 0,
         rulesApplied: 0,
         inferredTriples: 0,
@@ -261,13 +261,13 @@ export class EnhancedSemanticProcessor extends SemanticProcessor {
       }
       
       // Update reasoning context
-      reasoningContext.endTime = Date.now();
+      reasoningContext.endTime = this.getDeterministicTimestamp();
       reasoningContext.reasoningTime = reasoningContext.endTime - reasoningContext.startTime;
       reasoningContext.inferredTriples = inferredGraph.inferredTriples?.length || 0;
       
       // Update learning history
       this.learningHistory.push({
-        timestamp: Date.now(),
+        timestamp: this.getDeterministicTimestamp(),
         context: reasoningContext,
         performance: await this._calculatePerformanceMetrics(reasoningContext)
       });
@@ -427,7 +427,7 @@ export class EnhancedSemanticProcessor extends SemanticProcessor {
         description: 'Learned transitive property relationship',
         confidence: Math.random() * 0.3 + 0.7,
         support: Math.random() * 0.4 + 0.1,
-        learnedAt: new Date().toISOString(),
+        learnedAt: this.getDeterministicDate().toISOString(),
         priority: Math.floor(Math.random() * 5) + 1
       };
       
@@ -477,7 +477,7 @@ export class EnhancedSemanticProcessor extends SemanticProcessor {
       averageReasoningTime: 1000, // ms
       averageInferencesPerSecond: 100,
       averageAccuracy: 0.95,
-      baselineTimestamp: Date.now()
+      baselineTimestamp: this.getDeterministicTimestamp()
     };
   }
   

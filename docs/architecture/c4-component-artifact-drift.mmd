@@ -1,0 +1,83 @@
+```mermaid
+C4Component
+    title Component Diagram for Drift Detection System
+    
+    Container_Boundary(cli, "KGEN CLI") {
+        Component(driftCmd, "Drift Command", "Citty Command", "CLI interface for drift operations")
+        Component(kgenEngine, "KGenCLIEngine", "Core Engine", "Main orchestrator for drift detection")
+    }
+    
+    Container_Boundary(drift, "Drift Detection System") {
+        Component(driftDetector, "DriftDetector", "Detector", "Main drift detection engine")
+        Component(baselineManager, "Baseline Manager", "State Manager", "Manages baseline artifacts and state")
+        Component(comparisonEngine, "Comparison Engine", "Comparator", "Compares current vs baseline artifacts")
+        Component(changeAnalyzer, "Change Analyzer", "Analyzer", "Analyzes detected changes")
+    }
+    
+    Container_Boundary(storage, "State Storage") {
+        Component(stateStore, "State Store", "File System", "Persistent storage for baseline state")
+        Component(lockfileManager, "Lockfile Manager", "JSON", "Manages kgen.lock.json lockfiles")
+        Component(checksumCache, "Checksum Cache", "Cache", "Caches artifact checksums")
+        Component(metadataStore, "Metadata Store", "JSON", "Stores artifact metadata")
+    }
+    
+    Container_Boundary(analysis, "Impact Analysis") {
+        Component(impactCalculator, "ImpactCalculator", "Calculator", "Calculates change impact scores")
+        Component(riskAssessor, "Risk Assessor", "Assessor", "Assesses risk levels of changes")
+        Component(blastRadiusAnalyzer, "Blast Radius Analyzer", "Analyzer", "Calculates potential impact radius")
+        Component(recommendationEngine, "Recommendation Engine", "Engine", "Generates remediation recommendations")
+    }
+    
+    Container_Boundary(reporting, "Reporting System") {
+        Component(reportGenerator, "Report Generator", "Generator", "Generates drift reports")
+        Component(alertManager, "Alert Manager", "Manager", "Manages drift alerts and notifications")
+        Component(exitCodeManager, "Exit Code Manager", "Manager", "Manages CI/CD exit codes")
+        Component(jsonFormatter, "JSON Formatter", "Formatter", "Formats output as JSON")
+    }
+    
+    Container_Boundary(validation, "Validation Layer") {
+        Component(artifactValidator, "Artifact Validator", "Validator", "Validates artifact integrity")
+        Component(provenanceChecker, "Provenance Checker", "Checker", "Checks artifact provenance")
+        Component(attestationVerifier, "Attestation Verifier", "Verifier", "Verifies cryptographic attestations")
+        Component(reproducibilityTester, "Reproducibility Tester", "Tester", "Tests artifact reproducibility")
+    }
+    
+    Container_Boundary(config, "Configuration") {
+        Component(driftPolicy, "Drift Policy", "Config", "Drift detection policies")
+        Component(toleranceConfig, "Tolerance Config", "Config", "Drift tolerance settings")
+        Component(thresholdManager, "Threshold Manager", "Manager", "Manages drift thresholds")
+    }
+    
+    Rel(driftCmd, kgenEngine, "delegates to")
+    Rel(kgenEngine, driftDetector, "initializes and uses")
+    
+    Rel(driftDetector, baselineManager, "loads baseline from")
+    Rel(driftDetector, comparisonEngine, "compares artifacts with")
+    Rel(comparisonEngine, changeAnalyzer, "analyzes changes with")
+    
+    Rel(baselineManager, stateStore, "persists state to")
+    Rel(baselineManager, lockfileManager, "manages lockfiles with")
+    Rel(comparisonEngine, checksumCache, "caches checksums in")
+    Rel(changeAnalyzer, metadataStore, "stores metadata in")
+    
+    Rel(driftDetector, impactCalculator, "calculates impact with")
+    Rel(impactCalculator, riskAssessor, "assesses risk with")
+    Rel(impactCalculator, blastRadiusAnalyzer, "analyzes radius with")
+    Rel(changeAnalyzer, recommendationEngine, "generates recommendations with")
+    
+    Rel(driftDetector, reportGenerator, "generates reports with")
+    Rel(driftDetector, alertManager, "sends alerts with")
+    Rel(kgenEngine, exitCodeManager, "sets exit codes with")
+    Rel(reportGenerator, jsonFormatter, "formats output with")
+    
+    Rel(driftDetector, artifactValidator, "validates artifacts with")
+    Rel(artifactValidator, provenanceChecker, "checks provenance with")
+    Rel(provenanceChecker, attestationVerifier, "verifies attestations with")
+    Rel(artifactValidator, reproducibilityTester, "tests reproducibility with")
+    
+    Rel(driftDetector, driftPolicy, "applies policies from")
+    Rel(driftPolicy, toleranceConfig, "configures tolerance with")
+    Rel(toleranceConfig, thresholdManager, "manages thresholds with")
+    
+    UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="2")
+```

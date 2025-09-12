@@ -549,8 +549,8 @@ export class TrainingMaterialsGenerator {
         metadata: {
           author: 'Documentation Team',
           version: '1.0.0',
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
+          createdAt: this.getDeterministicDate().toISOString(),
+          updatedAt: this.getDeterministicDate().toISOString(),
           tags: ['documentation', 'markdown', 'writing', 'technical'],
           audience: ['developers', 'technical-writers', 'product-managers']
         }
@@ -587,8 +587,8 @@ export class TrainingMaterialsGenerator {
         metadata: {
           author: 'Compliance Team',
           version: '1.0.0',
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
+          createdAt: this.getDeterministicDate().toISOString(),
+          updatedAt: this.getDeterministicDate().toISOString(),
           tags: ['compliance', 'sox', 'audit', 'finance'],
           audience: ['compliance-officers', 'managers', 'auditors']
         }
@@ -629,7 +629,7 @@ export class TrainingMaterialsGenerator {
   public async generateAllMaterials(): Promise<void> {
     console.log('🚀 Starting training materials generation...');
 
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
 
     // Generate materials for each module
     for (const module of this.modules.values()) {
@@ -644,7 +644,7 @@ export class TrainingMaterialsGenerator {
     // Generate master index
     await this.generateMasterIndex();
 
-    const duration = Date.now() - startTime;
+    const duration = this.getDeterministicTimestamp() - startTime;
     console.log(`✅ Training materials generation completed in ${duration}ms`);
   }
 
@@ -1305,7 +1305,7 @@ console.log('Hello, World!');\`);
 
     const indexContent = {
       metadata: {
-        generatedAt: new Date().toISOString(),
+        generatedAt: this.getDeterministicDate().toISOString(),
         totalModules: this.modules.size,
         totalPrograms: this.programs.size,
         generatedFormats: this.config.generateFormats
@@ -1401,7 +1401,7 @@ console.log('Hello, World!');\`);
     <div class="container">
         <div class="header">
             <h1>📚 Training Materials</h1>
-            <p>Generated on ${new Date().toLocaleDateString()}</p>
+            <p>Generated on ${this.getDeterministicDate().toLocaleDateString()}</p>
         </div>
 
         <div class="stats">

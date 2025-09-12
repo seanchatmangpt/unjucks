@@ -137,7 +137,7 @@ export class PredictiveProvenanceAnalyzer extends EventEmitter {
     try {
       this.logger.info(`Predicting future impact for: ${provenanceRecord.operationId}`);
       
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const predictionId = crypto.randomUUID();
       
       // Extract features from provenance record
@@ -165,8 +165,8 @@ export class PredictiveProvenanceAnalyzer extends EventEmitter {
         temporalAnalysis,
         dependencyImpact,
         horizon: this.config.predictionHorizon,
-        timestamp: new Date(),
-        predictionTime: Date.now() - startTime,
+        timestamp: this.getDeterministicDate(),
+        predictionTime: this.getDeterministicTimestamp() - startTime,
         features: this._summarizeFeatures(features)
       };
       
@@ -203,7 +203,7 @@ export class PredictiveProvenanceAnalyzer extends EventEmitter {
       this.logger.info(`Assessing risk factors for: ${provenanceRecord.operationId}`);
       
       const assessmentId = crypto.randomUUID();
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
       // Extract risk features
       const riskFeatures = await this._extractRiskFeatures(provenanceRecord, historicalData);
@@ -236,8 +236,8 @@ export class PredictiveProvenanceAnalyzer extends EventEmitter {
         mitigationRecommendations,
         riskTimeline,
         confidence: riskScore.confidence,
-        timestamp: new Date(),
-        assessmentTime: Date.now() - startTime
+        timestamp: this.getDeterministicDate(),
+        assessmentTime: this.getDeterministicTimestamp() - startTime
       };
       
       // Store assessment
@@ -267,7 +267,7 @@ export class PredictiveProvenanceAnalyzer extends EventEmitter {
       this.logger.info(`Detecting anomalies in ${provenanceRecords.length} records`);
       
       const detectionId = crypto.randomUUID();
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
       // Extract features for anomaly detection
       const anomalyFeatures = await this._extractAnomalyFeatures(provenanceRecords);
@@ -299,7 +299,7 @@ export class PredictiveProvenanceAnalyzer extends EventEmitter {
             confidence: this._calculateAnomalyConfidence(isolationScore, svmScore, autoencoderScore),
             explanation: await this._explainAnomaly(features, ensembleScore),
             severity: this._calculateAnomalySeverity(ensembleScore),
-            timestamp: new Date()
+            timestamp: this.getDeterministicDate()
           };
           
           anomalies.push(anomaly);
@@ -311,9 +311,9 @@ export class PredictiveProvenanceAnalyzer extends EventEmitter {
         recordsAnalyzed: provenanceRecords.length,
         anomaliesDetected: anomalies.length,
         anomalies,
-        detectionTime: Date.now() - startTime,
+        detectionTime: this.getDeterministicTimestamp() - startTime,
         threshold: options.threshold || 0.7,
-        timestamp: new Date()
+        timestamp: this.getDeterministicDate()
       };
       
       this.emit('anomalies-detected', detection);
@@ -338,7 +338,7 @@ export class PredictiveProvenanceAnalyzer extends EventEmitter {
       this.logger.info('Forecasting performance trends');
       
       const forecastId = crypto.randomUUID();
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
       // Prepare time series data
       const timeSeriesData = await this._prepareTimeSeriesData(historicalMetrics);
@@ -371,8 +371,8 @@ export class PredictiveProvenanceAnalyzer extends EventEmitter {
         optimizationRecommendations,
         horizon: forecastOptions.horizon || this.config.predictionHorizon,
         confidence: forecast.confidence,
-        forecastTime: Date.now() - startTime,
-        timestamp: new Date()
+        forecastTime: this.getDeterministicTimestamp() - startTime,
+        timestamp: this.getDeterministicDate()
       };
       
       this.emit('performance-forecasted', performanceForecast);
@@ -428,7 +428,7 @@ export class PredictiveProvenanceAnalyzer extends EventEmitter {
       
       this.modelMetrics.set(modelName, {
         accuracy: 0.0,
-        lastTrained: new Date(),
+        lastTrained: this.getDeterministicDate(),
         trainingDataSize: 0,
         predictionCount: 0
       });
@@ -632,7 +632,7 @@ export class PredictiveProvenanceAnalyzer extends EventEmitter {
 
 class TemporalFeatureExtractor {
   async extract(provenanceRecord) {
-    const timestamp = new Date(provenanceRecord.startTime || Date.now());
+    const timestamp = new Date(provenanceRecord.startTime || this.getDeterministicTimestamp());
     
     return [
       timestamp.getHours() / 24,           // Hour of day

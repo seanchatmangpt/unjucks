@@ -454,7 +454,7 @@ export class LaTeXWordProcessor extends BaseOfficeProcessor {
     return {
       title: parseResult.metadata?.title || 'Untitled Document',
       author: parseResult.metadata?.author || 'Unknown Author',
-      date: parseResult.metadata?.date || new Date().toISOString(),
+      date: parseResult.metadata?.date || this.getDeterministicDate().toISOString(),
       documentClass: parseResult.metadata?.documentClass || 'article',
       packages: parseResult.documentStructure?.preamble?.filter(node => 
         node.type === 'command' && node.value === 'usepackage'

@@ -506,8 +506,8 @@ export class WordProcessor extends BaseOfficeProcessor {
         properties: {
           title: 'Sample Document',
           author: 'Template System',
-          created: new Date(),
-          modified: new Date()
+          created: this.getDeterministicDate(),
+          modified: this.getDeterministicDate()
         },
         styles: [],
         images: []

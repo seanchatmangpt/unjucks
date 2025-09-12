@@ -53,12 +53,12 @@ export class AttestationBundler {
       this.logger.info('Creating attestation bundle...');
 
       const bundleId = bundleRequest.bundleId || uuidv4();
-      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+      const timestamp = this.getDeterministicDate().toISOString().replace(/[:.]/g, '-');
       
       const bundleManifest = {
         bundleId,
         version: this.bundleVersion,
-        createdAt: new Date().toISOString(),
+        createdAt: this.getDeterministicDate().toISOString(),
         createdBy: bundleRequest.createdBy || 'kgen-system',
         
         // Bundle metadata
@@ -133,7 +133,7 @@ export class AttestationBundler {
           bundleHash,
           signature,
           manifest: bundleManifest,
-          createdAt: new Date().toISOString(),
+          createdAt: this.getDeterministicDate().toISOString(),
           size: (await fs.stat(bundlePath)).size
         };
 
@@ -166,7 +166,7 @@ export class AttestationBundler {
         valid: true,
         issues: [],
         warnings: [],
-        verifiedAt: new Date().toISOString()
+        verifiedAt: this.getDeterministicDate().toISOString()
       };
 
       // Check bundle file exists and is readable
@@ -207,7 +207,7 @@ export class AttestationBundler {
       }
 
       // Extract bundle contents to temporary directory for verification
-      const tempDir = await this._createTempDirectory('verify-' + Date.now());
+      const tempDir = await this._createTempDirectory('verify-' + this.getDeterministicTimestamp());
       
       try {
         await this._extractBundle(bundlePath, tempDir);
@@ -457,7 +457,7 @@ export class AttestationBundler {
   }
 
   async _createTempDirectory(prefix) {
-    const tempDir = path.join(os.tmpdir(), `kgen-bundle-${prefix}-${Date.now()}`);
+    const tempDir = path.join(os.tmpdir(), `kgen-bundle-${prefix}-${this.getDeterministicTimestamp()}`);
     await fs.mkdir(tempDir, { recursive: true });
     return tempDir;
   }
@@ -557,7 +557,7 @@ export class AttestationBundler {
       algorithm: 'RS256',
       hash: bundleHash,
       signature: `signed-${bundleHash.substring(0, 16)}`,
-      signedAt: new Date().toISOString(),
+      signedAt: this.getDeterministicDate().toISOString(),
       signer: 'kgen-system'
     };
   }
@@ -581,7 +581,7 @@ export class AttestationBundler {
     return {
       valid: true,
       algorithm: manifest.signature?.algorithm || 'RS256',
-      verifiedAt: new Date().toISOString()
+      verifiedAt: this.getDeterministicDate().toISOString()
     };
   }
 

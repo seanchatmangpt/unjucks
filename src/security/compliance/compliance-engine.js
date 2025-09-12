@@ -182,7 +182,7 @@ class ComplianceEngine extends EventEmitter {
         id: assessmentId,
         framework: frameworkName,
         scope,
-        startTime: new Date(),
+        startTime: this.getDeterministicDate(),
         status: 'in_progress',
         results: new Map(),
         evidence: [],
@@ -208,7 +208,7 @@ class ComplianceEngine extends EventEmitter {
       // Calculate overall compliance score
       assessment.overallScore = this._calculateOverallScore(assessment.results);
       assessment.status = 'completed';
-      assessment.endTime = new Date();
+      assessment.endTime = this.getDeterministicDate();
       
       // Generate evidence package
       if (this.config.evidenceCollection) {
@@ -256,7 +256,7 @@ class ComplianceEngine extends EventEmitter {
       
       const gdprAssessment = {
         operation,
-        timestamp: new Date(),
+        timestamp: this.getDeterministicDate(),
         checks: []
       };
       
@@ -318,7 +318,7 @@ class ComplianceEngine extends EventEmitter {
       
       const validation = {
         category: controlCategory,
-        timestamp: new Date(),
+        timestamp: this.getDeterministicDate(),
         controls: [],
         overallStatus: 'compliant'
       };
@@ -357,7 +357,7 @@ class ComplianceEngine extends EventEmitter {
       
       const hipaaAssessment = {
         operation: dataOperation,
-        timestamp: new Date(),
+        timestamp: this.getDeterministicDate(),
         safeguards: {
           administrative: [],
           physical: [],
@@ -420,7 +420,7 @@ class ComplianceEngine extends EventEmitter {
       this.logger.info('Generating comprehensive compliance report...');
       
       const report = {
-        generatedAt: new Date(),
+        generatedAt: this.getDeterministicDate(),
         period,
         scope: frameworks,
         executiveSummary: null,
@@ -503,7 +503,7 @@ class ComplianceEngine extends EventEmitter {
     try {
       const violation = {
         id: this._generateViolationId(),
-        timestamp: new Date(),
+        timestamp: this.getDeterministicDate(),
         framework: violationData.framework,
         control: violationData.control,
         severity: violationData.severity || 'medium',
@@ -580,7 +580,7 @@ class ComplianceEngine extends EventEmitter {
       openViolations,
       criticalViolations,
       complianceStatus: overallScore > 0.8 ? 'compliant' : 'non_compliant',
-      lastUpdated: new Date()
+      lastUpdated: this.getDeterministicDate()
     };
   }
   
@@ -591,7 +591,7 @@ class ComplianceEngine extends EventEmitter {
     try {
       const classification = {
         dataId: context.dataId || this._generateDataId(),
-        timestamp: new Date(),
+        timestamp: this.getDeterministicDate(),
         sensitivity: 'public',
         categories: [],
         regulations: [],
@@ -903,7 +903,7 @@ class ComplianceEngine extends EventEmitter {
         {
           type: 'configuration',
           description: 'Access control policies reviewed',
-          timestamp: new Date()
+          timestamp: this.getDeterministicDate()
         }
       ],
       findings: [],
@@ -920,7 +920,7 @@ class ComplianceEngine extends EventEmitter {
         {
           type: 'system_check',
           description: 'MFA enabled for all admin accounts',
-          timestamp: new Date()
+          timestamp: this.getDeterministicDate()
         }
       ],
       findings: [],
@@ -937,7 +937,7 @@ class ComplianceEngine extends EventEmitter {
         {
           type: 'policy_review',
           description: 'Lawful basis documented for all processing activities',
-          timestamp: new Date()
+          timestamp: this.getDeterministicDate()
         }
       ],
       findings: [],
@@ -954,7 +954,7 @@ class ComplianceEngine extends EventEmitter {
         {
           type: 'data_audit',
           description: 'Data collection limited to necessary purposes',
-          timestamp: new Date()
+          timestamp: this.getDeterministicDate()
         }
       ],
       findings: [],
@@ -1083,17 +1083,17 @@ class ComplianceEngine extends EventEmitter {
   
   _generateAssessmentId() {
     return createHash('sha256')
-      .update(`${Date.now()}:${Math.random()}`)
+      .update(`${this.getDeterministicTimestamp()}:${Math.random()}`)
       .digest('hex').substring(0, 16);
   }
   
   _generateViolationId() {
-    return `VIO-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    return `VIO-${this.getDeterministicTimestamp()}-${Math.random().toString(36).substr(2, 9)}`;
   }
   
   _generateDataId() {
     return createHash('sha256')
-      .update(`${Date.now()}:${Math.random()}`)
+      .update(`${this.getDeterministicTimestamp()}:${Math.random()}`)
       .digest('hex').substring(0, 12);
   }
   
@@ -1248,7 +1248,7 @@ class ComplianceEngine extends EventEmitter {
       metrics: this.metrics,
       violations: this.violations.slice(-100), // Keep last 100 violations
       dataClassifications: Object.fromEntries(this.dataClassifications),
-      lastUpdated: new Date()
+      lastUpdated: this.getDeterministicDate()
     };
     
     await fs.writeFile(statePath, JSON.stringify(state, null, 2));

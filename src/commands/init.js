@@ -382,7 +382,7 @@ export const initCommand = defineCommand({
    */
   async run(context) {
     const { args } = context;
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     const spinner = ora();
     const createdFiles = [];
 
@@ -621,7 +621,7 @@ unjucks generate <generator> <template> [options]
         }
       }
 
-      const duration = Date.now() - startTime;
+      const duration = this.getDeterministicTimestamp() - startTime;
 
       // Display results
       if (!args.quiet) {

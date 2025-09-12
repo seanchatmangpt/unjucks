@@ -194,7 +194,7 @@ export class SemanticReasoningEngine extends EventEmitter {
    * @returns {Promise<Object>} Comprehensive reasoning results
    */
   async performReasoning(graph, options = {}) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     const operationId = options.operationId || crypto.randomUUID();
     
     try {
@@ -304,7 +304,7 @@ export class SemanticReasoningEngine extends EventEmitter {
       this._updateMetrics(reasoningContext);
       this._recordReasoningHistory(reasoningContext, finalResults);
       
-      const totalTime = Date.now() - startTime;
+      const totalTime = this.getDeterministicTimestamp() - startTime;
       
       this.emit('reasoning:complete', {
         operationId,
@@ -317,7 +317,7 @@ export class SemanticReasoningEngine extends EventEmitter {
       return finalResults;
       
     } catch (error) {
-      const totalTime = Date.now() - startTime;
+      const totalTime = this.getDeterministicTimestamp() - startTime;
       this.logger.error(`Semantic reasoning failed after ${totalTime}ms:`, error);
       this.emit('reasoning:error', { operationId, error, totalTime });
       throw error;
@@ -347,7 +347,7 @@ export class SemanticReasoningEngine extends EventEmitter {
    * @returns {Promise<Object>} Enriched template context
    */
   async enrichTemplateContext(graph, template, options = {}) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       this.logger.info(`Enriching template context: ${template.name || 'anonymous'}`);
@@ -403,7 +403,7 @@ export class SemanticReasoningEngine extends EventEmitter {
         );
       }
       
-      const enrichmentTime = Date.now() - startTime;
+      const enrichmentTime = this.getDeterministicTimestamp() - startTime;
       
       this.emit('template:enriched', {
         template: template.name || 'anonymous',
@@ -692,7 +692,7 @@ export class SemanticReasoningEngine extends EventEmitter {
    * Perform validation phase
    */
   async _performValidationPhase(context) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       this.logger.debug('Performing validation phase');
@@ -711,7 +711,7 @@ export class SemanticReasoningEngine extends EventEmitter {
         context.options
       );
       
-      context.metrics.validationTime = Date.now() - startTime;
+      context.metrics.validationTime = this.getDeterministicTimestamp() - startTime;
       this.metrics.totalValidations++;
       
       this.logger.debug(`Validation phase completed: ${context.results.validationResults.violations.length} violations`);
@@ -726,7 +726,7 @@ export class SemanticReasoningEngine extends EventEmitter {
    * Perform N3 reasoning phase
    */
   async _performN3ReasoningPhase(context) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       this.logger.debug('Performing N3 reasoning phase');
@@ -746,7 +746,7 @@ export class SemanticReasoningEngine extends EventEmitter {
         context.options
       );
       
-      context.metrics.n3ReasoningTime = Date.now() - startTime;
+      context.metrics.n3ReasoningTime = this.getDeterministicTimestamp() - startTime;
       context.metrics.totalInferences += context.results.n3Inferences.inferences?.length || 0;
       
       this.logger.debug(`N3 reasoning phase completed: ${context.results.n3Inferences.inferences?.length || 0} inferences`);
@@ -761,7 +761,7 @@ export class SemanticReasoningEngine extends EventEmitter {
    * Perform OWL reasoning phase
    */
   async _performOWLReasoningPhase(context) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       this.logger.debug('Performing OWL reasoning phase');
@@ -772,7 +772,7 @@ export class SemanticReasoningEngine extends EventEmitter {
       // Perform OWL reasoning
       context.results.owlInferences = await this.owlReasoner.performReasoning(context.options);
       
-      context.metrics.owlReasoningTime = Date.now() - startTime;
+      context.metrics.owlReasoningTime = this.getDeterministicTimestamp() - startTime;
       context.metrics.totalInferences += context.results.owlInferences.totalInferences || 0;
       
       this.logger.debug(`OWL reasoning phase completed: ${context.results.owlInferences.totalInferences || 0} inferences`);
@@ -787,7 +787,7 @@ export class SemanticReasoningEngine extends EventEmitter {
    * Perform incremental reasoning phase
    */
   async _performIncrementalReasoningPhase(context) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       this.logger.debug('Performing incremental reasoning phase');
@@ -805,7 +805,7 @@ export class SemanticReasoningEngine extends EventEmitter {
         context.options
       );
       
-      context.metrics.incrementalTime = Date.now() - startTime;
+      context.metrics.incrementalTime = this.getDeterministicTimestamp() - startTime;
       context.metrics.totalInferences += context.results.incrementalResults.results?.inferences?.length || 0;
       
       this.logger.debug(`Incremental reasoning phase completed`);
@@ -820,7 +820,7 @@ export class SemanticReasoningEngine extends EventEmitter {
    * Perform template enrichment phase
    */
   async _performEnrichmentPhase(context) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       this.logger.debug('Performing template enrichment phase');
@@ -833,7 +833,7 @@ export class SemanticReasoningEngine extends EventEmitter {
         );
       }
       
-      context.metrics.enrichmentTime = Date.now() - startTime;
+      context.metrics.enrichmentTime = this.getDeterministicTimestamp() - startTime;
       
       this.logger.debug('Template enrichment phase completed');
       
@@ -847,7 +847,7 @@ export class SemanticReasoningEngine extends EventEmitter {
    * Perform compliance validation phase
    */
   async _performCompliancePhase(context) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       this.logger.debug('Performing compliance validation phase');
@@ -869,7 +869,7 @@ export class SemanticReasoningEngine extends EventEmitter {
       }
       
       context.results.complianceResults = complianceResults;
-      context.metrics.complianceTime = Date.now() - startTime;
+      context.metrics.complianceTime = this.getDeterministicTimestamp() - startTime;
       this.metrics.complianceChecks++;
       
       this.logger.debug(`Compliance validation phase completed: ${complianceResults.length} rules checked`);
@@ -927,7 +927,7 @@ export class SemanticReasoningEngine extends EventEmitter {
         const provenanceEntry = {
           inference: inference,
           derivedFrom: inference.derivedFrom || 'unknown',
-          timestamp: inference.timestamp || new Date().toISOString(),
+          timestamp: inference.timestamp || this.getDeterministicDate().toISOString(),
           confidence: inference.confidence || 1.0,
           operationId: context.operationId
         };
@@ -957,7 +957,7 @@ export class SemanticReasoningEngine extends EventEmitter {
       operationId: context.operationId,
       reasoningMode: context.mode,
       totalInferences: allInferences.length,
-      processingTime: Date.now() - context.startTime,
+      processingTime: this.getDeterministicTimestamp() - context.startTime,
       
       // Component results
       validation: context.results.validationResults,
@@ -976,7 +976,7 @@ export class SemanticReasoningEngine extends EventEmitter {
       componentMetrics: context.metrics,
       
       // Metadata
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       fromCache: false
     };
   }
@@ -1047,7 +1047,7 @@ export class SemanticReasoningEngine extends EventEmitter {
     this.metrics.totalInferences += context.metrics.totalInferences;
     
     // Update average reasoning time
-    const currentTime = Date.now() - context.startTime;
+    const currentTime = this.getDeterministicTimestamp() - context.startTime;
     this.metrics.averageReasoningTime = (this.metrics.averageReasoningTime + currentTime) / 2;
   }
 
@@ -1057,9 +1057,9 @@ export class SemanticReasoningEngine extends EventEmitter {
   _recordReasoningHistory(context, results) {
     const historyEntry = {
       operationId: context.operationId,
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       reasoningMode: context.mode,
-      processingTime: Date.now() - context.startTime,
+      processingTime: this.getDeterministicTimestamp() - context.startTime,
       totalInferences: results.totalInferences,
       componentsUsed: this._getUsedComponents(context),
       success: true

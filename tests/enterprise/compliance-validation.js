@@ -467,7 +467,7 @@ export class ComplianceValidator extends EventEmitter {
       // Test automatic deletion
       const testData = {
         id: 'retention-test',
-        createdAt: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000), // 1 year ago
+        createdAt: new Date(this.getDeterministicTimestamp() - 365 * 24 * 60 * 60 * 1000), // 1 year ago
         retentionPeriod: 180, // 6 months
       };
 
@@ -698,7 +698,7 @@ export class ComplianceValidator extends EventEmitter {
         userId: 'test-user',
         action: 'phi_access',
         resourceId: 'patient-123',
-        timestamp: new Date(),
+        timestamp: this.getDeterministicDate(),
       };
 
       const logResult = await systemUnderTest.createAuditLog(auditEntry);
@@ -709,8 +709,8 @@ export class ComplianceValidator extends EventEmitter {
 
       // Test audit log retrieval
       const auditLogs = await systemUnderTest.getAuditLogs({
-        startDate: new Date(Date.now() - 24 * 60 * 60 * 1000),
-        endDate: new Date(),
+        startDate: new Date(this.getDeterministicTimestamp() - 24 * 60 * 60 * 1000),
+        endDate: this.getDeterministicDate(),
       });
 
       if (!auditLogs.logs || auditLogs.logs.length === 0) {
@@ -1103,14 +1103,14 @@ describe('KGEN Compliance Validation Suite', () => {
         async collectConsent(request) {
           return {
             consentId: 'consent-123',
-            timestamp: new Date(),
+            timestamp: this.getDeterministicDate(),
             purposes: request.purpose,
             dataTypes: request.dataTypes,
           };
         },
         
         async withdrawConsent(consentId) {
-          return { success: true, withdrawnAt: new Date() };
+          return { success: true, withdrawnAt: this.getDeterministicDate() };
         },
         
         async dataSubjectAccess(subjectId) {
@@ -1122,7 +1122,7 @@ describe('KGEN Compliance Validation Suite', () => {
         },
         
         async eraseData(subjectId) {
-          return { success: true, erasedAt: new Date() };
+          return { success: true, erasedAt: this.getDeterministicDate() };
         },
         
         async exportData(subjectId, format) {
@@ -1134,7 +1134,7 @@ describe('KGEN Compliance Validation Suite', () => {
         },
         
         async checkRetention(data) {
-          const age = Date.now() - data.createdAt.getTime();
+          const age = this.getDeterministicTimestamp() - data.createdAt.getTime();
           return { shouldDelete: age > data.retentionPeriod * 24 * 60 * 60 * 1000 };
         },
         
@@ -1247,7 +1247,7 @@ describe('KGEN Compliance Validation Suite', () => {
     it('should validate SOX audit trail requirements', async () => {
       const mockSystem = {
         async logFinancialTransaction(transaction) {
-          return { auditId: 'audit-456', timestamp: new Date() };
+          return { auditId: 'audit-456', timestamp: this.getDeterministicDate() };
         },
         
         async testAuditTamperResistance(auditId) {

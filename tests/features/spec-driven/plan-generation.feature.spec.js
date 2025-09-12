@@ -47,7 +47,7 @@ class PlanGenerator {
         resources: this.estimateResources(phase, specification)
       })),
       totalEstimatedDays: template.phases.reduce((sum, phase) => sum + phase.estimatedDays, 0),
-      createdAt: new Date().toISOString(),
+      createdAt: this.getDeterministicDate().toISOString(),
       status: 'draft'
     };
 
@@ -70,7 +70,7 @@ class PlanGenerator {
       totalEstimatedDays: 0,
       parallelizationOpportunities: [],
       dependencies: [],
-      createdAt: new Date().toISOString(),
+      createdAt: this.getDeterministicDate().toISOString(),
       status: 'draft'
     };
 
@@ -107,7 +107,7 @@ class PlanGenerator {
 
     // Recalculate dependencies and timeline
     updatedPlan.totalEstimatedDays = this.recalculateTotalDuration(updatedPlan);
-    updatedPlan.lastModified = new Date().toISOString();
+    updatedPlan.lastModified = this.getDeterministicDate().toISOString();
 
     return updatedPlan;
   }
@@ -156,11 +156,11 @@ class PlanGenerator {
 
   // Private helper methods
   generatePlanId() {
-    return 'plan-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+    return 'plan-' + this.getDeterministicTimestamp() + '-' + Math.random().toString(36).substr(2, 9);
   }
 
   generatePhaseId() {
-    return 'phase-' + Date.now() + '-' + Math.random().toString(36).substr(2, 5);
+    return 'phase-' + this.getDeterministicTimestamp() + '-' + Math.random().toString(36).substr(2, 5);
   }
 
   calculateDependencies(phase) {
@@ -239,7 +239,7 @@ class PlanGenerator {
       phase.milestones.push({
         name: value,
         type: 'milestone',
-        addedAt: new Date().toISOString()
+        addedAt: this.getDeterministicDate().toISOString()
       });
     }
   }

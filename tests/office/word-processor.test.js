@@ -500,7 +500,7 @@ describe('WordProcessor', () => {
           { product: 'Widget', price: '$10.99' },
           { product: 'Gadget', price: '$25.50' }
         ],
-        currentDate: new Date()
+        currentDate: this.getDeterministicDate()
       };
       
       try {

@@ -89,7 +89,7 @@ export class VersionManager {
         author: templateInfo.author,
         
         // Version metadata
-        registeredAt: new Date().toISOString(),
+        registeredAt: this.getDeterministicDate().toISOString(),
         contentHash: templateInfo.contentHash || await this._calculateContentHash(templateInfo.content),
         dependencies: templateInfo.dependencies || [],
         
@@ -107,7 +107,7 @@ export class VersionManager {
         // File information
         path: templateInfo.path,
         size: templateInfo.size,
-        lastModified: templateInfo.lastModified || new Date().toISOString()
+        lastModified: templateInfo.lastModified || this.getDeterministicDate().toISOString()
       };
 
       // Validate version format
@@ -173,7 +173,7 @@ export class VersionManager {
         severity: ruleInfo.severity || 'error',
         
         // Version metadata
-        registeredAt: new Date().toISOString(),
+        registeredAt: this.getDeterministicDate().toISOString(),
         contentHash: ruleInfo.contentHash || await this._calculateContentHash(ruleInfo.content),
         dependencies: ruleInfo.dependencies || [],
         
@@ -242,7 +242,7 @@ export class VersionManager {
         format: schemaInfo.format || 'json-schema',
         
         // Version metadata
-        registeredAt: new Date().toISOString(),
+        registeredAt: this.getDeterministicDate().toISOString(),
         contentHash: schemaInfo.contentHash || await this._calculateContentHash(schemaInfo.content),
         
         // Schema-specific information
@@ -529,7 +529,7 @@ export class VersionManager {
     try {
       const registry = {
         version: '1.0.0',
-        updatedAt: new Date().toISOString(),
+        updatedAt: this.getDeterministicDate().toISOString(),
         templates: Object.fromEntries(this.templateRegistry),
         rules: Object.fromEntries(this.ruleRegistry),
         schemas: Object.fromEntries(this.schemaRegistry),
@@ -550,7 +550,7 @@ export class VersionManager {
     if (!this.engineRegistry.has('kgen')) {
       this.engineRegistry.set('kgen', {
         version: '1.0.0',
-        registeredAt: new Date().toISOString(),
+        registeredAt: this.getDeterministicDate().toISOString(),
         features: ['templates', 'rules', 'schemas', 'provenance']
       });
     }
@@ -569,7 +569,7 @@ export class VersionManager {
         return semver.inc(latestVersion, 'patch');
       
       case 'timestamp':
-        return new Date().toISOString();
+        return this.getDeterministicDate().toISOString();
       
       case 'hash':
         return crypto.randomBytes(16).toString('hex');

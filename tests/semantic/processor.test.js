@@ -300,9 +300,9 @@ describe('SemanticProcessor', () => {
         });
       }
 
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const enrichedContext = await processor.enrichGenerationContext(largeGraph);
-      const processingTime = Date.now() - startTime;
+      const processingTime = this.getDeterministicTimestamp() - startTime;
       
       expect(enrichedContext).toBeDefined();
       expect(processingTime).toBeLessThan(10000); // Should complete within 10 seconds

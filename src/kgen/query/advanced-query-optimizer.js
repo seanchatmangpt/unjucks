@@ -341,7 +341,7 @@ export class AdvancedQueryOptimizer extends EventEmitter {
    */
   getPerformanceAnalytics() {
     const metrics = Array.from(this.performanceMetrics.values());
-    const recentMetrics = metrics.filter(m => Date.now() - m.timestamp < 300000); // 5 minutes
+    const recentMetrics = metrics.filter(m => this.getDeterministicTimestamp() - m.timestamp < 300000); // 5 minutes
     
     if (recentMetrics.length === 0) {
       return {
@@ -907,7 +907,7 @@ export class AdvancedQueryOptimizer extends EventEmitter {
       strategy: executionPlan.strategy,
       complexity: executionPlan.complexity,
       targetMet: executionTime <= this.config.targetLatency,
-      timestamp: Date.now()
+      timestamp: this.getDeterministicTimestamp()
     });
     
     // Emit performance event
@@ -934,7 +934,7 @@ export class AdvancedQueryOptimizer extends EventEmitter {
     setInterval(async () => {
       try {
         const metrics = Array.from(this.performanceMetrics.values());
-        const recentMetrics = metrics.filter(m => Date.now() - m.timestamp < this.config.adaptationInterval);
+        const recentMetrics = metrics.filter(m => this.getDeterministicTimestamp() - m.timestamp < this.config.adaptationInterval);
         
         if (recentMetrics.length > 10) {
           const avgPerformance = recentMetrics.reduce((sum, m) => sum + (m.targetMet ? 1 : 0), 0) / recentMetrics.length;
@@ -1165,7 +1165,7 @@ export class AdvancedQueryOptimizer extends EventEmitter {
 
   _getActiveOptimizationStrategies() {
     const metrics = Array.from(this.performanceMetrics.values())
-      .filter(m => Date.now() - m.timestamp < 300000); // Last 5 minutes
+      .filter(m => this.getDeterministicTimestamp() - m.timestamp < 300000); // Last 5 minutes
     
     const strategies = {};
     metrics.forEach(m => {

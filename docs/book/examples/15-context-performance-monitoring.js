@@ -47,7 +47,7 @@ class ContextPerformanceMonitor extends EventEmitter {
     this.benchmarks = new Map(); // Performance benchmarks
     
     // Performance tracking
-    this.startTime = Date.now();
+    this.startTime = this.getDeterministicTimestamp();
     this.monitoringOverhead = 0;
     
     // Real-time monitoring
@@ -71,7 +71,7 @@ class ContextPerformanceMonitor extends EventEmitter {
     
     this.emit('initialized', {
       config: this.config,
-      timestamp: Date.now()
+      timestamp: this.getDeterministicTimestamp()
     });
   }
   
@@ -84,7 +84,7 @@ class ContextPerformanceMonitor extends EventEmitter {
       id: sessionId,
       type: sessionType,
       metadata,
-      startTime: Date.now(),
+      startTime: this.getDeterministicTimestamp(),
       endTime: null,
       tokens: {
         initial: 0,
@@ -128,7 +128,7 @@ class ContextPerformanceMonitor extends EventEmitter {
     session.tokens.current = tokens;
     session.tokens.peak = Math.max(session.tokens.peak, tokens);
     session.tokens.samples.push({
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       tokens,
       operation,
       context: this.sanitizeContext(context)
@@ -140,7 +140,7 @@ class ContextPerformanceMonitor extends EventEmitter {
     
     // Record operation
     session.operations.push({
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       operation,
       tokens,
       utilization: tokens / this.config.maxTokens,
@@ -161,7 +161,7 @@ class ContextPerformanceMonitor extends EventEmitter {
       operation,
       tokens,
       utilization: tokens / this.config.maxTokens,
-      timestamp: Date.now()
+      timestamp: this.getDeterministicTimestamp()
     });
     
     return {
@@ -195,7 +195,7 @@ class ContextPerformanceMonitor extends EventEmitter {
         id: crypto.randomUUID(),
         sessionId,
         level: alertLevel,
-        timestamp: Date.now(),
+        timestamp: this.getDeterministicTimestamp(),
         utilization,
         currentTokens,
         maxTokens: this.config.maxTokens,
@@ -226,7 +226,7 @@ class ContextPerformanceMonitor extends EventEmitter {
       id: benchmarkId,
       description,
       strategy,
-      createdAt: Date.now(),
+      createdAt: this.getDeterministicTimestamp(),
       sessions: [],
       metrics: {
         averageTokens: 0,
@@ -285,7 +285,7 @@ class ContextPerformanceMonitor extends EventEmitter {
     
     const comparison = {
       id: `${benchmarkId1}_vs_${benchmarkId2}`,
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       benchmarks: {
         [benchmarkId1]: benchmark1.metrics,
         [benchmarkId2]: benchmark2.metrics
@@ -383,7 +383,7 @@ class ContextPerformanceMonitor extends EventEmitter {
       id: crypto.randomUUID(),
       sessionId,
       triggeredBy: alert.id,
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       type: 'auto_compression',
       beforeTokens: alert.currentTokens,
       afterTokens: 0,
@@ -408,7 +408,7 @@ class ContextPerformanceMonitor extends EventEmitter {
       // Update alert as resolved
       alert.acknowledged = true;
       alert.resolvedBy = optimization.id;
-      alert.resolvedAt = Date.now();
+      alert.resolvedAt = this.getDeterministicTimestamp();
       
       console.log(`✅ Auto-optimization completed: ${optimization.savings} tokens saved (${(optimization.savings/optimization.beforeTokens*100).toFixed(1)}%)`);
       
@@ -432,7 +432,7 @@ class ContextPerformanceMonitor extends EventEmitter {
    * Deep analysis of context usage patterns
    */
   generateAnalytics(timeRange = '1h') {
-    const endTime = Date.now();
+    const endTime = this.getDeterministicTimestamp();
     const startTime = endTime - this.parseTimeRange(timeRange);
     
     const relevantSessions = Array.from(this.sessions.values())
@@ -496,7 +496,7 @@ class ContextPerformanceMonitor extends EventEmitter {
       },
       successRate: sessions.reduce((sum, s) => sum + s.performance.successRate, 0) / sessions.length || 0,
       errorRate: sessions.reduce((sum, s) => sum + s.performance.errorRate, 0) / sessions.length || 0,
-      monitoringOverhead: this.monitoringOverhead / (Date.now() - this.startTime) * 100 // Percentage
+      monitoringOverhead: this.monitoringOverhead / (this.getDeterministicTimestamp() - this.startTime) * 100 // Percentage
     };
   }
   
@@ -509,11 +509,11 @@ class ContextPerformanceMonitor extends EventEmitter {
       .filter(session => !session.endTime);
     
     const recentAlerts = this.alerts
-      .filter(alert => Date.now() - alert.timestamp < 300000) // Last 5 minutes
+      .filter(alert => this.getDeterministicTimestamp() - alert.timestamp < 300000) // Last 5 minutes
       .sort((a, b) => b.timestamp - a.timestamp);
     
     const dashboardData = {
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       status: this.getSystemStatus(),
       activeSessions: activeSessions.length,
       totalSessions: this.sessions.size,
@@ -528,12 +528,12 @@ class ContextPerformanceMonitor extends EventEmitter {
         averageResponseTime: this.calculateRecentAverageResponseTime(),
         successRate: this.calculateRecentSuccessRate(),
         throughput: this.calculateRecentThroughput(),
-        monitoringOverhead: (this.monitoringOverhead / (Date.now() - this.startTime) * 100).toFixed(2)
+        monitoringOverhead: (this.monitoringOverhead / (this.getDeterministicTimestamp() - this.startTime) * 100).toFixed(2)
       },
       optimizations: {
         total: this.optimizations.size,
         recent: Array.from(this.optimizations.values())
-          .filter(opt => Date.now() - opt.timestamp < 3600000).length, // Last hour
+          .filter(opt => this.getDeterministicTimestamp() - opt.timestamp < 3600000).length, // Last hour
         totalSavings: Array.from(this.optimizations.values())
           .reduce((sum, opt) => sum + (opt.savings || 0), 0)
       },
@@ -561,10 +561,10 @@ class ContextPerformanceMonitor extends EventEmitter {
     
     const report = {
       metadata: {
-        generatedAt: new Date().toISOString(),
+        generatedAt: this.getDeterministicDate().toISOString(),
         timeRange,
         reportVersion: '1.0.0',
-        monitoringDuration: Date.now() - this.startTime
+        monitoringDuration: this.getDeterministicTimestamp() - this.startTime
       },
       executive: {
         totalSessions: analytics.sessions.total,
@@ -631,7 +631,7 @@ class ContextPerformanceMonitor extends EventEmitter {
     
     // Check for stale sessions
     activeSessions.forEach(session => {
-      const inactiveTime = Date.now() - (session.operations[session.operations.length - 1]?.timestamp || session.startTime);
+      const inactiveTime = this.getDeterministicTimestamp() - (session.operations[session.operations.length - 1]?.timestamp || session.startTime);
       if (inactiveTime > 1800000) { // 30 minutes
         this.endSession(session.id, 'inactive_timeout');
       }
@@ -639,7 +639,7 @@ class ContextPerformanceMonitor extends EventEmitter {
     
     // Emit real-time update
     this.emit('realTimeUpdate', {
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       activeSessions: activeSessions.length,
       metrics: this.calculateCurrentMetrics(activeSessions)
     });
@@ -711,7 +711,7 @@ class ContextPerformanceMonitor extends EventEmitter {
     const session = this.sessions.get(sessionId);
     if (!session || session.endTime) return;
     
-    session.endTime = Date.now();
+    session.endTime = this.getDeterministicTimestamp();
     session.duration = session.endTime - session.startTime;
     session.endReason = reason;
     
@@ -771,7 +771,7 @@ class ContextPerformanceMonitor extends EventEmitter {
   }
   
   cleanupOldHistory() {
-    const cutoff = Date.now() - this.config.historyRetention;
+    const cutoff = this.getDeterministicTimestamp() - this.config.historyRetention;
     const initialLength = this.history.length;
     
     this.history = this.history.filter(entry => entry.timestamp > cutoff);
@@ -802,7 +802,7 @@ class ContextPerformanceMonitor extends EventEmitter {
     const finalReport = await this.generateReport({
       timeRange: '24h',
       format: 'json',
-      outputFile: `final-report-${Date.now()}.json`
+      outputFile: `final-report-${this.getDeterministicTimestamp()}.json`
     });
     
     console.log('✅ Context performance monitor shutdown complete');

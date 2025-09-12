@@ -55,7 +55,7 @@ describe('MCP Swarm Validation', () => {
       const result = await orchestrator.initializeSwarm({
         action })
 
-    it('should handle concurrent swarm initialization', async () => { const startTime = Date.now()
+    it('should handle concurrent swarm initialization', async () => { const startTime = this.getDeterministicTimestamp()
       
       // Create multiple swarms concurrently
       const promises = Array.from({ length, () =>

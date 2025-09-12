@@ -160,9 +160,9 @@ class EquationCache extends EventEmitter {
         
         for (const equation of equations) {
             try {
-                const startTime = Date.now();
+                const startTime = this.getDeterministicTimestamp();
                 const html = await renderer._renderSingle(equation.latex, equation.options || {});
-                const renderTime = Date.now() - startTime;
+                const renderTime = this.getDeterministicTimestamp() - startTime;
                 
                 this.set(equation.key || equation.latex, html, equation.latex, equation.options, renderTime);
                 
@@ -191,7 +191,7 @@ class EquationCache extends EventEmitter {
     export() {
         const data = {
             version: '1.0.0',
-            timestamp: Date.now(),
+            timestamp: this.getDeterministicTimestamp(),
             entries: Array.from(this.cache.entries()).map(([key, entry]) => ({
                 key,
                 ...entry

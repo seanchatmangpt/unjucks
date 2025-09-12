@@ -6,7 +6,7 @@
  */
 
 import { EventEmitter } from 'events';
-import { Logger } from 'consola';
+import { Consola } from 'consola';
 import { promises as fs } from 'fs';
 import path from 'path';
 import crypto from 'crypto';
@@ -45,7 +45,7 @@ export class PerformanceBottleneckAnalyzer extends EventEmitter {
       ...config
     };
     
-    this.logger = new Logger({ tag: 'performance-analyzer' });
+    this.logger = new Consola({ tag: 'performance-analyzer' });
     
     // Performance metrics storage
     this.metrics = {
@@ -117,7 +117,7 @@ export class PerformanceBottleneckAnalyzer extends EventEmitter {
    */
   async analyzeOperation(operationType, operationData) {
     const analysisId = this._generateAnalysisId();
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       this.logger.debug(`Starting performance analysis: ${analysisId}`);
@@ -148,8 +148,8 @@ export class PerformanceBottleneckAnalyzer extends EventEmitter {
       const result = {
         analysisId,
         operationType,
-        timestamp: new Date(),
-        executionTime: Date.now() - startTime,
+        timestamp: this.getDeterministicDate(),
+        executionTime: this.getDeterministicTimestamp() - startTime,
         analysis,
         bottlenecks,
         optimizations,
@@ -186,7 +186,7 @@ export class PerformanceBottleneckAnalyzer extends EventEmitter {
     const monitoringData = {
       operationId,
       operationType,
-      startTime: Date.now(),
+      startTime: this.getDeterministicTimestamp(),
       startMemory: process.memoryUsage(),
       checkpoints: [],
       metadata
@@ -213,8 +213,8 @@ export class PerformanceBottleneckAnalyzer extends EventEmitter {
     
     const checkpointData = {
       name: checkpoint,
-      timestamp: Date.now(),
-      elapsedTime: Date.now() - operation.startTime,
+      timestamp: this.getDeterministicTimestamp(),
+      elapsedTime: this.getDeterministicTimestamp() - operation.startTime,
       memoryUsage: process.memoryUsage(),
       data
     };
@@ -247,7 +247,7 @@ export class PerformanceBottleneckAnalyzer extends EventEmitter {
     }
     
     // Finalize operation data
-    operation.endTime = Date.now();
+    operation.endTime = this.getDeterministicTimestamp();
     operation.totalTime = operation.endTime - operation.startTime;
     operation.endMemory = process.memoryUsage();
     operation.result = result;
@@ -275,7 +275,7 @@ export class PerformanceBottleneckAnalyzer extends EventEmitter {
       this.logger.info('Generating comprehensive performance report...');
       
       const report = {
-        timestamp: new Date(),
+        timestamp: this.getDeterministicDate(),
         summary: await this._generateReportSummary(),
         bottlenecks: await this._analyzeBottleneckTrends(),
         optimizations: await this._analyzeOptimizationEffectiveness(),
@@ -406,7 +406,7 @@ export class PerformanceBottleneckAnalyzer extends EventEmitter {
   // Private methods
 
   _generateAnalysisId() {
-    return `analysis_${Date.now()}_${crypto.randomBytes(4).toString('hex')}`;
+    return `analysis_${this.getDeterministicTimestamp()}_${crypto.randomBytes(4).toString('hex')}`;
   }
 
   _selectAnalyzer(operationType) {
@@ -633,13 +633,13 @@ export class PerformanceBottleneckAnalyzer extends EventEmitter {
     });
     
     // Keep only recent trends
-    const cutoff = Date.now() - this.config.metricsRetention;
+    const cutoff = this.getDeterministicTimestamp() - this.config.metricsRetention;
     this.metrics.trends.set(operationType, trends.filter(t => t.timestamp.getTime() > cutoff));
   }
 
   _calculateSystemPerformanceScore() {
     const recentOperations = Array.from(this.metrics.operations.values())
-      .filter(op => Date.now() - op.timestamp.getTime() < 60000) // Last minute
+      .filter(op => this.getDeterministicTimestamp() - op.timestamp.getTime() < 60000) // Last minute
       .map(op => op.performanceScore);
     
     if (recentOperations.length === 0) return 100;
@@ -738,7 +738,7 @@ export class PerformanceBottleneckAnalyzer extends EventEmitter {
   }
 
   async _saveReport(report, filename) {
-    const reportFile = filename || `performance-report-${Date.now()}.json`;
+    const reportFile = filename || `performance-report-${this.getDeterministicTimestamp()}.json`;
     const reportPath = path.join(process.cwd(), 'docs', 'performance', reportFile);
     
     // Ensure directory exists

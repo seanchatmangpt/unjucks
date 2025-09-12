@@ -102,7 +102,7 @@ export class GarbageCollector extends EventEmitter {
       disk_collections: 0,
       template_collections: 0,
       aggressive_collections: 0,
-      start_time: Date.now()
+      start_time: this.getDeterministicTimestamp()
     };
 
     // Collection candidates tracking
@@ -185,7 +185,7 @@ export class GarbageCollector extends EventEmitter {
       return null;
     }
 
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     this.isCollecting = true;
 
     try {
@@ -201,7 +201,7 @@ export class GarbageCollector extends EventEmitter {
       const collectionResult = await this._executeCollection(resolvedStrategy, cacheState, options);
       
       // Update statistics
-      const duration = Date.now() - startTime;
+      const duration = this.getDeterministicTimestamp() - startTime;
       this._updateStatistics(resolvedStrategy, collectionResult, duration);
       
       // Record collection history
@@ -245,7 +245,7 @@ export class GarbageCollector extends EventEmitter {
   async analyzePressure() {
     const cacheState = await this._analyzeCacheState();
     const analysis = {
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       cache_state: cacheState,
       pressure: {},
       recommendations: []
@@ -328,7 +328,7 @@ export class GarbageCollector extends EventEmitter {
    * Get garbage collection statistics
    */
   getStatistics() {
-    const uptime = Date.now() - this.stats.start_time;
+    const uptime = this.getDeterministicTimestamp() - this.stats.start_time;
     
     return {
       ...this.stats,
@@ -338,8 +338,8 @@ export class GarbageCollector extends EventEmitter {
       bytes_freed_formatted: this._formatBytes(this.stats.total_bytes_freed),
       last_collection: this.lastCollection ? {
         ...this.lastCollection,
-        time_ago: Date.now() - this.lastCollection.timestamp,
-        time_ago_formatted: this._formatDuration(Date.now() - this.lastCollection.timestamp)
+        time_ago: this.getDeterministicTimestamp() - this.lastCollection.timestamp,
+        time_ago_formatted: this._formatDuration(this.getDeterministicTimestamp() - this.lastCollection.timestamp)
       } : null,
       cache_efficiency: this._calculateCacheEfficiency()
     };
@@ -366,7 +366,7 @@ export class GarbageCollector extends EventEmitter {
       throw new Error('Collection already in progress');
     }
 
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     this.isCollecting = true;
 
     try {
@@ -390,7 +390,7 @@ export class GarbageCollector extends EventEmitter {
         strategy: 'specific',
         total_collected: collectedCount,
         bytes_freed: bytesFreed,
-        duration: Date.now() - startTime,
+        duration: this.getDeterministicTimestamp() - startTime,
         keys_requested: keys.length,
         keys_collected: collectedCount
       };
@@ -433,7 +433,7 @@ export class GarbageCollector extends EventEmitter {
     const stats = this.cache.getStatistics();
     
     return {
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       memory: {
         entries: stats.entries.memory,
         bytes: stats.size.memory_bytes,
@@ -527,7 +527,7 @@ export class GarbageCollector extends EventEmitter {
       total: 0
     };
 
-    const now = Date.now();
+    const now = this.getDeterministicTimestamp();
 
     // Memory cache candidates
     for (const [key, entry] of this.cache.memoryCache) {
@@ -591,8 +591,8 @@ export class GarbageCollector extends EventEmitter {
   }
 
   _calculateCollectionPriority(entry, strategy) {
-    const age = Date.now() - entry.metadata.created_at;
-    const lastAccessed = Date.now() - entry.metadata.accessed_at;
+    const age = this.getDeterministicTimestamp() - entry.metadata.created_at;
+    const lastAccessed = this.getDeterministicTimestamp() - entry.metadata.accessed_at;
     const contentTypePriority = this.config.contentTypePriorities[entry.metadata.content_type] || CollectionPriority.MEDIUM;
     
     let priority = contentTypePriority;
@@ -622,8 +622,8 @@ export class GarbageCollector extends EventEmitter {
   }
 
   _calculateDiskPriority(info, strategy) {
-    const age = Date.now() - info.created_at;
-    const lastAccessed = Date.now() - info.accessed_at;
+    const age = this.getDeterministicTimestamp() - info.created_at;
+    const lastAccessed = this.getDeterministicTimestamp() - info.accessed_at;
     
     let priority = CollectionPriority.MEDIUM;
 
@@ -634,7 +634,7 @@ export class GarbageCollector extends EventEmitter {
   }
 
   _calculateTemplatePriority(entry, strategy) {
-    const age = Date.now() - entry.timestamp;
+    const age = this.getDeterministicTimestamp() - entry.timestamp;
     
     let priority = CollectionPriority.LOW; // Templates are generally kept longer
     
@@ -786,7 +786,7 @@ export class GarbageCollector extends EventEmitter {
   // Helper methods
 
   async _countExpiredEntries() {
-    const now = Date.now();
+    const now = this.getDeterministicTimestamp();
     const ttl = this.cache.config.defaultTTL;
     let expiredCount = 0;
 
@@ -836,7 +836,7 @@ export class GarbageCollector extends EventEmitter {
       hit_rate: stats.hit_rate,
       template_hit_rate: stats.template_hit_rate,
       memory_utilization: stats.health.memory_pressure,
-      collection_frequency: this.stats.total_collections / ((Date.now() - this.stats.start_time) / 3600000),
+      collection_frequency: this.stats.total_collections / ((this.getDeterministicTimestamp() - this.stats.start_time) / 3600000),
       bytes_per_collection: this.stats.total_bytes_freed / (this.stats.total_collections || 1)
     };
 

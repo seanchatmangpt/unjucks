@@ -73,7 +73,7 @@ class EncryptionService {
         authTag: authTag.toString('base64'),
         algorithm: this.config.algorithm,
         keyDerivationContext: context,
-        timestamp: new Date().toISOString()
+        timestamp: this.getDeterministicDate().toISOString()
       }
     } catch (error) {
       throw new Error(`Encryption failed: ${error.message}`)

@@ -127,7 +127,7 @@ export class MockMCPClient extends EventEmitter {
       params
     };
 
-    this.requestHistory.push({ ...request, timestamp: new Date() });
+    this.requestHistory.push({ ...request, timestamp: this.getDeterministicDate() });
 
     if (this.options.debug) {
       console.log('[MockMCPClient] Sending request:', method, params);
@@ -139,7 +139,7 @@ export class MockMCPClient extends EventEmitter {
     // Simulate occasional errors
     if (this.shouldSimulateError()) {
       const error = createMCPError(requestId, MCPErrorCode.ServerError, 'Mock server error');
-      this.responseHistory.push({ ...error, timestamp: new Date() });
+      this.responseHistory.push({ ...error, timestamp: this.getDeterministicDate() });
       return error;
     }
 
@@ -184,7 +184,7 @@ export class MockMCPClient extends EventEmitter {
       response = createMCPError(requestId, MCPErrorCode.InternalError, error.message);
     }
 
-    this.responseHistory.push({ ...response, timestamp: new Date() });
+    this.responseHistory.push({ ...response, timestamp: this.getDeterministicDate() });
 
     if (this.options.debug) {
       console.log('[MockMCPClient] Received response:', response);
@@ -232,7 +232,7 @@ export class MockMCPClient extends EventEmitter {
       generators = generators.map(gen => ({
         ...gen,
         templateCount: gen.templates.length,
-        lastModified: new Date().toISOString(),
+        lastModified: this.getDeterministicDate().toISOString(),
         variables: gen.templates.map(t => ({
           template: t.name,
           variables: this.getTemplateVariables(gen.name, t.name)
@@ -243,7 +243,7 @@ export class MockMCPClient extends EventEmitter {
     return createJSONToolResult({
       generators,
       totalCount: generators.length,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     }, {
       operation: 'list',
       detailed,
@@ -296,7 +296,7 @@ export class MockMCPClient extends EventEmitter {
       variables,
       dry,
       force,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     }, {
       operation: 'generate',
       duration: this.options.latency + 100,
@@ -363,7 +363,7 @@ export class MockMCPClient extends EventEmitter {
       generator,
       template,
       variables,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     }, {
       operation: 'dry_run',
       filesPreviewedCount: files.length
@@ -406,7 +406,7 @@ export class MockMCPClient extends EventEmitter {
     if (!dry) {
       this.mockState.injectHistory.push({
         ...injectionResult,
-        timestamp: new Date().toISOString()
+        timestamp: this.getDeterministicDate().toISOString()
       });
     }
 

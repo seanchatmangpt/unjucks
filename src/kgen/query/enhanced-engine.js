@@ -209,7 +209,7 @@ export class EnhancedSPARQLEngine extends EventEmitter {
    */
   async executeQuery(input, options = {}) {
     const queryId = crypto.randomUUID();
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       this.logger.info(`Executing enhanced query: ${queryId}`);
@@ -279,7 +279,7 @@ export class EnhancedSPARQLEngine extends EventEmitter {
           sparqlQuery,
           results,
           executionStrategy,
-          Date.now() - startTime
+          this.getDeterministicTimestamp() - startTime
         );
       }
       
@@ -290,7 +290,7 @@ export class EnhancedSPARQLEngine extends EventEmitter {
         queryId,
         results: results.results || results,
         metadata: {
-          executionTime: Date.now() - startTime,
+          executionTime: this.getDeterministicTimestamp() - startTime,
           strategy: executionStrategy.type,
           optimizations: executionStrategy.optimizations,
           capabilities: Array.from(this.capabilities),
@@ -314,7 +314,7 @@ export class EnhancedSPARQLEngine extends EventEmitter {
       return enhancedResults;
       
     } catch (error) {
-      const executionTime = Date.now() - startTime;
+      const executionTime = this.getDeterministicTimestamp() - startTime;
       this.logger.error(`Enhanced query execution failed: ${queryId}`, error);
       
       this.emit('query:failed', { queryId, error, executionTime });
@@ -385,7 +385,7 @@ export class EnhancedSPARQLEngine extends EventEmitter {
         state: this.engineState,
         capabilities: Array.from(this.capabilities),
         revolutionaryFeatures: this._getRevolutionaryFeatures(),
-        uptime: Date.now() - (this.initializationTime || Date.now())
+        uptime: this.getDeterministicTimestamp() - (this.initializationTime || this.getDeterministicTimestamp())
       },
       
       performance: this.unifiedMetrics.getUnifiedMetrics(),
@@ -600,7 +600,7 @@ export class EnhancedSPARQLEngine extends EventEmitter {
         const results = await response.json();
         return {
           ...results,
-          executionTime: Date.now()
+          executionTime: this.getDeterministicTimestamp()
         };
       }
       
@@ -645,7 +645,7 @@ export class EnhancedSPARQLEngine extends EventEmitter {
       return {
         head: { vars: ['subject', 'predicate', 'object'] },
         results: { bindings: bindings.slice(0, 100) },
-        executionTime: Date.now()
+        executionTime: this.getDeterministicTimestamp()
       };
       
     } catch (error) {
@@ -654,7 +654,7 @@ export class EnhancedSPARQLEngine extends EventEmitter {
       return {
         head: { vars: [] },
         results: { bindings: [] },
-        executionTime: Date.now(),
+        executionTime: this.getDeterministicTimestamp(),
         error: error.message
       };
     }
@@ -700,14 +700,14 @@ export class EnhancedSPARQLEngine extends EventEmitter {
   }
 
   async _updatePerformanceMetrics(queryId, startTime, results, strategy) {
-    const executionTime = Date.now() - startTime;
+    const executionTime = this.getDeterministicTimestamp() - startTime;
     
     const metrics = {
       queryId,
       executionTime,
       strategy: strategy.type,
       resultCount: results.results?.bindings?.length || 0,
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       optimizations: strategy.optimizations
     };
     
@@ -822,7 +822,7 @@ export class EnhancedSPARQLEngine extends EventEmitter {
     // Apply autonomous optimization strategy
     this.activeOptimizations.set(strategy.id, {
       strategy,
-      appliedAt: Date.now(),
+      appliedAt: this.getDeterministicTimestamp(),
       status: 'active'
     });
     
@@ -920,12 +920,12 @@ class PerformanceBottleneckAnalyzer {
       }
     }
     
-    return { bottlenecks, analysisTimestamp: Date.now() };
+    return { bottlenecks, analysisTimestamp: this.getDeterministicTimestamp() };
   }
 
   getBottleneckAnalysis() {
     return {
-      lastAnalysis: Date.now(),
+      lastAnalysis: this.getDeterministicTimestamp(),
       activeBottlenecks: 0,
       resolvedBottlenecks: 0
     };
@@ -1021,8 +1021,8 @@ class SwarmQueryIntelligence {
   async initializeSwarm(nodeInfo) {
     this.swarmNodes.set(nodeInfo.nodeId, {
       ...nodeInfo,
-      joinedAt: Date.now(),
-      lastSeen: Date.now()
+      joinedAt: this.getDeterministicTimestamp(),
+      lastSeen: this.getDeterministicTimestamp()
     });
   }
 

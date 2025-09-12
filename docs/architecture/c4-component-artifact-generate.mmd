@@ -1,0 +1,66 @@
+```mermaid
+C4Component
+    title Component Diagram for Artifact Generation Workflow
+    
+    Container_Boundary(cli, "KGEN CLI") {
+        Component(artifactCmd, "Artifact Command", "Citty Command", "CLI interface for artifact operations")
+        Component(kgenEngine, "KGenCLIEngine", "Core Engine", "Main orchestrator for KGEN operations")
+    }
+    
+    Container_Boundary(generation, "Artifact Generation System") {
+        Component(artifactGen, "DeterministicArtifactGenerator", "Generator", "Generates deterministic artifacts from templates")
+        Component(deterministicSys, "DeterministicRenderingSystem", "Renderer", "Handles deterministic template rendering")
+        Component(templateEngine, "Template Engine", "Nunjucks", "Template processing and variable substitution")
+        Component(contextLoader, "Context Loader", "Data Processor", "Loads and processes context from RDF graphs")
+    }
+    
+    Container_Boundary(rdf, "RDF Processing") {
+        Component(rdfBridge, "StandaloneKGenBridge", "RDF Bridge", "Enhanced RDF processing interface")
+        Component(graphProcessor, "Graph Processor", "N3/SPARQL", "RDF graph parsing and querying")
+        Component(semanticEnricher, "Semantic Enricher", "Processor", "Semantic enrichment of template context")
+    }
+    
+    Container_Boundary(storage, "Storage Layer") {
+        Component(casCache, "Content-Addressed Storage", "CAS", "Content-addressed caching system")
+        Component(fileSystem, "File System", "Node.js FS", "File I/O operations")
+        Component(attestation, "Attestation Generator", "Crypto", "Generates cryptographic attestations")
+    }
+    
+    Container_Boundary(templates, "Template Management") {
+        Component(templateScanner, "Template Scanner", "Discovery", "Discovers available templates")
+        Component(templateAnalyzer, "Template Analyzer", "Analyzer", "Analyzes template variables and structure")
+        Component(frontmatterParser, "Frontmatter Parser", "Gray Matter", "Parses template frontmatter")
+    }
+    
+    Container_Boundary(validation, "Validation System") {
+        Component(shaclValidator, "SHACL Validator", "Validator", "Validates RDF against SHACL shapes")
+        Component(deterministicValidator, "Deterministic Validator", "Validator", "Validates deterministic rendering")
+        Component(provenanceValidator, "Provenance Validator", "Validator", "Validates artifact provenance")
+    }
+    
+    Rel(artifactCmd, kgenEngine, "delegates to")
+    Rel(kgenEngine, artifactGen, "initializes and uses")
+    Rel(artifactGen, deterministicSys, "uses for rendering")
+    Rel(deterministicSys, templateEngine, "renders templates with")
+    
+    Rel(kgenEngine, rdfBridge, "uses for RDF processing")
+    Rel(rdfBridge, graphProcessor, "processes graphs with")
+    Rel(rdfBridge, semanticEnricher, "enriches context with")
+    
+    Rel(artifactGen, contextLoader, "loads context with")
+    Rel(contextLoader, rdfBridge, "gets RDF data from")
+    
+    Rel(deterministicSys, casCache, "caches artifacts in")
+    Rel(deterministicSys, attestation, "generates attestations with")
+    Rel(artifactGen, fileSystem, "writes artifacts to")
+    
+    Rel(kgenEngine, templateScanner, "discovers templates with")
+    Rel(templateScanner, templateAnalyzer, "analyzes templates with")
+    Rel(templateAnalyzer, frontmatterParser, "parses frontmatter with")
+    
+    Rel(deterministicSys, deterministicValidator, "validates with")
+    Rel(rdfBridge, shaclValidator, "validates RDF with")
+    Rel(artifactGen, provenanceValidator, "validates provenance with")
+    
+    UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="2")
+```

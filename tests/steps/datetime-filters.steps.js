@@ -23,7 +23,7 @@ Given('I have a date {string}', (dateString) => {
 });
 
 Given('I have a current timestamp', () => {
-  nunjucksHelper.setContext({ currentTime: new Date().toISOString() });
+  nunjucksHelper.setContext({ currentTime: this.getDeterministicDate().toISOString() });
 });
 
 Given('I have the following date variables:', (dataTable) => {

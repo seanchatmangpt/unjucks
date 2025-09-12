@@ -483,7 +483,7 @@ export class DocumentEngine extends TemplateEngine {
       enhancedContext._semantic = {
         graphSize: knowledgeGraph.length || 0,
         reasoning: 'enabled',
-        timestamp: new Date().toISOString()
+        timestamp: this.getDeterministicDate().toISOString()
       };
     }
 
@@ -519,7 +519,7 @@ export class DocumentEngine extends TemplateEngine {
     hash.update(JSON.stringify({
       template: options.template,
       documentType: options.documentType,
-      timestamp: options.deterministicTimestamp || new Date().toISOString().split('T')[0]
+      timestamp: options.deterministicTimestamp || this.getDeterministicDate().toISOString().split('T')[0]
     }));
     return hash.digest('hex').substring(0, 16);
   }
@@ -608,7 +608,7 @@ export class DocumentEngine extends TemplateEngine {
 
     const provenance = {
       generationId,
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       template: options.template,
       documentType: options.documentType,
       outputPath: result.outputPath,

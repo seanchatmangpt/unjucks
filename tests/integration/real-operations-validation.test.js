@@ -673,14 +673,14 @@ const beforeMarker = false;
 
   describe('Performance Validation', () => {
     it('should complete common operations within reasonable time', async () => {
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
       await execAsync(
         `node "${cliPath}" component react PerformanceTest --withTests=true`,
         { cwd, env } }
       );
       
-      const endTime = Date.now();
+      const endTime = this.getDeterministicTimestamp();
       const duration = endTime - startTime;
       
       // Should complete within 5 seconds for simple component generation

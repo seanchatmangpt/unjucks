@@ -18,6 +18,7 @@ import { ProvenanceStorage } from './storage/index.js';
 import { BlockchainAnchor } from './blockchain/anchor.js';
 import { ComplianceLogger } from './compliance/logger.js';
 import { ProvenanceQueries } from './queries/sparql.js';
+import { GitProvenanceTracker } from '../git/git-provenance.js';
 
 export class ProvenanceTracker extends EventEmitter {
   constructor(config = {}) {
@@ -56,6 +57,12 @@ export class ProvenanceTracker extends EventEmitter {
       bundleStrategy: 'temporal', // temporal, activity, entity
       bundleSize: parseInt(process.env.KGEN_BUNDLE_SIZE || '1000', 10),
       
+      // Git-First Configuration
+      enableGitFirst: config.enableGitFirst !== false,
+      gitRepoPath: config.gitRepoPath || process.cwd(),
+      forceGitNotes: config.forceGitNotes !== false,
+      enableContentAddressing: config.enableContentAddressing !== false,
+      
       // Namespaces
       namespaces: {
         prov: 'http://www.w3.org/ns/prov#',
@@ -78,6 +85,14 @@ export class ProvenanceTracker extends EventEmitter {
     this.blockchain = this.config.enableBlockchainIntegrity ? new BlockchainAnchor(this.config) : null;
     this.complianceLogger = new ComplianceLogger(this.config);
     this.queryEngine = new ProvenanceQueries(this.store, this.config);
+    
+    // Initialize git-first provenance tracker if enabled
+    this.gitTracker = this.config.enableGitFirst ? new GitProvenanceTracker({
+      repoPath: this.config.gitRepoPath,
+      forceGitNotes: this.config.forceGitNotes,
+      enableContentAddressing: this.config.enableContentAddressing,
+      provenanceNamespace: this.config.namespaces.kgen
+    }) : null;
     
     // Provenance state
     this.activeOperations = new Map();
@@ -118,6 +133,12 @@ export class ProvenanceTracker extends EventEmitter {
       
       if (this.blockchain) {
         await this.blockchain.initialize();
+      }
+      
+      // Initialize git-first tracker if enabled
+      if (this.gitTracker) {
+        const gitResult = await this.gitTracker.initialize();
+        this.logger.info('Git-first provenance tracking enabled:', gitResult);
       }
       
       // Initialize storage backend
@@ -167,7 +188,7 @@ export class ProvenanceTracker extends EventEmitter {
   async startOperation(operationInfo) {
     try {
       const operationId = operationInfo.operationId || uuidv4();
-      const timestamp = new Date();
+      const timestamp = this.getDeterministicDate();
       
       this.logger.info(`Starting provenance tracking for operation: ${operationId}`);
       
@@ -222,7 +243,7 @@ export class ProvenanceTracker extends EventEmitter {
       }
       
       // Update context with completion info
-      context.endTime = new Date();
+      context.endTime = this.getDeterministicDate();
       context.status = completionInfo.status;
       context.outputs = completionInfo.outputs || [];
       context.metrics = completionInfo.metrics || {};
@@ -328,13 +349,13 @@ export class ProvenanceTracker extends EventEmitter {
       }
       
       // Update context with error info
-      context.endTime = new Date();
+      context.endTime = this.getDeterministicDate();
       context.status = 'error';
       context.error = {
         message: error.message,
         stack: error.stack,
         code: error.code,
-        timestamp: new Date()
+        timestamp: this.getDeterministicDate()
       };
       context.duration = context.endTime.getTime() - context.startTime.getTime();
       
@@ -368,7 +389,7 @@ export class ProvenanceTracker extends EventEmitter {
         sources: lineageInfo.sources || [],
         transformations: lineageInfo.transformations || [],
         derivations: lineageInfo.derivations || [],
-        timestamp: new Date(),
+        timestamp: this.getDeterministicDate(),
         operationId: lineageInfo.operationId
       };
       
@@ -462,7 +483,7 @@ export class ProvenanceTracker extends EventEmitter {
         activitiesByAgent,
         statistics,
         anomalies,
-        generatedAt: new Date(),
+        generatedAt: this.getDeterministicDate(),
         integrityVerified: await this._verifyAuditIntegrity(auditActivities)
       };
       
@@ -1145,7 +1166,7 @@ export class ProvenanceTracker extends EventEmitter {
       };
       
       // Store report
-      await this.storage.store(`compliance-report-${regulation}-${Date.now()}`, combinedReport);
+      await this.storage.store(`compliance-report-${regulation}-${this.getDeterministicTimestamp()}`, combinedReport);
       
       return combinedReport;
       
@@ -1190,7 +1211,7 @@ export class ProvenanceTracker extends EventEmitter {
         affectedAgents: Array.from(affectedAgents),
         riskLevel: this._calculateRiskLevel(affectedEntities.size, affectedActivities.size),
         recommendations: this._generateChangeRecommendations(affectedEntities.size, proposedChanges),
-        analyzedAt: new Date()
+        analyzedAt: this.getDeterministicDate()
       };
       
       // Log compliance event
@@ -1288,7 +1309,7 @@ export class ProvenanceTracker extends EventEmitter {
           totalEntities: this.entityLineage.size,
           totalActivities: this.activityHistory.length,
           totalAgents: this.agentRegistry.size,
-          generatedAt: new Date()
+          generatedAt: this.getDeterministicDate()
         }
       };
       
@@ -1313,7 +1334,7 @@ export class ProvenanceTracker extends EventEmitter {
     if (this.hashChain.length === 0) {
       const genesisBlock = {
         index: 0,
-        timestamp: new Date(),
+        timestamp: this.getDeterministicDate(),
         operationId: 'genesis',
         previousHash: '0',
         hash: crypto.createHash(this.config.hashAlgorithm)
@@ -1399,7 +1420,7 @@ export class ProvenanceTracker extends EventEmitter {
   }
 
   async _createProvenanceBundle() {
-    const bundleId = `bundle-${Date.now()}`;
+    const bundleId = `bundle-${this.getDeterministicTimestamp()}`;
     const bundleMembers = this.activityHistory.slice(-this.config.bundleSize);
     
     const bundle = {
@@ -1407,7 +1428,7 @@ export class ProvenanceTracker extends EventEmitter {
       type: 'prov:Bundle',
       strategy: this.config.bundleStrategy,
       members: bundleMembers.map(a => a.operationId),
-      createdAt: new Date(),
+      createdAt: this.getDeterministicDate(),
       integrityHash: crypto.createHash(this.config.hashAlgorithm)
         .update(JSON.stringify(bundleMembers.map(a => a.integrityHash)))
         .digest('hex')

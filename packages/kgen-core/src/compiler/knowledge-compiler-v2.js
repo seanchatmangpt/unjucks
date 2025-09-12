@@ -106,7 +106,7 @@ export class KnowledgeCompiler extends EventEmitter {
       await this.initialize();
     }
     
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     const compilationId = crypto.randomUUID();
     
     try {
@@ -144,7 +144,7 @@ export class KnowledgeCompiler extends EventEmitter {
       const optimizedContext = await this._optimizeContext(compiledContext, options);
       
       // Performance tracking
-      this.metrics.compilationTime = Date.now() - startTime;
+      this.metrics.compilationTime = this.getDeterministicTimestamp() - startTime;
       
       // Cache result
       if (this.config.enableCaching) {
@@ -447,7 +447,7 @@ export class KnowledgeCompiler extends EventEmitter {
       variables: templateVariables,
       facts: {},
       metadata: {
-        compiledAt: new Date().toISOString(),
+        compiledAt: this.getDeterministicDate().toISOString(),
         inferredFacts: inferredFacts.length,
         variableCount: Object.keys(templateVariables).length
       }

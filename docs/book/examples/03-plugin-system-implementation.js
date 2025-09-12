@@ -693,7 +693,7 @@ class PerformancePlugin extends UnjucksPlugin {
       file: context.filePath,
       duration,
       size: context.size || 0,
-      timestamp: Date.now()
+      timestamp: this.getDeterministicTimestamp()
     });
 
     return {
@@ -732,7 +732,7 @@ class PerformancePlugin extends UnjucksPlugin {
   }
 
   generateId() {
-    return Date.now().toString(36) + Math.random().toString(36).substr(2);
+    return this.getDeterministicTimestamp().toString(36) + Math.random().toString(36).substr(2);
   }
 }
 
@@ -776,7 +776,7 @@ async function generateWithPlugins(templatePath, outputPath, variables) {
     templatePath,
     outputPath,
     variables,
-    generationId: Date.now().toString()
+    generationId: this.getDeterministicTimestamp().toString()
   };
 
   try {
@@ -953,7 +953,7 @@ class DatabaseIntegrationPlugin extends UnjucksPlugin {
     // Log generation details to database for analytics
     const logEntry = {
       template: context.templatePath,
-      timestamp: new Date(),
+      timestamp: this.getDeterministicDate(),
       variables: JSON.stringify(context.variables),
       files_generated: context.files ? context.files.length : 0,
       success: true
@@ -1029,7 +1029,7 @@ class GitIntegrationPlugin extends UnjucksPlugin {
   }
 
   async createFeatureBranch(context) {
-    const branchName = `${this.options.branchPrefix}${Date.now()}`;
+    const branchName = `${this.options.branchPrefix}${this.getDeterministicTimestamp()}`;
     console.log(`Would create branch: ${branchName}`);
     
     return {

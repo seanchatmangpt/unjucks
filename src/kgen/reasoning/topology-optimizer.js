@@ -7,7 +7,7 @@
  */
 
 import { EventEmitter } from 'events';
-import { Logger } from 'consola';
+import { Consola } from 'consola';
 import crypto from 'crypto';
 
 export class ReasoningTopologyOptimizer extends EventEmitter {
@@ -47,7 +47,7 @@ export class ReasoningTopologyOptimizer extends EventEmitter {
       ...config
     };
     
-    this.logger = new Logger({ tag: 'topology-optimizer' });
+    this.logger = new Consola({ tag: 'topology-optimizer' });
     this.state = 'initialized';
     
     // Topology management
@@ -207,7 +207,7 @@ export class ReasoningTopologyOptimizer extends EventEmitter {
    */
   async optimizeTopology(optimizationConfig = {}) {
     const optimizationId = this._generateOptimizationId();
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       this.logger.info(`Starting topology optimization ${optimizationId}`);
@@ -261,7 +261,7 @@ export class ReasoningTopologyOptimizer extends EventEmitter {
       await this._updateTopologyState(optimalTopology, applicationResults);
       
       // Update metrics
-      const optimizationTime = Date.now() - startTime;
+      const optimizationTime = this.getDeterministicTimestamp() - startTime;
       this._updateOptimizationMetrics(optimizationId, optimizationTime, true);
       
       this.emit('topology:optimized', {
@@ -290,7 +290,7 @@ export class ReasoningTopologyOptimizer extends EventEmitter {
       };
       
     } catch (error) {
-      const optimizationTime = Date.now() - startTime;
+      const optimizationTime = this.getDeterministicTimestamp() - startTime;
       this._updateOptimizationMetrics(optimizationId, optimizationTime, false);
       
       this.emit('topology:optimization_failed', { optimizationId, error, optimizationTime });
@@ -479,7 +479,7 @@ export class ReasoningTopologyOptimizer extends EventEmitter {
   }
 
   _generateOptimizationId() {
-    return `opt_${Date.now()}_${crypto.randomBytes(4).toString('hex')}`;
+    return `opt_${this.getDeterministicTimestamp()}_${crypto.randomBytes(4).toString('hex')}`;
   }
 
   // Topology generation methods

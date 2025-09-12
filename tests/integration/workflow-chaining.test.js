@@ -143,9 +143,9 @@ describe('CLI Workflow Chaining Tests', () => {
         'service new Test3 --dry'
       ];
 
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const results = rapidCommands.map(cmd => runCLI(cmd, 5000)); // 5s timeout
-      const endTime = Date.now();
+      const endTime = this.getDeterministicTimestamp();
 
       const duration = endTime - startTime;
       const successRate = results.filter(r => r.success).length / results.length;

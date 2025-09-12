@@ -25,7 +25,7 @@ class PerformanceBenchmarker {
       totalMemory: os.totalmem(),
       freeMemory: os.freemem(),
       loadAverage: os.loadavg(),
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
     };
   }
 
@@ -60,7 +60,7 @@ class PerformanceBenchmarker {
       },
       success: !error,
       error,
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
     };
 
     this.results.push(benchmark);
@@ -86,7 +86,7 @@ class PerformanceBenchmarker {
           id: i, 
           name: `object-${i}`, 
           value: Math.random(),
-          metadata: { created: Date.now(), type: 'test' }
+          metadata: { created: this.getDeterministicTimestamp(), type: 'test' }
         });
       }
       return objects.length;
@@ -149,7 +149,7 @@ class PerformanceBenchmarker {
       }));
 
       return objects
-        .map(obj => ({ ...obj, processed: true, timestamp: Date.now() }))
+        .map(obj => ({ ...obj, processed: true, timestamp: this.getDeterministicTimestamp() }))
         .filter(obj => obj.id % 7 === 0)
         .map(obj => ({ ...obj, data: { ...obj.data, computed: obj.data.value * 2 } }))
         .length;
@@ -247,7 +247,7 @@ User: {{ user.name }} ({{ user.email }})
           path.join(testDir, `sequential-${i}.txt`),
           `Sequential file content ${i}\n`.repeat(100) + JSON.stringify({
             id: i,
-            timestamp: Date.now(),
+            timestamp: this.getDeterministicTimestamp(),
             data: Array.from({ length: 20 }, (_, j) => `data-${j}`)
           }, null, 2)
         );
@@ -261,7 +261,7 @@ User: {{ user.name }} ({{ user.email }})
           path.join(testDir, `parallel-${i}.txt`),
           `Parallel file content ${i}\n`.repeat(100) + JSON.stringify({
             id: i,
-            timestamp: Date.now(),
+            timestamp: this.getDeterministicTimestamp(),
             data: Array.from({ length: 20 }, (_, j) => `data-${j}`)
           }, null, 2)
         )
@@ -307,7 +307,7 @@ module.exports = config;
         const content = await fs.readFile(targetFile, 'utf8');
         const injected = content.replace(
           '// INJECT_POINT',
-          `// INJECT_POINT\nconst feature${i} = {\n  name: "feature${i}",\n  enabled: true,\n  config: ${JSON.stringify({ id: i, timestamp: Date.now() })}\n};`
+          `// INJECT_POINT\nconst feature${i} = {\n  name: "feature${i}",\n  enabled: true,\n  config: ${JSON.stringify({ id: i, timestamp: this.getDeterministicTimestamp() })}\n};`
         );
         await fs.writeFile(targetFile, injected);
       }
@@ -320,8 +320,8 @@ module.exports = config;
     console.log('\n⌨️  CLI Response Time Benchmarks:');
     
     await this.measure('Node.js Startup Time', async () => {
-      const start = Date.now();
-      const { stdout } = await execAsync('node -e "console.log(Date.now() - process.env.START_TIME)"', {
+      const start = this.getDeterministicTimestamp();
+      const { stdout } = await execAsync('node -e "console.log(this.getDeterministicTimestamp() - process.env.START_TIME)"', {
         env: { ...process.env, START_TIME: start.toString() }
       });
       return parseInt(stdout.trim()) || 0;
@@ -448,7 +448,7 @@ module.exports = config;
     const memoryHungry = [...successful].sort((a, b) => b.memoryDelta.heapUsed - a.memoryDelta.heapUsed).slice(0, 5);
 
     const report = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       environment: 'development',
       systemInfo: this.systemInfo,
       summary: {

@@ -63,7 +63,7 @@ export class SparqlEngine {
    * @returns {Promise<Object>} Query results with metadata
    */
   async executeQuery(query, options = {}) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       this.logger.debug('Executing SPARQL query');
@@ -115,7 +115,7 @@ export class SparqlEngine {
       }
       
       // Update metrics
-      const executionTime = Date.now() - startTime;
+      const executionTime = this.getDeterministicTimestamp() - startTime;
       this.metrics.queriesExecuted++;
       this.metrics.totalExecutionTime += executionTime;
       
@@ -537,7 +537,7 @@ export class SparqlEngine {
         cached: false
       },
       metadata: {
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         resultCount: results.results?.bindings?.length || 0,
         graphSize: this.graphProcessor.store.size
       }

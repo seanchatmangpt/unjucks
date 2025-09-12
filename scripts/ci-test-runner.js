@@ -58,7 +58,7 @@ class CITestRunner {
   constructor() {
     this.results = {
       suite: null,
-      startTime: new Date(),
+      startTime: this.getDeterministicDate(),
       endTime: null,
       duration: 0,
       totalTests: 0,
@@ -97,7 +97,7 @@ class CITestRunner {
     console.log(`🎯 Initializing coordination for ${suite} tests...`);
     
     try {
-      const sessionId = `ci-${Date.now()}-${suite}`;
+      const sessionId = `ci-${this.getDeterministicTimestamp()}-${suite}`;
       this.results.coordination.sessionId = sessionId;
       
       execSync(
@@ -169,7 +169,7 @@ class CITestRunner {
     testCommand.push(...config.include);
 
     return new Promise((resolve, reject) => {
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
       const testProcess = spawn(testCommand[0], testCommand.slice(1), {
         cwd: rootDir,
@@ -198,9 +198,9 @@ class CITestRunner {
       });
 
       testProcess.on('close', (code) => {
-        const duration = Date.now() - startTime;
+        const duration = this.getDeterministicTimestamp() - startTime;
         this.results.duration = duration;
-        this.results.endTime = new Date();
+        this.results.endTime = this.getDeterministicDate();
         
         console.log(`\n⏱️  ${suite} tests completed in ${duration}ms`);
         
@@ -265,7 +265,7 @@ class CITestRunner {
     console.log('\n📊 Generating comprehensive test report...');
     
     const report = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       suite: this.results.suite,
       execution: {
         startTime: this.results.startTime.toISOString(),

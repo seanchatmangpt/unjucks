@@ -283,8 +283,8 @@ export class TemplateContext {
     return {
       template: templatePath,
       frontmatter,
-      generatedAt: new Date().toISOString(),
-      timestamp: Date.now(),
+      generatedAt: this.getDeterministicDate().toISOString(),
+      timestamp: this.getDeterministicTimestamp(),
       version: '1.0.0',
       operationMode: this.getOperationMode(frontmatter),
       outputPath: frontmatter.to || null
@@ -326,8 +326,8 @@ export class TemplateContext {
       sortBy: (arr, key) => arr.sort((a, b) => (a[key] > b[key] ? 1 : -1)),
 
       // Date utilities
-      now: () => new Date().toISOString(),
-      timestamp: () => Date.now()
+      now: () => this.getDeterministicDate().toISOString(),
+      timestamp: () => this.getDeterministicTimestamp()
     };
   }
 

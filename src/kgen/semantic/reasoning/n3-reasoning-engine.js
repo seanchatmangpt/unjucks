@@ -140,7 +140,7 @@ export class N3ReasoningEngine extends EventEmitter {
    * @returns {Promise<Object>} Reasoning results with inferences and explanations
    */
   async performReasoning(graph, rules = [], options = {}) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     const operationId = options.operationId || crypto.randomUUID();
     
     try {
@@ -189,7 +189,7 @@ export class N3ReasoningEngine extends EventEmitter {
       }
       
       // Update metrics
-      const reasoningTime = Date.now() - startTime;
+      const reasoningTime = this.getDeterministicTimestamp() - startTime;
       this._updateMetrics(context, reasoningTime);
       
       // Build result
@@ -200,7 +200,7 @@ export class N3ReasoningEngine extends EventEmitter {
         consistencyReport,
         context: {
           ...context,
-          endTime: Date.now(),
+          endTime: this.getDeterministicTimestamp(),
           reasoningTime
         },
         metrics: { ...this.metrics }
@@ -225,7 +225,7 @@ export class N3ReasoningEngine extends EventEmitter {
       return result;
       
     } catch (error) {
-      const reasoningTime = Date.now() - startTime;
+      const reasoningTime = this.getDeterministicTimestamp() - startTime;
       this.logger.error(`N3 reasoning failed after ${reasoningTime}ms:`, error);
       this.emit('reasoning:error', { operationId, error, reasoningTime });
       throw error;
@@ -256,7 +256,7 @@ export class N3ReasoningEngine extends EventEmitter {
         version: rulePack.version,
         description: rulePack.description,
         rulesCount: validatedRules.length,
-        loadedAt: new Date().toISOString(),
+        loadedAt: this.getDeterministicDate().toISOString(),
         path: rulePackPath
       };
       
@@ -299,7 +299,7 @@ export class N3ReasoningEngine extends EventEmitter {
         parsedRule,
         priority: rule.priority || 5,
         enabled: rule.enabled !== false,
-        createdAt: new Date().toISOString(),
+        createdAt: this.getDeterministicDate().toISOString(),
         metadata: rule.metadata || {}
       };
       
@@ -499,7 +499,7 @@ export class N3ReasoningEngine extends EventEmitter {
         metadata: {
           ...rulePack,
           rulesCount: validatedRules.length,
-          loadedAt: new Date().toISOString(),
+          loadedAt: this.getDeterministicDate().toISOString(),
           builtin: true
         },
         rules: validatedRules,
@@ -617,7 +617,7 @@ export class N3ReasoningEngine extends EventEmitter {
    */
   async _performFullReasoning(rules, context) {
     const inferences = [];
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     // Apply rules iteratively until no new inferences
     let iterationCount = 0;
@@ -645,8 +645,8 @@ export class N3ReasoningEngine extends EventEmitter {
           }
           
           // Check timeout
-          if (Date.now() - startTime > this.config.reasoningTimeout) {
-            this.logger.warn(`Reasoning timeout reached after ${Date.now() - startTime}ms`);
+          if (this.getDeterministicTimestamp() - startTime > this.config.reasoningTimeout) {
+            this.logger.warn(`Reasoning timeout reached after ${this.getDeterministicTimestamp() - startTime}ms`);
             break;
           }
           
@@ -655,7 +655,7 @@ export class N3ReasoningEngine extends EventEmitter {
         }
       }
       
-      if (Date.now() - startTime > this.config.reasoningTimeout) {
+      if (this.getDeterministicTimestamp() - startTime > this.config.reasoningTimeout) {
         break;
       }
     }
@@ -719,7 +719,7 @@ export class N3ReasoningEngine extends EventEmitter {
             ...inference,
             derivedFrom: rule.id,
             confidence: rule.confidence || 1.0,
-            timestamp: new Date().toISOString()
+            timestamp: this.getDeterministicDate().toISOString()
           });
           
           // Track provenance
@@ -766,7 +766,7 @@ export class N3ReasoningEngine extends EventEmitter {
    */
   async _performConsistencyCheck(context) {
     const inconsistencies = [];
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       // Check for basic inconsistencies
@@ -785,7 +785,7 @@ export class N3ReasoningEngine extends EventEmitter {
       this.metrics.consistencyChecks++;
       this.metrics.inconsistenciesFound += inconsistencies.length;
       
-      const checkTime = Date.now() - startTime;
+      const checkTime = this.getDeterministicTimestamp() - startTime;
       this.logger.debug(`Consistency check completed in ${checkTime}ms: ${inconsistencies.length} issues found`);
       
     } catch (error) {
@@ -795,7 +795,7 @@ export class N3ReasoningEngine extends EventEmitter {
     return {
       consistent: inconsistencies.length === 0,
       inconsistencies,
-      checkTime: Date.now() - startTime,
+      checkTime: this.getDeterministicTimestamp() - startTime,
       totalChecks: context.consistencyChecks
     };
   }
@@ -1301,7 +1301,7 @@ export class N3ReasoningEngine extends EventEmitter {
       rule: rule.id,
       premises: [match.quad],
       derivationPath: [rule.id],
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     });
   }
 
@@ -1362,7 +1362,7 @@ export class N3ReasoningEngine extends EventEmitter {
           explanations: result.explanations,
           consistencyReport: result.consistencyReport
         },
-        timestamp: Date.now(),
+        timestamp: this.getDeterministicTimestamp(),
         ttl: 3600000, // 1 hour
         metadata: {
           inputTriples: graph.triples?.length || 0,
@@ -1388,7 +1388,7 @@ export class N3ReasoningEngine extends EventEmitter {
    * Cleanup expired cache entries
    */
   _cleanupExpiredCache() {
-    const now = Date.now();
+    const now = this.getDeterministicTimestamp();
     const expiredKeys = [];
     
     for (const [key, entry] of this.incrementalState.inferenceCache) {
@@ -1413,7 +1413,7 @@ export class N3ReasoningEngine extends EventEmitter {
     this.incrementalState.lastSnapshot = {
       graphHash: this._hashTriples(graph.triples || []),
       inferences: inferences.length,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     };
     
     this.incrementalState.pendingTriples = [];
@@ -1800,7 +1800,7 @@ export class N3ReasoningEngine extends EventEmitter {
     const cacheKey = this._generateCacheKey(graph, rules);
     const cachedEntry = this.incrementalState.inferenceCache.get(cacheKey);
     
-    if (cachedEntry && (Date.now() - cachedEntry.timestamp < cachedEntry.ttl)) {
+    if (cachedEntry && (this.getDeterministicTimestamp() - cachedEntry.timestamp < cachedEntry.ttl)) {
       return true;
     }
     
@@ -1814,7 +1814,7 @@ export class N3ReasoningEngine extends EventEmitter {
     const cacheKey = this._generateCacheKey(graph, rules);
     const cachedEntry = this.incrementalState.inferenceCache.get(cacheKey);
     
-    if (cachedEntry && (Date.now() - cachedEntry.timestamp < cachedEntry.ttl)) {
+    if (cachedEntry && (this.getDeterministicTimestamp() - cachedEntry.timestamp < cachedEntry.ttl)) {
       this.metrics.cacheHits++;
       return cachedEntry.result;
     }

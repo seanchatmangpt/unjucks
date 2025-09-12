@@ -98,7 +98,7 @@ export class ConsensusAttackDetector extends EventEmitter {
       throw new Error('Attack detector not initialized');
     }
 
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     const detectedAttacks = [];
 
     try {
@@ -141,7 +141,7 @@ export class ConsensusAttackDetector extends EventEmitter {
           detectedAttacks.push(...result.attacks.map(attack => ({
             ...attack,
             detectorType: result.type,
-            detectedAt: new Date(),
+            detectedAt: this.getDeterministicDate(),
             consensusRound: consensusRound.id
           })));
         }
@@ -149,7 +149,7 @@ export class ConsensusAttackDetector extends EventEmitter {
 
       // Update metrics
       this.metrics.attacksDetected += detectedAttacks.length;
-      this.metrics.detectionLatency.push(Date.now() - startTime);
+      this.metrics.detectionLatency.push(this.getDeterministicTimestamp() - startTime);
 
       // Apply machine learning if enabled
       if (this.config.detection.adaptiveLearning) {
@@ -163,12 +163,12 @@ export class ConsensusAttackDetector extends EventEmitter {
         this.emit('attacks_detected', {
           attacks: detectedAttacks,
           consensusRound: consensusRound.id,
-          detectionTime: Date.now() - startTime
+          detectionTime: this.getDeterministicTimestamp() - startTime
         });
 
         // Store attack history
         this.attackHistory.push({
-          timestamp: new Date(),
+          timestamp: this.getDeterministicDate(),
           consensusRound: consensusRound.id,
           attacks: detectedAttacks
         });
@@ -176,7 +176,7 @@ export class ConsensusAttackDetector extends EventEmitter {
 
       return {
         attacks: detectedAttacks,
-        detectionTime: Date.now() - startTime,
+        detectionTime: this.getDeterministicTimestamp() - startTime,
         consensusRound: consensusRound.id
       };
 
@@ -241,7 +241,7 @@ export class ConsensusAttackDetector extends EventEmitter {
   getNodeReputation(nodeId) {
     return this.nodeReputations.get(nodeId) || {
       score: 1.0,
-      lastUpdated: new Date(),
+      lastUpdated: this.getDeterministicDate(),
       violationHistory: []
     };
   }
@@ -255,7 +255,7 @@ export class ConsensusAttackDetector extends EventEmitter {
         nodeId,
         behavior,
         evidence,
-        reportedAt: new Date(),
+        reportedAt: this.getDeterministicDate(),
         reportedBy: 'manual'
       };
 
@@ -304,7 +304,7 @@ export class ConsensusAttackDetector extends EventEmitter {
   // Private methods
 
   async mitigateAttack(attack) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
 
     try {
       let mitigation;
@@ -326,7 +326,7 @@ export class ConsensusAttackDetector extends EventEmitter {
           mitigation = await this.mitigateGenericAttack(attack);
       }
 
-      mitigation.mitigationTime = Date.now() - startTime;
+      mitigation.mitigationTime = this.getDeterministicTimestamp() - startTime;
       return mitigation;
 
     } catch (error) {
@@ -334,7 +334,7 @@ export class ConsensusAttackDetector extends EventEmitter {
         success: false,
         attack: attack,
         error: error.message,
-        mitigationTime: Date.now() - startTime
+        mitigationTime: this.getDeterministicTimestamp() - startTime
       };
     }
   }
@@ -460,12 +460,12 @@ export class ConsensusAttackDetector extends EventEmitter {
     const penalty = this.calculatePenalty(violationType, evidence);
     
     reputation.score = Math.max(0, reputation.score - penalty);
-    reputation.lastUpdated = new Date();
+    reputation.lastUpdated = this.getDeterministicDate();
     reputation.violationHistory.push({
       type: violationType,
       penalty: penalty,
       evidence: evidence,
-      timestamp: new Date()
+      timestamp: this.getDeterministicDate()
     });
 
     this.nodeReputations.set(nodeId, reputation);
@@ -484,7 +484,7 @@ export class ConsensusAttackDetector extends EventEmitter {
     this.emit('node_quarantined', {
       nodeId,
       reason,
-      timestamp: new Date()
+      timestamp: this.getDeterministicDate()
     });
 
     // Schedule automatic release after quarantine period
@@ -497,7 +497,7 @@ export class ConsensusAttackDetector extends EventEmitter {
     if (this.quarantinedNodes.delete(nodeId)) {
       this.emit('node_released_from_quarantine', {
         nodeId,
-        timestamp: new Date()
+        timestamp: this.getDeterministicDate()
       });
     }
   }
@@ -528,7 +528,7 @@ export class ConsensusAttackDetector extends EventEmitter {
       limit: limit,
       window: 60000, // 1 minute
       requests: 0,
-      resetTime: Date.now() + 60000
+      resetTime: this.getDeterministicTimestamp() + 60000
     });
 
     this.emit('rate_limit_applied', { nodeId, limit });
@@ -596,7 +596,7 @@ export class ConsensusAttackDetector extends EventEmitter {
       // Gradually recover reputation over time
       if (reputation.score < 1.0) {
         reputation.score = Math.min(1.0, reputation.score + this.config.mitigation.reputationDecayRate);
-        reputation.lastUpdated = new Date();
+        reputation.lastUpdated = this.getDeterministicDate();
       }
     }
   }
@@ -616,7 +616,7 @@ export class ConsensusAttackDetector extends EventEmitter {
         this.emit('behavioral_anomaly_detected', {
           nodeId,
           anomalies,
-          timestamp: new Date()
+          timestamp: this.getDeterministicDate()
         });
       }
     }
@@ -651,7 +651,7 @@ export class ConsensusAttackDetector extends EventEmitter {
           messageFrequency: [],
           responseTime: [],
           consensusVotes: [],
-          lastUpdated: new Date()
+          lastUpdated: this.getDeterministicDate()
         });
       }
 
@@ -661,7 +661,7 @@ export class ConsensusAttackDetector extends EventEmitter {
       patterns.messageFrequency.push(consensusRound.messageCount || 1);
       patterns.responseTime.push(consensusRound.responseTime || 1000);
       patterns.consensusVotes.push(consensusRound.vote || 'unknown');
-      patterns.lastUpdated = new Date();
+      patterns.lastUpdated = this.getDeterministicDate();
 
       // Keep only recent data (sliding window)
       const maxHistory = 100;
@@ -679,7 +679,7 @@ export class ConsensusAttackDetector extends EventEmitter {
       // Small positive adjustment for good behavior
       if (!attacks.some(attack => attack.involvedNodes?.includes(participant))) {
         reputation.score = Math.min(1.0, reputation.score + 0.01);
-        reputation.lastUpdated = new Date();
+        reputation.lastUpdated = this.getDeterministicDate();
         this.nodeReputations.set(participant, reputation);
       }
     }
@@ -706,7 +706,7 @@ export class ConsensusAttackDetector extends EventEmitter {
   }
 
   getRecentAttacks(hours) {
-    const cutoff = new Date(Date.now() - hours * 60 * 60 * 1000);
+    const cutoff = new Date(this.getDeterministicTimestamp() - hours * 60 * 60 * 1000);
     return this.attackHistory.filter(attack => attack.timestamp >= cutoff);
   }
 

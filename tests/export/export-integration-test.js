@@ -271,9 +271,9 @@ Café, résumé, naïve, 你好, العربية, русский
         quiet: true
       };
 
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const result = await exportCommand.run({ args: perfArgs });
-      const duration = Date.now() - startTime;
+      const duration = this.getDeterministicTimestamp() - startTime;
 
       if (result.success) {
         const stats = await fs.stat(result.outputPath);
@@ -308,7 +308,7 @@ Café, résumé, naïve, 你好, العربية, русский
     console.log('\n📊 Generating Comprehensive Report...');
     
     const report = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       summary: {
         totalTests: 0,
         passed: 0,

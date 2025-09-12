@@ -767,7 +767,7 @@ export class NLToSPARQLTranslator {
       query,
       confidence,
       semantics,
-      timestamp: Date.now()
+      timestamp: this.getDeterministicTimestamp()
     });
     
     // Trim history if too large
@@ -910,7 +910,7 @@ export class NLToSPARQLTranslator {
   }
 
   addRecentFilter(query) {
-    const recentFilter = `?time >= "${new Date(Date.now() - 30 * 24 * 3600000).toISOString()}"^^xsd:dateTime`;
+    const recentFilter = `?time >= "${new Date(this.getDeterministicTimestamp() - 30 * 24 * 3600000).toISOString()}"^^xsd:dateTime`;
     return this.addTemporalFilter(query, recentFilter);
   }
 
@@ -956,7 +956,7 @@ export class NLToSPARQLTranslator {
       input,
       correctQuery,
       rating,
-      timestamp: Date.now()
+      timestamp: this.getDeterministicTimestamp()
     });
     
     // Extract patterns from successful translations

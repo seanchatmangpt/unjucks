@@ -40,7 +40,7 @@ describe('Template Engine Integration', () => {
   let secureEngine;
 
   beforeEach(async () => {
-    testDir = path.join(process.cwd(), 'tests', 'temp', `template-engine-test-${Date.now()}`);
+    testDir = path.join(process.cwd(), 'tests', 'temp', `template-engine-test-${this.getDeterministicTimestamp()}`);
     templatesDir = path.join(testDir, '_templates');
     
     await fs.ensureDir(templatesDir);
@@ -144,7 +144,7 @@ export class {{ name | pascalCase }}Service {
   private {{ name | camelCase }}Repository;
   
   constructor() {
-    this.logger = new Logger('{{ name | uppercase }}');
+    this.logger = new Consola('{{ name | uppercase }}');
   }
 }`;
 
@@ -399,10 +399,10 @@ export class LargeClass implements LargeInterface {
 
       const variables = {};
 
-      const start = Date.now();
+      const start = this.getDeterministicTimestamp();
       const env = nunjucks.configure({ autoescape: false });
       const result = env.renderString(largeTemplate, variables);
-      const duration = Date.now() - start;
+      const duration = this.getDeterministicTimestamp() - start;
 
       expect(result).toContain('field0: string');
       expect(result).toContain('field999: string');
@@ -416,14 +416,14 @@ export class LargeClass implements LargeInterface {
       const variables = { name: 'Test', description: 'Cache test' };
 
       // First render
-      const start1 = Date.now();
+      const start1 = this.getDeterministicTimestamp();
       const result1 = await perfectEngine.renderTemplate(templateFile, variables);
-      const time1 = Date.now() - start1;
+      const time1 = this.getDeterministicTimestamp() - start1;
 
       // Second render (should use cache)
-      const start2 = Date.now();
+      const start2 = this.getDeterministicTimestamp();
       const result2 = await perfectEngine.renderTemplate(templateFile, variables);
-      const time2 = Date.now() - start2;
+      const time2 = this.getDeterministicTimestamp() - start2;
 
       expect(result1.success).toBe(true);
       expect(result2.success).toBe(true);

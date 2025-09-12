@@ -302,7 +302,7 @@ export class {{entityName}} {
         averageIterationTime: timings.reduce((sum, time) => sum + time, 0) / timings.length,
         hashes,
         validation: validationResult,
-        timestamp: new Date()
+        timestamp: this.getDeterministicDate()
       };
 
     } catch (error) {
@@ -313,7 +313,7 @@ export class {{entityName}} {
         success: false,
         error: error.message,
         duration: performance.now() - scenarioStartTime,
-        timestamp: new Date()
+        timestamp: this.getDeterministicDate()
       };
     }
   }
@@ -723,7 +723,7 @@ export class {{entityName}} {
   async generateValidationReport(results, totalTime) {
     const reportData = {
       metadata: {
-        timestamp: new Date(),
+        timestamp: this.getDeterministicDate(),
         totalTime,
         iterations: this.options.iterations,
         platform: process.platform,
@@ -742,14 +742,14 @@ export class {{entityName}} {
     // Generate JSON report
     const jsonReport = JSON.stringify(reportData, null, 2);
     await fs.writeFile(
-      path.join(this.options.outputDir, `deterministic-validation-${Date.now()}.json`),
+      path.join(this.options.outputDir, `deterministic-validation-${this.getDeterministicTimestamp()}.json`),
       jsonReport
     );
 
     // Generate markdown report
     const markdownReport = this.generateMarkdownReport(reportData);
     await fs.writeFile(
-      path.join(this.options.outputDir, `deterministic-validation-${Date.now()}.md`),
+      path.join(this.options.outputDir, `deterministic-validation-${this.getDeterministicTimestamp()}.md`),
       markdownReport
     );
 

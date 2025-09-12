@@ -153,7 +153,7 @@ export class KGENLaTeXIntegration {
         validation: validationResult,
         compilation: compilationResult,
         metadata: {
-          generatedAt: new Date().toISOString(),
+          generatedAt: this.getDeterministicDate().toISOString(),
           kgenVersion: process.env.KGEN_VERSION || '1.0.0'
         }
       };
@@ -236,7 +236,7 @@ export class KGENLaTeXIntegration {
       .replace(/\s+/g, '-')
       .substring(0, 50);
     
-    const timestamp = new Date().toISOString().split('T')[0];
+    const timestamp = this.getDeterministicDate().toISOString().split('T')[0];
     return `${this.options.outputDir}/${sanitizedTitle}-${timestamp}.tex`;
   }
   

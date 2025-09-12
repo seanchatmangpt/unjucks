@@ -156,7 +156,7 @@ export class ConflictResolutionEngine extends EventEmitter {
    */
   async resolveConflicts(data, options = {}) {
     const resolutionId = crypto.randomUUID();
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       console.log(`⚖️ Resolving conflicts for resolution: ${resolutionId}`);
@@ -178,7 +178,7 @@ export class ConflictResolutionEngine extends EventEmitter {
           conflicts: [],
           resolutions: [],
           metadata: {
-            resolutionTime: Date.now() - startTime,
+            resolutionTime: this.getDeterministicTimestamp() - startTime,
             conflictsDetected: 0,
             conflictsResolved: 0
           }
@@ -214,7 +214,7 @@ export class ConflictResolutionEngine extends EventEmitter {
       }
       
       // Update statistics
-      this.updateResolutionStatistics(resolutionId, 'success', Date.now() - startTime, resolvedCount);
+      this.updateResolutionStatistics(resolutionId, 'success', this.getDeterministicTimestamp() - startTime, resolvedCount);
       
       const result = {
         success: true,
@@ -223,7 +223,7 @@ export class ConflictResolutionEngine extends EventEmitter {
         conflicts: conflicts,
         resolutions: resolutions,
         metadata: {
-          resolutionTime: Date.now() - startTime,
+          resolutionTime: this.getDeterministicTimestamp() - startTime,
           conflictsDetected: conflicts.length,
           conflictsResolved: resolvedCount,
           unresolvedConflicts: conflicts.length - resolvedCount,
@@ -240,7 +240,7 @@ export class ConflictResolutionEngine extends EventEmitter {
     } catch (error) {
       console.error(`❌ Conflict resolution failed (${resolutionId}):`, error);
       
-      this.updateResolutionStatistics(resolutionId, 'failure', Date.now() - startTime, 0);
+      this.updateResolutionStatistics(resolutionId, 'failure', this.getDeterministicTimestamp() - startTime, 0);
       
       throw new Error(`Conflict resolution failed: ${error.message}`);
     }
@@ -395,7 +395,7 @@ export class ConflictResolutionEngine extends EventEmitter {
           resolved: false,
           strategy,
           error: error.message,
-          timestamp: new Date().toISOString()
+          timestamp: this.getDeterministicDate().toISOString()
         });
       }
     }
@@ -410,7 +410,7 @@ export class ConflictResolutionEngine extends EventEmitter {
       throw new Error(`Unknown resolution strategy: ${strategy}`);
     }
     
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     const resolution = await resolver(conflict, data, options);
     
     // Update strategy usage statistics
@@ -424,8 +424,8 @@ export class ConflictResolutionEngine extends EventEmitter {
       resolution: resolution.result,
       confidence: resolution.confidence || 0,
       reasoning: resolution.reasoning,
-      resolutionTime: Date.now() - startTime,
-      timestamp: new Date().toISOString()
+      resolutionTime: this.getDeterministicTimestamp() - startTime,
+      timestamp: this.getDeterministicDate().toISOString()
     };
   }
   
@@ -912,7 +912,7 @@ export class ConflictResolutionEngine extends EventEmitter {
     
     if (!timestamp) return 0.5; // No timestamp information
     
-    const age = Date.now() - timestamp;
+    const age = this.getDeterministicTimestamp() - timestamp;
     const ageInDays = age / (1000 * 60 * 60 * 24);
     
     // Fresher data gets higher score
@@ -1100,7 +1100,7 @@ export class ConflictResolutionEngine extends EventEmitter {
     const resolutionId = crypto.randomUUID();
     
     this.state.resolutionHistory.set(resolutionId, {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       conflicts: resolutions,
       options,
       outcomes: {
@@ -1183,7 +1183,7 @@ export class ConflictResolutionEngine extends EventEmitter {
       ...this.state.statistics,
       sourceReliability: Object.fromEntries(this.state.sourceReliability),
       resolutionHistory: this.state.resolutionHistory.size,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     };
   }
   

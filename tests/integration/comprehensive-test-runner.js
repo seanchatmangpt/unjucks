@@ -32,7 +32,7 @@ class ComprehensiveTestRunner {
       }
     ];
     this.results = [];
-    this.startTime = Date.now();
+    this.startTime = this.getDeterministicTimestamp();
     this.reportDir = path.join(__dirname, '../reports');
   }
 
@@ -69,9 +69,9 @@ class ComprehensiveTestRunner {
       
       try {
         const tester = new suite.class();
-        const suiteStartTime = Date.now();
+        const suiteStartTime = this.getDeterministicTimestamp();
         const result = await tester.runAllTests();
-        const suiteDuration = Date.now() - suiteStartTime;
+        const suiteDuration = this.getDeterministicTimestamp() - suiteStartTime;
         
         this.results.push({
           name: suite.name,
@@ -114,7 +114,7 @@ class ComprehensiveTestRunner {
       }
     }
     
-    const overallDuration = Date.now() - this.startTime;
+    const overallDuration = this.getDeterministicTimestamp() - this.startTime;
     
     // Generate comprehensive report
     const report = await this.generateReport({
@@ -142,7 +142,7 @@ class ComprehensiveTestRunner {
     
     const report = {
       metadata: {
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         environment: {
           node: process.version,
           platform: process.platform,

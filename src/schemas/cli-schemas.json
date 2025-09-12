@@ -1,0 +1,1247 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "KGEN CLI JSON Schemas",
+  "description": "Comprehensive JSON schemas for all KGEN CLI command outputs",
+  "version": "1.0.0",
+  "definitions": {
+    "baseResponse": {
+      "type": "object",
+      "properties": {
+        "success": {
+          "type": "boolean",
+          "description": "Whether the operation completed successfully"
+        },
+        "operation": {
+          "type": "string",
+          "description": "The operation identifier in format command:subcommand",
+          "pattern": "^[a-z]+:[a-z-]+$"
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp of operation completion"
+        },
+        "metadata": {
+          "type": "object",
+          "properties": {
+            "traceId": {
+              "type": "string",
+              "description": "OpenTelemetry trace ID for operation tracking"
+            },
+            "version": {
+              "type": "string",
+              "description": "KGEN CLI version"
+            },
+            "executionTime": {
+              "type": "number",
+              "description": "Operation execution time in milliseconds"
+            },
+            "nodeVersion": {
+              "type": "string",
+              "description": "Node.js version used"
+            }
+          }
+        }
+      },
+      "required": ["success", "operation", "timestamp"]
+    },
+    "errorResponse": {
+      "allOf": [
+        { "$ref": "#/definitions/baseResponse" },
+        {
+          "type": "object",
+          "properties": {
+            "success": { "const": false },
+            "error": {
+              "type": "string",
+              "description": "Human-readable error message"
+            },
+            "errorCode": {
+              "type": "string",
+              "description": "Machine-readable error code",
+              "enum": [
+                "FILE_NOT_FOUND",
+                "VALIDATION_FAILED", 
+                "TEMPLATE_ERROR",
+                "RDF_PARSE_ERROR",
+                "DRIFT_DETECTED",
+                "SCHEMA_VIOLATION",
+                "INTERNAL_ERROR"
+              ]
+            },
+            "errorDetails": {
+              "type": "object",
+              "description": "Additional error context for debugging"
+            },
+            "exitCode": {
+              "type": "integer",
+              "description": "Suggested exit code for CLI",
+              "minimum": 0,
+              "maximum": 255
+            }
+          },
+          "required": ["error", "errorCode"]
+        }
+      ]
+    },
+    "shaclViolation": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "Property path that violates constraint"
+        },
+        "value": {
+          "description": "Value that violates constraint"
+        },
+        "message": {
+          "type": "string",
+          "description": "Human-readable violation message"
+        },
+        "severity": {
+          "type": "string",
+          "enum": ["violation", "warning", "info"]
+        },
+        "constraint": {
+          "type": "string",
+          "description": "SHACL constraint type that was violated"
+        }
+      },
+      "required": ["path", "message", "severity", "constraint"]
+    }
+  },
+  "schemas": {
+    "graphHash": {
+      "allOf": [
+        { "$ref": "#/definitions/baseResponse" },
+        {
+          "type": "object",
+          "properties": {
+            "success": { "const": true },
+            "operation": { "const": "graph:hash" },
+            "file": {
+              "type": "string",
+              "description": "Path to RDF file that was hashed"
+            },
+            "hash": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$",
+              "description": "SHA256 hash of canonical graph serialization"
+            },
+            "canonicalHash": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$",
+              "description": "Hash of semantically canonical graph"
+            },
+            "size": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "File size in bytes"
+            },
+            "format": {
+              "type": "string",
+              "enum": ["turtle", "rdf/xml", "n-triples", "json-ld", "n3"],
+              "description": "Detected RDF format"
+            },
+            "triples": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Number of RDF triples in graph"
+            }
+          },
+          "required": ["file", "hash", "size"]
+        }
+      ]
+    },
+    "graphDiff": {
+      "allOf": [
+        { "$ref": "#/definitions/baseResponse" },
+        {
+          "type": "object",
+          "properties": {
+            "success": { "const": true },
+            "operation": { "const": "graph:diff" },
+            "graph1": {
+              "type": "string",
+              "description": "Path to first graph file"
+            },
+            "graph2": {
+              "type": "string",
+              "description": "Path to second graph file"
+            },
+            "identical": {
+              "type": "boolean",
+              "description": "Whether graphs are semantically identical"
+            },
+            "summary": {
+              "type": "object",
+              "properties": {
+                "added": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "description": "Number of triples added"
+                },
+                "removed": {
+                  "type": "integer", 
+                  "minimum": 0,
+                  "description": "Number of triples removed"
+                },
+                "modified": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "description": "Number of triples modified"
+                }
+              },
+              "required": ["added", "removed", "modified"]
+            },
+            "changes": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": ["added", "removed", "modified"]
+                  },
+                  "triple": {
+                    "type": "object",
+                    "properties": {
+                      "subject": { "type": "string" },
+                      "predicate": { "type": "string" },
+                      "object": { "type": "string" }
+                    },
+                    "required": ["subject", "predicate", "object"]
+                  }
+                },
+                "required": ["type", "triple"]
+              }
+            },
+            "impactScore": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1,
+              "description": "Impact score from 0 (no impact) to 1 (high impact)"
+            },
+            "riskLevel": {
+              "type": "string",
+              "enum": ["low", "medium", "high", "critical"],
+              "description": "Risk assessment level"
+            },
+            "blastRadius": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Maximum blast radius of changes"
+            },
+            "recommendations": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Recommended actions based on diff analysis"
+            }
+          },
+          "required": ["graph1", "graph2", "identical", "summary"]
+        }
+      ]
+    },
+    "graphIndex": {
+      "allOf": [
+        { "$ref": "#/definitions/baseResponse" },
+        {
+          "type": "object",
+          "properties": {
+            "success": { "const": true },
+            "operation": { "const": "graph:index" },
+            "file": {
+              "type": "string",
+              "description": "Path to indexed RDF file"
+            },
+            "triples": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Total number of triples indexed"
+            },
+            "subjects": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Number of unique subjects"
+            },
+            "predicates": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Number of unique predicates"
+            },
+            "objects": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Number of unique objects"
+            },
+            "index": {
+              "type": "object",
+              "properties": {
+                "subjects": {
+                  "type": "array",
+                  "items": { "type": "string" },
+                  "description": "Sample subject URIs"
+                },
+                "predicates": {
+                  "type": "array", 
+                  "items": { "type": "string" },
+                  "description": "Sample predicate URIs"
+                },
+                "objects": {
+                  "type": "array",
+                  "items": { "type": "string" },
+                  "description": "Sample object values"
+                }
+              }
+            },
+            "statistics": {
+              "type": "object",
+              "properties": {
+                "literals": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "description": "Number of literal values"
+                },
+                "uris": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "description": "Number of URI references"
+                },
+                "blankNodes": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "description": "Number of blank nodes"
+                }
+              }
+            }
+          },
+          "required": ["file", "triples", "subjects", "predicates", "objects"]
+        }
+      ]
+    },
+    "artifactGenerate": {
+      "allOf": [
+        { "$ref": "#/definitions/baseResponse" },
+        {
+          "type": "object",
+          "properties": {
+            "success": { "const": true },
+            "operation": { "const": "artifact:generate" },
+            "graph": {
+              "type": ["string", "null"],
+              "description": "Path to source RDF graph file"
+            },
+            "template": {
+              "type": "string",
+              "description": "Template name used for generation"
+            },
+            "templatePath": {
+              "type": "string",
+              "description": "Resolved path to template file"
+            },
+            "outputPath": {
+              "type": "string", 
+              "description": "Path to generated artifact"
+            },
+            "contentHash": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$",
+              "description": "SHA256 hash of generated content"
+            },
+            "attestationPath": {
+              "type": "string",
+              "description": "Path to cryptographic attestation file"
+            },
+            "context": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "List of context variables used"
+            },
+            "cached": {
+              "type": "boolean",
+              "description": "Whether result was served from cache"
+            },
+            "deterministic": {
+              "type": "boolean",
+              "description": "Whether generation was deterministic"
+            }
+          },
+          "required": ["template", "templatePath", "outputPath", "contentHash", "attestationPath"]
+        }
+      ]
+    },
+    "artifactDrift": {
+      "allOf": [
+        { "$ref": "#/definitions/baseResponse" },
+        {
+          "type": "object",
+          "properties": {
+            "success": { "const": true },
+            "operation": { "const": "artifact:drift" },
+            "directory": {
+              "type": "string",
+              "description": "Directory checked for drift"
+            },
+            "driftDetected": {
+              "type": "boolean",
+              "description": "Whether any drift was detected"
+            },
+            "exitCode": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 255,
+              "description": "Exit code for CI/CD integration"
+            },
+            "summary": {
+              "type": "object",
+              "properties": {
+                "totalArtifacts": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "driftedArtifacts": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "missingArtifacts": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "unexpectedArtifacts": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "required": ["totalArtifacts", "driftedArtifacts"]
+            },
+            "reportPath": {
+              "type": "string",
+              "description": "Path to detailed drift report"
+            },
+            "recommendations": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "Recommended actions to address drift"
+            },
+            "violations": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "artifact": {
+                    "type": "string",
+                    "description": "Path to artifact with drift"
+                  },
+                  "type": {
+                    "type": "string",
+                    "enum": ["content_drift", "missing_artifact", "unexpected_artifact", "hash_mismatch"]
+                  },
+                  "expected": { "type": "string" },
+                  "actual": { "type": "string" },
+                  "severity": {
+                    "type": "string",
+                    "enum": ["low", "medium", "high", "critical"]
+                  }
+                },
+                "required": ["artifact", "type", "severity"]
+              }
+            }
+          },
+          "required": ["directory", "driftDetected", "exitCode", "summary"]
+        }
+      ]
+    },
+    "artifactExplain": {
+      "allOf": [
+        { "$ref": "#/definitions/baseResponse" },
+        {
+          "type": "object",
+          "properties": {
+            "success": { "const": true },
+            "operation": { "const": "artifact:explain" },
+            "artifact": {
+              "type": "string",
+              "description": "Path to artifact being explained"
+            },
+            "hasAttestation": {
+              "type": "boolean",
+              "description": "Whether artifact has cryptographic attestation"
+            },
+            "attestation": {
+              "type": ["object", "null"],
+              "description": "Full attestation data if available"
+            },
+            "verification": {
+              "type": ["object", "null"],
+              "properties": {
+                "verified": {
+                  "type": "boolean",
+                  "description": "Whether artifact verification passed"
+                },
+                "reproducible": {
+                  "type": "boolean",
+                  "description": "Whether artifact is reproducible"
+                },
+                "currentHash": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                },
+                "expectedHash": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                }
+              }
+            },
+            "provenance": {
+              "type": ["object", "null"],
+              "properties": {
+                "template": { "type": "string" },
+                "templateHash": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                },
+                "contextHash": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                },
+                "generatedAt": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "nodeVersion": { "type": "string" },
+                "reproducible": { "type": "boolean" }
+              }
+            }
+          },
+          "required": ["artifact", "hasAttestation"]
+        }
+      ]
+    },
+    "projectLock": {
+      "allOf": [
+        { "$ref": "#/definitions/baseResponse" },
+        {
+          "type": "object",
+          "properties": {
+            "success": { "const": true },
+            "operation": { "const": "project:lock" },
+            "lockfile": {
+              "type": "string",
+              "description": "Path to generated lockfile"
+            },
+            "filesHashed": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Number of files included in lockfile"
+            },
+            "rdfFiles": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Number of RDF files discovered"
+            }
+          },
+          "required": ["lockfile", "filesHashed", "rdfFiles"]
+        }
+      ]
+    },
+    "projectAttest": {
+      "allOf": [
+        { "$ref": "#/definitions/baseResponse" },
+        {
+          "type": "object",
+          "properties": {
+            "success": { "const": true },
+            "operation": { "const": "project:attest" },
+            "directory": {
+              "type": "string",
+              "description": "Project directory attested"
+            },
+            "attestationPath": {
+              "type": "string",
+              "description": "Path to project attestation bundle"
+            },
+            "summary": {
+              "type": "object",
+              "properties": {
+                "totalArtifacts": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "verifiedArtifacts": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "failedVerifications": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "required": ["totalArtifacts", "verifiedArtifacts", "failedVerifications"]
+            }
+          },
+          "required": ["directory", "attestationPath", "summary"]
+        }
+      ]
+    },
+    "templatesList": {
+      "allOf": [
+        { "$ref": "#/definitions/baseResponse" },
+        {
+          "type": "object",
+          "properties": {
+            "success": { "const": true },
+            "operation": { "const": "templates:ls" },
+            "templatesDir": {
+              "type": "string",
+              "description": "Directory searched for templates"
+            },
+            "templates": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "Template name without extension"
+                  },
+                  "path": {
+                    "type": "string",
+                    "description": "Full path to template file"
+                  },
+                  "size": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Template file size in bytes"
+                  },
+                  "modified": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "Last modification timestamp"
+                  },
+                  "frontmatter": {
+                    "type": "object",
+                    "description": "Template frontmatter metadata"
+                  },
+                  "variables": {
+                    "type": "array",
+                    "items": { "type": "string" },
+                    "description": "Template variables extracted"
+                  }
+                },
+                "required": ["name", "path", "size", "modified"]
+              }
+            },
+            "count": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Total number of templates found"
+            }
+          },
+          "required": ["templatesDir", "templates", "count"]
+        }
+      ]
+    },
+    "templatesShow": {
+      "allOf": [
+        { "$ref": "#/definitions/baseResponse" },
+        {
+          "type": "object",
+          "properties": {
+            "success": { "const": true },
+            "operation": { "const": "templates:show" },
+            "template": {
+              "type": "string",
+              "description": "Template name requested"
+            },
+            "details": {
+              "type": "object",
+              "properties": {
+                "name": { "type": "string" },
+                "path": { "type": "string" },
+                "frontmatter": { "type": "object" },
+                "variables": {
+                  "type": "array",
+                  "items": { "type": "string" }
+                },
+                "structure": {
+                  "type": "object",
+                  "properties": {
+                    "blocks": {
+                      "type": "array",
+                      "items": { "type": "string" }
+                    },
+                    "includes": {
+                      "type": "array",
+                      "items": { "type": "string" }
+                    },
+                    "macros": {
+                      "type": "array",
+                      "items": { "type": "string" }
+                    },
+                    "complexity": {
+                      "type": "integer",
+                      "minimum": 0
+                    }
+                  }
+                },
+                "size": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "lines": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "modified": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              },
+              "required": ["name", "path", "variables", "structure", "size", "lines", "modified"]
+            }
+          },
+          "required": ["template", "details"]
+        }
+      ]
+    },
+    "rulesList": {
+      "allOf": [
+        { "$ref": "#/definitions/baseResponse" },
+        {
+          "type": "object",
+          "properties": {
+            "success": { "const": true },
+            "operation": { "const": "rules:ls" },
+            "rulesDir": {
+              "type": "string",
+              "description": "Directory searched for rules"
+            },
+            "rules": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "path": { "type": "string" },
+                  "type": {
+                    "type": "string",
+                    "enum": ["n3", "ttl", "rules"]
+                  },
+                  "size": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "modified": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "relativePath": { "type": "string" }
+                },
+                "required": ["name", "path", "type", "size", "modified", "relativePath"]
+              }
+            },
+            "count": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "required": ["rulesDir", "rules", "count"]
+        }
+      ]
+    },
+    "rulesShow": {
+      "allOf": [
+        { "$ref": "#/definitions/baseResponse" },
+        {
+          "type": "object",
+          "properties": {
+            "success": { "const": true },
+            "operation": { "const": "rules:show" },
+            "rule": {
+              "type": "string",
+              "description": "Rule name requested"
+            },
+            "details": {
+              "type": "object",
+              "properties": {
+                "name": { "type": "string" },
+                "path": { "type": "string" },
+                "type": { "type": "string" },
+                "content": { "type": "string" },
+                "size": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "lines": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "ruleCount": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "prefixes": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "prefix": { "type": "string" },
+                      "uri": { "type": "string" }
+                    },
+                    "required": ["prefix", "uri"]
+                  }
+                },
+                "modified": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              },
+              "required": ["name", "path", "type", "content", "size", "lines", "ruleCount", "prefixes", "modified"]
+            }
+          },
+          "required": ["rule", "details"]
+        }
+      ]
+    },
+    "deterministicRender": {
+      "allOf": [
+        { "$ref": "#/definitions/baseResponse" },
+        {
+          "type": "object",
+          "properties": {
+            "success": { "const": true },
+            "operation": { "const": "deterministic:render" },
+            "template": {
+              "type": "string",
+              "description": "Template path used for rendering"
+            },
+            "contentHash": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$",
+              "description": "SHA256 hash of rendered content"
+            },
+            "deterministic": {
+              "type": "boolean",
+              "description": "Whether rendering was deterministic"
+            },
+            "outputPath": {
+              "type": ["string", "null"],
+              "description": "Output file path if specified"
+            },
+            "metadata": {
+              "type": "object",
+              "properties": {
+                "buildTime": {
+                  "type": "string",
+                  "format": "date-time",
+                  "description": "Static build time used for determinism"
+                },
+                "templateHash": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                },
+                "contextHash": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                },
+                "variables": {
+                  "type": "array",
+                  "items": { "type": "string" }
+                }
+              }
+            }
+          },
+          "required": ["template", "contentHash", "deterministic"]
+        }
+      ]
+    },
+    "deterministicGenerate": {
+      "allOf": [
+        { "$ref": "#/definitions/baseResponse" },
+        {
+          "type": "object",
+          "properties": {
+            "success": { "const": true },
+            "operation": { "const": "deterministic:generate" },
+            "template": {
+              "type": "string",
+              "description": "Template path used"
+            },
+            "outputPath": {
+              "type": "string",
+              "description": "Generated artifact path"
+            },
+            "attestationPath": {
+              "type": "string",
+              "description": "Cryptographic attestation file path"
+            },
+            "contentHash": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            "cached": {
+              "type": "boolean",
+              "description": "Whether result was served from cache"
+            }
+          },
+          "required": ["template", "outputPath", "attestationPath", "contentHash", "cached"]
+        }
+      ]
+    },
+    "deterministicValidate": {
+      "allOf": [
+        { "$ref": "#/definitions/baseResponse" },
+        {
+          "type": "object",
+          "properties": {
+            "success": { "const": true },
+            "operation": { "const": "deterministic:validate" },
+            "template": {
+              "type": "string",
+              "description": "Template path validated"
+            },
+            "deterministicScore": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1,
+              "description": "Determinism score from 0 (non-deterministic) to 1 (fully deterministic)"
+            },
+            "issues": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": ["timestamp", "random", "environment", "order"]
+                  },
+                  "severity": {
+                    "type": "string",
+                    "enum": ["warning", "error", "critical"]
+                  },
+                  "line": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "message": { "type": "string" },
+                  "suggestion": { "type": "string" }
+                },
+                "required": ["type", "severity", "message"]
+              }
+            },
+            "recommendations": {
+              "type": "array",
+              "items": { "type": "string" }
+            },
+            "variables": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "Template variables detected"
+            }
+          },
+          "required": ["template", "deterministicScore", "issues", "recommendations", "variables"]
+        }
+      ]
+    },
+    "deterministicVerify": {
+      "allOf": [
+        { "$ref": "#/definitions/baseResponse" },
+        {
+          "type": "object",
+          "properties": {
+            "success": { "const": true },
+            "operation": { "const": "deterministic:verify" },
+            "artifact": {
+              "type": "string",
+              "description": "Artifact path verified"
+            },
+            "verified": {
+              "type": "boolean",
+              "description": "Whether artifact is reproducible"
+            },
+            "iterations": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Number of verification iterations performed"
+            },
+            "originalHash": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            "reproductions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "iteration": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "hash": {
+                    "type": "string",
+                    "pattern": "^[a-f0-9]{64}$"
+                  },
+                  "matches": {
+                    "type": "boolean"
+                  },
+                  "executionTime": {
+                    "type": "number",
+                    "description": "Time taken in milliseconds"
+                  }
+                },
+                "required": ["iteration", "hash", "matches"]
+              }
+            }
+          },
+          "required": ["artifact", "verified", "iterations", "originalHash", "reproductions"]
+        }
+      ]
+    },
+    "deterministicStatus": {
+      "allOf": [
+        { "$ref": "#/definitions/baseResponse" },
+        {
+          "type": "object",
+          "properties": {
+            "success": { "const": true },
+            "operation": { "const": "deterministic:status" },
+            "health": {
+              "type": "string",
+              "enum": ["healthy", "degraded", "unhealthy"],
+              "description": "Overall system health status"
+            },
+            "statistics": {
+              "type": "object",
+              "properties": {
+                "totalRenders": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "cacheHits": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "cacheSize": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "description": "Cache size in bytes"
+                },
+                "avgRenderTime": {
+                  "type": "number",
+                  "minimum": 0,
+                  "description": "Average render time in milliseconds"
+                },
+                "deterministicRate": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1,
+                  "description": "Rate of deterministic renders"
+                }
+              },
+              "required": ["totalRenders", "cacheHits", "avgRenderTime", "deterministicRate"]
+            },
+            "healthDetails": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "string",
+                  "enum": ["healthy", "degraded", "unhealthy"]
+                },
+                "checks": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "name": { "type": "string" },
+                      "status": {
+                        "type": "string",
+                        "enum": ["pass", "fail", "warn"]
+                      },
+                      "message": { "type": "string" }
+                    },
+                    "required": ["name", "status"]
+                  }
+                }
+              },
+              "required": ["status", "checks"]
+            }
+          },
+          "required": ["health", "statistics", "healthDetails"]
+        }
+      ]
+    },
+    "validateArtifacts": {
+      "allOf": [
+        { "$ref": "#/definitions/baseResponse" },
+        {
+          "type": "object",
+          "properties": {
+            "success": { "const": true },
+            "operation": { "const": "validate:artifacts" },
+            "path": {
+              "type": "string",
+              "description": "Path validated"
+            },
+            "summary": {
+              "type": "object",
+              "properties": {
+                "totalArtifacts": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "validArtifacts": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "invalidArtifacts": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "warningsCount": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "required": ["totalArtifacts", "validArtifacts", "invalidArtifacts"]
+            },
+            "violations": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "artifact": { "type": "string" },
+                  "type": {
+                    "type": "string",
+                    "enum": ["missing_attestation", "invalid_hash", "missing_template", "schema_violation"]
+                  },
+                  "severity": {
+                    "type": "string",
+                    "enum": ["info", "warning", "error", "critical"]
+                  },
+                  "message": { "type": "string" },
+                  "details": { "type": "object" }
+                },
+                "required": ["artifact", "type", "severity", "message"]
+              }
+            }
+          },
+          "required": ["path", "summary", "violations"]
+        }
+      ]
+    },
+    "validateGraph": {
+      "allOf": [
+        { "$ref": "#/definitions/baseResponse" },
+        {
+          "type": "object",
+          "properties": {
+            "success": { "const": true },
+            "operation": { "const": "validate:graph" },
+            "file": {
+              "type": "string",
+              "description": "RDF file validated"
+            },
+            "valid": {
+              "type": "boolean",
+              "description": "Whether graph passes validation"
+            },
+            "format": {
+              "type": "string",
+              "enum": ["turtle", "rdf/xml", "n-triples", "json-ld", "n3"]
+            },
+            "triples": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "shaclValidation": {
+              "type": "object",
+              "properties": {
+                "enabled": { "type": "boolean" },
+                "conforms": { "type": "boolean" },
+                "violations": {
+                  "type": "array",
+                  "items": { "$ref": "#/definitions/shaclViolation" }
+                }
+              },
+              "required": ["enabled"]
+            },
+            "syntaxErrors": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "line": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "column": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "message": { "type": "string" },
+                  "severity": {
+                    "type": "string",
+                    "enum": ["warning", "error"]
+                  }
+                },
+                "required": ["message", "severity"]
+              }
+            }
+          },
+          "required": ["file", "valid", "format", "triples", "shaclValidation", "syntaxErrors"]
+        }
+      ]
+    },
+    "validateProvenance": {
+      "allOf": [
+        { "$ref": "#/definitions/baseResponse" },
+        {
+          "type": "object",
+          "properties": {
+            "success": { "const": true },
+            "operation": { "const": "validate:provenance" },
+            "artifact": {
+              "type": "string",
+              "description": "Artifact with provenance validated"
+            },
+            "provenanceValid": {
+              "type": "boolean",
+              "description": "Whether provenance chain is valid"
+            },
+            "attestationValid": {
+              "type": "boolean",
+              "description": "Whether cryptographic attestation is valid"
+            },
+            "chainLength": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Length of provenance chain"
+            },
+            "issues": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": ["missing_attestation", "invalid_signature", "broken_chain", "tampered_content"]
+                  },
+                  "severity": {
+                    "type": "string",
+                    "enum": ["info", "warning", "error", "critical"]
+                  },
+                  "message": { "type": "string" },
+                  "component": { "type": "string" }
+                },
+                "required": ["type", "severity", "message"]
+              }
+            }
+          },
+          "required": ["artifact", "provenanceValid", "attestationValid", "chainLength", "issues"]
+        }
+      ]
+    }
+  }
+}

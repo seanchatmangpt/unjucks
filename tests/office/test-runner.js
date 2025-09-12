@@ -343,7 +343,7 @@ export class TestUtils {
       // Basic variables
       title: 'Test Document Title',
       author: 'Test Author',
-      date: new Date().toISOString().split('T')[0],
+      date: this.getDeterministicDate().toISOString().split('T')[0],
       
       // Content variables
       content: 'This is test content for the document.',
@@ -407,7 +407,7 @@ export class TestUtils {
    */
   static logProgress(message, type = 'info') {
     if (TEST_CONFIG.verbose || type === 'error') {
-      const timestamp = new Date().toISOString();
+      const timestamp = this.getDeterministicDate().toISOString();
       const prefix = {
         info: '📘',
         success: '✅',
@@ -454,7 +454,7 @@ export class TestSuiteRunner {
    * Run all test suites
    */
   async runAllSuites() {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     console.log('🚀 Starting Office functionality tests...');
     console.log(`📊 Running ${this.suites.size} test suites`);
@@ -488,7 +488,7 @@ export class TestSuiteRunner {
       await hook();
     }
 
-    const endTime = Date.now();
+    const endTime = this.getDeterministicTimestamp();
     const duration = endTime - startTime;
 
     // Print summary

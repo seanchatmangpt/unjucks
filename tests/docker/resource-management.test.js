@@ -56,7 +56,7 @@ describe('Resource Management and Cleanup', () => {
       ]);
 
       return {
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         containers: containers.stdout.split('\n').filter(Boolean).length,
         images: images.stdout.split('\n').filter(Boolean).length,
         volumes: volumes.stdout.split('\n').filter(Boolean).length,
@@ -137,18 +137,18 @@ describe('Resource Management and Cleanup', () => {
     // Run CPU-intensive task with limits
     const cpuCommand = `docker run --name ${containerName} --cpus=0.5 --rm ${testImageName} node -e "
       console.log('Starting CPU test...');
-      const start = Date.now();
+      const start = this.getDeterministicTimestamp();
       let iterations = 0;
-      while (Date.now() - start < 5000) {
+      while (this.getDeterministicTimestamp() - start < 5000) {
         Math.random();
         iterations++;
       }
       console.log('Completed', iterations, 'iterations in 5 seconds');
     "`;
     
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     const { stdout } = await execAsync(cpuCommand);
-    const actualDuration = Date.now() - startTime;
+    const actualDuration = this.getDeterministicTimestamp() - startTime;
     
     expect(stdout).toContain('Starting CPU test');
     expect(stdout).toContain('Completed');
@@ -302,7 +302,7 @@ describe('Resource Management and Cleanup', () => {
     const { stdout } = await execAsync(reportCommand);
     
     const report = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       systemDf: stdout,
       recommendations: []
     };

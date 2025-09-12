@@ -8,7 +8,7 @@
 
 import path from 'path';
 import { EventEmitter } from 'events';
-import { Logger } from 'consola';
+import { Consola } from 'consola';
 import nunjucks from 'nunjucks';
 
 export class PathResolver extends EventEmitter {
@@ -26,7 +26,7 @@ export class PathResolver extends EventEmitter {
       ...options
     };
     
-    this.logger = new Logger({ tag: 'kgen-path-resolver' });
+    this.logger = new Consola({ tag: 'kgen-path-resolver' });
     this.pathCache = new Map();
     this.conflictRegistry = new Map();
     this.resolveHistory = [];
@@ -50,7 +50,7 @@ export class PathResolver extends EventEmitter {
    * @returns {Promise<Object>} Path resolution result
    */
   async resolve(frontmatter, context = {}, options = {}) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     const operationId = options.operationId || this._generateOperationId();
     
     try {
@@ -65,7 +65,7 @@ export class PathResolver extends EventEmitter {
           resolvedPath: null,
           originalPath: null,
           pathMetadata: {
-            resolutionTime: Date.now() - startTime,
+            resolutionTime: this.getDeterministicTimestamp() - startTime,
             cacheHit: false
           }
         };
@@ -97,7 +97,7 @@ export class PathResolver extends EventEmitter {
           originalPath: pathConfig.outputPath,
           resolvedPath: null,
           pathMetadata: {
-            resolutionTime: Date.now() - startTime,
+            resolutionTime: this.getDeterministicTimestamp() - startTime,
             cacheHit: false,
             errors: [renderResult.error]
           }
@@ -116,7 +116,7 @@ export class PathResolver extends EventEmitter {
           originalPath: pathConfig.outputPath,
           resolvedPath: normalizedPath,
           pathMetadata: {
-            resolutionTime: Date.now() - startTime,
+            resolutionTime: this.getDeterministicTimestamp() - startTime,
             cacheHit: false,
             errors: validationResult.errors,
             warnings: validationResult.warnings
@@ -135,7 +135,7 @@ export class PathResolver extends EventEmitter {
       
       // Create path metadata
       const pathMetadata = {
-        resolutionTime: Date.now() - startTime,
+        resolutionTime: this.getDeterministicTimestamp() - startTime,
         cacheHit: false,
         renderVariables: renderResult.usedVariables,
         normalizedPath,
@@ -167,7 +167,7 @@ export class PathResolver extends EventEmitter {
       // Add to resolution history
       this.resolveHistory.push({
         operationId,
-        timestamp: new Date(),
+        timestamp: this.getDeterministicDate(),
         originalPath: pathConfig.outputPath,
         resolvedPath: normalizedPath,
         success: true
@@ -186,7 +186,7 @@ export class PathResolver extends EventEmitter {
         originalPath: frontmatter.to || null,
         resolvedPath: null,
         pathMetadata: {
-          resolutionTime: Date.now() - startTime,
+          resolutionTime: this.getDeterministicTimestamp() - startTime,
           cacheHit: false,
           errors: [error.message]
         }
@@ -205,7 +205,7 @@ export class PathResolver extends EventEmitter {
    */
   async batchResolve(pathConfigs) {
     const batchId = this._generateOperationId();
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       this.logger.info(`Starting batch path resolution ${batchId} with ${pathConfigs.length} paths`);
@@ -263,7 +263,7 @@ export class PathResolver extends EventEmitter {
         errors: failed,
         conflictDetails: conflicts,
         batchMetadata: {
-          resolutionTime: Date.now() - startTime,
+          resolutionTime: this.getDeterministicTimestamp() - startTime,
           pathCount: pathConfigs.length
         }
       };
@@ -500,7 +500,7 @@ export class PathResolver extends EventEmitter {
     
     this.conflictRegistry.get(pathStr).push({
       operationId,
-      timestamp: new Date()
+      timestamp: this.getDeterministicDate()
     });
   }
 
@@ -612,7 +612,7 @@ export class PathResolver extends EventEmitter {
    * @returns {string} Operation ID
    */
   _generateOperationId() {
-    return `path_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    return `path_${this.getDeterministicTimestamp()}_${Math.random().toString(36).substr(2, 9)}`;
   }
 
   /**

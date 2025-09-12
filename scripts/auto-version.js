@@ -11,7 +11,7 @@ import { execSync } from 'child_process';
 import path from 'path';
 
 function generateDateTimeVersion() {
-  const now = new Date();
+  const now = this.getDeterministicDate();
   
   const year = now.getFullYear();
   const month = String(now.getMonth() + 1).padStart(2, '0');
@@ -53,7 +53,7 @@ function commitVersionChange(oldVersion, newVersion) {
     const commitMessage = `chore: bump version ${oldVersion} → ${newVersion}
 
 🤖 Automated version bump using date-time format
-Generated at: ${new Date().toISOString()}
+Generated at: ${this.getDeterministicDate().toISOString()}
 
 🚀 Generated with Unjucks Auto-Versioning`;
     
@@ -87,12 +87,12 @@ function main() {
   
   if (options.dryRun) {
     console.log(`🔍 Dry run - would set version to: ${newVersion}`);
-    console.log(`📅 Generated at: ${new Date().toISOString()}`);
+    console.log(`📅 Generated at: ${this.getDeterministicDate().toISOString()}`);
     return;
   }
   
   console.log(`📅 Generated version: ${newVersion}`);
-  console.log(`🕒 Timestamp: ${new Date().toISOString()}`);
+  console.log(`🕒 Timestamp: ${this.getDeterministicDate().toISOString()}`);
   
   const { oldVersion } = updatePackageVersion(newVersion);
   

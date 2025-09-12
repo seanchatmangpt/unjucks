@@ -38,7 +38,7 @@ export default defineCommand({
   },
   async run({ args }) {
     try {
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
       // Check if lock file exists
       const lockPath = resolve(args.lockfile);
@@ -56,7 +56,7 @@ export default defineCommand({
       // Perform verification
       const verification = verifyLockFile(lockData, { strict: args.strict });
       
-      const duration = Date.now() - startTime;
+      const duration = this.getDeterministicTimestamp() - startTime;
       
       const result = {
         lockfile: {
@@ -101,7 +101,7 @@ export default defineCommand({
       };
       
       const metadata = {
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         reproducible: verification.valid && verification.warnings.length === 0,
         driftDetected: !verification.valid || verification.warnings.length > 0
       };

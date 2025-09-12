@@ -134,7 +134,7 @@ export const handler = async (event, context) => {
     }
     
     subsegment.addMetadata('cache', 'miss');
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     // Load template from S3 with tenant isolation
     const template = await loadTemplate(tenantId, templateId);
@@ -174,7 +174,7 @@ export const handler = async (event, context) => {
       contentHash,
       artifactUrl,
       metadata,
-      processingTime: Date.now() - startTime
+      processingTime: this.getDeterministicTimestamp() - startTime
     });
     
     // Store attestation alongside artifact
@@ -185,13 +185,13 @@ export const handler = async (event, context) => {
       artifactUrl,
       contentHash,
       attestation,
-      expiresAt: Date.now() + (metadata.cacheTtl || 3600000) // Default 1 hour
+      expiresAt: this.getDeterministicTimestamp() + (metadata.cacheTtl || 3600000) // Default 1 hour
     });
     
     // Record usage for billing
     await recordUsage(tenantId, 'template_processing', {
       templateId,
-      processingTime: Date.now() - startTime,
+      processingTime: this.getDeterministicTimestamp() - startTime,
       artifactSize: Buffer.byteLength(rendered, 'utf8')
     });
     
@@ -201,7 +201,7 @@ export const handler = async (event, context) => {
         templateId,
         artifactUrl,
         contentHash,
-        processingTime: Date.now() - startTime
+        processingTime: this.getDeterministicTimestamp() - startTime
       });
     }
     
@@ -210,7 +210,7 @@ export const handler = async (event, context) => {
       artifactUrl,
       contentHash,
       cached: false,
-      processingTime: Date.now() - startTime,
+      processingTime: this.getDeterministicTimestamp() - startTime,
       attestationUrl: `${artifactUrl}.attest.json`
     };
     
@@ -222,7 +222,7 @@ export const handler = async (event, context) => {
         'Content-Type': 'application/json',
         'Cache-Control': 'no-cache',
         'X-Content-Hash': contentHash,
-        'X-Processing-Time': `${Date.now() - startTime}ms`
+        'X-Processing-Time': `${this.getDeterministicTimestamp() - startTime}ms`
       },
       body: JSON.stringify(response)
     };
@@ -308,7 +308,7 @@ async function validateTenant(tenantId) {
  * Check tenant resource limits
  */
 async function checkResourceLimits(tenant, templateId) {
-  const now = new Date();
+  const now = this.getDeterministicDate();
   const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
   
   // Get current usage for this month
@@ -369,7 +369,7 @@ async function getCachedResult(cacheKey) {
     const item = result.Item;
     
     // Check expiration
-    if (item.expiresAt < Date.now()) {
+    if (item.expiresAt < this.getDeterministicTimestamp()) {
       // Clean up expired cache entry
       await dynamodb.delete({
         TableName: CACHE_TABLE,
@@ -522,7 +522,7 @@ async function renderTemplate(templateContent, context) {
  * Store rendered artifact in S3
  */
 async function storeArtifact(tenantId, templateId, content, contentHash, outputPath) {
-  const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+  const timestamp = this.getDeterministicDate().toISOString().replace(/[:.]/g, '-');
   const key = outputPath || `artifacts/${tenantId}/${templateId}/${timestamp}-${contentHash.substring(0, 8)}.generated`;
   
   try {
@@ -537,7 +537,7 @@ async function storeArtifact(tenantId, templateId, content, contentHash, outputP
         'tenant-id': tenantId,
         'template-id': templateId,
         'content-hash': contentHash,
-        'generated-at': new Date().toISOString()
+        'generated-at': this.getDeterministicDate().toISOString()
       },
       Tagging: `tenant-id=${tenantId}&template-id=${templateId}`
     }).promise();
@@ -573,7 +573,7 @@ function generateAttestation(data) {
       },
       invocation: {
         processingTime: data.processingTime,
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         deterministic: true
       }
     },
@@ -620,7 +620,7 @@ async function cacheResult(cacheKey, result) {
       Item: {
         cacheKey,
         ...result,
-        cachedAt: Date.now()
+        cachedAt: this.getDeterministicTimestamp()
       },
       ExpressionAttributeNames: {
         '#ttl': 'ttl'
@@ -639,7 +639,7 @@ async function cacheResult(cacheKey, result) {
  * Record usage for billing and analytics
  */
 async function recordUsage(tenantId, operation, details = {}) {
-  const now = new Date();
+  const now = this.getDeterministicDate();
   const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
   
   try {
@@ -683,7 +683,7 @@ async function sendNotification(tenantId, eventType, data) {
         tenantId,
         eventType,
         data,
-        timestamp: new Date().toISOString()
+        timestamp: this.getDeterministicDate().toISOString()
       }),
       MessageAttributes: {
         tenantId: {
@@ -710,7 +710,7 @@ async function sendToDeadLetterQueue(originalEvent, error) {
     console.error('Sending to DLQ:', {
       event: originalEvent,
       error: error.message,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     });
   } catch (dlqError) {
     console.error('DLQ error:', dlqError);

@@ -1,0 +1,109 @@
+```mermaid
+C4Component
+    title Component Diagram for RDF/SPARQL Graph Engine Internals
+    
+    Container_Boundary(cli, "KGEN CLI") {
+        Component(graphCmd, "Graph Command", "Citty Command", "CLI interface for graph operations")
+        Component(kgenEngine, "KGenCLIEngine", "Core Engine", "Main orchestrator with RDF bridge")
+    }
+    
+    Container_Boundary(bridge, "RDF Bridge Layer") {
+        Component(rdfBridge, "StandaloneKGenBridge", "Bridge", "Enhanced RDF processing interface")
+        Component(graphHasher, "Graph Hasher", "Hasher", "Canonical graph hashing")
+        Component(graphDiffer, "Graph Differ", "Differ", "Semantic graph comparison")
+        Component(graphIndexer, "Graph Indexer", "Indexer", "Triple indexing and statistics")
+    }
+    
+    Container_Boundary(rdf, "RDF Processing Core") {
+        Component(n3Parser, "N3 Parser", "N3.js", "Turtle/N3 parsing")
+        Component(rdfStore, "RDF Store", "Clownface", "In-memory RDF quad store")
+        Component(sparqlEngine, "SPARQL Engine", "SPARQL.js", "SPARQL query execution")
+        Component(canonicalizer, "RDF Canonicalizer", "Processor", "Canonical RDF serialization")
+    }
+    
+    Container_Boundary(indexing, "Graph Indexing System") {
+        Component(tripleIndex, "Triple Index", "Index", "Subject-Predicate-Object indexing")
+        Component(subjectIndex, "Subject Index", "Index", "Subject-based indexing")
+        Component(predicateIndex, "Predicate Index", "Index", "Predicate-based indexing")
+        Component(statisticsEngine, "Statistics Engine", "Engine", "Graph statistics calculation")
+    }
+    
+    Container_Boundary(semantic, "Semantic Processing") {
+        Component(ontologyProcessor, "Ontology Processor", "Processor", "Ontology reasoning and inference")
+        Component(schemaValidator, "Schema Validator", "Validator", "RDF Schema validation")
+        Component(shaclEngine, "SHACL Engine", "shacl-engine", "SHACL constraint validation")
+        Component(reasoningEngine, "Reasoning Engine", "Engine", "Rule-based inference")
+    }
+    
+    Container_Boundary(query, "Query Processing") {
+        Component(queryParser, "Query Parser", "Parser", "SPARQL query parsing")
+        Component(queryOptimizer, "Query Optimizer", "Optimizer", "Query optimization")
+        Component(queryExecutor, "Query Executor", "Executor", "Query execution engine")
+        Component(resultFormatter, "Result Formatter", "Formatter", "Result set formatting")
+    }
+    
+    Container_Boundary(cache, "Caching Layer") {
+        Component(queryCache, "Query Cache", "Cache", "SPARQL query result caching")
+        Component(graphCache, "Graph Cache", "Cache", "Parsed graph caching")
+        Component(indexCache, "Index Cache", "Cache", "Index caching")
+        Component(hashCache, "Hash Cache", "Cache", "Graph hash caching")
+    }
+    
+    Container_Boundary(serialization, "Serialization Layer") {
+        Component(turtleSerializer, "Turtle Serializer", "Serializer", "Turtle format serialization")
+        Component(jsonldSerializer, "JSON-LD Serializer", "Serializer", "JSON-LD serialization")
+        Component(rdfxmlSerializer, "RDF/XML Serializer", "Serializer", "RDF/XML serialization")
+        Component(nquadsSerializer, "N-Quads Serializer", "Serializer", "N-Quads serialization")
+    }
+    
+    Container_Boundary(storage, "Persistent Storage") {
+        Component(graphStore, "Graph Store", "File System", "RDF file storage")
+        Component(metadataStore, "Metadata Store", "JSON", "Graph metadata storage")
+        Component(indexStore, "Index Store", "File System", "Persistent index storage")
+    }
+    
+    Rel(graphCmd, kgenEngine, "delegates to")
+    Rel(kgenEngine, rdfBridge, "uses for RDF processing")
+    
+    Rel(rdfBridge, graphHasher, "hashes graphs with")
+    Rel(rdfBridge, graphDiffer, "compares graphs with")
+    Rel(rdfBridge, graphIndexer, "indexes graphs with")
+    
+    Rel(graphHasher, n3Parser, "parses RDF with")
+    Rel(graphDiffer, rdfStore, "loads graphs into")
+    Rel(graphIndexer, tripleIndex, "builds indexes with")
+    
+    Rel(n3Parser, rdfStore, "populates store")
+    Rel(rdfStore, sparqlEngine, "queries with")
+    Rel(graphHasher, canonicalizer, "canonicalizes with")
+    
+    Rel(tripleIndex, subjectIndex, "maintains subject index")
+    Rel(tripleIndex, predicateIndex, "maintains predicate index")
+    Rel(graphIndexer, statisticsEngine, "calculates statistics with")
+    
+    Rel(rdfStore, ontologyProcessor, "processes ontologies with")
+    Rel(rdfStore, schemaValidator, "validates schema with")
+    Rel(schemaValidator, shaclEngine, "validates constraints with")
+    Rel(ontologyProcessor, reasoningEngine, "applies reasoning with")
+    
+    Rel(sparqlEngine, queryParser, "parses queries with")
+    Rel(queryParser, queryOptimizer, "optimizes queries with")
+    Rel(queryOptimizer, queryExecutor, "executes queries with")
+    Rel(queryExecutor, resultFormatter, "formats results with")
+    
+    Rel(sparqlEngine, queryCache, "caches results in")
+    Rel(n3Parser, graphCache, "caches graphs in")
+    Rel(tripleIndex, indexCache, "caches indexes in")
+    Rel(graphHasher, hashCache, "caches hashes in")
+    
+    Rel(canonicalizer, turtleSerializer, "serializes as Turtle")
+    Rel(canonicalizer, jsonldSerializer, "serializes as JSON-LD")
+    Rel(canonicalizer, rdfxmlSerializer, "serializes as RDF/XML")
+    Rel(canonicalizer, nquadsSerializer, "serializes as N-Quads")
+    
+    Rel(rdfStore, graphStore, "persists to")
+    Rel(statisticsEngine, metadataStore, "stores metadata in")
+    Rel(tripleIndex, indexStore, "persists indexes to")
+    
+    UpdateLayoutConfig($c4ShapeInRow="4", $c4BoundaryInRow="3")
+```

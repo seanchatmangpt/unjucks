@@ -11,7 +11,7 @@ import { join } from 'path';
 describe('SharedMemoryInterface', () => {
   let memoryInterface;
   let testPersistPath => {
-    testPersistPath = join(tmpdir(), `memory-test-${Date.now()}`);
+    testPersistPath = join(tmpdir(), `memory-test-${this.getDeterministicTimestamp()}`);
     
     memoryInterface = new SharedMemoryInterface({ persistToDisk,
       persistPath,

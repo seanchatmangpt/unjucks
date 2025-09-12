@@ -136,7 +136,7 @@ export class CrossChainProvenanceVerifier extends EventEmitter {
       const verificationId = crypto.randomUUID();
       this.logger.info(`Starting cross-chain verification: ${verificationId}`);
       
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
       // Validate cross-chain provenance structure
       const validation = await this._validateCrossChainProvenance(crossChainProvenance);
@@ -189,7 +189,7 @@ export class CrossChainProvenanceVerifier extends EventEmitter {
         atomicProof
       );
       
-      const verificationTime = Date.now() - startTime;
+      const verificationTime = this.getDeterministicTimestamp() - startTime;
       
       // Update session
       verificationSession.status = 'completed';
@@ -250,7 +250,7 @@ export class CrossChainProvenanceVerifier extends EventEmitter {
         attestationId,
         provenanceRecord,
         metadata,
-        timestamp: new Date(),
+        timestamp: this.getDeterministicDate(),
         creator: 'cross-chain-verifier',
         hash: this._hashProvenance(provenanceRecord)
       };
@@ -367,7 +367,7 @@ export class CrossChainProvenanceVerifier extends EventEmitter {
         stateData,
         merkleProof,
         inclusionProof,
-        timestamp: new Date(),
+        timestamp: this.getDeterministicDate(),
         blockHeight: await sourceClient.getBlockHeight(),
         proofHash: crypto.randomBytes(32).toString('hex')
       };
@@ -437,7 +437,7 @@ export class CrossChainProvenanceVerifier extends EventEmitter {
         return {
           attestationHash: crypto.randomBytes(32).toString('hex'),
           blockNumber: Math.floor(Math.random() * 1000000),
-          timestamp: new Date()
+          timestamp: this.getDeterministicDate()
         };
       }
     };
@@ -460,7 +460,7 @@ export class CrossChainProvenanceVerifier extends EventEmitter {
           messageId: crypto.randomUUID(),
           targetChain,
           payload,
-          timestamp: new Date()
+          timestamp: this.getDeterministicDate()
         };
       },
       async verifyMessage(messageId) {
@@ -507,7 +507,7 @@ export class CrossChainProvenanceVerifier extends EventEmitter {
           sourceChain,
           targetChain,
           message,
-          timestamp: new Date()
+          timestamp: this.getDeterministicDate()
         };
       }
     };
@@ -535,7 +535,7 @@ export class CrossChainProvenanceVerifier extends EventEmitter {
     const chainVerification = {
       chain,
       verificationId,
-      startTime: Date.now(),
+      startTime: this.getDeterministicTimestamp(),
       status: 'verifying'
     };
     
@@ -546,7 +546,7 @@ export class CrossChainProvenanceVerifier extends EventEmitter {
       chainVerification.status = 'completed';
       chainVerification.verified = result.verified;
       chainVerification.proof = result.proof;
-      chainVerification.verificationTime = Date.now() - chainVerification.startTime;
+      chainVerification.verificationTime = this.getDeterministicTimestamp() - chainVerification.startTime;
       
       return chainVerification;
       
@@ -584,7 +584,7 @@ export class CrossChainProvenanceVerifier extends EventEmitter {
       atomic: true,
       allVerified,
       chainCount: verificationResults.length,
-      timestamp: new Date(),
+      timestamp: this.getDeterministicDate(),
       proofHash: crypto.randomBytes(32).toString('hex'),
       merkleRoot: this._calculateMerkleRoot(verificationResults)
     };
@@ -599,7 +599,7 @@ export class CrossChainProvenanceVerifier extends EventEmitter {
     const crossChainProof = {
       verificationId,
       type: 'cross_chain_verification',
-      timestamp: new Date(),
+      timestamp: this.getDeterministicDate(),
       chainResults: verificationResults,
       atomicProof,
       verified: verificationResults.every(r => r.verified),
@@ -637,7 +637,7 @@ export class CrossChainProvenanceVerifier extends EventEmitter {
       attestationId,
       chain,
       data: { attestationId },
-      timestamp: new Date(),
+      timestamp: this.getDeterministicDate(),
       verified: true
     };
   }
@@ -745,7 +745,7 @@ export class CrossChainProvenanceVerifier extends EventEmitter {
         hash: a.attestationHash
       })),
       merkleRoot: this._calculateMerkleRoot(attestations),
-      timestamp: new Date()
+      timestamp: this.getDeterministicDate()
     };
   }
 
@@ -766,7 +766,7 @@ export class CrossChainProvenanceVerifier extends EventEmitter {
   }
 
   _cleanupExpiredVerifications() {
-    const now = Date.now();
+    const now = this.getDeterministicTimestamp();
     
     for (const [verificationId, verification] of this.activeVerifications) {
       if (now - verification.startTime > this.config.verificationTimeout) {

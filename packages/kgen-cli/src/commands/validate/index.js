@@ -32,7 +32,7 @@ export default defineCommand({
           success: true,
           operation: 'validate:artifacts',
           path: args.path || '.',
-          timestamp: new Date().toISOString()
+          timestamp: this.getDeterministicDate().toISOString()
         };
         console.log(JSON.stringify(result, null, 2));
       }
@@ -54,7 +54,7 @@ export default defineCommand({
           success: true,
           operation: 'validate:config',
           config: args.config || 'kgen.config.js',
-          timestamp: new Date().toISOString()
+          timestamp: this.getDeterministicDate().toISOString()
         };
         console.log(JSON.stringify(result, null, 2));
       }
@@ -80,7 +80,7 @@ export default defineCommand({
           success: true,
           operation: 'validate:graph',
           file: args.file,
-          timestamp: new Date().toISOString()
+          timestamp: this.getDeterministicDate().toISOString()
         };
         console.log(JSON.stringify(result, null, 2));
       }

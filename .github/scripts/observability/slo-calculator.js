@@ -44,7 +44,7 @@ class SLOCalculator {
     
     try {
       const [owner, repo] = this.repository.split('/');
-      const since = new Date();
+      const since = this.getDeterministicDate();
       const windowMs = this.parseTimeWindow(this.timeWindow);
       since.setTime(since.getTime() - windowMs);
 
@@ -72,7 +72,7 @@ class SLOCalculator {
         successfulRuns,
         failedRuns: totalRuns - successfulRuns,
         errorBudgetRemaining: this.calculateErrorBudget(availability, this.availabilityTarget),
-        lastCalculated: new Date().toISOString()
+        lastCalculated: this.getDeterministicDate().toISOString()
       };
 
       consola.success(`Availability: ${availability.toFixed(2)}% (${isHealthy ? '✅ Healthy' : '❌ Breached'})`);
@@ -90,7 +90,7 @@ class SLOCalculator {
 
     try {
       const [owner, repo] = this.repository.split('/');
-      const since = new Date();
+      const since = this.getDeterministicDate();
       const windowMs = this.parseTimeWindow(this.timeWindow);
       since.setTime(since.getTime() - windowMs);
 
@@ -111,7 +111,7 @@ class SLOCalculator {
           current: 0,
           target: this.latencyTarget,
           status: 'no_data',
-          lastCalculated: new Date().toISOString()
+          lastCalculated: this.getDeterministicDate().toISOString()
         };
         return this.sloMetrics.latency;
       }
@@ -147,7 +147,7 @@ class SLOCalculator {
           (durations.filter(d => d <= this.latencyTarget).length / durations.length) * 100,
           95 // 95% of requests should be under target latency
         ),
-        lastCalculated: new Date().toISOString()
+        lastCalculated: this.getDeterministicDate().toISOString()
       };
 
       consola.success(`P95 Latency: ${p95.toFixed(0)}ms (${isHealthy ? '✅ Healthy' : '❌ Breached'})`);
@@ -165,7 +165,7 @@ class SLOCalculator {
 
     try {
       const [owner, repo] = this.repository.split('/');
-      const since = new Date();
+      const since = this.getDeterministicDate();
       const windowMs = this.parseTimeWindow(this.timeWindow);
       since.setTime(since.getTime() - windowMs);
 
@@ -199,7 +199,7 @@ class SLOCalculator {
         errorRuns,
         errorBreakdown,
         errorBudgetRemaining: this.calculateErrorBudget(100 - errorRate, 100 - this.errorRateTarget),
-        lastCalculated: new Date().toISOString()
+        lastCalculated: this.getDeterministicDate().toISOString()
       };
 
       consola.success(`Error Rate: ${errorRate.toFixed(2)}% (${isHealthy ? '✅ Healthy' : '❌ Breached'})`);
@@ -217,7 +217,7 @@ class SLOCalculator {
 
     try {
       const [owner, repo] = this.repository.split('/');
-      const since = new Date();
+      const since = this.getDeterministicDate();
       const windowMs = this.parseTimeWindow(this.timeWindow);
       since.setTime(since.getTime() - windowMs);
 
@@ -245,7 +245,7 @@ class SLOCalculator {
         windowHours: parseFloat(windowHours.toFixed(2)),
         hourlyBreakdown,
         errorBudgetRemaining: this.calculateErrorBudget(throughput, this.throughputTarget),
-        lastCalculated: new Date().toISOString()
+        lastCalculated: this.getDeterministicDate().toISOString()
       };
 
       consola.success(`Throughput: ${throughput.toFixed(2)} runs/hour (${isHealthy ? '✅ Healthy' : '❌ Breached'})`);
@@ -322,13 +322,13 @@ class SLOCalculator {
       totalMetrics: totalCount,
       healthPercentage: totalCount > 0 ? (healthyCount / totalCount) * 100 : 0,
       averageErrorBudgetRemaining: parseFloat(averageErrorBudget.toFixed(2)),
-      lastCalculated: new Date().toISOString()
+      lastCalculated: this.getDeterministicDate().toISOString()
     };
   }
 
   async generateSLOReport() {
     const report = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       timeWindow: this.timeWindow,
       repository: this.repository,
       sloTargets: {
@@ -416,7 +416,7 @@ class SLOCalculator {
     await fs.ensureDir(sloPath);
 
     // Save detailed report
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const timestamp = this.getDeterministicDate().toISOString().replace(/[:.]/g, '-');
     await fs.writeJson(
       path.join(sloPath, `slo-report-${timestamp}.json`),
       report,

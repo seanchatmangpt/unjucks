@@ -65,7 +65,7 @@ const PERFORMANCE_BASELINES = {
 
 class PerformanceValidator {
   constructor() {
-    this.testDir = path.join(tmpdir(), 'perf-validation', Date.now().toString());
+    this.testDir = path.join(tmpdir(), 'perf-validation', this.getDeterministicTimestamp().toString());
     this.results = new Map();
     this.memorySnapshots = [];
     this.baseline = null;
@@ -125,7 +125,7 @@ class PerformanceValidator {
         user: endCPU.user,
         system: endCPU.system
       },
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       result
     };
 
@@ -146,7 +146,7 @@ inject: false
 class {{ name | pascalCase }}Component${i} {
   constructor(props = {}) {
     this.props = props;
-    this.id = '{{ name | kebabCase }}-${i}-' + Date.now();
+    this.id = '{{ name | kebabCase }}-${i}-' + this.getDeterministicTimestamp();
     this.data = {{ data | dump | safe }};
   }
 
@@ -183,7 +183,7 @@ module.exports = {{ name | pascalCase }}Component${i};
         template,
         size: content.length,
         processed: true,
-        timestamp: Date.now()
+        timestamp: this.getDeterministicTimestamp()
       };
       results.push(compiled);
       
@@ -215,7 +215,7 @@ module.exports = {{ name | pascalCase }}Component${i};
           template,
           size: content.length,
           processed: true,
-          timestamp: Date.now(),
+          timestamp: this.getDeterministicTimestamp(),
           cached: true
         };
         
@@ -278,7 +278,7 @@ module.exports = {{ name | pascalCase }}Component${i};
     const interval = setInterval(() => {
       const usage = process.memoryUsage();
       snapshots.push({
-        timestamp: Date.now(),
+        timestamp: this.getDeterministicTimestamp(),
         ...usage
       });
     }, TEST_CONFIG.MEMORY_SAMPLE_INTERVAL);
@@ -301,10 +301,10 @@ module.exports = {{ name | pascalCase }}Component${i};
       const filePath = path.join(this.testDir, randomFile);
       
       try {
-        await fs.writeFile(filePath, `Updated at ${Date.now()}`);
+        await fs.writeFile(filePath, `Updated at ${this.getDeterministicTimestamp()}`);
         const change = {
           file: randomFile,
-          timestamp: Date.now(),
+          timestamp: this.getDeterministicTimestamp(),
           type: 'change'
         };
         changes.push(change);
@@ -348,7 +348,7 @@ module.exports = {{ name | pascalCase }}Component${i};
     const totalMemoryDelta = successful.reduce((sum, m) => sum + m.memory.heapUsedDelta, 0);
     
     return {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       summary: {
         totalTests: measurements.length,
         successful: successful.length,
@@ -640,7 +640,7 @@ describe('Docker Performance Validation Tests', () => {
       
       await validator.measurePerformance('temp_file_cleanup', async () => {
         for (let i = 0; i < 20; i++) {
-          const tempFile = path.join(validator.testDir, `temp-${i}-${Date.now()}.tmp`);
+          const tempFile = path.join(validator.testDir, `temp-${i}-${this.getDeterministicTimestamp()}.tmp`);
           tempFiles.push(tempFile);
           await fs.writeFile(tempFile, `Temporary content ${i}`);
         }

@@ -247,7 +247,7 @@ describe('Command-Specific Error Handling', () => {
 });
 
 describe('Performance Impact', () => { it('should not significantly impact startup time', () => {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     // Create multiple actionable errors
     for (let i = 0; i < 100; i++) {
@@ -257,19 +257,19 @@ describe('Performance Impact', () => { it('should not significantly impact start
         category);
     }
     
-    const duration = Date.now() - startTime;
+    const duration = this.getDeterministicTimestamp() - startTime;
     expect(duration).toBeLessThan(100); // Should be very fast
   });
 
   it('should cache fuzzy matching results', () => {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     // Run same fuzzy matching multiple times
     for (let i = 0; i < 50; i++) {
       ErrorRecovery.suggestCommand('generat', ['generate', 'list', 'init']);
     }
     
-    const duration = Date.now() - startTime;
+    const duration = this.getDeterministicTimestamp() - startTime;
     expect(duration).toBeLessThan(500); // Should be reasonably fast
   });
 });

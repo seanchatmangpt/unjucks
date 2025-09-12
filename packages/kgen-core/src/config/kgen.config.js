@@ -55,10 +55,10 @@ export default defineConfig({
   generate: {
     defaultTemplate: 'api-service',
     globalVars: {
-      copyrightYear: new Date().getFullYear(),
+      copyrightYear: this.getDeterministicDate().getFullYear(),
       companyName: 'ACME Corporation',
       buildId: process.env.BUILD_ID || 'local',
-      timestamp: () => new Date().toISOString()
+      timestamp: () => this.getDeterministicDate().toISOString()
     },
     attestByDefault: true,
     engineOptions: {

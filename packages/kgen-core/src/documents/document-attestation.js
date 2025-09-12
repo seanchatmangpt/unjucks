@@ -172,7 +172,7 @@ export class DocumentAttestationSystem {
 
     return {
       documentId,
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       kgenVersion: '1.0.0',
       generationEngine: 'KGEN Document Engine',
       
@@ -299,7 +299,7 @@ export class DocumentAttestationSystem {
       // Attestation metadata
       attestationId: data.attestationId,
       attestationLevel: this.options.attestationLevel,
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       version: '1.0.0',
 
       // Provenance data
@@ -339,7 +339,7 @@ export class DocumentAttestationSystem {
    */
   async generateCryptographicSignatures(attestation) {
     const signatures = {
-      created: new Date().toISOString(),
+      created: this.getDeterministicDate().toISOString(),
       algorithm: 'RS256', // RSA with SHA-256
       signatures: []
     };
@@ -389,7 +389,7 @@ export class DocumentAttestationSystem {
   async validateCompliance(attestation, framework) {
     const validation = {
       framework: framework || 'generic',
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       validations: [],
       overallCompliant: true
     };
@@ -467,7 +467,7 @@ export class DocumentAttestationSystem {
 
       const verification = {
         attestationId,
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         verifications: [],
         overallValid: true
       };
@@ -498,7 +498,7 @@ export class DocumentAttestationSystem {
     } catch (error) {
       return {
         attestationId,
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         overallValid: false,
         error: error.message,
         processingTime: performance.now() - startTime
@@ -544,7 +544,7 @@ export class DocumentAttestationSystem {
     // This would implement blockchain-style chaining of attestations
     // For now, return a simple hash
     return createHash('sha256')
-      .update(attestationId + new Date().toISOString())
+      .update(attestationId + this.getDeterministicDate().toISOString())
       .digest('hex');
   }
 
@@ -584,7 +584,7 @@ export class DocumentAttestationSystem {
     const hash = crypto.createHash('sha256');
     hash.update(JSON.stringify({
       documentId: options.documentId,
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       random: Math.random()
     }));
     return `attest_${hash.digest('hex').substring(0, 16)}`;
@@ -597,7 +597,7 @@ export class DocumentAttestationSystem {
     // This would implement actual RSA signing
     // For now, return a simulated signature
     const signature = createHash('sha256')
-      .update(data + keyType + new Date().toISOString())
+      .update(data + keyType + this.getDeterministicDate().toISOString())
       .digest('hex');
     
     return `SIG_${signature.substring(0, 32)}`;
@@ -608,7 +608,7 @@ export class DocumentAttestationSystem {
    */
   async getKeyId(keyType) {
     // This would return actual key identifiers
-    return `KEY_${keyType.toUpperCase()}_${Date.now()}`;
+    return `KEY_${keyType.toUpperCase()}_${this.getDeterministicTimestamp()}`;
   }
 
   /**

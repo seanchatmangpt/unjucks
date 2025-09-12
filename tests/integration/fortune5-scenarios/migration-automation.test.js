@@ -106,7 +106,7 @@ describe('Fortune 5 Migration Automation Scenario', () => { beforeAll(async () =
             ...acc,
             [strategy]).length
           }), {}),
-          timestamp: new Date().toISOString()
+          timestamp: this.getDeterministicDate().toISOString()
         }
       });
 
@@ -196,7 +196,7 @@ describe('Fortune 5 Migration Automation Scenario', () => { beforeAll(async () =
       // Store database migration results
       await executeSwarmHook('post-edit', { memoryKey }), {}),
           totalScripts: migrationResults.reduce((sum, r) => sum + r.scriptsGenerated, 0),
-          timestamp: new Date().toISOString()
+          timestamp: this.getDeterministicDate().toISOString()
         }
       });
 
@@ -281,7 +281,7 @@ describe('Fortune 5 Migration Automation Scenario', () => { beforeAll(async () =
       // Store modernization results
       await executeSwarmHook('post-edit', { memoryKey }), {}),
           totalFiles: modernizationResults.reduce((sum, r) => sum + r.filesGenerated, 0),
-          timestamp: new Date().toISOString()
+          timestamp: this.getDeterministicDate().toISOString()
         }
       });
 
@@ -448,7 +448,7 @@ async function assessSystemForMigration(system) { // Simulate migration readines
   return {
     systemId } weeks`,
     riskFactors,
-    assessmentDate: new Date().toISOString()
+    assessmentDate: this.getDeterministicDate().toISOString()
   };
 }
 

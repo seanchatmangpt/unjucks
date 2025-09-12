@@ -98,7 +98,7 @@ export class QuantumQueryOptimizer extends EventEmitter {
    * @returns {Promise<Object>} Optimized query with quantum enhancement
    */
   async optimizeQuery(parsedQuery, context = {}) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       this.logger.info('Starting quantum-inspired optimization');
@@ -130,7 +130,7 @@ export class QuantumQueryOptimizer extends EventEmitter {
       // Learn from this optimization
       await this._recordOptimization(parsedQuery, optimizedQuery, context, startTime);
       
-      const optimizationTime = Date.now() - startTime;
+      const optimizationTime = this.getDeterministicTimestamp() - startTime;
       this.logger.success(`Quantum optimization completed in ${optimizationTime}ms`);
       
       return {
@@ -286,7 +286,7 @@ export class QuantumQueryOptimizer extends EventEmitter {
         phase: Math.random() * 2 * Math.PI,
         entanglements: new Set(),
         successRate: 0.5,
-        lastUpdated: Date.now()
+        lastUpdated: this.getDeterministicTimestamp()
       });
     }
     
@@ -392,11 +392,11 @@ export class QuantumQueryOptimizer extends EventEmitter {
   async _recordOptimization(originalQuery, optimizedQuery, context, startTime) {
     // Record optimization for machine learning
     const record = {
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       originalQuery: this._hashQuery(originalQuery),
       optimizedQuery: this._hashQuery(optimizedQuery),
       context,
-      optimizationTime: Date.now() - startTime,
+      optimizationTime: this.getDeterministicTimestamp() - startTime,
       strategies: optimizedQuery.optimizations?.map(o => o.strategy) || []
     };
     

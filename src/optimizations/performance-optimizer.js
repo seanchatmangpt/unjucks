@@ -200,7 +200,7 @@ export class KGenPerformanceOptimizer extends EventEmitter {
     const heapUsedMB = memoryUsage.heapUsed / 1024 / 1024;
     
     this.performanceProfile.memory.push({
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       heapUsed: heapUsedMB,
       heapTotal: memoryUsage.heapTotal / 1024 / 1024,
       external: memoryUsage.external / 1024 / 1024,
@@ -414,11 +414,11 @@ export class KGenPerformanceOptimizer extends EventEmitter {
    * Get comprehensive performance report
    */
   getPerformanceReport() {
-    const now = Date.now();
+    const now = this.getDeterministicTimestamp();
     const uptimeMs = now - this.startTime;
     
     const report = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       uptime: uptimeMs,
       configuration: this.config,
       metrics: this._summarizeMetrics(),
@@ -497,7 +497,7 @@ export class KGenPerformanceOptimizer extends EventEmitter {
     }
     
     this.metrics.get(operation).push({
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       duration,
       metadata
     });

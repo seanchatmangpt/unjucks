@@ -92,9 +92,9 @@ This document will help determine which export formats actually work.
       const outputFile = path.join(testDir, `test.${format}`);
       console.log(`Testing ${format.toUpperCase()} export...`);
       
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const result = await this.testExportFunction(inputFile, format, { output: outputFile });
-      const duration = Date.now() - startTime;
+      const duration = this.getDeterministicTimestamp() - startTime;
       
       const status = result.success ? '✅ SUCCESS' : '❌ FAILED';
       console.log(`  ${status} (${duration}ms)`);
@@ -280,9 +280,9 @@ ${Array.from({ length: 100 }, (_, i) => `| Row ${i} Cell 1 | Row ${i} Cell 2 | R
     
     await fs.writeFile(largeFile, largeContent);
     
-    const largeStartTime = Date.now();
+    const largeStartTime = this.getDeterministicTimestamp();
     const largeResult = await this.testExportFunction(largeFile, 'html', { output: largeOutput });
-    const largeDuration = Date.now() - largeStartTime;
+    const largeDuration = this.getDeterministicTimestamp() - largeStartTime;
     
     console.log(`  ${largeResult.success ? '✅' : '❌'} Large file export (${largeDuration}ms)`);
     console.log('');

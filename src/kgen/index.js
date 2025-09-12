@@ -234,7 +234,7 @@ class KGenEngine extends EventEmitter {
       monitoring.incrementCounter('rdf_processed_total');
       return result;
     } catch (error) {
-      const operationId = `rdf-process-${Date.now()}`;
+      const operationId = `rdf-process-${this.getDeterministicTimestamp()}`;
       const errorContext = {
         component: 'kgen-engine',
         operation: 'rdf-processing',
@@ -365,9 +365,9 @@ class KGenEngine extends EventEmitter {
       // Wait for services to become available
       const maxWait = 10000; // 10 seconds
       const checkInterval = 500;
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
-      while (Date.now() - startTime < maxWait) {
+      while (this.getDeterministicTimestamp() - startTime < maxWait) {
         const healthCheck = await this.performHealthCheck();
         if (healthCheck.overall === 'healthy') {
           return { success: true, reason: 'Services are now available' };

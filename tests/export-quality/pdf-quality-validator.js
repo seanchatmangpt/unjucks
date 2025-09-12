@@ -450,7 +450,7 @@ export class PDFQualityValidator {
     ];
 
     for (const test of performanceTests) {
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
       try {
         const generator = new PDFGenerator({
@@ -477,7 +477,7 @@ export class PDFQualityValidator {
         const outputPath = path.join(this.options.outputDir, `performance-${test.name.toLowerCase().replace(/\s+/g, '-')}.pdf`);
         await generator.savePDF(outputPath);
 
-        const duration = Date.now() - startTime;
+        const duration = this.getDeterministicTimestamp() - startTime;
         const stats = await fs.stat(outputPath);
         
         this.addTestResult(`Performance: ${test.name}`, 'passed', 
@@ -497,7 +497,7 @@ export class PDFQualityValidator {
       test: testName,
       status,
       message,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     });
 
     if (status === 'passed') {
@@ -523,7 +523,7 @@ export class PDFQualityValidator {
         failed: this.testResults.failed,
         warnings: this.testResults.warnings,
         successRate: this.testResults.passed / (this.testResults.passed + this.testResults.failed) * 100,
-        timestamp: new Date().toISOString()
+        timestamp: this.getDeterministicDate().toISOString()
       },
       details: this.testResults.details,
       recommendations: this.generateRecommendations()

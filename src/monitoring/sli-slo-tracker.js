@@ -79,7 +79,7 @@ class ServiceLevelIndicator {
   async measure() {
     if (!this.enabled) return null;
     
-    const measurementTime = Date.now();
+    const measurementTime = this.getDeterministicTimestamp();
     
     try {
       const result = await this.measurementFn();
@@ -129,14 +129,14 @@ class ServiceLevelIndicator {
     }
     
     // Clean up old measurements
-    const cutoff = Date.now() - this.retentionPeriod;
+    const cutoff = this.getDeterministicTimestamp() - this.retentionPeriod;
     this.measurements = this.measurements.filter(m => m.timestamp > cutoff);
   }
   
   /**
    * Calculate SLI value for a time window
    */
-  calculateSLI(timeWindow, endTime = Date.now()) {
+  calculateSLI(timeWindow, endTime = this.getDeterministicTimestamp()) {
     const windowMs = this.parseTimeWindow(timeWindow);
     const startTime = endTime - windowMs;
     
@@ -343,7 +343,7 @@ class ServiceLevelObjective {
     // Track violations
     if (status === ComplianceStatus.VIOLATED) {
       this.totalViolations++;
-      this.lastViolation = Date.now();
+      this.lastViolation = this.getDeterministicTimestamp();
     }
     
     this.currentStatus = status;
@@ -365,7 +365,7 @@ class ServiceLevelObjective {
       actual: sliValue.value,
       status: status || this.currentStatus,
       timeWindow: this.timeWindow,
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       errorBudgetRemaining: this.remainingErrorBudget,
       burnRate: this.burnRate,
       sampleCount: sliValue.sampleCount,
@@ -475,13 +475,13 @@ class SLISLOTracker extends EventEmitter {
       async () => {
         // Check if service is responding
         try {
-          const start = Date.now();
+          const start = this.getDeterministicTimestamp();
           // Simple health check - can be enhanced with actual service ping
           await new Promise(resolve => setTimeout(resolve, 10));
           return {
             value: 100, // Available
             success: true,
-            duration: Date.now() - start
+            duration: this.getDeterministicTimestamp() - start
           };
         } catch (error) {
           return {
@@ -753,7 +753,7 @@ class SLISLOTracker extends EventEmitter {
       },
       slis: sliStats,
       slos: sloStats,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     };
   }
   
@@ -798,7 +798,7 @@ class SLISLOTracker extends EventEmitter {
    */
   exportData(format = 'json') {
     const data = {
-      exportTime: new Date().toISOString(),
+      exportTime: this.getDeterministicDate().toISOString(),
       slis: {},
       slos: {}
     };

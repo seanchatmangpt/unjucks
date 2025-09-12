@@ -26,7 +26,7 @@ class DockerHealthChecker {
         };
         
         this.healthResults = {
-            timestamp: new Date().toISOString(),
+            timestamp: this.getDeterministicDate().toISOString(),
             overall: 'unknown',
             checks: {},
             recommendations: []
@@ -122,7 +122,7 @@ class DockerHealthChecker {
     async checkVolumeMounts() {
         try {
             // Check if volume mounts are working
-            const testFile = `/tmp/docker-mount-test-${Date.now()}.txt`;
+            const testFile = `/tmp/docker-mount-test-${this.getDeterministicTimestamp()}.txt`;
             const containerPath = '/app/test-results/mount-test.txt';
             
             // Create test file
@@ -232,7 +232,7 @@ class DockerHealthChecker {
             
             this.healthResults.checks[checkName] = {
                 ...result,
-                timestamp: new Date().toISOString()
+                timestamp: this.getDeterministicDate().toISOString()
             };
             
             const emoji = result.status === 'healthy' ? '✅' : 
@@ -246,7 +246,7 @@ class DockerHealthChecker {
             const result = { status: 'error', message: error.message };
             this.healthResults.checks[checkName] = {
                 ...result,
-                timestamp: new Date().toISOString()
+                timestamp: this.getDeterministicDate().toISOString()
             };
             console.log(`❌ ${checkName}: ${error.message}`);
             return result;

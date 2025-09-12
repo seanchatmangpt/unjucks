@@ -163,7 +163,7 @@ router.post('/search', asyncHandler(async (req, res) => {
       data: results,
       query,
       total: results.length,
-      searchTime: Date.now()
+      searchTime: this.getDeterministicTimestamp()
     });
   } catch (error) {
     logger.error('Template search failed', { error: error.message });

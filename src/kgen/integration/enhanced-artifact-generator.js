@@ -7,7 +7,7 @@
  */
 
 import { EventEmitter } from 'events';
-import { Logger } from 'consola';
+import { Consola } from 'consola';
 import { UnjucksTemplateBridge } from './unjucks-template-bridge.js';
 import { FrontmatterWorkflowEngine } from '../core/frontmatter/workflow-engine.js';
 import { SemanticProcessor } from '../semantic/processor.js';
@@ -60,7 +60,7 @@ export class EnhancedArtifactGenerator extends EventEmitter {
       ...config
     };
     
-    this.logger = new Logger({ tag: 'kgen-enhanced-artifact-generator' });
+    this.logger = new Consola({ tag: 'kgen-enhanced-artifact-generator' });
     this.state = 'initialized';
     
     // Initialize error handler
@@ -162,7 +162,7 @@ export class EnhancedArtifactGenerator extends EventEmitter {
    */
   async generateArtifacts(request, options = {}) {
     const operationId = this._generateOperationId();
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       this.logger.info(`Starting enhanced artifact generation ${operationId}`);
@@ -184,7 +184,7 @@ export class EnhancedArtifactGenerator extends EventEmitter {
           type: 'enhanced_artifact_generation',
           request,
           options,
-          timestamp: new Date()
+          timestamp: this.getDeterministicDate()
         });
       }
       
@@ -227,7 +227,7 @@ export class EnhancedArtifactGenerator extends EventEmitter {
           finalResult,
           metrics: {
             artifactsGenerated: finalResult.artifacts.length,
-            generationTime: Date.now() - startTime,
+            generationTime: this.getDeterministicTimestamp() - startTime,
             semanticEnhancement: !!semanticContext,
             deterministicGeneration: !!generationPlan.deterministicPlan
           }
@@ -237,7 +237,7 @@ export class EnhancedArtifactGenerator extends EventEmitter {
       // Update metrics and state
       this.metrics.successfulGenerations++;
       this.metrics.artifactsGenerated += finalResult.artifacts.length;
-      this.metrics.totalGenerationTime += (Date.now() - startTime);
+      this.metrics.totalGenerationTime += (this.getDeterministicTimestamp() - startTime);
       
       this.activeGenerations.set(operationId, {
         ...this.activeGenerations.get(operationId),
@@ -281,7 +281,7 @@ export class EnhancedArtifactGenerator extends EventEmitter {
       
       // Update metrics
       this.metrics.failedGenerations++;
-      this.metrics.totalGenerationTime += (Date.now() - startTime);
+      this.metrics.totalGenerationTime += (this.getDeterministicTimestamp() - startTime);
       
       // Handle error with recovery
       const handlingResult = await this.errorHandler.handleError(
@@ -334,7 +334,7 @@ export class EnhancedArtifactGenerator extends EventEmitter {
    */
   async batchGenerateArtifacts(requests, options = {}) {
     const operationId = this._generateOperationId();
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       this.logger.info(`Starting batch artifact generation ${operationId} with ${requests.length} requests`);
@@ -347,7 +347,7 @@ export class EnhancedArtifactGenerator extends EventEmitter {
           type: 'batch_enhanced_artifact_generation',
           requestCount: requests.length,
           options,
-          timestamp: new Date()
+          timestamp: this.getDeterministicDate()
         });
       }
       
@@ -389,7 +389,7 @@ export class EnhancedArtifactGenerator extends EventEmitter {
         successful: successful.length,
         failed: failed.length,
         results,
-        executionTime: Date.now() - startTime,
+        executionTime: this.getDeterministicTimestamp() - startTime,
         metadata: {
           batchGeneration: true,
           concurrencyLimit: this.config.maxConcurrentGenerations,
@@ -508,7 +508,7 @@ export class EnhancedArtifactGenerator extends EventEmitter {
   // Private methods
 
   _generateOperationId() {
-    return `eag_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    return `eag_${this.getDeterministicTimestamp()}_${Math.random().toString(36).substr(2, 9)}`;
   }
 
   async _performTemplateDiscovery(request, options) {
@@ -740,7 +740,7 @@ export class EnhancedArtifactGenerator extends EventEmitter {
     return {
       algorithm: 'sha256',
       signature,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     };
   }
 
@@ -780,9 +780,9 @@ export class EnhancedArtifactGenerator extends EventEmitter {
   }
 
   async _waitForActiveGenerations(timeout = 30000) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
-    while (this.activeGenerations.size > 0 && (Date.now() - startTime) < timeout) {
+    while (this.activeGenerations.size > 0 && (this.getDeterministicTimestamp() - startTime) < timeout) {
       await new Promise(resolve => setTimeout(resolve, 100));
     }
     

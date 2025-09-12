@@ -12,7 +12,7 @@ import os from 'os';
 class ValidationSummaryGenerator {
   constructor() {
     this.results = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       platform: {
         os: os.platform(),
         arch: os.arch(),

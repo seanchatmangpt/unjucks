@@ -470,7 +470,7 @@ describe('Dark Matter Edge Cases - The Critical 20%', () => {
         { type: 'boolean', value: true },
         { type: 'array', value: ['a', 'b', 'c'] },
         { type: 'object', value: { key: 'value' } },
-        { type: 'date', value: new Date() },
+        { type: 'date', value: this.getDeterministicDate() },
         { type: 'regexp', value: /test/g },
         { type: 'function', value: () => 'test' },
         { type: 'symbol', value: Symbol('test') },

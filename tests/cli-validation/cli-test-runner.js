@@ -22,7 +22,7 @@ class CLITestRunner {
       performance: [],
       coverage: {}
     };
-    this.startTime = Date.now();
+    this.startTime = this.getDeterministicTimestamp();
     this.cleanRoomPath = '/Users/sac/unjucks/tests/cli-validation/clean-room';
     this.binaryPath = '/Users/sac/unjucks/bin/unjucks.cjs';
   }
@@ -34,13 +34,13 @@ class CLITestRunner {
     console.log(chalk.blue(`🔧 Running: ${cmd}`));
     
     try {
-      const start = Date.now();
+      const start = this.getDeterministicTimestamp();
       const result = await execAsync(cmd, { 
         cwd, 
         timeout,
         env: { ...process.env, NODE_ENV: 'test' }
       });
-      const duration = Date.now() - start;
+      const duration = this.getDeterministicTimestamp() - start;
       
       this.results.performance.push({
         command: cmd,
@@ -51,7 +51,7 @@ class CLITestRunner {
       console.log(chalk.green(`✅ Success (${duration}ms)`));
       return { success: true, stdout: result.stdout, stderr: result.stderr, duration };
     } catch (error) {
-      const duration = Date.now() - Date.now();
+      const duration = this.getDeterministicTimestamp() - this.getDeterministicTimestamp();
       this.results.errors.push({
         command: cmd,
         error: error.message,
@@ -243,12 +243,12 @@ class CLITestRunner {
   }
 
   async generateReport() {
-    const totalTime = Date.now() - this.startTime;
+    const totalTime = this.getDeterministicTimestamp() - this.startTime;
     const successRate = (this.results.passed / (this.results.passed + this.results.failed)) * 100;
     
     const report = `
 # Unjucks CLI Validation Report
-Generated: ${new Date().toISOString()}
+Generated: ${this.getDeterministicDate().toISOString()}
 
 ## Summary
 - **Total Tests**: ${this.results.passed + this.results.failed}

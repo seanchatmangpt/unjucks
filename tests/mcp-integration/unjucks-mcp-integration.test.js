@@ -477,13 +477,13 @@ to: <%= fileName %>.js
 ---
 /**
  * <%= description %>
- * Generated on: <%= new Date().toISOString() %>
+ * Generated on: <%= this.getDeterministicDate().toISOString() %>
  */
 
 class <%= fileName %> {
   constructor() {
     this.description = '<%= description %>';
-    this.createdAt = new Date();
+    this.createdAt = this.getDeterministicDate();
   }
 
   getDescription() {

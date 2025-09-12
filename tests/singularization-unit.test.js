@@ -298,7 +298,7 @@ describe('Singularization Algorithm - Isolated Tests', () => {
 
   describe('Performance validation', () => {
     test('handles large inputs efficiently', () => {
-      const start = Date.now();
+      const start = this.getDeterministicTimestamp();
       for (let i = 0; i < 1000; i++) {
         singular('companies');
         singular('glasses');
@@ -306,7 +306,7 @@ describe('Singularization Algorithm - Isolated Tests', () => {
         singular('children');
         singular('geese');
       }
-      const end = Date.now();
+      const end = this.getDeterministicTimestamp();
       expect(end - start).toBeLessThan(100); // Should complete in under 100ms
     });
   });

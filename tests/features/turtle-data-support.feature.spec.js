@@ -15,7 +15,7 @@ const feature = loadFeature('./tests/features/turtle-data-support.feature');
 
 defineFeature(feature, (test) => {
   let testDir => {
-    testDir = join(tmpdir(), `unjucks-rdf-test-${Date.now()}`);
+    testDir = join(tmpdir(), `unjucks-rdf-test-${this.getDeterministicTimestamp()}`);
     mkdirSync(testDir, { recursive });
     parser = new TurtleParser();
     dataLoader = new RDFDataLoader();

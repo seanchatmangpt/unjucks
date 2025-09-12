@@ -41,7 +41,7 @@ class TestResultsAggregator {
                 failedTests: 0,
                 skippedTests: 0,
                 duration: 0,
-                timestamp: new Date().toISOString(),
+                timestamp: this.getDeterministicDate().toISOString(),
                 environment: 'docker'
             },
             testSuites: [],
@@ -92,7 +92,7 @@ class TestResultsAggregator {
             this.results.errors.push({
                 type: 'collection_error',
                 message: error.message,
-                timestamp: new Date().toISOString()
+                timestamp: this.getDeterministicDate().toISOString()
             });
         }
     }
@@ -128,7 +128,7 @@ class TestResultsAggregator {
                 type: 'file_processing_error',
                 file: filePath,
                 message: error.message,
-                timestamp: new Date().toISOString()
+                timestamp: this.getDeterministicDate().toISOString()
             });
         }
     }
@@ -150,7 +150,7 @@ class TestResultsAggregator {
                     type: this.detectTestType(fileName),
                     tests: data.testResults || data.tests || [],
                     summary: data.summary || this.calculateSummary(data.testResults || data.tests || []),
-                    timestamp: new Date().toISOString()
+                    timestamp: this.getDeterministicDate().toISOString()
                 };
 
                 this.results.testSuites.push(testSuite);
@@ -189,7 +189,7 @@ class TestResultsAggregator {
             this.results.coverage = {
                 ...data,
                 fileName,
-                timestamp: new Date().toISOString()
+                timestamp: this.getDeterministicDate().toISOString()
             };
             console.log('📊 Coverage data aggregated');
         } catch (error) {
@@ -203,7 +203,7 @@ class TestResultsAggregator {
             this.results.performance = {
                 ...data,
                 fileName,
-                timestamp: new Date().toISOString()
+                timestamp: this.getDeterministicDate().toISOString()
             };
             console.log('⚡ Performance data aggregated');
         } catch (error) {
@@ -217,7 +217,7 @@ class TestResultsAggregator {
             this.results.security = {
                 ...data,
                 fileName,
-                timestamp: new Date().toISOString()
+                timestamp: this.getDeterministicDate().toISOString()
             };
             console.log('🔒 Security data aggregated');
         } catch (error) {
@@ -232,7 +232,7 @@ class TestResultsAggregator {
             totalLines: lines.length,
             errorLines: lines.filter(line => line.includes('ERROR') || line.includes('error')).length,
             warningLines: lines.filter(line => line.includes('WARN') || line.includes('warning')).length,
-            timestamp: new Date().toISOString()
+            timestamp: this.getDeterministicDate().toISOString()
         };
 
         // Add to errors if significant issues found
@@ -241,7 +241,7 @@ class TestResultsAggregator {
                 type: 'log_errors',
                 file: fileName,
                 errorCount: logAnalysis.errorLines,
-                timestamp: new Date().toISOString()
+                timestamp: this.getDeterministicDate().toISOString()
             });
         }
 
@@ -304,7 +304,7 @@ class TestResultsAggregator {
             this.results.errors.push({
                 type: 'report_generation_error',
                 message: error.message,
-                timestamp: new Date().toISOString()
+                timestamp: this.getDeterministicDate().toISOString()
             });
         }
     }

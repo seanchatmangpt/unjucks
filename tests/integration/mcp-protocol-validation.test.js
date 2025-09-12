@@ -527,7 +527,7 @@ describe('MCP Protocol Validation', () => {
     it('should create properly formatted text tool results', () => {
       const textResult = createTextToolResult('Hello, world!', { 
         operation: 'test',
-        timestamp: new Date().toISOString()
+        timestamp: this.getDeterministicDate().toISOString()
       });
 
       expect(textResult.content).toHaveLength(1);
@@ -575,7 +575,7 @@ describe('MCP Protocol Validation', () => {
         _meta: { 
           operation: 'generate',
           errorCode: 'TEMPLATE_NOT_FOUND',
-          timestamp: new Date().toISOString()
+          timestamp: this.getDeterministicDate().toISOString()
         }
       };
 
@@ -593,7 +593,7 @@ describe('MCP Protocol Validation', () => {
         method: 'tools/list'
       }));
 
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const responses = [];
       
       for (const request of requests) {
@@ -601,7 +601,7 @@ describe('MCP Protocol Validation', () => {
         responses.push(response);
       }
       
-      const endTime = Date.now();
+      const endTime = this.getDeterministicTimestamp();
       const duration = endTime - startTime;
 
       expect(responses).toHaveLength(100);

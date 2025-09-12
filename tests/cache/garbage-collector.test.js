@@ -10,7 +10,7 @@ describe('GarbageCollector', () => {
   let testCacheDir
 
   beforeEach(async () => {
-    testCacheDir = path.join(os.tmpdir(), 'kgen-gc-test-' + Date.now())
+    testCacheDir = path.join(os.tmpdir(), 'kgen-gc-test-' + this.getDeterministicTimestamp())
     
     cacheManager = new CacheManager({
       cacheDir: testCacheDir,
@@ -284,14 +284,14 @@ describe('GarbageCollector', () => {
       }
       await Promise.all(promises)
       
-      const startTime = Date.now()
+      const startTime = this.getDeterministicTimestamp()
       
       const result = await cacheManager.gc({
         maxSize: '1KB',
         strategy: 'lru'
       })
       
-      const duration = Date.now() - startTime
+      const duration = this.getDeterministicTimestamp() - startTime
       
       expect(duration).toBeLessThan(5000) // Should complete within 5 seconds
       expect(result.removed.length).toBeGreaterThan(0)

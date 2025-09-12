@@ -357,7 +357,7 @@ class FIPSCryptoProvider {
       key: aesKey, 
       algorithm: 'AES-256-GCM', 
       purpose: 'data-encryption',
-      createdAt: new Date()
+      createdAt: this.getDeterministicDate()
     })
 
     // Generate HMAC key for integrity protection
@@ -366,7 +366,7 @@ class FIPSCryptoProvider {
       key: hmacKey,
       algorithm: 'HMAC-SHA-512',
       purpose: 'integrity-protection',
-      createdAt: new Date()
+      createdAt: this.getDeterministicDate()
     })
 
     // Generate RSA key pair for asymmetric operations
@@ -375,13 +375,13 @@ class FIPSCryptoProvider {
       key: Buffer.from(rsaKeys.publicKey),
       algorithm: 'RSA-2048',
       purpose: 'asymmetric-encryption',
-      createdAt: new Date()
+      createdAt: this.getDeterministicDate()
     })
     this.keyStore.set('master-rsa-private', {
       key: Buffer.from(rsaKeys.privateKey),
       algorithm: 'RSA-2048',
       purpose: 'asymmetric-decryption',
-      createdAt: new Date()
+      createdAt: this.getDeterministicDate()
     })
 
     console.log('FIPS-compliant master keys generated')

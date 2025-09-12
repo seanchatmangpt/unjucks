@@ -651,7 +651,7 @@ ex:platformTest a foaf:Person ;
     console.log('\n=== CROSS-PLATFORM COMPATIBILITY REPORT ===');
     
     const report = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       systemInfo,
       platformMatrix: PLATFORM_MATRIX,
       results: platformResults,

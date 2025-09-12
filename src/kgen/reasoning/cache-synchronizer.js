@@ -7,7 +7,7 @@
  */
 
 import { EventEmitter } from 'events';
-import { Logger } from 'consola';
+import { Consola } from 'consola';
 import crypto from 'crypto';
 
 export class ReasoningCacheSynchronizer extends EventEmitter {
@@ -43,7 +43,7 @@ export class ReasoningCacheSynchronizer extends EventEmitter {
       ...config
     };
     
-    this.logger = new Logger({ tag: 'cache-synchronizer' });
+    this.logger = new Consola({ tag: 'cache-synchronizer' });
     this.state = 'initialized';
     
     // Cache management
@@ -144,7 +144,7 @@ export class ReasoningCacheSynchronizer extends EventEmitter {
    */
   async synchronizeCaches(targetAgents, syncOptions = {}) {
     const syncId = this._generateSyncId();
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       this.logger.info(`Starting cache synchronization ${syncId} with ${targetAgents.length} agents`);
@@ -188,7 +188,7 @@ export class ReasoningCacheSynchronizer extends EventEmitter {
       await this._validateSynchronization(syncResults, syncContext);
       
       // Update metrics and cleanup
-      const syncTime = Date.now() - startTime;
+      const syncTime = this.getDeterministicTimestamp() - startTime;
       this._updateSyncMetrics(syncId, syncTime, true);
       this.pendingSyncs.delete(syncId);
       
@@ -215,7 +215,7 @@ export class ReasoningCacheSynchronizer extends EventEmitter {
       };
       
     } catch (error) {
-      const syncTime = Date.now() - startTime;
+      const syncTime = this.getDeterministicTimestamp() - startTime;
       this._updateSyncMetrics(syncId, syncTime, false);
       this.pendingSyncs.delete(syncId);
       
@@ -513,15 +513,15 @@ export class ReasoningCacheSynchronizer extends EventEmitter {
   }
 
   _generateSyncId() {
-    return `sync_${Date.now()}_${crypto.randomBytes(4).toString('hex')}`;
+    return `sync_${this.getDeterministicTimestamp()}_${crypto.randomBytes(4).toString('hex')}`;
   }
 
   _generateInvalidationId() {
-    return `invalidation_${Date.now()}_${crypto.randomBytes(4).toString('hex')}`;
+    return `invalidation_${this.getDeterministicTimestamp()}_${crypto.randomBytes(4).toString('hex')}`;
   }
 
   _generateOperationId() {
-    return `operation_${Date.now()}_${crypto.randomBytes(4).toString('hex')}`;
+    return `operation_${this.getDeterministicTimestamp()}_${crypto.randomBytes(4).toString('hex')}`;
   }
 
   // Cache coherence protocol implementations

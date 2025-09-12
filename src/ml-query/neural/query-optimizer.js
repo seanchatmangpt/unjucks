@@ -460,7 +460,7 @@ export class NeuralQueryOptimizer {
       state,
       action,
       query,
-      timestamp: Date.now()
+      timestamp: this.getDeterministicTimestamp()
     });
 
     // Trim buffer if too large

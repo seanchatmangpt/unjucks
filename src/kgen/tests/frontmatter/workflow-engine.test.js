@@ -16,7 +16,7 @@ describe('FrontmatterWorkflowEngine', () => {
   
   beforeEach(async () => {
     // Create test directory
-    testDir = join(tmpdir(), `kgen-test-${Date.now()}`);
+    testDir = join(tmpdir(), `kgen-test-${this.getDeterministicTimestamp()}`);
     await mkdir(testDir, { recursive: true });
     
     // Initialize engine with test configuration
@@ -489,9 +489,9 @@ Concurrent content ${i}`,
         context: { index: i }
       }));
       
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const result = await engine.processTemplates(templates);
-      const endTime = Date.now();
+      const endTime = this.getDeterministicTimestamp();
       
       expect(result.status).toBe('success');
       expect(result.successful).toBe(5);

@@ -21,7 +21,7 @@ class MetricsStore {
 
     this.timeSeriesEntry = {
       id: this.generateEntryId(),
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       metadata: {},
       performance: {},
       memory: {},
@@ -32,7 +32,7 @@ class MetricsStore {
   }
 
   generateEntryId() {
-    const timestamp = Date.now().toString();
+    const timestamp = this.getDeterministicTimestamp().toString();
     const random = crypto.randomBytes(4).toString('hex');
     return `${timestamp}-${random}`;
   }

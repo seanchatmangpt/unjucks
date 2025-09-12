@@ -37,7 +37,7 @@ describe('Node.js Version Compatibility', () => {
         process.exit(0);
       `;
       
-      const testFile = path.join(os.tmpdir(), `top-level-await-${Date.now()}.mjs`);
+      const testFile = path.join(os.tmpdir(), `top-level-await-${this.getDeterministicTimestamp()}.mjs`);
       await fs.writeFile(testFile, testCode);
       
       try {
@@ -112,7 +112,7 @@ describe('Node.js Version Compatibility', () => {
         console.log(defaultFn());
       `;
       
-      const tempDir = path.join(os.tmpdir(), `es-modules-${Date.now()}`);
+      const tempDir = path.join(os.tmpdir(), `es-modules-${this.getDeterministicTimestamp()}`);
       await fs.ensureDir(tempDir);
       
       const moduleFile = path.join(tempDir, 'test-module.mjs');
@@ -139,7 +139,7 @@ describe('Node.js Version Compatibility', () => {
         console.log(typeof path.join);
       `;
       
-      const testFile = path.join(os.tmpdir(), `dynamic-import-${Date.now()}.mjs`);
+      const testFile = path.join(os.tmpdir(), `dynamic-import-${this.getDeterministicTimestamp()}.mjs`);
       await fs.writeFile(testFile, testCode);
       
       try {
@@ -157,7 +157,7 @@ describe('Node.js Version Compatibility', () => {
         console.log('URL is string:', typeof import.meta.url === 'string');
       `;
       
-      const testFile = path.join(os.tmpdir(), `import-meta-${Date.now()}.mjs`);
+      const testFile = path.join(os.tmpdir(), `import-meta-${this.getDeterministicTimestamp()}.mjs`);
       await fs.writeFile(testFile, testCode);
       
       try {
@@ -176,7 +176,7 @@ describe('Node.js Version Compatibility', () => {
         console.log('JSON import:', data.name, data.version);
       `;
       
-      const tempDir = path.join(os.tmpdir(), `json-modules-${Date.now()}`);
+      const tempDir = path.join(os.tmpdir(), `json-modules-${this.getDeterministicTimestamp()}`);
       await fs.ensureDir(tempDir);
       
       const jsonFile = path.join(tempDir, 'test-data.json');

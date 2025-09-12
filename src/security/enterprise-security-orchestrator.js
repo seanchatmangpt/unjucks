@@ -106,7 +106,7 @@ export class EnterpriseSecurityOrchestrator extends EventEmitter {
         active: 0
       },
       performance: {
-        uptime: Date.now(),
+        uptime: this.getDeterministicTimestamp(),
         memoryUsage: 0,
         cpuUsage: 0
       }
@@ -132,7 +132,7 @@ export class EnterpriseSecurityOrchestrator extends EventEmitter {
    */
   async initialize() {
     try {
-      this.logEvent('system', 'initialization-start', { timestamp: new Date() });
+      this.logEvent('system', 'initialization-start', { timestamp: this.getDeterministicDate() });
       
       // Initialize components based on configuration
       await this._initializeComponents();
@@ -153,14 +153,14 @@ export class EnterpriseSecurityOrchestrator extends EventEmitter {
       this.state.healthy = true;
       
       this.logEvent('system', 'initialization-complete', {
-        timestamp: new Date(),
+        timestamp: this.getDeterministicDate(),
         componentsInitialized: Object.keys(this.components).length
       });
       
       this.emit('initialized', {
         orchestrator: this,
         components: Object.keys(this.components),
-        timestamp: new Date()
+        timestamp: this.getDeterministicDate()
       });
       
       if (this.config.debug) {
@@ -180,7 +180,7 @@ export class EnterpriseSecurityOrchestrator extends EventEmitter {
       this.emit('error', {
         type: 'initialization-failed',
         error: error,
-        timestamp: new Date()
+        timestamp: this.getDeterministicDate()
       });
       
       throw new Error(`Security orchestrator initialization failed: ${error.message}`);
@@ -357,7 +357,7 @@ export class EnterpriseSecurityOrchestrator extends EventEmitter {
         operationId,
         result,
         latency: Math.round(latency),
-        timestamp: new Date()
+        timestamp: this.getDeterministicDate()
       };
       
     } catch (error) {
@@ -370,12 +370,12 @@ export class EnterpriseSecurityOrchestrator extends EventEmitter {
       
       // Update circuit breaker
       this.state.circuitBreaker.failures++;
-      this.state.circuitBreaker.lastFailure = new Date();
+      this.state.circuitBreaker.lastFailure = this.getDeterministicDate();
       
       if (this.state.circuitBreaker.failures >= this.config.orchestration.circuitBreaker.failureThreshold) {
         this.state.circuitBreaker.state = 'OPEN';
         this.state.circuitBreaker.nextRetry = new Date(
-          Date.now() + this.config.orchestration.circuitBreaker.resetTimeout
+          this.getDeterministicTimestamp() + this.config.orchestration.circuitBreaker.resetTimeout
         );
         
         this.emit('circuit-breaker-open', {
@@ -440,7 +440,7 @@ export class EnterpriseSecurityOrchestrator extends EventEmitter {
       sessionId: context.sessionId,
       authenticationMethod: requireMFA ? 'mfa' : 'standard',
       riskScore: context.riskScore,
-      timestamp: new Date()
+      timestamp: this.getDeterministicDate()
     }) : null;
     
     return {
@@ -467,7 +467,7 @@ export class EnterpriseSecurityOrchestrator extends EventEmitter {
     const authorized = await rbac.checkPermission(userId, permission, {
       ...context,
       resource,
-      timestamp: new Date()
+      timestamp: this.getDeterministicDate()
     });
     
     // Get user roles and permissions for audit
@@ -523,7 +523,7 @@ export class EnterpriseSecurityOrchestrator extends EventEmitter {
       ...validationResult,
       securityScan: securityScanResult,
       validationType,
-      timestamp: new Date()
+      timestamp: this.getDeterministicDate()
     };
     
     // Check for security threats
@@ -581,7 +581,7 @@ export class EnterpriseSecurityOrchestrator extends EventEmitter {
       overallScore,
       frameworkResults: results,
       compliant: overallScore >= 0.8, // 80% threshold
-      timestamp: new Date()
+      timestamp: this.getDeterministicDate()
     };
   }
   
@@ -590,7 +590,7 @@ export class EnterpriseSecurityOrchestrator extends EventEmitter {
    */
   async _performSecurityAssessment(operation, context) {
     const assessment = {
-      timestamp: new Date(),
+      timestamp: this.getDeterministicDate(),
       securityLevel: 'unknown',
       components: {},
       threats: [],
@@ -680,7 +680,7 @@ export class EnterpriseSecurityOrchestrator extends EventEmitter {
     const healthStatus = {
       overall: 'healthy',
       components: {},
-      timestamp: new Date()
+      timestamp: this.getDeterministicDate()
     };
     
     let unhealthyCount = 0;
@@ -748,7 +748,7 @@ export class EnterpriseSecurityOrchestrator extends EventEmitter {
     }
     
     // Update performance metrics
-    this.metrics.performance.uptime = Date.now() - this.metrics.performance.uptime;
+    this.metrics.performance.uptime = this.getDeterministicTimestamp() - this.metrics.performance.uptime;
     
     if (process.memoryUsage) {
       const memUsage = process.memoryUsage();
@@ -835,7 +835,7 @@ export class EnterpriseSecurityOrchestrator extends EventEmitter {
       },
       assessment,
       metrics: this._sanitizeMetrics(this.metrics),
-      timestamp: new Date()
+      timestamp: this.getDeterministicDate()
     };
   }
   
@@ -848,8 +848,8 @@ export class EnterpriseSecurityOrchestrator extends EventEmitter {
       components: Object.keys(this.components),
       activeThreats: this.state.activeThreats,
       securityLevel: this.state.securityLevel,
-      uptime: Date.now() - this.metrics.performance.uptime,
-      timestamp: new Date()
+      uptime: this.getDeterministicTimestamp() - this.metrics.performance.uptime,
+      timestamp: this.getDeterministicDate()
     };
   }
   
@@ -865,7 +865,7 @@ export class EnterpriseSecurityOrchestrator extends EventEmitter {
    */
   async shutdown() {
     try {
-      this.logEvent('system', 'shutdown-start', { timestamp: new Date() });
+      this.logEvent('system', 'shutdown-start', { timestamp: this.getDeterministicDate() });
       
       // Clear intervals
       if (this.intervals.healthCheck) {
@@ -897,7 +897,7 @@ export class EnterpriseSecurityOrchestrator extends EventEmitter {
       this.state.initialized = false;
       this.state.healthy = false;
       
-      this.logEvent('system', 'shutdown-complete', { timestamp: new Date() });
+      this.logEvent('system', 'shutdown-complete', { timestamp: this.getDeterministicDate() });
       
       this.emit('shutdown-complete');
       
@@ -915,7 +915,7 @@ export class EnterpriseSecurityOrchestrator extends EventEmitter {
   
   _generateOperationId() {
     return createHash('sha256')
-      .update(`${Date.now()}-${randomBytes(8).toString('hex')}`)
+      .update(`${this.getDeterministicTimestamp()}-${randomBytes(8).toString('hex')}`)
       .digest('hex')
       .substring(0, 16);
   }
@@ -965,7 +965,7 @@ export class EnterpriseSecurityOrchestrator extends EventEmitter {
   
   logEvent(category, event, data = {}) {
     const eventEntry = {
-      timestamp: new Date(),
+      timestamp: this.getDeterministicDate(),
       category,
       event,
       data: this._sanitizeContext(data)
@@ -996,7 +996,7 @@ export class EnterpriseSecurityOrchestrator extends EventEmitter {
     if (!context.knownDevice) riskScore += 0.2;
     
     // Unusual time
-    const hour = new Date().getHours();
+    const hour = this.getDeterministicDate().getHours();
     if (hour < 6 || hour > 22) riskScore += 0.1;
     
     // Failed login attempts
@@ -1052,7 +1052,7 @@ export class EnterpriseSecurityOrchestrator extends EventEmitter {
       severity: eventData.severity || 'medium',
       type: eventData.type,
       details: eventData,
-      timestamp: new Date()
+      timestamp: this.getDeterministicDate()
     });
   }
 }

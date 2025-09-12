@@ -39,7 +39,7 @@ export class IndexBuilder {
     try {
       this.logger.debug('Building comprehensive graph index');
       
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const indexOptions = { ...this.config, ...options };
       
       // Parse TTL content
@@ -67,7 +67,7 @@ export class IndexBuilder {
       // Calculate index statistics
       const statistics = this._calculateIndexStatistics(indexes, quads.length);
       
-      const processingTime = Date.now() - startTime;
+      const processingTime = this.getDeterministicTimestamp() - startTime;
       
       const indexResult = {
         indexes,
@@ -75,7 +75,7 @@ export class IndexBuilder {
         metadata: {
           totalTriples: quads.length,
           processingTime,
-          indexedAt: new Date().toISOString(),
+          indexedAt: this.getDeterministicDate().toISOString(),
           options: indexOptions
         }
       };
@@ -159,7 +159,7 @@ export class IndexBuilder {
         artifactToSubjects: Object.fromEntries(mappings.artifactToSubjects),
         coverage: mappings.coverage,
         metadata: {
-          createdAt: new Date().toISOString(),
+          createdAt: this.getDeterministicDate().toISOString(),
           totalMappings: mappings.subjectToArtifacts.size
         }
       };

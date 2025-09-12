@@ -124,7 +124,7 @@ export class AccessControlManager extends EventEmitter {
    * @returns {Promise<object>} Access decision
    */
   async checkAccess(filePath, operation, user = {}) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       this.logger.debug(`Checking ${operation} access to: ${filePath}`);
@@ -137,7 +137,7 @@ export class AccessControlManager extends EventEmitter {
         reason: '',
         sanitizedPath: null,
         metadata: {
-          timestamp: new Date(),
+          timestamp: this.getDeterministicDate(),
           checkDuration: 0
         }
       };
@@ -241,7 +241,7 @@ export class AccessControlManager extends EventEmitter {
       // All checks passed
       accessResult.allowed = true;
       accessResult.reason = 'Access granted';
-      accessResult.metadata.checkDuration = Date.now() - startTime;
+      accessResult.metadata.checkDuration = this.getDeterministicTimestamp() - startTime;
       
       // Update metrics
       this._updateOperationMetrics(operation);
@@ -271,8 +271,8 @@ export class AccessControlManager extends EventEmitter {
         reason: `Access check error: ${error.message}`,
         sanitizedPath: null,
         metadata: {
-          timestamp: new Date(),
-          checkDuration: Date.now() - startTime,
+          timestamp: this.getDeterministicDate(),
+          checkDuration: this.getDeterministicTimestamp() - startTime,
           error: error.message
         }
       };
@@ -319,7 +319,7 @@ export class AccessControlManager extends EventEmitter {
         metadata: {
           path: accessCheck.sanitizedPath,
           size: content.length,
-          readAt: new Date()
+          readAt: this.getDeterministicDate()
         }
       };
       
@@ -331,7 +331,7 @@ export class AccessControlManager extends EventEmitter {
         error: error.message,
         metadata: {
           path: filePath,
-          readAt: new Date()
+          readAt: this.getDeterministicDate()
         }
       };
     }
@@ -386,7 +386,7 @@ export class AccessControlManager extends EventEmitter {
         metadata: {
           path: accessCheck.sanitizedPath,
           size: content.length,
-          writtenAt: new Date()
+          writtenAt: this.getDeterministicDate()
         }
       };
       
@@ -398,7 +398,7 @@ export class AccessControlManager extends EventEmitter {
         error: error.message,
         metadata: {
           path: filePath,
-          writtenAt: new Date()
+          writtenAt: this.getDeterministicDate()
         }
       };
     }
@@ -464,7 +464,7 @@ export class AccessControlManager extends EventEmitter {
           path: accessCheck.sanitizedPath,
           totalEntries: entries.length,
           accessibleEntries: filteredEntries.length,
-          listedAt: new Date()
+          listedAt: this.getDeterministicDate()
         }
       };
       
@@ -476,7 +476,7 @@ export class AccessControlManager extends EventEmitter {
         error: error.message,
         metadata: {
           path: dirPath,
-          listedAt: new Date()
+          listedAt: this.getDeterministicDate()
         }
       };
     }
@@ -494,7 +494,7 @@ export class AccessControlManager extends EventEmitter {
     this.permissions.set(key, {
       ...this.config.defaultPermissions,
       ...permissions,
-      createdAt: new Date(),
+      createdAt: this.getDeterministicDate(),
       createdBy: 'system'
     });
     
@@ -863,7 +863,7 @@ export class AccessControlManager extends EventEmitter {
     const cacheKey = `${user.id || 'anonymous'}:${operation}:${filePath}`;
     const cacheEntry = {
       result: { ...result },
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       ttl: 5 * 60 * 1000 // 5 minutes
     };
     
@@ -871,7 +871,7 @@ export class AccessControlManager extends EventEmitter {
   }
 
   _cleanupAccessCache() {
-    const now = Date.now();
+    const now = this.getDeterministicTimestamp();
     const expired = [];
     
     for (const [key, entry] of this.accessCache.entries()) {
@@ -891,7 +891,7 @@ export class AccessControlManager extends EventEmitter {
     // Add to in-memory audit trail
     this.auditTrail.push({
       ...accessResult,
-      loggedAt: new Date()
+      loggedAt: this.getDeterministicDate()
     });
     
     // Keep audit trail size manageable
@@ -913,7 +913,7 @@ export class AccessControlManager extends EventEmitter {
   async _saveAuditTrail() {
     if (this.auditTrail.length > 0) {
       const auditData = JSON.stringify(this.auditTrail, null, 2);
-      const backupPath = `${this.config.auditLogPath}.backup.${Date.now()}`;
+      const backupPath = `${this.config.auditLogPath}.backup.${this.getDeterministicTimestamp()}`;
       await fs.writeFile(backupPath, auditData);
       this.logger.info(`Saved audit trail backup: ${backupPath}`);
     }
@@ -929,7 +929,7 @@ export class AccessControlManager extends EventEmitter {
   }
 
   async _createBackup(filePath) {
-    const backupPath = `${filePath}.backup.${Date.now()}`;
+    const backupPath = `${filePath}.backup.${this.getDeterministicTimestamp()}`;
     await fs.copyFile(filePath, backupPath);
     this.logger.info(`Created backup: ${backupPath}`);
     return backupPath;

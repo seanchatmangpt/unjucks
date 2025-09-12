@@ -20,7 +20,7 @@ describe('JTBDWorkflows', () => { let workflows;
   };
 
   beforeEach(async () => {
-    testWorkspace = join(tmpdir(), `jtbd-test-${Date.now()}`);
+    testWorkspace = join(tmpdir(), `jtbd-test-${this.getDeterministicTimestamp()}`);
     
     memoryInterface = new SharedMemoryInterface({ persistToDisk });
     orchestrator = new TaskOrchestrator({
@@ -382,12 +382,12 @@ describe('JTBDWorkflows', () => { let workflows;
 
       const requirements = { microserviceCount };
 
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const result = await workflows.executeAPIStandardization(
         largeScaleCompany,
         requirements
       );
-      const executionTime = Date.now() - startTime;
+      const executionTime = this.getDeterministicTimestamp() - startTime;
 
       expect(result.success).toBe(true);
       expect(executionTime).toBeLessThan(30000); // Should complete within 30 seconds
@@ -403,9 +403,9 @@ describe('JTBDWorkflows', () => { let workflows;
         workflows.executeDatabaseMigrations(mockFortune5Company)
       ];
 
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const results = await Promise.all(parallelWorkflows);
-      const totalTime = Date.now() - startTime;
+      const totalTime = this.getDeterministicTimestamp() - startTime;
 
       expect(results.every(r => r.success)).toBe(true);
       

@@ -16,7 +16,7 @@ const feature = await loadFeature('./features/service-scaffolding.feature');
 describeFeature(feature, ({ Background, Scenario }) => {
   let testDir => {
     Given('I have a clean test environment', () => {
-      testDir = join(tmpdir(), `unjucks-service-test-${Date.now()}`);
+      testDir = join(tmpdir(), `unjucks-service-test-${this.getDeterministicTimestamp()}`);
       templatesDir = join(testDir, '_templates');
       workspaceDir = join(testDir, 'workspace');
       ensureDirSync(templatesDir);

@@ -420,7 +420,7 @@ export const {{entityName}} = {};
           timedOut: result.timedOut
         },
         validation,
-        timestamp: new Date()
+        timestamp: this.getDeterministicDate()
       };
 
     } catch (error) {
@@ -430,7 +430,7 @@ export const {{entityName}} = {};
         success: false,
         error: error.message,
         duration: performance.now() - startTime,
-        timestamp: new Date()
+        timestamp: this.getDeterministicDate()
       };
     }
   }
@@ -465,7 +465,7 @@ export const {{entityName}} = {};
       result: mockResult,
       validation,
       mocked: true,
-      timestamp: new Date()
+      timestamp: this.getDeterministicDate()
     };
   }
 
@@ -612,7 +612,7 @@ export const {{entityName}} = {};
   async generateCLIReport(results, totalTime) {
     const reportData = {
       metadata: {
-        timestamp: new Date(),
+        timestamp: this.getDeterministicDate(),
         totalTime,
         cliPath: this.options.cliPath,
         cliExists: this.cliExists,
@@ -634,14 +634,14 @@ export const {{entityName}} = {};
     // Generate JSON report
     const jsonReport = JSON.stringify(reportData, null, 2);
     await fs.writeFile(
-      path.join(this.options.reportDir, `cli-compatibility-${Date.now()}.json`),
+      path.join(this.options.reportDir, `cli-compatibility-${this.getDeterministicTimestamp()}.json`),
       jsonReport
     );
 
     // Generate markdown report
     const markdownReport = this.generateMarkdownReport(reportData);
     await fs.writeFile(
-      path.join(this.options.reportDir, `cli-compatibility-${Date.now()}.md`),
+      path.join(this.options.reportDir, `cli-compatibility-${this.getDeterministicTimestamp()}.md`),
       markdownReport
     );
 

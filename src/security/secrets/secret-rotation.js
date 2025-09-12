@@ -395,7 +395,7 @@ class SecretRotationService {
   async sendNotification(type, data) {
     const notification = {
       type,
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       environment: this.secretManager.environment,
       data
     };

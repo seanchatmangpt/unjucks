@@ -176,8 +176,8 @@ describe('Deterministic Fixes Validation', () => {
 describe('Original vs Fixed Implementation Comparison', () => {
   it('should demonstrate non-deterministic vs deterministic behavior', async () => {
     // Simulate original non-deterministic behavior
-    const fakeId1 = `know_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    const fakeId2 = `know_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const fakeId1 = `know_${this.getDeterministicTimestamp()}_${Math.random().toString(36).substr(2, 9)}`;
+    const fakeId2 = `know_${this.getDeterministicTimestamp()}_${Math.random().toString(36).substr(2, 9)}`;
     
     // Original IDs should be different (non-deterministic)
     expect(fakeId1).not.toBe(fakeId2);

@@ -125,7 +125,7 @@ export class EnterpriseAuditTrail extends EventEmitter {
     
     // Performance monitoring
     this.performanceTimer = null;
-    this.lastFlush = Date.now();
+    this.lastFlush = this.getDeterministicTimestamp();
     
     // Setup periodic tasks
     this._setupPeriodicTasks();
@@ -266,7 +266,7 @@ export class EnterpriseAuditTrail extends EventEmitter {
     
     const processingRecord = {
       id: recordId,
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       controller: activity.controller,
       processor: activity.processor,
       category: activity.category,
@@ -310,7 +310,7 @@ export class EnterpriseAuditTrail extends EventEmitter {
     
     const securityIncident = {
       id: incidentId,
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       type: incident.type,
       severity: incident.severity,
       affectedSystems: incident.affectedSystems,
@@ -328,7 +328,7 @@ export class EnterpriseAuditTrail extends EventEmitter {
       this.dataBreachLog.push({
         ...securityIncident,
         notificationRequired: incident.potentialImpact === 'high',
-        notificationDeadline: Date.now() + (72 * 60 * 60 * 1000), // 72 hours for GDPR
+        notificationDeadline: this.getDeterministicTimestamp() + (72 * 60 * 60 * 1000), // 72 hours for GDPR
         notificationStatus: 'pending'
       });
     }
@@ -465,7 +465,7 @@ export class EnterpriseAuditTrail extends EventEmitter {
       total,
       returned: events.length,
       queryTime: Math.round(queryTime),
-      timestamp: Date.now()
+      timestamp: this.getDeterministicTimestamp()
     };
   }
 
@@ -488,7 +488,7 @@ export class EnterpriseAuditTrail extends EventEmitter {
       id: reportId,
       standard,
       timeRange,
-      generatedAt: new Date().toISOString(),
+      generatedAt: this.getDeterministicDate().toISOString(),
       generatedBy: options.generatedBy || 'system',
       
       summary: {
@@ -585,7 +585,7 @@ export class EnterpriseAuditTrail extends EventEmitter {
       data: exportData,
       format,
       eventsCount: query.events.length,
-      exportedAt: new Date().toISOString(),
+      exportedAt: this.getDeterministicDate().toISOString(),
       checksum: crypto.createHash('sha256').update(exportData).digest('hex')
     };
   }
@@ -630,7 +630,7 @@ export class EnterpriseAuditTrail extends EventEmitter {
       
       system: {
         status: this.status,
-        uptime: Date.now() - (this.lastFlush || Date.now()),
+        uptime: this.getDeterministicTimestamp() - (this.lastFlush || this.getDeterministicTimestamp()),
         memoryUsage: {
           heapUsed: memUsage.heapUsed,
           heapTotal: memUsage.heapTotal,
@@ -671,7 +671,7 @@ export class EnterpriseAuditTrail extends EventEmitter {
     
     return {
       id: eventId,
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       category: eventData.category,
       type: eventData.type,
       riskLevel: eventData.riskLevel || RISK_LEVELS.INFO,
@@ -909,7 +909,7 @@ export class EnterpriseAuditTrail extends EventEmitter {
   async _generateSecurityAlert(alertData) {
     const alert = {
       id: this._generateId(),
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       type: alertData.type,
       severity: alertData.severity || 'medium',
       description: alertData.description,
@@ -945,7 +945,7 @@ export class EnterpriseAuditTrail extends EventEmitter {
   async _handleTamperDetection(event) {
     const tamperEvent = {
       id: this._generateId(),
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       eventId: event.id,
       type: 'integrity_violation',
       description: 'Audit event integrity hash mismatch'
@@ -1004,7 +1004,7 @@ export class EnterpriseAuditTrail extends EventEmitter {
 
   _exportToJSON(events, options) {
     return JSON.stringify({
-      exportedAt: new Date().toISOString(),
+      exportedAt: this.getDeterministicDate().toISOString(),
       format: 'json',
       version: '1.0',
       events
@@ -1091,7 +1091,7 @@ export class EnterpriseAuditTrail extends EventEmitter {
   }
 
   async _performArchiving() {
-    const archiveDate = new Date().toISOString().split('T')[0];
+    const archiveDate = this.getDeterministicDate().toISOString().split('T')[0];
     const eventsToArchive = this.auditEvents.splice(0, this.config.batchSize);
     
     if (!this.archivedEvents.has(archiveDate)) {
@@ -1116,7 +1116,7 @@ export class EnterpriseAuditTrail extends EventEmitter {
   }
 
   _performCleanup() {
-    const cutoffTime = Date.now() - (this.config.retentionPeriodDays * 24 * 60 * 60 * 1000);
+    const cutoffTime = this.getDeterministicTimestamp() - (this.config.retentionPeriodDays * 24 * 60 * 60 * 1000);
     
     // Clean up old archived events
     for (const [date, events] of this.archivedEvents) {
@@ -1157,7 +1157,7 @@ export class EnterpriseAuditTrail extends EventEmitter {
 
   _updatePerformanceMetrics(processingTime = 0) {
     this.performanceMetrics.eventIngestionRate = this.statistics.totalEvents / 
-      ((Date.now() - this.lastFlush) / 1000);
+      ((this.getDeterministicTimestamp() - this.lastFlush) / 1000);
     
     if (processingTime > 0) {
       this.performanceMetrics.averageProcessingTime = 
@@ -1179,7 +1179,7 @@ export class EnterpriseAuditTrail extends EventEmitter {
     
     if (thresholds.eventsPerMinute) {
       const recentEvents = this.auditEvents.filter(e => 
-        Date.now() - e.timestamp < 60000
+        this.getDeterministicTimestamp() - e.timestamp < 60000
       ).length;
       
       if (recentEvents > thresholds.eventsPerMinute) {
@@ -1213,7 +1213,7 @@ export class EnterpriseAuditTrail extends EventEmitter {
       actor: 'system',
       details: {
         totalEventsProcessed: this.statistics.totalEvents,
-        uptime: Date.now() - this.lastFlush
+        uptime: this.getDeterministicTimestamp() - this.lastFlush
       }
     });
     

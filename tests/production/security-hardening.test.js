@@ -74,7 +74,7 @@ describe('Production Security Hardening Tests', () => {
     
     // Generate security report
     const report = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       testSuite: 'RDF/Turtle Security Hardening',
       results: securityResults,
       riskLevel: calculateRiskLevel(securityResults),
@@ -124,7 +124,7 @@ describe('Production Security Hardening Tests', () => {
           securityResults.injectionAttempts.push({
             input: maliciousInput,
             blocked: true,
-            timestamp: Date.now()
+            timestamp: this.getDeterministicTimestamp()
           });
           
         } catch (error) {
@@ -133,7 +133,7 @@ describe('Production Security Hardening Tests', () => {
             input: maliciousInput,
             blocked: true,
             error: error.message,
-            timestamp: Date.now()
+            timestamp: this.getDeterministicTimestamp()
           });
         }
       }
@@ -319,13 +319,13 @@ describe('Production Security Hardening Tests', () => {
       ];
       
       for (const query of complexQueries) {
-        const startTime = Date.now();
+        const startTime = this.getDeterministicTimestamp();
         const startMemory = process.memoryUsage().heapUsed;
         
         try {
           const result = rdfFilters.rdfQuery(query);
           
-          const endTime = Date.now();
+          const endTime = this.getDeterministicTimestamp();
           const endMemory = process.memoryUsage().heapUsed;
           const duration = endTime - startTime;
           const memoryUsedMB = (endMemory - startMemory) / 1024 / 1024;
@@ -374,9 +374,9 @@ describe('Production Security Hardening Tests', () => {
       let blockedRequests = 0;
       let errors = 0;
       
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
-      while (Date.now() - startTime < testDuration) {
+      while (this.getDeterministicTimestamp() - startTime < testDuration) {
         try {
           requestCount++;
           
@@ -399,7 +399,7 @@ describe('Production Security Hardening Tests', () => {
         }
       }
       
-      const actualDuration = Date.now() - startTime;
+      const actualDuration = this.getDeterministicTimestamp() - startTime;
       const actualRPS = (requestCount * 1000) / actualDuration;
       
       console.log(`✅ Rate limiting test: ${requestCount} requests in ${actualDuration}ms`);

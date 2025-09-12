@@ -104,6 +104,7 @@ test-*/
 *.bak[0-9][0-9]
 *.backup
 *.backup[0-9]
+*.backup-[0-9]*
 *~
 .#*
 #*#
@@ -205,3 +206,6 @@ examples/generated*/
 examples/test-*/
 demo-*/
 *-demo/
+
+.attest-store/
+.kgen

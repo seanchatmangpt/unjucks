@@ -58,7 +58,7 @@ export class KnowledgeCompiler extends EventEmitter {
       await this.initialize();
     }
     
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       this.logger.info(`Compiling context with ${rdfGraph.triples?.length || 0} triples and ${n3Rules.length} rules`);
@@ -89,7 +89,7 @@ export class KnowledgeCompiler extends EventEmitter {
       // Optimize
       const optimizedContext = this._optimizeContext(context, options);
       
-      this.metrics.compilationTime = Date.now() - startTime;
+      this.metrics.compilationTime = this.getDeterministicTimestamp() - startTime;
       
       if (this.config.enableCaching) {
         this.contextCache.set(cacheKey, optimizedContext);
@@ -352,7 +352,7 @@ export class KnowledgeCompiler extends EventEmitter {
       variables: templateVariables,
       facts: {},
       metadata: {
-        compiledAt: new Date().toISOString(),
+        compiledAt: this.getDeterministicDate().toISOString(),
         inferredFacts: inferredFacts.length,
         variableCount: Object.keys(templateVariables).length
       }

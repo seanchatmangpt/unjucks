@@ -17,7 +17,7 @@ export class CLIStructureAuditor {
     };
     this.report = {
       agent: 'CLI Structure Auditor',
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       structure: {},
       commands: {},
       analysis: {}

@@ -143,7 +143,7 @@ describe('RDF/Turtle Data Loading Integration', () => {
   let memoryInterface;
   let orchestrator;
   let testWorkspace => {
-    testWorkspace = join(tmpdir(), `rdf-test-${Date.now()}`);
+    testWorkspace = join(tmpdir(), `rdf-test-${this.getDeterministicTimestamp()}`);
     rdfDataDir = join(testWorkspace, 'rdf-data');
     
     // Create test workspace and RDF data directory
@@ -325,20 +325,20 @@ describe('RDF/Turtle Data Loading Integration', () => {
       const rdfLoader = await connector.getRDFLoader();
       
       // First load (should parse)
-      const startTime1 = Date.now();
+      const startTime1 = this.getDeterministicTimestamp();
       const result1 = await rdfLoader.loadTurtleFile(
         join(rdfDataDir, 'api-standards.ttl')
       );
-      const duration1 = Date.now() - startTime1;
+      const duration1 = this.getDeterministicTimestamp() - startTime1;
       
       expect(result1.success).toBe(true);
       
       // Second load (should use cache)
-      const startTime2 = Date.now();
+      const startTime2 = this.getDeterministicTimestamp();
       const result2 = await rdfLoader.loadTurtleFile(
         join(rdfDataDir, 'api-standards.ttl')
       );
-      const duration2 = Date.now() - startTime2;
+      const duration2 = this.getDeterministicTimestamp() - startTime2;
       
       expect(result2.success).toBe(true);
       expect(result2.data.triples.length).toBe(result1.data.triples.length);
@@ -386,18 +386,18 @@ describe('RDF/Turtle Data Loading Integration', () => {
       
       const rdfLoader = await connector.getRDFLoader();
       
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const result = await rdfLoader.loadTurtleFile(
         join(rdfDataDir, 'large-dataset.ttl')
       );
-      const loadTime = Date.now() - startTime;
+      const loadTime = this.getDeterministicTimestamp() - startTime;
       
       expect(result.success).toBe(true);
       expect(result.data.triples.length).toBeGreaterThan(2500); // 3 triples per entity
       expect(loadTime).toBeLessThan(5000); // Should load in under 5 seconds
       
       // Test querying performance
-      const queryStart = Date.now();
+      const queryStart = this.getDeterministicTimestamp();
       const queryResult = await rdfLoader.query({ select });
 
     it('should support incremental RDF updates', async () => { const rdfLoader = await connector.getRDFLoader();

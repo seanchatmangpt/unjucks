@@ -462,9 +462,9 @@ describe('VariableExtractor', () => {
   describe('Performance and Edge Cases', () => {
     test('should handle large templates efficiently', () => {
       const largeContent = '{{var}} '.repeat(1000);
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const result = extractor.extract(largeContent);
-      const endTime = Date.now();
+      const endTime = this.getDeterministicTimestamp();
 
       expect(result.variables.length).toBe(1000);
       expect(endTime - startTime).toBeLessThan(1000); // Should complete within 1 second

@@ -31,11 +31,11 @@ class KGenCLITester {
       partial: 0,
       commands: {}
     };
-    this.startTime = Date.now();
+    this.startTime = this.getDeterministicTimestamp();
   }
 
   log(level, message, data = null) {
-    const timestamp = new Date().toISOString();
+    const timestamp = this.getDeterministicDate().toISOString();
     const prefix = {
       'INFO': '✅',
       'WARN': '⚠️',
@@ -63,7 +63,7 @@ class KGenCLITester {
       expectedBehavior
     };
 
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       // Execute command with timeout
@@ -73,7 +73,7 @@ class KGenCLITester {
         stdio: 'pipe'
       });
       
-      testResult.duration = Date.now() - startTime;
+      testResult.duration = this.getDeterministicTimestamp() - startTime;
       testResult.output = output;
       
       // Analyze output to determine status
@@ -96,7 +96,7 @@ class KGenCLITester {
       }
       
     } catch (error) {
-      testResult.duration = Date.now() - startTime;
+      testResult.duration = this.getDeterministicTimestamp() - startTime;
       testResult.error = error.message;
       testResult.status = error.status === 1 ? 'broken' : 'broken';
       this.results.broken++;
@@ -277,7 +277,7 @@ class KGenCLITester {
   }
 
   generateReport() {
-    const duration = Date.now() - this.startTime;
+    const duration = this.getDeterministicTimestamp() - this.startTime;
     const successRate = this.results.total > 0 ? 
       ((this.results.working / this.results.total) * 100).toFixed(1) : 0;
     
@@ -286,7 +286,7 @@ class KGenCLITester {
 
     const report = {
       summary: {
-        testDate: new Date().toISOString(),
+        testDate: this.getDeterministicDate().toISOString(),
         duration: `${duration}ms`,
         totalCommands: this.results.total,
         working: this.results.working,

@@ -6,7 +6,7 @@
  */
 
 import { EventEmitter } from 'events';
-import { Logger } from 'consola';
+import { Consola } from 'consola';
 import { SemanticProcessor } from '../semantic/processor.js';
 import { IngestionPipeline } from '../ingestion/pipeline.js';
 import { ProvenanceTracker } from '../provenance/tracker.js';
@@ -48,7 +48,7 @@ export class KGenEngine extends EventEmitter {
       ...config
     };
     
-    this.logger = new Logger({ tag: 'kgen-engine' });
+    this.logger = new Consola({ tag: 'kgen-engine' });
     this.state = 'initialized';
     this.operationQueue = [];
     this.activeOperations = new Map();
@@ -136,7 +136,7 @@ export class KGenEngine extends EventEmitter {
         operationId,
         type: 'ingestion',
         sources,
-        timestamp: new Date(),
+        timestamp: this.getDeterministicDate(),
         user: options.user
       });
       
@@ -233,7 +233,7 @@ export class KGenEngine extends EventEmitter {
         type: 'reasoning',
         inputGraph: graph,
         rules,
-        timestamp: new Date(),
+        timestamp: this.getDeterministicDate(),
         user: options.user
       });
       
@@ -263,7 +263,7 @@ export class KGenEngine extends EventEmitter {
         metrics: {
           rulesApplied: rules.length,
           newTriples: inferredGraph.inferredTriples?.length || 0,
-          inferenceTime: Date.now() - provenanceContext.startTime
+          inferenceTime: this.getDeterministicTimestamp() - provenanceContext.startTime
         }
       });
       
@@ -336,7 +336,7 @@ export class KGenEngine extends EventEmitter {
         type: 'validation',
         inputGraph: graph,
         constraints,
-        timestamp: new Date(),
+        timestamp: this.getDeterministicDate(),
         user: options.user
       });
       
@@ -354,7 +354,7 @@ export class KGenEngine extends EventEmitter {
         metrics: {
           constraintsChecked: constraints.length,
           violationsFound: validationReport.violations?.length || 0,
-          validationTime: Date.now() - provenanceContext.startTime
+          validationTime: this.getDeterministicTimestamp() - provenanceContext.startTime
         }
       });
       
@@ -427,7 +427,7 @@ export class KGenEngine extends EventEmitter {
         type: 'generation',
         inputGraph: graph,
         templates,
-        timestamp: new Date(),
+        timestamp: this.getDeterministicDate(),
         user: options.user
       });
       
@@ -464,7 +464,7 @@ export class KGenEngine extends EventEmitter {
         metrics: {
           templatesProcessed: templates.length,
           artifactsGenerated: generatedArtifacts.length,
-          generationTime: Date.now() - provenanceContext.startTime
+          generationTime: this.getDeterministicTimestamp() - provenanceContext.startTime
         }
       });
       
@@ -533,7 +533,7 @@ export class KGenEngine extends EventEmitter {
       return results;
       
     } catch (error) {
-      const operationId = `query_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const operationId = `query_${this.getDeterministicTimestamp()}_${Math.random().toString(36).substr(2, 9)}`;
       const errorContext = {
         component: 'kgen-engine',
         operation: 'query',
@@ -651,7 +651,7 @@ export class KGenEngine extends EventEmitter {
   }
 
   _generateOperationId() {
-    return `kgen_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    return `kgen_${this.getDeterministicTimestamp()}_${Math.random().toString(36).substr(2, 9)}`;
   }
 
   async _executeGeneration(context, templates, options) {
@@ -703,7 +703,7 @@ export class KGenEngine extends EventEmitter {
             content: artifact.content || null,
             operationType: artifact.operationType || result.operationType,
             metadata: {
-              generatedAt: artifact.modified || new Date(),
+              generatedAt: artifact.modified || this.getDeterministicDate(),
               operationId: result.operationId,
               frontmatterMetadata: result.metadata,
               pathResolution: result.pathResolution,
@@ -733,7 +733,7 @@ export class KGenEngine extends EventEmitter {
           type: 'generation_error',
           error: error.error,
           metadata: {
-            generatedAt: new Date(),
+            generatedAt: this.getDeterministicDate(),
             operationId: options.operationId,
             errorContext: error,
             provenance: {
@@ -778,7 +778,7 @@ export class KGenEngine extends EventEmitter {
           artifacts: result.artifacts,
           operationType: result.operationType,
           metadata: {
-            generatedAt: new Date(),
+            generatedAt: this.getDeterministicDate(),
             operationId: options.operationId,
             frontmatterMetadata: result.metadata,
             pathResolution: result.pathResolution,
@@ -797,7 +797,7 @@ export class KGenEngine extends EventEmitter {
           skipped: true,
           reason: result.reason,
           metadata: {
-            generatedAt: new Date(),
+            generatedAt: this.getDeterministicDate(),
             operationId: options.operationId,
             conditionalResult: result.conditionalResult,
             provenance: {
@@ -817,7 +817,7 @@ export class KGenEngine extends EventEmitter {
         type: 'generation_error',
         error: error.message,
         metadata: {
-          generatedAt: new Date(),
+          generatedAt: this.getDeterministicDate(),
           operationId: options.operationId,
           errorContext: {
             templateId: template.id,
@@ -845,9 +845,9 @@ export class KGenEngine extends EventEmitter {
   }
 
   async _waitForActiveOperations(timeout = 30000) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
-    while (this.activeOperations.size > 0 && (Date.now() - startTime) < timeout) {
+    while (this.activeOperations.size > 0 && (this.getDeterministicTimestamp() - startTime) < timeout) {
       await new Promise(resolve => setTimeout(resolve, 100));
     }
     
@@ -859,7 +859,7 @@ export class KGenEngine extends EventEmitter {
   _trackOperationStart(event) {
     this.activeOperations.set(event.operationId, {
       type: event.type,
-      startTime: Date.now(),
+      startTime: this.getDeterministicTimestamp(),
       user: event.user
     });
   }
@@ -873,7 +873,7 @@ export class KGenEngine extends EventEmitter {
       operationsProcessed: this.activeOperations.size,
       memoryUsage: process.memoryUsage(),
       cpuUsage: process.cpuUsage(),
-      timestamp: new Date()
+      timestamp: this.getDeterministicDate()
     };
   }
 

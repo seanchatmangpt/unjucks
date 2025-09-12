@@ -6,13 +6,13 @@
  */
 
 import { QueryEngine, createTemplateQueryEngine, createOptimizedQueryEngine } from '../packages/kgen-core/src/query/index.js';
-import { Logger } from 'consola';
+import { Consola } from 'consola';
 import { Store, DataFactory } from 'n3';
 
 const { namedNode, literal } = DataFactory;
 
 // Test logger
-const logger = new Logger({ tag: 'query-engine-test' });
+const logger = new Consola({ tag: 'query-engine-test' });
 
 // Test utilities
 function createTestRDFData() {

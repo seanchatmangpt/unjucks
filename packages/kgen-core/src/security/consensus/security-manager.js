@@ -105,7 +105,7 @@ export class ConsensusSecurityManager extends EventEmitter {
     }
 
     const operationId = this.generateOperationId();
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
 
     try {
       // 1. Pre-consensus security validation
@@ -127,7 +127,7 @@ export class ConsensusSecurityManager extends EventEmitter {
       // 6. Update security metrics
       this.updateSecurityMetrics('consensus_operation', {
         operationId,
-        duration: Date.now() - startTime,
+        duration: this.getDeterministicTimestamp() - startTime,
         success: true
       });
 
@@ -143,7 +143,7 @@ export class ConsensusSecurityManager extends EventEmitter {
       this.emit('security_threat_detected', {
         operationId,
         threat: error.message,
-        timestamp: new Date()
+        timestamp: this.getDeterministicDate()
       });
       throw error;
     }
@@ -166,14 +166,14 @@ export class ConsensusSecurityManager extends EventEmitter {
       this.emit('threshold_signature_created', {
         messageHash: this.hashMessage(message),
         signatories: signatories.length,
-        timestamp: new Date()
+        timestamp: this.getDeterministicDate()
       });
 
       return signature;
     } catch (error) {
       this.emit('threshold_signature_failed', {
         error: error.message,
-        timestamp: new Date()
+        timestamp: this.getDeterministicDate()
       });
       throw error;
     }
@@ -193,14 +193,14 @@ export class ConsensusSecurityManager extends EventEmitter {
       this.emit('threshold_signature_verified', {
         messageHash: this.hashMessage(message),
         valid,
-        timestamp: new Date()
+        timestamp: this.getDeterministicDate()
       });
 
-      return { valid, timestamp: new Date() };
+      return { valid, timestamp: this.getDeterministicDate() };
     } catch (error) {
       this.emit('threshold_signature_verification_failed', {
         error: error.message,
-        timestamp: new Date()
+        timestamp: this.getDeterministicDate()
       });
       return { valid: false, reason: error.message };
     }
@@ -242,7 +242,7 @@ export class ConsensusSecurityManager extends EventEmitter {
 
       this.emit('zk_proof_created', {
         proofType,
-        timestamp: new Date()
+        timestamp: this.getDeterministicDate()
       });
 
       return proof;
@@ -250,7 +250,7 @@ export class ConsensusSecurityManager extends EventEmitter {
       this.emit('zk_proof_failed', {
         proofType,
         error: error.message,
-        timestamp: new Date()
+        timestamp: this.getDeterministicDate()
       });
       throw error;
     }
@@ -284,15 +284,15 @@ export class ConsensusSecurityManager extends EventEmitter {
       this.emit('zk_proof_verified', {
         proofType,
         valid,
-        timestamp: new Date()
+        timestamp: this.getDeterministicDate()
       });
 
-      return { valid, timestamp: new Date() };
+      return { valid, timestamp: this.getDeterministicDate() };
     } catch (error) {
       this.emit('zk_proof_verification_failed', {
         proofType,
         error: error.message,
-        timestamp: new Date()
+        timestamp: this.getDeterministicDate()
       });
       return { valid: false, reason: error.message };
     }
@@ -356,7 +356,7 @@ export class ConsensusSecurityManager extends EventEmitter {
           attacks,
           mitigations,
           consensusRound: consensusRound.id,
-          timestamp: new Date()
+          timestamp: this.getDeterministicDate()
         });
       }
 
@@ -364,7 +364,7 @@ export class ConsensusSecurityManager extends EventEmitter {
     } catch (error) {
       this.emit('attack_detection_failed', {
         error: error.message,
-        timestamp: new Date()
+        timestamp: this.getDeterministicDate()
       });
       throw error;
     }
@@ -383,14 +383,14 @@ export class ConsensusSecurityManager extends EventEmitter {
       
       this.emit('security_testing_completed', {
         results: testResults,
-        timestamp: new Date()
+        timestamp: this.getDeterministicDate()
       });
 
       return testResults;
     } catch (error) {
       this.emit('security_testing_failed', {
         error: error.message,
-        timestamp: new Date()
+        timestamp: this.getDeterministicDate()
       });
       throw error;
     }
@@ -412,14 +412,14 @@ export class ConsensusSecurityManager extends EventEmitter {
       this.emit('keys_rotated', {
         newKeyId: newKey.masterPublicKey,
         participants: participants.length,
-        timestamp: new Date()
+        timestamp: this.getDeterministicDate()
       });
 
       return newKey;
     } catch (error) {
       this.emit('key_rotation_failed', {
         error: error.message,
-        timestamp: new Date()
+        timestamp: this.getDeterministicDate()
       });
       throw error;
     }
@@ -450,8 +450,8 @@ export class ConsensusSecurityManager extends EventEmitter {
    * Generate security report
    */
   async generateSecurityReport(timeframe = {}) {
-    const start = timeframe.start || new Date(Date.now() - 24 * 60 * 60 * 1000);
-    const end = timeframe.end || new Date();
+    const start = timeframe.start || new Date(this.getDeterministicTimestamp() - 24 * 60 * 60 * 1000);
+    const end = timeframe.end || this.getDeterministicDate();
 
     const relevantEvents = this.securityMetrics.securityEvents.filter(
       event => event.timestamp >= start && event.timestamp <= end
@@ -526,7 +526,7 @@ export class ConsensusSecurityManager extends EventEmitter {
       operationId: this.generateOperationId(),
       operation,
       proofs,
-      timestamp: new Date(),
+      timestamp: this.getDeterministicDate(),
       nodeId: this.nodeId
     };
   }
@@ -547,7 +547,7 @@ export class ConsensusSecurityManager extends EventEmitter {
       success: true,
       operation,
       proofs,
-      timestamp: new Date(),
+      timestamp: this.getDeterministicDate(),
       securityContext: monitor ? monitor.getContext() : null
     };
 
@@ -562,7 +562,7 @@ export class ConsensusSecurityManager extends EventEmitter {
       type: 'consensus_completed',
       result,
       securityContext,
-      timestamp: new Date()
+      timestamp: this.getDeterministicDate()
     });
   }
 
@@ -570,7 +570,7 @@ export class ConsensusSecurityManager extends EventEmitter {
     this.securityMetrics.securityEvents.push({
       type: eventType,
       data,
-      timestamp: new Date()
+      timestamp: this.getDeterministicDate()
     });
   }
 
@@ -590,7 +590,7 @@ export class ConsensusSecurityManager extends EventEmitter {
       } catch (error) {
         this.emit('scheduled_key_rotation_failed', {
           error: error.message,
-          timestamp: new Date()
+          timestamp: this.getDeterministicDate()
         });
       }
     }, this.config.security.keyRotationInterval);
@@ -610,7 +610,7 @@ export class ConsensusSecurityManager extends EventEmitter {
   }
 
   getLastKeyRotation() {
-    return new Date(Date.now() - 12 * 60 * 60 * 1000); // 12 hours ago
+    return new Date(this.getDeterministicTimestamp() - 12 * 60 * 60 * 1000); // 12 hours ago
   }
 
   calculateSecurityLevel() {
@@ -726,7 +726,7 @@ export class ConsensusSecurityManager extends EventEmitter {
   assessThreatLevel() {
     const recentAttacks = this.securityMetrics.securityEvents.filter(
       e => e.type === 'attacks_detected' && 
-      e.timestamp > new Date(Date.now() - 60 * 60 * 1000) // Last hour
+      e.timestamp > new Date(this.getDeterministicTimestamp() - 60 * 60 * 1000) // Last hour
     ).length;
 
     if (recentAttacks >= 5) return 'CRITICAL';
@@ -737,7 +737,7 @@ export class ConsensusSecurityManager extends EventEmitter {
 
   async shutdown() {
     this.isInitialized = false;
-    this.emit('shutdown', { nodeId: this.nodeId, timestamp: new Date() });
+    this.emit('shutdown', { nodeId: this.nodeId, timestamp: this.getDeterministicDate() });
   }
 }
 

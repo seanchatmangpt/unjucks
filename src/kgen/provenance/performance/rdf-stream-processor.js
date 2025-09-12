@@ -112,7 +112,7 @@ export class RDFStreamProcessor extends EventEmitter {
    */
   async processFile(filePath, options = {}) {
     const streamId = crypto.randomBytes(8).toString('hex');
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       this.logger.info(`Starting stream processing: ${streamId} (${filePath})`);
@@ -154,7 +154,7 @@ export class RDFStreamProcessor extends EventEmitter {
       }
       
       // Update statistics
-      const processingTime = Date.now() - startTime;
+      const processingTime = this.getDeterministicTimestamp() - startTime;
       this._updateProcessingStats(result, processingTime);
       
       this.activeStreams.delete(streamId);
@@ -179,14 +179,14 @@ export class RDFStreamProcessor extends EventEmitter {
    */
   async processStream(inputStream, options = {}) {
     const streamId = crypto.randomBytes(8).toString('hex');
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       this.logger.debug(`Processing input stream: ${streamId}`);
       
       const result = await this._processInputStream(streamId, inputStream, options);
       
-      const processingTime = Date.now() - startTime;
+      const processingTime = this.getDeterministicTimestamp() - startTime;
       this._updateProcessingStats(result, processingTime);
       
       this.logger.debug(`Stream processing completed: ${streamId} (${processingTime}ms)`);
@@ -329,7 +329,7 @@ export class RDFStreamProcessor extends EventEmitter {
   createAdaptiveBuffer() {
     let bufferSize = this.config.batchSize;
     let buffer = [];
-    let lastMemoryCheck = Date.now();
+    let lastMemoryCheck = this.getDeterministicTimestamp();
     
     return new Transform({
       objectMode: true,
@@ -338,7 +338,7 @@ export class RDFStreamProcessor extends EventEmitter {
         buffer.push(quad);
         
         // Adaptive buffer sizing based on memory usage
-        const now = Date.now();
+        const now = this.getDeterministicTimestamp();
         if (now - lastMemoryCheck > 1000) { // Check every second
           const memUsage = process.memoryUsage();
           
@@ -439,13 +439,13 @@ export class RDFStreamProcessor extends EventEmitter {
     });
     
     // Setup progress reporting
-    let lastProgressTime = Date.now();
+    let lastProgressTime = this.getDeterministicTimestamp();
     let lastQuadCount = 0;
     
     const progressStream = new Transform({
       objectMode: true,
       transform(data, encoding, callback) {
-        const now = Date.now();
+        const now = this.getDeterministicTimestamp();
         if (now - lastProgressTime > this.config.progressInterval) {
           const speed = (quadsProcessed - lastQuadCount) / (now - lastProgressTime) * 1000;
           
@@ -873,7 +873,7 @@ export class RDFStreamProcessor extends EventEmitter {
       streams.push({
         streamId,
         ...info,
-        duration: Date.now() - info.startTime
+        duration: this.getDeterministicTimestamp() - info.startTime
       });
     }
     

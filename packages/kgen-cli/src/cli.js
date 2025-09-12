@@ -14,7 +14,7 @@ runMain(main).catch(error => {
     success: false,
     error: error.message,
     stack: error.stack,
-    timestamp: new Date().toISOString()
+    timestamp: this.getDeterministicDate().toISOString()
   }, null, 2));
   process.exit(1);
 });

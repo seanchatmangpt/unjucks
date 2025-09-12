@@ -174,7 +174,7 @@ export class TemplateEngine {
   addGlobalFunctions(env) {
     // Add deterministic timestamp (can be overridden with fixed value)
     env.addGlobal('timestamp', () => {
-      return this.options.fixedTimestamp || new Date().toISOString();
+      return this.options.fixedTimestamp || this.getDeterministicDate().toISOString();
     });
     
     // Add deterministic environment detection
@@ -461,7 +461,7 @@ export class TemplateEngine {
     // Create deterministic timestamp if not provided (sorted for consistency)
     const timestamp = this.options.fixedTimestamp || 
                      userContext.timestamp || 
-                     new Date().toISOString();
+                     this.getDeterministicDate().toISOString();
     
     // Create deterministic context with sorted keys
     const sortedContext = this.sortObjectKeys(userContext);

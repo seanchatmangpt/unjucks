@@ -73,7 +73,7 @@ export class MasterCoordinator extends EventEmitter {
       throughputPerSecond: 0
     };
     
-    this.startTime = Date.now();
+    this.startTime = this.getDeterministicTimestamp();
   }
   
   /**
@@ -223,7 +223,7 @@ export class MasterCoordinator extends EventEmitter {
     }
     
     const jobId = crypto.randomUUID();
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       if (this.config.debug) {
@@ -242,7 +242,7 @@ export class MasterCoordinator extends EventEmitter {
       // Step 4: Aggregate results
       const finalResult = await this.aggregateResults(results, options);
       
-      const processingTime = Date.now() - startTime;
+      const processingTime = this.getDeterministicTimestamp() - startTime;
       
       // Update metrics
       this.updateMetrics({
@@ -267,7 +267,7 @@ export class MasterCoordinator extends EventEmitter {
         success: false,
         jobId,
         error: error.message,
-        processingTime: Date.now() - startTime
+        processingTime: this.getDeterministicTimestamp() - startTime
       };
     }
   }
@@ -499,7 +499,7 @@ export class MasterCoordinator extends EventEmitter {
       data: null,
       metadata: {
         aggregationStrategy,
-        timestamp: new Date().toISOString()
+        timestamp: this.getDeterministicDate().toISOString()
       }
     };
     
@@ -639,8 +639,8 @@ export class MasterCoordinator extends EventEmitter {
   handleNodeJoined(nodeInfo) {
     this.nodes.set(nodeInfo.nodeId, {
       ...nodeInfo,
-      joinedAt: Date.now(),
-      lastHeartbeat: Date.now(),
+      joinedAt: this.getDeterministicTimestamp(),
+      lastHeartbeat: this.getDeterministicTimestamp(),
       status: 'active'
     });
     
@@ -694,7 +694,7 @@ export class MasterCoordinator extends EventEmitter {
   async sendHeartbeat() {
     const heartbeat = {
       nodeId: this.nodeId,
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       isLeader: this.isLeader,
       metrics: this.getMetrics(),
       status: 'active'
@@ -711,7 +711,7 @@ export class MasterCoordinator extends EventEmitter {
    * Get current metrics
    */
   getMetrics() {
-    const uptime = Date.now() - this.startTime;
+    const uptime = this.getDeterministicTimestamp() - this.startTime;
     
     return {
       ...this.metrics,
@@ -735,7 +735,7 @@ export class MasterCoordinator extends EventEmitter {
     }
     
     if (updates.triplesProcessed) {
-      const uptime = Date.now() - this.startTime;
+      const uptime = this.getDeterministicTimestamp() - this.startTime;
       this.metrics.throughputPerSecond = this.metrics.triplesProcessed / (uptime / 1000);
     }
   }

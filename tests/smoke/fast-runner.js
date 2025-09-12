@@ -17,13 +17,13 @@ const projectRoot = path.resolve(__dirname, '../..');
 
 class FastSmokeRunner {
   constructor() {
-    this.startTime = Date.now();
+    this.startTime = this.getDeterministicTimestamp();
     this.timeoutMs = 60000; // 60 second hard limit
     this.results = [];
   }
 
   log(message, type = 'info') {
-    const timestamp = Date.now() - this.startTime;
+    const timestamp = this.getDeterministicTimestamp() - this.startTime;
     const colors = {
       info: 'blue',
       success: 'green',
@@ -58,10 +58,10 @@ class FastSmokeRunner {
   }
 
   async quickTest(name, testFn) {
-    const start = Date.now();
+    const start = this.getDeterministicTimestamp();
     try {
       const result = await testFn();
-      const duration = Date.now() - start;
+      const duration = this.getDeterministicTimestamp() - start;
       
       this.results.push({
         name,
@@ -75,7 +75,7 @@ class FastSmokeRunner {
       
       return result.success;
     } catch (error) {
-      const duration = Date.now() - start;
+      const duration = this.getDeterministicTimestamp() - start;
       this.results.push({
         name,
         status: 'FAIL',
@@ -206,7 +206,7 @@ class FastSmokeRunner {
       clearTimeout(overallTimeout);
 
       // Summary
-      const totalDuration = Date.now() - this.startTime;
+      const totalDuration = this.getDeterministicTimestamp() - this.startTime;
       const passed = this.results.filter(r => r.status === 'PASS').length;
       const failed = this.results.filter(r => r.status === 'FAIL').length;
       const total = this.results.length;

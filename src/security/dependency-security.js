@@ -102,7 +102,7 @@ export class DependencySecurityManager {
     const cacheKey = `npm-audit:${projectPath}`;
     const cached = this.vulnerabilityCache.get(cacheKey);
     
-    if (cached && Date.now() - cached.timestamp < this.cacheTimeout) {
+    if (cached && this.getDeterministicTimestamp() - cached.timestamp < this.cacheTimeout) {
       return cached.data;
     }
 
@@ -118,7 +118,7 @@ export class DependencySecurityManager {
       
       this.vulnerabilityCache.set(cacheKey, {
         data: { vulnerabilities },
-        timestamp: Date.now()
+        timestamp: this.getDeterministicTimestamp()
       });
       
       return { vulnerabilities };
@@ -609,7 +609,7 @@ export class DependencySecurityManager {
    * Generate security report
    */
   generateSecurityReport(auditResults, format = 'json') {
-    const timestamp = new Date().toISOString();
+    const timestamp = this.getDeterministicDate().toISOString();
     
     const report = {
       timestamp,

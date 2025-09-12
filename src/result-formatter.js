@@ -90,7 +90,7 @@ export class KgenResultFormatter extends EventEmitter {
         templateVariables: new Map(),
         renderingHints: {},
         metadata: {
-          extractedAt: new Date().toISOString(),
+          extractedAt: this.getDeterministicDate().toISOString(),
           resultCount: results.results?.bindings?.length || 0,
           extractionDepth: options.contextExtractionDepth || this.config.contextExtractionDepth
         }
@@ -383,7 +383,7 @@ export class KgenResultFormatter extends EventEmitter {
     }
     
     // Context-specific variables
-    variables.set('timestamp', new Date().toISOString());
+    variables.set('timestamp', this.getDeterministicDate().toISOString());
     variables.set('contextHash', this.generateContextHash(context));
     variables.set('resultCount', results.results?.bindings?.length || 0);
     
@@ -509,7 +509,7 @@ export class KgenResultFormatter extends EventEmitter {
       patterns: templateContext.patterns || [],
       hints: templateContext.renderingHints || {},
       metadata: {
-        generatedAt: new Date().toISOString(),
+        generatedAt: this.getDeterministicDate().toISOString(),
         resultCount: results.results?.bindings?.length || 0,
         contextEntities: templateContext.entities?.length || 0
       }

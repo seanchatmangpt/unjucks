@@ -6,7 +6,7 @@
  */
 
 import { EventEmitter } from 'events';
-import { Logger } from 'consola';
+import { Consola } from 'consola';
 import { promises as fs } from 'fs';
 import { Parser, Store, Writer, DataFactory, Util } from 'n3';
 import { Transform, Readable, Writable } from 'stream';
@@ -58,7 +58,7 @@ export class RDFStreamOptimizer extends EventEmitter {
       ...config
     };
     
-    this.logger = new Logger({ tag: 'rdf-stream-optimizer' });
+    this.logger = new Consola({ tag: 'rdf-stream-optimizer' });
     
     // Core components
     this.store = new Store();
@@ -85,7 +85,7 @@ export class RDFStreamOptimizer extends EventEmitter {
     
     // Memory monitoring
     this.memoryMonitor = null;
-    this.lastGCTime = Date.now();
+    this.lastGCTime = this.getDeterministicTimestamp();
     
     this.state = 'initialized';
   }
@@ -139,7 +139,7 @@ export class RDFStreamOptimizer extends EventEmitter {
    * @returns {Promise<Object>} Processing results
    */
   async processRDF(input, options = {}) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     const processId = this._generateProcessId();
     
     try {
@@ -169,7 +169,7 @@ export class RDFStreamOptimizer extends EventEmitter {
       }
       
       // Update metrics
-      const processingTime = Date.now() - startTime;
+      const processingTime = this.getDeterministicTimestamp() - startTime;
       this._updateMetrics('process', processingTime, results.quads?.length || 0);
       
       results.metadata = {
@@ -199,7 +199,7 @@ export class RDFStreamOptimizer extends EventEmitter {
    * @returns {Promise<Object>} Query results
    */
   async executeQuery(query, options = {}) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     const queryId = this._generateQueryId();
     
     try {
@@ -228,7 +228,7 @@ export class RDFStreamOptimizer extends EventEmitter {
       }
       
       // Update metrics
-      const queryTime = Date.now() - startTime;
+      const queryTime = this.getDeterministicTimestamp() - startTime;
       this._updateMetrics('query', queryTime, results.results?.bindings?.length || 0);
       
       results.metadata = {
@@ -297,7 +297,7 @@ export class RDFStreamOptimizer extends EventEmitter {
       
       this.activeStreams.set(streamId, {
         pipeline: processingPipeline,
-        startTime: Date.now(),
+        startTime: this.getDeterministicTimestamp(),
         options
       });
       
@@ -317,7 +317,7 @@ export class RDFStreamOptimizer extends EventEmitter {
    * @returns {Promise<Object>} Optimization results
    */
   async optimizeGraph(optimizationOptions = {}) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       this.logger.info('Optimizing graph structure...');
@@ -360,7 +360,7 @@ export class RDFStreamOptimizer extends EventEmitter {
       }
       
       optimization.after = this._getGraphStatistics();
-      optimization.totalTime = Date.now() - startTime;
+      optimization.totalTime = this.getDeterministicTimestamp() - startTime;
       optimization.overallImprovement = this._calculateOverallImprovement(optimization);
       
       this.logger.success(`Graph optimization completed: ${optimization.overallImprovement}% improvement (${optimization.totalTime}ms)`);
@@ -451,15 +451,15 @@ export class RDFStreamOptimizer extends EventEmitter {
   // Private methods
 
   _generateProcessId() {
-    return `process_${Date.now()}_${crypto.randomBytes(4).toString('hex')}`;
+    return `process_${this.getDeterministicTimestamp()}_${crypto.randomBytes(4).toString('hex')}`;
   }
 
   _generateQueryId() {
-    return `query_${Date.now()}_${crypto.randomBytes(4).toString('hex')}`;
+    return `query_${this.getDeterministicTimestamp()}_${crypto.randomBytes(4).toString('hex')}`;
   }
 
   _generateStreamId() {
-    return `stream_${Date.now()}_${crypto.randomBytes(4).toString('hex')}`;
+    return `stream_${this.getDeterministicTimestamp()}_${crypto.randomBytes(4).toString('hex')}`;
   }
 
   async _determineProcessingStrategy(input, options) {
@@ -684,13 +684,13 @@ export class RDFStreamOptimizer extends EventEmitter {
   }
 
   async _updateIndexes(quads) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     for (const quad of quads) {
       await this._indexQuad(quad);
     }
     
-    const indexingTime = Date.now() - startTime;
+    const indexingTime = this.getDeterministicTimestamp() - startTime;
     this.metrics.indexingTime += indexingTime;
   }
 
@@ -739,7 +739,7 @@ export class RDFStreamOptimizer extends EventEmitter {
     if (!cached) return null;
     
     // Check cache expiration
-    if (Date.now() - cached.timestamp > 300000) { // 5 minutes
+    if (this.getDeterministicTimestamp() - cached.timestamp > 300000) { // 5 minutes
       this.queryCache.delete(cacheKey);
       return null;
     }
@@ -754,7 +754,7 @@ export class RDFStreamOptimizer extends EventEmitter {
       query,
       options,
       result: results,
-      timestamp: Date.now()
+      timestamp: this.getDeterministicTimestamp()
     });
     
     // Limit cache size
@@ -939,7 +939,7 @@ export class RDFStreamOptimizer extends EventEmitter {
   }
 
   _triggerGarbageCollection() {
-    const now = Date.now();
+    const now = this.getDeterministicTimestamp();
     
     // Rate limit GC calls
     if (now - this.lastGCTime < 10000) { // 10 seconds

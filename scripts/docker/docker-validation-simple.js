@@ -12,7 +12,7 @@ import { existsSync, mkdirSync } from 'fs';
 class SimpleDockerValidator {
   constructor() {
     this.results = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       tests: [],
       summary: { total: 0, passed: 0, failed: 0, passRate: 0 }
     };
@@ -20,11 +20,11 @@ class SimpleDockerValidator {
 
   async runTest(name, testFn) {
     console.log(`🧪 Testing: ${name}`);
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       await testFn();
-      const duration = Date.now() - startTime;
+      const duration = this.getDeterministicTimestamp() - startTime;
       console.log(`  ✅ PASSED (${duration}ms)`);
       
       this.results.tests.push({
@@ -36,7 +36,7 @@ class SimpleDockerValidator {
       this.results.summary.passed++;
       
     } catch (error) {
-      const duration = Date.now() - startTime;
+      const duration = this.getDeterministicTimestamp() - startTime;
       console.log(`  ❌ FAILED (${duration}ms): ${error.message}`);
       
       this.results.tests.push({
@@ -90,9 +90,9 @@ class SimpleDockerValidator {
     });
 
     await this.runTest('Performance: Node.js Container', async () => {
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const output = execSync('docker run --rm node:18-alpine node -e "console.log(\'Node.js container working\')"', { encoding: 'utf8' });
-      const duration = Date.now() - startTime;
+      const duration = this.getDeterministicTimestamp() - startTime;
       
       if (!output.includes('Node.js container working')) throw new Error('Node.js container failed');
       if (duration > 10000) throw new Error('Container startup too slow');

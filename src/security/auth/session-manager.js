@@ -88,8 +88,8 @@ class SessionManager {
     const session = {
       id: sessionId,
       userId,
-      createdAt: new Date(),
-      lastAccessTime: new Date(),
+      createdAt: this.getDeterministicDate(),
+      lastAccessTime: this.getDeterministicDate(),
       ipAddress: this.getClientIP(request),
       userAgent: request.headers['user-agent'] || '',
       data: {},
@@ -129,7 +129,7 @@ class SessionManager {
     }
 
     // Check idle timeout
-    const now = new Date()
+    const now = this.getDeterministicDate()
     const idleTime = now.getTime() - session.lastAccessTime.getTime()
     if (idleTime > this.sessionConfig.idleTimeout) {
       await this.destroySession(sessionId)
@@ -207,8 +207,8 @@ class SessionManager {
     const newSession = {
       ...oldSession,
       id: newSessionId,
-      createdAt: new Date(),
-      lastAccessTime: new Date(),
+      createdAt: this.getDeterministicDate(),
+      lastAccessTime: this.getDeterministicDate(),
       csrfToken: this.generateCSRFToken(newSessionId)
     }
 
@@ -282,7 +282,7 @@ class SessionManager {
     if (!session) return false
 
     session.data[key] = value
-    session.lastAccessTime = new Date()
+    session.lastAccessTime = this.getDeterministicDate()
     return true
   }
 
@@ -352,8 +352,8 @@ class SessionManager {
     this.csrfTokens.set(token, {
       sessionId,
       token,
-      createdAt: new Date(),
-      expiresAt: new Date(Date.now() + this.sessionConfig.maxAge)
+      createdAt: this.getDeterministicDate(),
+      expiresAt: new Date(this.getDeterministicTimestamp() + this.sessionConfig.maxAge)
     })
     
     return token
@@ -426,7 +426,7 @@ class SessionManager {
    * @private
    */
   cleanupExpiredSessions() {
-    const now = new Date()
+    const now = this.getDeterministicDate()
     const expiredSessions = []
 
     for (const [sessionId, session] of this.sessions.entries()) {
@@ -463,7 +463,7 @@ class SessionManager {
    * @private
    */
   cleanupExpiredCSRFTokens() {
-    const now = new Date()
+    const now = this.getDeterministicDate()
     const expiredTokens = []
 
     for (const [token, csrfData] of this.csrfTokens.entries()) {
@@ -482,7 +482,7 @@ class SessionManager {
    * @returns {SessionStatistics}
    */
   getStatistics() {
-    const now = new Date()
+    const now = this.getDeterministicDate()
     const sessions = Array.from(this.sessions.values())
     
     return {

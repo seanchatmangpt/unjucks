@@ -2,6 +2,7 @@ import { defineCommand } from 'citty'
 import { CacheManager } from '@kgen/core/cache'
 import { loadConfig } from '@kgen/core/config'
 import { logger } from '@kgen/core/utils'
+import { createStandardOutput, handleStandardError, ErrorCodes } from '../../../../../src/kgen/cli/standardized-output.js'
 
 export default defineCommand({
   meta: {
@@ -25,6 +26,8 @@ export default defineCommand({
     }
   },
   async run({ args }) {
+    const output = createStandardOutput();
+    
     try {
       const config = await loadConfig()
       const cacheConfig = config.cache || {}
@@ -36,7 +39,7 @@ export default defineCommand({
       const entries = await cacheManager.list()
 
       // Calculate additional statistics
-      const now = Date.now()
+      const now = this.getDeterministicTimestamp()
       let sizeByType = {}
       let entriesByAge = {
         'last24h': 0,
@@ -79,7 +82,7 @@ export default defineCommand({
       const maxAge = CacheManager.parseAge(cacheConfig.maxAge || '90d')
       const utilization = stats.totalSize / maxSize
       
-      const output = {
+      const statsData = {
         overview: {
           totalEntries: stats.fileCount,
           totalSize: stats.totalSize,
@@ -112,7 +115,7 @@ export default defineCommand({
 
       if (args.analyze) {
         const analysis = await cacheManager.gc.analyze()
-        output.analysis = {
+        statsData.analysis = {
           potentialRemovals: analysis.recommendations.length,
           potentialSavings: analysis.potentialSavings,
           potentialSavingsFormatted: formatBytes(analysis.potentialSavings),
@@ -124,8 +127,7 @@ export default defineCommand({
       }
 
       if (args.json) {
-        console.log(JSON.stringify(output, null, 2))
-        return
+        return output.success('cache:stats', statsData);
       }
 
       // Display formatted statistics
@@ -153,7 +155,7 @@ export default defineCommand({
       // Utilization
       logger.info('\n📈 Utilization:')
       logger.info(`  • Size utilization: ${Math.round(utilization * 100)}% (${formatBytes(stats.totalSize)} / ${formatBytes(maxSize)})`)
-      logger.info(`  • Average entry size: ${formatBytes(output.utilization.averageEntrySize)}`)
+      logger.info(`  • Average entry size: ${formatBytes(statsData.utilization.averageEntrySize)}`)
       
       const utilizationBar = createProgressBar(utilization, 20)
       logger.info(`  • Usage: ${utilizationBar}`)
@@ -185,26 +187,26 @@ export default defineCommand({
         logger.info(`  • Rarely accessed (> 30 days): ${accessStats.never.toLocaleString()}`)
       }
 
-      if (args.analyze && output.analysis) {
+      if (args.analyze && statsData.analysis) {
         logger.info('\n🧹 Garbage Collection Analysis:')
-        logger.info(`  • Entries that could be removed: ${output.analysis.potentialRemovals.toLocaleString()}`)
-        logger.info(`  • Potential space savings: ${output.analysis.potentialSavingsFormatted}`)
+        logger.info(`  • Entries that could be removed: ${statsData.analysis.potentialRemovals.toLocaleString()}`)
+        logger.info(`  • Potential space savings: ${statsData.analysis.potentialSavingsFormatted}`)
         
-        if (Object.keys(output.analysis.reasons).length > 0) {
+        if (Object.keys(statsData.analysis.reasons).length > 0) {
           logger.info('  • Removal reasons:')
-          for (const [reason, count] of Object.entries(output.analysis.reasons)) {
+          for (const [reason, count] of Object.entries(statsData.analysis.reasons)) {
             logger.info(`    - ${reason}: ${count} entries`)
           }
         }
         
-        if (output.analysis.potentialSavings > 0) {
+        if (statsData.analysis.potentialSavings > 0) {
           logger.info('\n💡 Recommendation: Run `kgen cache gc` to reclaim space')
         }
       }
 
       // Health assessment
       logger.info('\n🏥 Health Assessment:')
-      const healthScore = calculateHealthScore(output)
+      const healthScore = calculateHealthScore(statsData)
       const healthEmoji = healthScore > 80 ? '🟢' : healthScore > 60 ? '🟡' : '🔴'
       logger.info(`  • Overall health: ${healthEmoji} ${healthScore}%`)
       
@@ -227,8 +229,7 @@ export default defineCommand({
       })
 
     } catch (error) {
-      logger.error('❌ Failed to get cache statistics:', error.message)
-      process.exit(1)
+      return handleStandardError('cache:stats', error, output);
     }
   }
 })

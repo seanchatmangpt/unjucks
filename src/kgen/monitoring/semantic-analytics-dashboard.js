@@ -124,7 +124,7 @@ export class SemanticAnalyticsDashboard {
    * Record semantic operation metrics
    */
   recordSemanticOperation(operation) {
-    const timestamp = Date.now();
+    const timestamp = this.getDeterministicTimestamp();
     const metric = {
       timestamp,
       operationId: operation.id,
@@ -155,7 +155,7 @@ export class SemanticAnalyticsDashboard {
    * Record quality metrics
    */
   recordQualityMetrics(qualityData) {
-    const timestamp = Date.now();
+    const timestamp = this.getDeterministicTimestamp();
     const quality = {
       timestamp,
       ...qualityData
@@ -169,7 +169,7 @@ export class SemanticAnalyticsDashboard {
    * Record performance metrics
    */
   recordPerformanceMetrics(performanceData) {
-    const timestamp = Date.now();
+    const timestamp = this.getDeterministicTimestamp();
     const performance = {
       timestamp,
       ...performanceData
@@ -184,11 +184,11 @@ export class SemanticAnalyticsDashboard {
    */
   async getDashboardData(timeframe = '24h') {
     try {
-      const endTime = Date.now();
+      const endTime = this.getDeterministicTimestamp();
       const startTime = this._getStartTime(timeframe, endTime);
       
       const dashboardData = {
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         timeframe,
         overview: await this._getOverviewMetrics(startTime, endTime),
         performance: await this._getPerformanceMetrics(startTime, endTime),
@@ -220,7 +220,7 @@ export class SemanticAnalyticsDashboard {
       
       const report = {
         metadata: {
-          generated: new Date().toISOString(),
+          generated: this.getDeterministicDate().toISOString(),
           timeframe,
           format,
           version: '1.0.0'
@@ -451,7 +451,7 @@ export class SemanticAnalyticsDashboard {
 
   _broadcastRealTimeUpdate() {
     const update = {
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       metrics: this.metricBuffer.splice(0, 100), // Last 100 metrics
       alerts: this.alertBuffer.splice(0, 10),    // Last 10 alerts
       system: this._getCurrentSystemMetrics()
@@ -497,8 +497,8 @@ export class SemanticAnalyticsDashboard {
   }
 
   _triggerAlert(alert) {
-    alert.id = `alert_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    alert.timestamp = Date.now();
+    alert.id = `alert_${this.getDeterministicTimestamp()}_${Math.random().toString(36).substr(2, 9)}`;
+    alert.timestamp = this.getDeterministicTimestamp();
     
     this.alertsStore.set(alert.id, alert);
     this.alertBuffer.push(alert);
@@ -523,7 +523,7 @@ export class SemanticAnalyticsDashboard {
 
   _collectSystemMetrics() {
     const metrics = {
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       memory: process.memoryUsage(),
       cpu: process.cpuUsage(),
       activeConnections: this.activeConnections.size,
@@ -578,7 +578,7 @@ export class SemanticAnalyticsDashboard {
   }
 
   async _getActiveAlerts() {
-    const recent = Date.now() - (24 * 60 * 60 * 1000); // Last 24 hours
+    const recent = this.getDeterministicTimestamp() - (24 * 60 * 60 * 1000); // Last 24 hours
     return Array.from(this.alertsStore.values())
       .filter(alert => alert.timestamp >= recent)
       .sort((a, b) => b.timestamp - a.timestamp);
@@ -613,7 +613,7 @@ export class SemanticAnalyticsDashboard {
 
   _getCurrentOverview() {
     const recentMetrics = Array.from(this.metricsStore.values())
-      .filter(m => m.timestamp > Date.now() - 60000); // Last minute
+      .filter(m => m.timestamp > this.getDeterministicTimestamp() - 60000); // Last minute
     
     return {
       recentOperations: recentMetrics.length,
@@ -633,7 +633,7 @@ export class SemanticAnalyticsDashboard {
   _calculateSystemHealth() {
     // Simple health calculation based on recent metrics
     const recentAlerts = Array.from(this.alertsStore.values())
-      .filter(alert => alert.timestamp > Date.now() - 300000); // Last 5 minutes
+      .filter(alert => alert.timestamp > this.getDeterministicTimestamp() - 300000); // Last 5 minutes
     
     const criticalAlerts = recentAlerts.filter(alert => alert.severity === 'critical').length;
     const warningAlerts = recentAlerts.filter(alert => alert.severity === 'warning').length;
@@ -686,7 +686,7 @@ export class SemanticAnalyticsDashboard {
 
   // Cleanup and maintenance methods
   _cleanupOldData() {
-    const cutoff = Date.now() - (this.config.metricsRetentionDays * 24 * 60 * 60 * 1000);
+    const cutoff = this.getDeterministicTimestamp() - (this.config.metricsRetentionDays * 24 * 60 * 60 * 1000);
     
     // Cleanup metrics
     for (const [key, metric] of this.metricsStore) {

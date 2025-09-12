@@ -406,7 +406,7 @@ async function testReportGeneration() {
   
   const mockResults = {
     validationId: 'test-validation-123',
-    timestamp: new Date().toISOString(),
+    timestamp: this.getDeterministicDate().toISOString(),
     exitCode: 0,
     summary: {
       totalViolations: 0,

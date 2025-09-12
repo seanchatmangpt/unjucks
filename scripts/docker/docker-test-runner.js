@@ -55,7 +55,7 @@ class DockerTestRunner {
     ];
     
     this.results = {
-      startTime: new Date(),
+      startTime: this.getDeterministicDate(),
       endTime: null,
       duration: 0,
       testSuites: [],
@@ -195,12 +195,12 @@ class DockerTestRunner {
     for (const suite of suites) {
       console.log(chalk.cyan(`  Running: ${suite.name}`));
       
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const result = await this.runSingleTest(suite);
-      const duration = Date.now() - startTime;
+      const duration = this.getDeterministicTimestamp() - startTime;
       
       result.duration = duration;
-      result.timestamp = new Date().toISOString();
+      result.timestamp = this.getDeterministicDate().toISOString();
       this.results.testSuites.push(result);
       
       if (result.status === 'failed' && suite.required) {
@@ -218,12 +218,12 @@ class DockerTestRunner {
     const promises = suites.map(async (suite) => {
       console.log(chalk.cyan(`  Starting: ${suite.name}`));
       
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const result = await this.runSingleTest(suite);
-      const duration = Date.now() - startTime;
+      const duration = this.getDeterministicTimestamp() - startTime;
       
       result.duration = duration;
-      result.timestamp = new Date().toISOString();
+      result.timestamp = this.getDeterministicDate().toISOString();
       
       return result;
     });
@@ -334,7 +334,7 @@ class DockerTestRunner {
   async generateReport() {
     console.log(chalk.yellow('📊 Generating test report...'));
     
-    this.results.endTime = new Date();
+    this.results.endTime = this.getDeterministicDate();
     this.results.duration = this.results.endTime - this.results.startTime;
     
     // Calculate summary statistics
@@ -399,7 +399,7 @@ ${summary.passRate >= 95 ? '🎉 Excellent! All Docker tests are passing.' :
   '🚨 Significant issues detected. Docker environment needs attention.'}
 
 ---
-Generated on ${new Date().toISOString()}
+Generated on ${this.getDeterministicDate().toISOString()}
 `;
   }
 

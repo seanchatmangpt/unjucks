@@ -545,7 +545,7 @@ export function createValidateConfigCommand() {
             warnings: results.warnings,
             suggestions: results.suggestions,
             configFile: configPath,
-            timestamp: new Date().toISOString()
+            timestamp: this.getDeterministicDate().toISOString()
           };
 
           console.log(chalk.blue('\n📄 JSON Results:'));

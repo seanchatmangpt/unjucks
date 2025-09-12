@@ -1223,7 +1223,7 @@ class GrafanaDashboardGenerator {
             description: "Service Level Objectives tracking and error budget monitoring"
           }
         ],
-        generatedAt: new Date().toISOString(),
+        generatedAt: this.getDeterministicDate().toISOString(),
         version: "1.0.0"
       };
 

@@ -70,7 +70,7 @@ export class GraphDiffOptimizer extends EventEmitter {
     return {
       startTime: null,
       memoryUsage: process.memoryUsage(),
-      lastGC: Date.now(),
+      lastGC: this.getDeterministicTimestamp(),
       activeOperations: new Set()
     };
   }
@@ -79,7 +79,7 @@ export class GraphDiffOptimizer extends EventEmitter {
    * Compute high-performance diff between two RDF graphs
    */
   async computeGraphDiff(graphA, graphB, options = {}) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     const operationId = crypto.randomBytes(8).toString('hex');
     
     try {
@@ -128,7 +128,7 @@ export class GraphDiffOptimizer extends EventEmitter {
         strategy,
         graphSizeA: graphA.size || this._getGraphSize(graphA),
         graphSizeB: graphB.size || this._getGraphSize(graphB),
-        executionTime: Date.now() - startTime,
+        executionTime: this.getDeterministicTimestamp() - startTime,
         hashA,
         hashB
       });
@@ -147,8 +147,8 @@ export class GraphDiffOptimizer extends EventEmitter {
       // Update metrics
       this._updateMetrics(diff, startTime);
       
-      this.logger.debug(`Graph diff completed in ${Date.now() - startTime}ms: ${operationId}`);
-      this.emit('diff-computed', { operationId, diff, executionTime: Date.now() - startTime });
+      this.logger.debug(`Graph diff completed in ${this.getDeterministicTimestamp() - startTime}ms: ${operationId}`);
+      this.emit('diff-computed', { operationId, diff, executionTime: this.getDeterministicTimestamp() - startTime });
       
       return diff;
       
@@ -715,7 +715,7 @@ export class GraphDiffOptimizer extends EventEmitter {
     this.metrics.diffsComputed++;
     this.metrics.totalQuadsCompared += diff.metadata.addedCount + diff.metadata.removedCount;
     
-    const executionTime = Date.now() - startTime;
+    const executionTime = this.getDeterministicTimestamp() - startTime;
     this.metrics.avgDiffTime = (
       (this.metrics.avgDiffTime * (this.metrics.diffsComputed - 1) + executionTime) / 
       this.metrics.diffsComputed

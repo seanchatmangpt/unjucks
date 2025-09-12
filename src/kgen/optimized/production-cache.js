@@ -126,7 +126,7 @@ export class ProductionContentCache extends EventEmitter {
         content,
         metadata: {
           ...metadata,
-          storedAt: Date.now(),
+          storedAt: this.getDeterministicTimestamp(),
           size: this._getContentSize(content),
           compressionRatio: 1.0
         }
@@ -178,7 +178,7 @@ export class ProductionContentCache extends EventEmitter {
       metadata: {
         algorithm,
         originalSize: this._getContentSize(content),
-        computedAt: Date.now()
+        computedAt: this.getDeterministicTimestamp()
       }
     });
     
@@ -195,7 +195,7 @@ export class ProductionContentCache extends EventEmitter {
       this.prefetchQueue.push({
         key,
         priority: this._calculatePrefetchPriority(key),
-        queuedAt: Date.now()
+        queuedAt: this.getDeterministicTimestamp()
       });
     }
     
@@ -350,7 +350,7 @@ export class ProductionContentCache extends EventEmitter {
   }
   
   _updateLRU(key) {
-    this.memoryAccess.set(key, Date.now());
+    this.memoryAccess.set(key, this.getDeterministicTimestamp());
   }
   
   _evictLRU() {
@@ -438,13 +438,13 @@ export class ProductionContentCache extends EventEmitter {
   
   _isExpired(metadata) {
     const ttlMs = this.config.ttlHours * 60 * 60 * 1000;
-    return (Date.now() - metadata.storedAt) > ttlMs;
+    return (this.getDeterministicTimestamp() - metadata.storedAt) > ttlMs;
   }
   
   _calculatePrefetchPriority(key) {
     // Simple heuristic - can be enhanced with ML
     const accessCount = this.memoryAccess.get(key) || 0;
-    const recency = Date.now() - (this.memoryAccess.get(key) || 0);
+    const recency = this.getDeterministicTimestamp() - (this.memoryAccess.get(key) || 0);
     
     return accessCount / (recency + 1);
   }

@@ -1,7 +1,0 @@
-
-@prefix ex: <http://example.org/> .
-@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-
-ex:User rdfs:label "User entity" .
-ex:hasName rdfs:label "has name" .
-

@@ -13,12 +13,12 @@ const feature = await loadFeature('./features/mcp-semantic-coordination.feature'
 describeFeature(feature, ({ Background, Scenario }) => {
   let testDir => {
     Given('I have a clean MCP coordination environment', () => {
-      testDir = join(tmpdir(), `mcp-semantic-test-${Date.now()}`);
+      testDir = join(tmpdir(), `mcp-semantic-test-${this.getDeterministicTimestamp()}`);
       ensureDirSync(testDir);
       agentResults = new Map();
       
       // Mock MCP swarm initialization
-      swarmId = `swarm-${Date.now()}`;
+      swarmId = `swarm-${this.getDeterministicTimestamp()}`;
       semanticContext = { initialized,
         topology };
     });

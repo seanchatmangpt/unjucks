@@ -153,7 +153,7 @@ class EnhancedKGenCLIEngine {
         templates: templates,
         count: templates.length,
         stats: stats,
-        timestamp: new Date().toISOString()
+        timestamp: this.getDeterministicDate().toISOString()
       };
       
       if (options.verbose) {
@@ -179,7 +179,7 @@ class EnhancedKGenCLIEngine {
         success: false,
         operation: 'templates:ls:enhanced',
         error: error.message,
-        timestamp: new Date().toISOString()
+        timestamp: this.getDeterministicDate().toISOString()
       };
       if (this.debug) console.error('❌ Failed to list templates:', error);
       return result;
@@ -205,7 +205,7 @@ class EnhancedKGenCLIEngine {
           operation: 'templates:show:enhanced',
           templateId: templateId,
           error: `Template not found: ${templateId}`,
-          timestamp: new Date().toISOString()
+          timestamp: this.getDeterministicDate().toISOString()
         };
       }
       
@@ -238,7 +238,7 @@ class EnhancedKGenCLIEngine {
           structure: templateStructure,
           contentPreview: templateContent.slice(0, 500) + (templateContent.length > 500 ? '...' : '')
         },
-        timestamp: new Date().toISOString()
+        timestamp: this.getDeterministicDate().toISOString()
       };
       
       return result;
@@ -249,7 +249,7 @@ class EnhancedKGenCLIEngine {
         operation: 'templates:show:enhanced',
         templateId: templateId,
         error: error.message,
-        timestamp: new Date().toISOString()
+        timestamp: this.getDeterministicDate().toISOString()
       };
       if (this.debug) console.error(`❌ Failed to show template ${templateId}:`, error);
       return result;
@@ -275,7 +275,7 @@ class EnhancedKGenCLIEngine {
         query: query,
         templates: matchingTemplates,
         count: matchingTemplates.length,
-        timestamp: new Date().toISOString()
+        timestamp: this.getDeterministicDate().toISOString()
       };
       
       return result;
@@ -286,7 +286,7 @@ class EnhancedKGenCLIEngine {
         operation: 'templates:search:enhanced',
         query: query,
         error: error.message,
-        timestamp: new Date().toISOString()
+        timestamp: this.getDeterministicDate().toISOString()
       };
       if (this.debug) console.error(`❌ Failed to search templates:`, error);
       return result;
@@ -310,7 +310,7 @@ class EnhancedKGenCLIEngine {
         category: category,
         templates: templates,
         count: templates.length,
-        timestamp: new Date().toISOString()
+        timestamp: this.getDeterministicDate().toISOString()
       };
       
       return result;
@@ -321,7 +321,7 @@ class EnhancedKGenCLIEngine {
         operation: 'templates:category:enhanced',
         category: category,
         error: error.message,
-        timestamp: new Date().toISOString()
+        timestamp: this.getDeterministicDate().toISOString()
       };
       if (this.debug) console.error(`❌ Failed to get templates by category:`, error);
       return result;
@@ -381,7 +381,7 @@ class EnhancedKGenCLIEngine {
         file: filePath,
         hash: hash,
         size: content.length,
-        timestamp: new Date().toISOString()
+        timestamp: this.getDeterministicDate().toISOString()
       };
 
       return result;
@@ -447,7 +447,7 @@ const enhancedTemplatesCommand = defineCommand({
             success: false,
             operation: 'templates:ls:enhanced',
             error: error.message,
-            timestamp: new Date().toISOString()
+            timestamp: this.getDeterministicDate().toISOString()
           };
           console.log(JSON.stringify(result, null, 2));
           return result;
@@ -478,7 +478,7 @@ const enhancedTemplatesCommand = defineCommand({
             operation: 'templates:show:enhanced',
             template: args.template,
             error: error.message,
-            timestamp: new Date().toISOString()
+            timestamp: this.getDeterministicDate().toISOString()
           };
           console.log(JSON.stringify(result, null, 2));
           return result;
@@ -509,7 +509,7 @@ const enhancedTemplatesCommand = defineCommand({
             operation: 'templates:search:enhanced',
             query: args.query,
             error: error.message,
-            timestamp: new Date().toISOString()
+            timestamp: this.getDeterministicDate().toISOString()
           };
           console.log(JSON.stringify(result, null, 2));
           return result;
@@ -529,7 +529,7 @@ const enhancedTemplatesCommand = defineCommand({
               success: true,
               operation: 'templates:stats:enhanced',
               stats: result.stats,
-              timestamp: new Date().toISOString()
+              timestamp: this.getDeterministicDate().toISOString()
             }, null, 2));
           }
           return result;
@@ -539,7 +539,7 @@ const enhancedTemplatesCommand = defineCommand({
             success: false,
             operation: 'templates:stats:enhanced',
             error: error.message,
-            timestamp: new Date().toISOString()
+            timestamp: this.getDeterministicDate().toISOString()
           };
           console.log(JSON.stringify(result, null, 2));
           return result;

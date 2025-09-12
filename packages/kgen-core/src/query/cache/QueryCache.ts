@@ -37,7 +37,7 @@ export class AdvancedQueryCache extends EventEmitter implements QueryCache {
     }
 
     // Check TTL
-    if (Date.now() > entry.timestamp + entry.ttl) {
+    if (this.getDeterministicTimestamp() > entry.timestamp + entry.ttl) {
       this.cache.delete(key);
       this.accessOrder.delete(key);
       this.stats.totalSize -= entry.size;
@@ -48,7 +48,7 @@ export class AdvancedQueryCache extends EventEmitter implements QueryCache {
 
     // Update access tracking
     entry.accessCount++;
-    entry.lastAccessed = Date.now();
+    entry.lastAccessed = this.getDeterministicTimestamp();
     this.accessOrder.set(key, ++this.accessCounter);
     
     this.stats.hits++;
@@ -61,10 +61,10 @@ export class AdvancedQueryCache extends EventEmitter implements QueryCache {
     const size = this.calculateSize(result);
     const entry: QueryCacheEntry = {
       result,
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       ttl: ttl || this.defaultTTL,
       accessCount: 0,
-      lastAccessed: Date.now(),
+      lastAccessed: this.getDeterministicTimestamp(),
       size
     };
 
@@ -226,7 +226,7 @@ export class AdvancedQueryCache extends EventEmitter implements QueryCache {
     return {
       data: exportData,
       stats: this.getStats(),
-      timestamp: Date.now()
+      timestamp: this.getDeterministicTimestamp()
     };
   }
 
@@ -243,7 +243,7 @@ export class AdvancedQueryCache extends EventEmitter implements QueryCache {
       };
       
       // Validate TTL
-      if (Date.now() <= entry.timestamp + entry.ttl) {
+      if (this.getDeterministicTimestamp() <= entry.timestamp + entry.ttl) {
         this.cache.set(key, entry);
         this.stats.totalSize += entry.size;
       }
@@ -304,7 +304,7 @@ export class AdvancedQueryCache extends EventEmitter implements QueryCache {
   }
 
   private cleanup(): void {
-    const now = Date.now();
+    const now = this.getDeterministicTimestamp();
     let cleanedUp = 0;
 
     for (const [key, entry] of this.cache.entries()) {

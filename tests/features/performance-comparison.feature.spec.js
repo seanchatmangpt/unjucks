@@ -159,7 +159,7 @@ export const {{ name }} = {
 to }}{{ ${i} }}.ts"
 ---
 export const {{ name }}{{ ${i} }} = { id } }},
-  processed: new Date().toISOString(),
+  processed: this.getDeterministicDate().toISOString(),
   name: "{{ name | titleCase }} {{ ${i} }}"
 };`;
         

@@ -194,7 +194,7 @@ class {{ modelName | classify }} {
       id: { type: 'integer', primary: true },
       {{ modelName | singular | snakeCase }}_name: { type: 'string', required: true },
       slug: { type: 'string', unique: true, default: () => '{{ modelName | slug }}-{{ now() | formatDate("YYYYMMDD") }}-{{ "" | fakeNumber(1000, 9999) }}' },
-      created_at: { type: 'timestamp', default: () => new Date() }
+      created_at: { type: 'timestamp', default: () => this.getDeterministicDate() }
     };
   }
 }
@@ -330,9 +330,9 @@ ${frontmatter}
 ---
 Content with {{ name | titleCase }}`;
 
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const parsed = await frontmatterParser.parse(templateContent);
-      const duration = Date.now() - startTime;
+      const duration = this.getDeterministicTimestamp() - startTime;
 
       expect(duration).toBeLessThan(100); // Should parse quickly
       expect(parsed.hasValidFrontmatter).toBe(true);

@@ -129,8 +129,8 @@ describe('RBAC Manager', () => {
     rbacManager.sessions.set('session-123', {
       sessionId: 'session-123',
       userId: user.id,
-      createdAt: new Date(),
-      expiresAt: new Date(Date.now() + 3600000)
+      createdAt: this.getDeterministicDate(),
+      expiresAt: new Date(this.getDeterministicTimestamp() + 3600000)
     });
     
     const authResult = await rbacManager.authorize(user, 'read', resource);
@@ -260,8 +260,8 @@ describe('Audit Logger', () => {
     await auditLogger.logSecurityEvent('AUTHORIZATION', 'access_granted', { userId: 'user1' });
     
     const timeframe = {
-      start: new Date(Date.now() - 60000), // 1 minute ago
-      end: new Date()
+      start: new Date(this.getDeterministicTimestamp() - 60000), // 1 minute ago
+      end: this.getDeterministicDate()
     };
     
     const summary = await auditLogger.generateSummary(timeframe);

@@ -371,7 +371,7 @@ export class DeterministicRenderer extends EventEmitter {
       const nonDeterministicPatterns = [
         { pattern: /\{\{\s*now\s*\}\}/, issue: 'Dynamic timestamp' },
         { pattern: /\{\{\s*random\(\s*\)\s*\}\}/, issue: 'Random function without seed' },
-        { pattern: /Date\.now\(\)/, issue: 'JavaScript Date.now()' },
+        { pattern: /Date\.now\(\)/, issue: 'JavaScript this.getDeterministicTimestamp()' },
         { pattern: /Math\.random\(\)/, issue: 'JavaScript Math.random()' },
         { pattern: /process\.env/, issue: 'Environment variable access' },
         { pattern: /new Date\(\)/, issue: 'Dynamic date creation' }
@@ -549,8 +549,8 @@ export class DeterministicRenderer extends EventEmitter {
         case 'Random function without seed':
           recommendations.push('Use {{ variable | hash }} for deterministic randomness');
           break;
-        case 'JavaScript Date.now()':
-          recommendations.push('Replace Date.now() with BUILD_TIME global');
+        case 'JavaScript this.getDeterministicTimestamp()':
+          recommendations.push('Replace this.getDeterministicTimestamp() with BUILD_TIME global');
           break;
         case 'JavaScript Math.random()':
           recommendations.push('Use hash-based randomness with seed');

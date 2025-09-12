@@ -81,7 +81,7 @@ export class ProvenanceStorage {
       const record = {
         id,
         data,
-        timestamp: new Date(),
+        timestamp: this.getDeterministicDate(),
         version: options.version || '1.0',
         metadata: options.metadata || {}
       };
@@ -196,7 +196,7 @@ export class ProvenanceStorage {
    */
   async backup(options = {}) {
     try {
-      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+      const timestamp = this.getDeterministicDate().toISOString().replace(/[:.]/g, '-');
       const backupName = options.name || `provenance-backup-${timestamp}`;
       
       const backupPath = await this._createFullBackup(backupName);
@@ -254,7 +254,7 @@ export class ProvenanceStorage {
   }
 
   _generateStorageKey(id, options) {
-    const date = new Date().toISOString().slice(0, 10);
+    const date = this.getDeterministicDate().toISOString().slice(0, 10);
     const prefix = options.prefix || 'prov';
     return `${prefix}/${date}/${id}`;
   }

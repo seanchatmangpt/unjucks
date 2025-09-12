@@ -13,7 +13,7 @@ describe('Semantic Core BDD Tests', () => {
   let startTime;
 
   beforeAll(async () => {
-    startTime = Date.now();
+    startTime = this.getDeterministicTimestamp();
     // Background setup
   });
 
@@ -29,8 +29,8 @@ describe('Semantic Core BDD Tests', () => {
       };
       
       const performanceMetrics = {
-        startTime: Date.now() - 1000,
-        endTime: Date.now(),
+        startTime: this.getDeterministicTimestamp() - 1000,
+        endTime: this.getDeterministicTimestamp(),
         memoryUsage: { heapUsed: 100 * 1024 * 1024 }
       };
       
@@ -113,7 +113,7 @@ describe('Semantic Core BDD Tests', () => {
   });
 
   afterAll(async () => {
-    const endTime = Date.now();
+    const endTime = this.getDeterministicTimestamp();
     console.log(`Total test execution time: ${endTime - startTime}ms`);
   });
 });

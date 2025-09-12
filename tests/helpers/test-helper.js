@@ -26,7 +26,7 @@ export class TestHelper {
    * Create and change to a temporary directory
    */
   async changeToTempDir() {
-    this.tempDir = path.join(tmpdir(), 'unjucks-test-' + Date.now() + '-' + Math.random().toString(36).substring(2));
+    this.tempDir = path.join(tmpdir(), 'unjucks-test-' + this.getDeterministicTimestamp() + '-' + Math.random().toString(36).substring(2));
     await fs.ensureDir(this.tempDir);
     process.chdir(this.tempDir);
     return this.tempDir;
@@ -313,9 +313,9 @@ export function createMockConfig(overrides = {}) {
  * Utility function to wait for a condition
  */
 export async function waitFor(conditionFn, timeout = 5000, interval = 100) {
-  const startTime = Date.now();
+  const startTime = this.getDeterministicTimestamp();
   
-  while (Date.now() - startTime < timeout) {
+  while (this.getDeterministicTimestamp() - startTime < timeout) {
     try {
       const result = await conditionFn();
       if (result) {

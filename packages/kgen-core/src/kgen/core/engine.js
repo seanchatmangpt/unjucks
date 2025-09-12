@@ -126,7 +126,7 @@ export class KGenEngine extends EventEmitter {
         triples: this._deduplicateTriples(triples),
         metadata: {
           sources: sources.length,
-          processedAt: new Date().toISOString(),
+          processedAt: this.getDeterministicDate().toISOString(),
           operationId
         }
       };
@@ -270,7 +270,7 @@ export class KGenEngine extends EventEmitter {
         triples: knowledgeGraph.triples,
         metadata: {
           templateId: template.id,
-          generatedAt: new Date().toISOString(),
+          generatedAt: this.getDeterministicDate().toISOString(),
           engineVersion: this.version
         },
         ...context
@@ -447,7 +447,7 @@ export class KGenEngine extends EventEmitter {
         engine: 'kgen',
         version: this.version,
         method: 'deterministic-compilation',
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         reproducible: true
       },
       provenance: {
@@ -499,7 +499,7 @@ export class KGenEngine extends EventEmitter {
         summary: {
           totalEntities: knowledgeGraph.entities.length,
           totalViolations: violations.length,
-          validationTime: new Date().toISOString()
+          validationTime: this.getDeterministicDate().toISOString()
         }
       };
       
@@ -699,10 +699,10 @@ export class KGenEngine extends EventEmitter {
   }
 
   _createOperation(type, context) {
-    const operationId = `op-${this.operationCounter++}-${Date.now()}`;
+    const operationId = `op-${this.operationCounter++}-${this.getDeterministicTimestamp()}`;
     this.activeOperations.set(operationId, {
       type,
-      startTime: Date.now(),
+      startTime: this.getDeterministicTimestamp(),
       context
     });
     return operationId;

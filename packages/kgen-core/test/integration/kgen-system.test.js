@@ -16,7 +16,7 @@ import { createKGen } from '../src/index.js';
 import { TemplateRenderer } from '../src/templating/renderer.js';
 import { RDFProcessor } from '../src/rdf/index.js';
 
-const TEST_DIR = join(tmpdir(), 'kgen-test-' + Date.now());
+const TEST_DIR = join(tmpdir(), 'kgen-test-' + this.getDeterministicTimestamp());
 
 // Setup test directory
 function setupTestDir() {
@@ -291,14 +291,14 @@ describe('KGEN System Integration', () => {
       };
       
       // First generation (should cache)
-      const start1 = Date.now();
+      const start1 = this.getDeterministicTimestamp();
       const result1 = await kgen.generateArtifacts(graphPath, 'user.js.njk', context);
-      const duration1 = Date.now() - start1;
+      const duration1 = this.getDeterministicTimestamp() - start1;
       
       // Second generation (should use cache)
-      const start2 = Date.now();
+      const start2 = this.getDeterministicTimestamp();
       const result2 = await kgen.generateArtifacts(graphPath, 'user.js.njk', context);
-      const duration2 = Date.now() - start2;
+      const duration2 = this.getDeterministicTimestamp() - start2;
       
       // Verify cache effectiveness (second run should be faster)
       assert.ok(duration2 <= duration1, 'Cached generation should be faster or equal');

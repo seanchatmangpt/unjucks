@@ -103,7 +103,7 @@ export class SemanticPipeline extends EventEmitter {
    */
   async executePipeline(options = {}) {
     this.pipelineId = this._generatePipelineId();
-    this.startTime = Date.now();
+    this.startTime = this.getDeterministicTimestamp();
     
     try {
       this.logger.info(`🚀 Starting semantic pipeline: ${this.pipelineId}`);
@@ -146,7 +146,7 @@ export class SemanticPipeline extends EventEmitter {
       this.logger.info('🔍 Validating semantic artifacts');
       
       const validation = {
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         overallStatus: 'passed',
         results: {
           graphs: [],
@@ -165,7 +165,7 @@ export class SemanticPipeline extends EventEmitter {
         }
       };
       
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
       // Validate knowledge graphs
       const graphValidation = await this._validateKnowledgeGraphs(options);
@@ -187,7 +187,7 @@ export class SemanticPipeline extends EventEmitter {
       validation.quality = await this._calculateOverallQuality(validation.results);
       
       // Performance metrics
-      validation.performance.validationTime = Date.now() - startTime;
+      validation.performance.validationTime = this.getDeterministicTimestamp() - startTime;
       validation.performance.memoryUsage = process.memoryUsage().heapUsed;
       
       // Determine overall status
@@ -209,7 +209,7 @@ export class SemanticPipeline extends EventEmitter {
       this.logger.info('🧪 Running semantic tests');
       
       const testResults = {
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         suite: 'semantic-tests',
         overallStatus: 'passed',
         summary: {
@@ -225,7 +225,7 @@ export class SemanticPipeline extends EventEmitter {
         }
       };
       
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
       // Semantic reasoning tests
       const reasoningTests = await this._runReasoningTests(options);
@@ -254,7 +254,7 @@ export class SemanticPipeline extends EventEmitter {
       testResults.overallStatus = testResults.summary.failed > 0 ? 'failed' : 'passed';
       
       // Performance metrics
-      testResults.performance.executionTime = Date.now() - startTime;
+      testResults.performance.executionTime = this.getDeterministicTimestamp() - startTime;
       testResults.performance.averageTestTime = testResults.performance.executionTime / testResults.summary.total;
       
       return testResults;
@@ -273,7 +273,7 @@ export class SemanticPipeline extends EventEmitter {
       this.logger.info('🎨 Generating semantic artifacts');
       
       const generation = {
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         overallStatus: 'success',
         artifacts: [],
         metrics: {
@@ -289,7 +289,7 @@ export class SemanticPipeline extends EventEmitter {
         }
       };
       
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
       // Discover generation targets
       const targets = await this._discoverGenerationTargets(options);
@@ -322,7 +322,7 @@ export class SemanticPipeline extends EventEmitter {
       generation.metrics.templatesProcessed = targets.length;
       generation.metrics.artifactsGenerated = generation.validation.passed;
       generation.metrics.totalSize = generation.artifacts.reduce((sum, a) => sum + (a.size || 0), 0);
-      generation.metrics.generationTime = Date.now() - startTime;
+      generation.metrics.generationTime = this.getDeterministicTimestamp() - startTime;
       
       generation.overallStatus = generation.validation.failed > 0 ? 'partial' : 'success';
       
@@ -342,7 +342,7 @@ export class SemanticPipeline extends EventEmitter {
       this.logger.info('🚀 Deploying semantic artifacts');
       
       const deployment = {
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         environment: options.environment || 'staging',
         overallStatus: 'success',
         deployments: [],
@@ -498,7 +498,7 @@ export class SemanticPipeline extends EventEmitter {
 
   async _executeStage(stageName, options) {
     this.currentStage = stageName;
-    const stageStartTime = Date.now();
+    const stageStartTime = this.getDeterministicTimestamp();
     
     this.logger.info(`📋 Executing stage: ${stageName}`);
     
@@ -531,7 +531,7 @@ export class SemanticPipeline extends EventEmitter {
           result = await this._stageCustom(stageName, options);
       }
       
-      const stageTime = Date.now() - stageStartTime;
+      const stageTime = this.getDeterministicTimestamp() - stageStartTime;
       this.stageTimings.set(stageName, stageTime);
       this.results.set(stageName, result);
       
@@ -543,7 +543,7 @@ export class SemanticPipeline extends EventEmitter {
       return result;
       
     } catch (error) {
-      const stageTime = Date.now() - stageStartTime;
+      const stageTime = this.getDeterministicTimestamp() - stageStartTime;
       this.stageTimings.set(stageName, stageTime);
       
       this.logger.error(`❌ Stage ${stageName} failed after ${stageTime}ms:`, error);
@@ -574,8 +574,8 @@ export class SemanticPipeline extends EventEmitter {
   async _generatePipelineReport() {
     const report = {
       pipelineId: this.pipelineId,
-      timestamp: new Date().toISOString(),
-      duration: Date.now() - this.startTime,
+      timestamp: this.getDeterministicDate().toISOString(),
+      duration: this.getDeterministicTimestamp() - this.startTime,
       environment: this.config.environment,
       mode: this.config.pipelineMode,
       overallStatus: 'success',
@@ -637,7 +637,7 @@ export class SemanticPipeline extends EventEmitter {
   async _handlePipelineFailure(error) {
     const failureReport = {
       pipelineId: this.pipelineId,
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       overallStatus: 'failed',
       error: error.message,
       stack: error.stack,
@@ -662,7 +662,7 @@ export class SemanticPipeline extends EventEmitter {
   async _stageCustom(stageName, options) { return { status: 'success' }; }
   
   // Helper method stubs
-  _generatePipelineId() { return `pipeline_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`; }
+  _generatePipelineId() { return `pipeline_${this.getDeterministicTimestamp()}_${Math.random().toString(36).substr(2, 9)}`; }
   async _prePipelineSetup(options) { /* Implementation */ }
   async _postPipelineProcessing() { /* Implementation */ }
   _isGateRelevantForStage(gate, stageName) { return true; }

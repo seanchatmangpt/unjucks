@@ -62,7 +62,7 @@ export default defineCommand({
   },
   async run({ args }) {
     try {
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
       // Load configuration
       const config = await loadKgenConfig(args.config);
@@ -138,7 +138,7 @@ export default defineCommand({
         };
       }
       
-      const duration = Date.now() - startTime;
+      const duration = this.getDeterministicTimestamp() - startTime;
       result.metrics.durationMs = duration;
       
       const successResult = success(result);

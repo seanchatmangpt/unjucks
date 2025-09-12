@@ -42,7 +42,7 @@ describe('Fortune 5 Compliance Validation - Enterprise Standards', () => {
       const birthDates = [...fhirData.matchAll(birthDatePattern)];
       birthDates.forEach(match => {
         const birthYear = parseInt(match[1].split('-')[0]);
-        const age = new Date().getFullYear() - birthYear;
+        const age = this.getDeterministicDate().getFullYear() - birthYear;
         if (age > 89) {
           hipaaViolations.push('Birth date for patient >89 years old detected');
         }

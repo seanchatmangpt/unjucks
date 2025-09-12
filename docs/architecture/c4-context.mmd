@@ -1,0 +1,28 @@
+```mermaid
+C4Context
+  title System Context - KGEN Knowledge Graph Engine
+  
+  Person(developer, "Developer", "Software developer using KGEN for code generation and knowledge graph processing")
+  Person(dataScientist, "Data Scientist", "Creates and manages RDF knowledge graphs and reasoning rules")
+  Person(devopsEngineer, "DevOps Engineer", "Manages KGEN deployments and CI/CD integration")
+  
+  System(kgen, "KGEN", "Knowledge Graph Engine for deterministic artifact generation from RDF graphs with provenance tracking")
+  
+  System_Ext(gitRepository, "Git Repository", "Version control system storing templates, rules, and generated artifacts")
+  System_Ext(cicdPipeline, "CI/CD Pipeline", "Continuous integration and deployment system")
+  System_Ext(rdfStore, "RDF Triple Store", "External semantic databases and knowledge graphs")
+  System_Ext(templateRegistry, "Template Registry", "External template repositories and registries")
+  System_Ext(monitoring, "Monitoring & Observability", "OpenTelemetry-based monitoring and metrics collection")
+  
+  Rel(developer, kgen, "Uses CLI to generate artifacts, validate templates, and manage drift", "CLI commands")
+  Rel(dataScientist, kgen, "Creates knowledge graphs, defines reasoning rules", "RDF/Turtle files")
+  Rel(devopsEngineer, kgen, "Configures deployment, monitors performance", "Configuration & monitoring")
+  
+  Rel(kgen, gitRepository, "Reads/writes templates, tracks provenance, stores attestations", "Git operations")
+  Rel(kgen, cicdPipeline, "Integrates with build processes, provides drift detection", "Webhooks & API")
+  Rel(kgen, rdfStore, "Queries semantic data, imports/exports knowledge graphs", "SPARQL & RDF/XML")
+  Rel(kgen, templateRegistry, "Discovers and downloads templates", "HTTP/Registry API")
+  Rel(kgen, monitoring, "Exports metrics, traces, and performance data", "OpenTelemetry Protocol")
+  
+  UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="2")
+```

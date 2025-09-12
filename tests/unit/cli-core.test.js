@@ -175,9 +175,9 @@ describe('CLI Core - Unit Tests', () => {
     });
 
     it('should execute commands within reasonable time', async () => {
-      const start = Date.now();
+      const start = this.getDeterministicTimestamp();
       await execCLI(['--version']);
-      const duration = Date.now() - start;
+      const duration = this.getDeterministicTimestamp() - start;
       
       expect(duration).toBeLessThan(5000); // 5 seconds max
     });

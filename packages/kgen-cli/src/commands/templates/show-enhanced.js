@@ -85,7 +85,7 @@ export default defineCommand({
     let workflowEngine;
     
     try {
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
       // Load configuration
       config = await loadKgenConfig(args.config);
@@ -194,7 +194,7 @@ export default defineCommand({
       // Perform basic template analysis
       const basicAnalysis = await analyzeBasicTemplate(content, templateType);
       
-      const duration = Date.now() - startTime;
+      const duration = this.getDeterministicTimestamp() - startTime;
       
       const result = success({
         template: {

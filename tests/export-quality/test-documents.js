@@ -152,8 +152,8 @@ LIMIT 10;`
         author: 'Export Quality Validator',
         subject: 'Comprehensive test of export functionality',
         keywords: ['export', 'quality', 'test', 'validation'],
-        created: new Date().toISOString(),
-        modified: new Date().toISOString(),
+        created: this.getDeterministicDate().toISOString(),
+        modified: this.getDeterministicDate().toISOString(),
         version: '1.0.0'
       }
     };

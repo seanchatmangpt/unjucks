@@ -92,7 +92,7 @@ export class KgenSparqlIntegration extends EventEmitter {
   async initialize(options = {}) {
     try {
       console.log('🚀 [SPARQL Integration] Initializing KGEN SPARQL system...');
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
       this.state = 'initializing';
       this.emit('integration:initializing');
@@ -111,7 +111,7 @@ export class KgenSparqlIntegration extends EventEmitter {
       // Setup event handlers
       this._setupEventHandlers();
       
-      const initTime = Date.now() - startTime;
+      const initTime = this.getDeterministicTimestamp() - startTime;
       this.state = 'ready';
       
       console.log(`✅ [SPARQL Integration] System initialized in ${initTime}ms`);
@@ -146,7 +146,7 @@ export class KgenSparqlIntegration extends EventEmitter {
    */
   async executeWorkflow(workflowType, parameters = {}, options = {}) {
     const workflowId = this._generateWorkflowId();
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       console.log(`🔄 [SPARQL Integration] Executing workflow: ${workflowType} (${workflowId})`);
@@ -176,7 +176,7 @@ export class KgenSparqlIntegration extends EventEmitter {
           throw new Error(`Unknown workflow type: ${workflowType}`);
       }
       
-      const executionTime = Date.now() - startTime;
+      const executionTime = this.getDeterministicTimestamp() - startTime;
       this.integrationMetrics.successfulOperations++;
       this._updateOperationMetrics(executionTime, true);
       
@@ -195,13 +195,13 @@ export class KgenSparqlIntegration extends EventEmitter {
         executionTime,
         result,
         metadata: {
-          completedAt: new Date().toISOString(),
+          completedAt: this.getDeterministicDate().toISOString(),
           componentsUsed: this._getComponentsUsed(workflowType)
         }
       };
       
     } catch (error) {
-      const executionTime = Date.now() - startTime;
+      const executionTime = this.getDeterministicTimestamp() - startTime;
       this.integrationMetrics.failedOperations++;
       this._updateOperationMetrics(executionTime, false);
       
@@ -279,7 +279,7 @@ export class KgenSparqlIntegration extends EventEmitter {
       throw new Error('SPARQL engine not initialized');
     }
     
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       // Execute query
@@ -294,7 +294,7 @@ export class KgenSparqlIntegration extends EventEmitter {
         results.formatted = formatted;
       }
       
-      const executionTime = Date.now() - startTime;
+      const executionTime = this.getDeterministicTimestamp() - startTime;
       
       this.emit('query:executed', { 
         executionTime, 
@@ -524,7 +524,7 @@ export class KgenSparqlIntegration extends EventEmitter {
   }
 
   _generateWorkflowId() {
-    return `sparql_workflow_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    return `sparql_workflow_${this.getDeterministicTimestamp()}_${Math.random().toString(36).substr(2, 9)}`;
   }
 
   _updateOperationMetrics(executionTime, success) {

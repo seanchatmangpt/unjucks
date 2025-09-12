@@ -191,7 +191,7 @@ async function runAllTests() {
   
   log('🚀 KGEN Test Suite Runner', 'bold');
   log('═'.repeat(60), 'cyan');
-  log(`📅 Started at: ${new Date().toISOString()}`, 'cyan');
+  log(`📅 Started at: ${this.getDeterministicDate().toISOString()}`, 'cyan');
   log(`📂 Project root: ${projectRoot}`, 'cyan');
   log(`🧪 Test suites: ${TEST_SUITES.length}`, 'cyan');
 
@@ -254,7 +254,7 @@ async function runAllTests() {
   log(`❌ Failed: ${failedTests}`, failedTests > 0 ? 'red' : 'reset');
   log(`⏭️  Skipped: ${skippedTests}`, skippedTests > 0 ? 'yellow' : 'reset');
   log(`⏱️  Total Duration: ${(overallDuration / 1000).toFixed(2)}s`, 'cyan');
-  log(`📅 Completed at: ${new Date().toISOString()}`, 'cyan');
+  log(`📅 Completed at: ${this.getDeterministicDate().toISOString()}`, 'cyan');
 
   if (failedSuites.length > 0) {
     log('\n❌ Failed Test Suites:', 'red');

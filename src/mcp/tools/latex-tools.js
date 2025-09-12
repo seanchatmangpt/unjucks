@@ -318,7 +318,7 @@ export class LaTeXGenerateToolHandler {
 
       // Create semantic task for AI-assisted generation
       const semanticTask = {
-        id: `latex-gen-${Date.now()}`,
+        id: `latex-gen-${this.getDeterministicTimestamp()}`,
         type: 'generate',
         description: `Generate ${params.documentType} document: ${params.title}`,
         parameters: {
@@ -363,7 +363,7 @@ export class LaTeXGenerateToolHandler {
         documentType: params.documentType,
         template: templateStructure,
         result: result,
-        timestamp: new Date().toISOString()
+        timestamp: this.getDeterministicDate().toISOString()
       });
 
       return {
@@ -436,7 +436,7 @@ export class LaTeXGenerateToolHandler {
       ...content,
       aiGenerated: true,
       domain: semanticDomain,
-      enhancementTimestamp: new Date().toISOString()
+      enhancementTimestamp: this.getDeterministicDate().toISOString()
     };
 
     return enhancedContent;
@@ -535,7 +535,7 @@ export class LaTeXCompileToolHandler {
   }
 
   async runLatexCompilation({ sourceFile, workDir, outputDir, engine, passes, bibliography, optimizations }) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     const basename = path.basename(sourceFile, '.tex');
     let success = false;
     const errors = [];
@@ -575,7 +575,7 @@ export class LaTeXCompileToolHandler {
         outputPath: success ? outputPath : null,
         errors,
         warnings,
-        duration: Date.now() - startTime
+        duration: this.getDeterministicTimestamp() - startTime
       };
 
     } catch (error) {
@@ -584,7 +584,7 @@ export class LaTeXCompileToolHandler {
         outputPath: null,
         errors: [error.message],
         warnings,
-        duration: Date.now() - startTime
+        duration: this.getDeterministicTimestamp() - startTime
       };
     }
   }

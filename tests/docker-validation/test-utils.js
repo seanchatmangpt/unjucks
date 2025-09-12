@@ -103,7 +103,7 @@ export async function createTestContainer(config = {}) {
       id: actualContainerId,
       name: finalConfig.name,
       config: finalConfig,
-      created: new Date().toISOString()
+      created: this.getDeterministicDate().toISOString()
     };
   } catch (error) {
     throw new Error(`Failed to create container: ${error.message}`);
@@ -358,12 +358,12 @@ export function startMemoryMonitoring(intervalMs = 1000) {
     interval: null,
     snapshots: [],
     peak: { heapUsed: 0, heapTotal: 0, external: 0, rss: 0 },
-    start: Date.now()
+    start: this.getDeterministicTimestamp()
   };
   
   monitoring.interval = setInterval(() => {
     const usage = process.memoryUsage();
-    const timestamp = Date.now();
+    const timestamp = this.getDeterministicTimestamp();
     
     monitoring.snapshots.push({
       timestamp,
@@ -397,7 +397,7 @@ export function stopMemoryMonitoring(monitoring) {
     monitoring.interval = null;
   }
   
-  const duration = Date.now() - monitoring.start;
+  const duration = this.getDeterministicTimestamp() - monitoring.start;
   const snapshots = monitoring.snapshots;
   
   if (snapshots.length === 0) {
@@ -542,7 +542,7 @@ export async function measurePerformance(name, fn, options = {}) {
     success: !error,
     error: error?.message,
     memory: memoryReport,
-    timestamp: new Date().toISOString()
+    timestamp: this.getDeterministicDate().toISOString()
   };
   
   performanceMetrics.set(name, performanceReport);
@@ -562,7 +562,7 @@ export async function measurePerformance(name, fn, options = {}) {
  * Generate comprehensive test report
  */
 export async function generateTestReport(testName, results = {}) {
-  const timestamp = new Date().toISOString();
+  const timestamp = this.getDeterministicDate().toISOString();
   const reportId = crypto.randomUUID();
   
   const report = {
@@ -850,7 +850,7 @@ export async function setupTestEnvironment() {
   return {
     docker: dockerStatus,
     tempDir: await createTempDirectory(),
-    timestamp: new Date().toISOString()
+    timestamp: this.getDeterministicDate().toISOString()
   };
 }
 

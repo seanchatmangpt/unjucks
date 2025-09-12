@@ -670,7 +670,7 @@ export class SpecBenchmarker {
     
     this.results.get(name).push({
       duration,
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       ...metadata
     });
   }
@@ -680,7 +680,7 @@ export class SpecBenchmarker {
    */
   generateComprehensiveReport(benchmarks) {
     const report = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       target: this.options.targetGenerationTime,
       summary: this.generateSummary(benchmarks),
       benchmarks: benchmarks,
@@ -816,7 +816,7 @@ export class SpecBenchmarker {
     const outputDir = outputPath || this.options.outputDir;
     await fs.ensureDir(outputDir);
     
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const timestamp = this.getDeterministicDate().toISOString().replace(/[:.]/g, '-');
     const filename = `spec-performance-${timestamp}.json`;
     const filepath = join(outputDir, filename);
     

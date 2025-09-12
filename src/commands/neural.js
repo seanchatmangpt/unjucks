@@ -35,7 +35,7 @@ class NeuralProcessor {
 
   async simulateTraining(config, onProgress) {
     const model = {
-      id: config.name || `model_${Date.now()}`,
+      id: config.name || `model_${this.getDeterministicTimestamp()}`,
       architecture: config.architecture || 'feedforward',
       layers: config.layers || [128, 64, 32],
       epochs: config.epochs || 100,
@@ -48,7 +48,7 @@ class NeuralProcessor {
         epochs: config.epochs || 100
       },
       metadata: {
-        trainedAt: new Date().toISOString(),
+        trainedAt: this.getDeterministicDate().toISOString(),
         dataSize: config.dataSize || 10000,
         features: config.features || 784,
         wasmOptimized: config.wasmOptimized || false,
@@ -85,7 +85,7 @@ class NeuralProcessor {
   }
 
   async predict(modelId, inputData) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     const model = this.models.get(modelId);
     if (!model) {
@@ -137,11 +137,11 @@ class NeuralProcessor {
       return {
         id: index,
         prediction: result,
-        timestamp: new Date().toISOString()
+        timestamp: this.getDeterministicDate().toISOString()
       };
     });
     
-    this.performance.inferenceTime = Date.now() - startTime;
+    this.performance.inferenceTime = this.getDeterministicTimestamp() - startTime;
     return predictions;
   }
 
@@ -172,7 +172,7 @@ class NeuralProcessor {
         optimized.speedGain = Math.random() * 1.8 + 1.2; // 1.2-3x speed
     }
     
-    optimized.optimizedAt = new Date().toISOString();
+    optimized.optimizedAt = this.getDeterministicDate().toISOString();
     optimized.optimizationType = optimizationType;
     
     return optimized;
@@ -220,7 +220,7 @@ class NeuralProcessor {
     const exportData = {
       model,
       format,
-      exportedAt: new Date().toISOString()
+      exportedAt: this.getDeterministicDate().toISOString()
     };
 
     switch (format) {
@@ -293,7 +293,7 @@ export const neuralCommand = defineCommand({
         name: {
           type: "string",
           description: "Model name identifier",
-          default: `model_${Date.now()}`,
+          default: `model_${this.getDeterministicTimestamp()}`,
         },
         architecture: {
           type: "string",
@@ -374,7 +374,7 @@ export const neuralCommand = defineCommand({
           console.log(chalk.gray(`   Dataset size: ${config.dataSize.toLocaleString()} samples`));
           console.log();
 
-          const startTime = Date.now();
+          const startTime = this.getDeterministicTimestamp();
           
           console.log(chalk.cyan("🚀 Starting training..."));
           console.log();
@@ -390,7 +390,7 @@ export const neuralCommand = defineCommand({
             }
           });
 
-          const endTime = Date.now();
+          const endTime = this.getDeterministicTimestamp();
           const trainTime = endTime - startTime;
           
           console.log(); // New line after progress bar
@@ -516,9 +516,9 @@ export const neuralCommand = defineCommand({
 
           console.log(chalk.cyan(`🚀 Running inference on ${inputData.length} samples...`));
           
-          const startTime = Date.now();
+          const startTime = this.getDeterministicTimestamp();
           const predictions = await processor.predict(model.id, inputData);
-          const endTime = Date.now();
+          const endTime = this.getDeterministicTimestamp();
           
           const inferenceTime = endTime - startTime;
           const throughput = (inputData.length / (inferenceTime / 1000)).toFixed(1);
@@ -561,7 +561,7 @@ export const neuralCommand = defineCommand({
                 averageConfidence: avgConfidence,
                 inferenceTime,
                 throughput: parseFloat(throughput),
-                timestamp: new Date().toISOString()
+                timestamp: this.getDeterministicDate().toISOString()
               }
             };
             
@@ -775,7 +775,7 @@ export const neuralCommand = defineCommand({
 
         try {
           const results = {
-            timestamp: new Date().toISOString(),
+            timestamp: this.getDeterministicDate().toISOString(),
             suite: args.suite,
             iterations: args.iterations,
             benchmarks: {}
@@ -821,27 +821,27 @@ export const neuralCommand = defineCommand({
               };
               
               // Regular benchmark
-              const regularStart = Date.now();
+              const regularStart = this.getDeterministicTimestamp();
               const regularModel = await processor.simulateTraining({
                 architecture: arch,
                 epochs: 20,
                 wasmOptimized: false
               }, null);
               benchmarkData.regular = {
-                trainTime: Date.now() - regularStart,
+                trainTime: this.getDeterministicTimestamp() - regularStart,
                 accuracy: regularModel.performance.accuracy,
                 inferenceTime: Math.random() * 200 + 50
               };
               
               // WASM benchmark
-              const wasmStart = Date.now();
+              const wasmStart = this.getDeterministicTimestamp();
               const wasmModel = await processor.simulateTraining({
                 architecture: arch,
                 epochs: 20,
                 wasmOptimized: true
               }, null);
               benchmarkData.wasm = {
-                trainTime: Date.now() - wasmStart,
+                trainTime: this.getDeterministicTimestamp() - wasmStart,
                 accuracy: wasmModel.performance.accuracy,
                 inferenceTime: benchmarkData.regular.inferenceTime / (Math.random() * 2 + 1.5)
               };
@@ -1043,7 +1043,7 @@ export const neuralCommand = defineCommand({
               },
               exports: exportedFiles,
               exportInfo: {
-                timestamp: new Date().toISOString(),
+                timestamp: this.getDeterministicDate().toISOString(),
                 formats,
                 totalFormats: exportedFiles.length,
                 totalSize: exportedFiles.reduce((sum, f) => sum + f.size, 0)

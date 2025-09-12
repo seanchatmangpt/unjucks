@@ -101,7 +101,7 @@ async function demonstrateCompleteDocumentGeneration() {
       context: {
         reportTitle: 'Annual Performance Report',
         reportType: 'annual',
-        date: new Date(),
+        date: this.getDeterministicDate(),
         executiveSummary: 'Our company has shown exceptional growth this year...',
         outputDir: './reports'
       },

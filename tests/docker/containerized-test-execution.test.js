@@ -28,7 +28,7 @@ describe('Containerized Test Execution', () => {
 
   afterAll(async () => {
     // Archive test results
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const timestamp = this.getDeterministicDate().toISOString().replace(/[:.]/g, '-');
     const archiveDir = `${resultsDir}/archive/${timestamp}`;
     await fs.ensureDir(archiveDir);
     
@@ -43,9 +43,9 @@ describe('Containerized Test Execution', () => {
     const unitTestCommand = `docker run --rm -v ${process.cwd()}:/workspace ` +
       `-w /workspace ${testImageName} npm run test:unit`;
     
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     const { stdout, stderr } = await execAsync(unitTestCommand);
-    const duration = Date.now() - startTime;
+    const duration = this.getDeterministicTimestamp() - startTime;
     
     // Save results
     await fs.writeFile(`${resultsDir}/unit-tests.log`, stdout + '\n' + stderr);
@@ -219,7 +219,7 @@ describe('Containerized Test Execution', () => {
     
     // Generate summary report
     const summary = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       totalTests,
       totalPassed,
       totalFailed,

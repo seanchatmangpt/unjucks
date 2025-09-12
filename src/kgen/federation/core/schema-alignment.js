@@ -165,7 +165,7 @@ export class SchemaAlignmentEngine extends EventEmitter {
         processedSchema,
         elements,
         signature,
-        registeredAt: new Date().toISOString(),
+        registeredAt: this.getDeterministicDate().toISOString(),
         statistics: {
           classes: elements.classes?.length || 0,
           properties: elements.properties?.length || 0,
@@ -245,7 +245,7 @@ export class SchemaAlignmentEngine extends EventEmitter {
     console.log(`🔄 Aligning schemas across ${endpointIds.length} endpoints...`);
     
     const alignmentId = crypto.randomUUID();
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       // Get schemas for specified endpoints
@@ -286,7 +286,7 @@ export class SchemaAlignmentEngine extends EventEmitter {
       }
       
       // Update statistics
-      this.updateAlignmentStatistics(alignmentId, 'success', Date.now() - startTime, resolvedAlignment);
+      this.updateAlignmentStatistics(alignmentId, 'success', this.getDeterministicTimestamp() - startTime, resolvedAlignment);
       
       const result = {
         success: true,
@@ -295,7 +295,7 @@ export class SchemaAlignmentEngine extends EventEmitter {
         alignment: resolvedAlignment,
         unifiedSchema,
         metadata: {
-          alignmentTime: Date.now() - startTime,
+          alignmentTime: this.getDeterministicTimestamp() - startTime,
           conflictsResolved: resolvedAlignment.conflicts?.length || 0,
           mappingsCreated: resolvedAlignment.mappings?.length || 0,
           confidence: resolvedAlignment.confidence || 0
@@ -311,7 +311,7 @@ export class SchemaAlignmentEngine extends EventEmitter {
     } catch (error) {
       console.error(`❌ Schema alignment failed (${alignmentId}):`, error);
       
-      this.updateAlignmentStatistics(alignmentId, 'failure', Date.now() - startTime);
+      this.updateAlignmentStatistics(alignmentId, 'failure', this.getDeterministicTimestamp() - startTime);
       
       throw new Error(`Schema alignment failed: ${error.message}`);
     }
@@ -353,7 +353,7 @@ export class SchemaAlignmentEngine extends EventEmitter {
     // Enrich with additional metadata
     processedSchema.metadata = {
       endpointId,
-      processedAt: new Date().toISOString(),
+      processedAt: this.getDeterministicDate().toISOString(),
       source: schemaInfo.discovered ? 'discovered' : 'inferred',
       format: schemaInfo.format || 'unknown'
     };
@@ -1196,7 +1196,7 @@ export class SchemaAlignmentEngine extends EventEmitter {
       ...this.state.statistics,
       registeredSchemas: this.state.endpointSchemas.size,
       cachedAlignments: this.state.alignmentCache.size,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     };
   }
   

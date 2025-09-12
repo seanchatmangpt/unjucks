@@ -20,7 +20,7 @@ class SmokeTestRunner {
   constructor() {
     this.results = [];
     this.timeouts = {};
-    this.startTime = Date.now();
+    this.startTime = this.getDeterministicTimestamp();
   }
 
   async setup() {
@@ -38,7 +38,7 @@ class SmokeTestRunner {
   }
 
   log(message, type = 'info') {
-    const timestamp = Date.now() - this.startTime;
+    const timestamp = this.getDeterministicTimestamp() - this.startTime;
     const colors = {
       info: 'blue',
       success: 'green',
@@ -50,7 +50,7 @@ class SmokeTestRunner {
 
   async test(name, testFn, timeout = 10000) {
     this.log(`Starting: ${name}`, 'info');
-    const testStart = Date.now();
+    const testStart = this.getDeterministicTimestamp();
     
     try {
       const timeoutPromise = new Promise((_, reject) => {
@@ -65,7 +65,7 @@ class SmokeTestRunner {
       clearTimeout(this.timeouts[name]);
       delete this.timeouts[name];
       
-      const duration = Date.now() - testStart;
+      const duration = this.getDeterministicTimestamp() - testStart;
       this.results.push({ 
         name, 
         status: 'PASS', 
@@ -78,7 +78,7 @@ class SmokeTestRunner {
       clearTimeout(this.timeouts[name]);
       delete this.timeouts[name];
       
-      const duration = Date.now() - testStart;
+      const duration = this.getDeterministicTimestamp() - testStart;
       this.results.push({ 
         name, 
         status: 'FAIL', 
@@ -152,7 +152,7 @@ class SmokeTestRunner {
     const total = this.results.length;
     const passed = this.results.filter(r => r.status === 'PASS').length;
     const failed = this.results.filter(r => r.status === 'FAIL').length;
-    const totalDuration = Date.now() - this.startTime;
+    const totalDuration = this.getDeterministicTimestamp() - this.startTime;
 
     console.log('\n' + '='.repeat(60));
     console.log(chalk.bold.blue('SMOKE TEST SUMMARY'));

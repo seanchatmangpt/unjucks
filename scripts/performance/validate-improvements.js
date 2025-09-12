@@ -275,7 +275,7 @@ class PerformanceValidator {
 
   generateValidationReport() {
     const report = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       validation: this.validation,
       configuration: {
         expectedRange: this.validation.expectedRange,

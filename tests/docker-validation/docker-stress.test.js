@@ -63,7 +63,7 @@ describe('Docker Production Stress Tests', () => {
         'Report generated on {{ date }} for {{ department }}'
       ];
       
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       await resourceMonitor.setBaseline();
       
       // Process templates in batches to avoid overwhelming the system
@@ -86,7 +86,7 @@ describe('Docker Production Stress Tests', () => {
               productName: `Product${processedCount}`,
               status: ['available', 'sold out', 'discontinued'][Math.floor(Math.random() * 3)],
               price: (Math.random() * 500).toFixed(2),
-              date: new Date().toISOString().split('T')[0],
+              date: this.getDeterministicDate().toISOString().split('T')[0],
               department: ['Sales', 'Marketing', 'Support'][Math.floor(Math.random() * 3)]
             };
             
@@ -121,7 +121,7 @@ describe('Docker Production Stress Tests', () => {
         }
       }
       
-      const endTime = Date.now();
+      const endTime = this.getDeterministicTimestamp();
       const duration = endTime - startTime;
       
       containerStats.totalOperations += processedCount;
@@ -398,7 +398,7 @@ describe('Docker Production Stress Tests', () => {
   describe('Production Simulation', () => {
     test('should handle realistic production load patterns', async () => {
       const testDuration = 10000; // 10 seconds
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
       // Simulate different types of production loads
       const loadTypes = {
@@ -412,11 +412,11 @@ describe('Docker Production Stress Tests', () => {
       let totalRequests = 0;
       
       const generateLoad = async (type, duration) => {
-        const loadId = `${type}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        const loadId = `${type}-${this.getDeterministicTimestamp()}-${Math.random().toString(36).substr(2, 9)}`;
         activeLoads.add(loadId);
         totalRequests++;
         
-        const taskStart = Date.now();
+        const taskStart = this.getDeterministicTimestamp();
         
         try {
           // Simulate different workload patterns
@@ -448,7 +448,7 @@ describe('Docker Production Stress Tests', () => {
           const actualDuration = Math.max(10, duration + variance);
           await new Promise(resolve => setTimeout(resolve, actualDuration));
           
-          const taskEnd = Date.now();
+          const taskEnd = this.getDeterministicTimestamp();
           completedLoads.push({
             type,
             duration: taskEnd - taskStart,
@@ -462,7 +462,7 @@ describe('Docker Production Stress Tests', () => {
       
       // Generate continuous mixed load
       const loadGenerationPromise = (async () => {
-        while (Date.now() - startTime < testDuration) {
+        while (this.getDeterministicTimestamp() - startTime < testDuration) {
           // Select load type based on weights
           const rand = Math.random();
           let loadType = 'webRequests';
@@ -491,8 +491,8 @@ describe('Docker Production Stress Tests', () => {
       
       // Wait for all active loads to complete (with timeout)
       const cleanupTimeout = 5000;
-      const cleanupStart = Date.now();
-      while (activeLoads.size > 0 && Date.now() - cleanupStart < cleanupTimeout) {
+      const cleanupStart = this.getDeterministicTimestamp();
+      while (activeLoads.size > 0 && this.getDeterministicTimestamp() - cleanupStart < cleanupTimeout) {
         await new Promise(resolve => setTimeout(resolve, 100));
       }
       
@@ -515,7 +515,7 @@ describe('Docker Production Stress Tests', () => {
       }
       
       console.log('Production load simulation results:', {
-        testDurationMs: Date.now() - startTime,
+        testDurationMs: this.getDeterministicTimestamp() - startTime,
         totalRequests,
         completedRequests: completedLoads.length,
         stillActive: activeLoads.size,

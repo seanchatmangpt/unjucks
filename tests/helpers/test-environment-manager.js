@@ -61,7 +61,7 @@ export class TestEnvironmentManager extends EventEmitter {
       resources: new Map(),
       fixtures: new Map(),
       state: 'creating',
-      startTime: Date.now(),
+      startTime: this.getDeterministicTimestamp(),
       tempDirs: new Set(),
       processes: new Set(),
       cleanup: []
@@ -125,7 +125,7 @@ export class TestEnvironmentManager extends EventEmitter {
    * Create workspace for test environment
    */
   async createWorkspace(environment) {
-    const workspaceId = `${environment.testName}-${Date.now()}-${Math.random().toString(36).substring(2)}`;
+    const workspaceId = `${environment.testName}-${this.getDeterministicTimestamp()}-${Math.random().toString(36).substring(2)}`;
     const workspacePath = path.join(tmpdir(), 'unjucks-test-env', workspaceId);
     
     await fs.ensureDir(workspacePath);
@@ -405,7 +405,7 @@ export const {{ name | camelCase }} = {
    */
   generateEnvironmentId(testName) {
     const sanitized = testName.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase();
-    const timestamp = Date.now();
+    const timestamp = this.getDeterministicTimestamp();
     const random = Math.random().toString(36).substring(2, 8);
     return `${sanitized}-${timestamp}-${random}`;
   }
@@ -448,7 +448,7 @@ export const {{ name | camelCase }} = {
     if (readyEnvironments.length === 0) return 0;
     
     const totalTime = readyEnvironments.reduce((sum, env) => 
-      sum + (Date.now() - env.startTime), 0
+      sum + (this.getDeterministicTimestamp() - env.startTime), 0
     );
     
     return totalTime / readyEnvironments.length;
@@ -525,11 +525,11 @@ export const {{ name | camelCase }} = '{{ name }}';`
    * Setup performance monitoring
    */
   setupPerformanceMonitoring: async (environment) => {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     environment.resources.set('performanceStart', startTime);
     
     environment.cleanup.push(() => {
-      const duration = Date.now() - startTime;
+      const duration = this.getDeterministicTimestamp() - startTime;
       console.log(`Test ${environment.testName} took ${duration}ms`);
     });
   }

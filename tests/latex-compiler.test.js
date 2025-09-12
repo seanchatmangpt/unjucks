@@ -15,7 +15,7 @@ describe('LaTeX Compiler', () => {
   let testDir;
   
   beforeEach(async () => {
-    testDir = path.join(process.cwd(), 'test-temp', Date.now().toString());
+    testDir = path.join(process.cwd(), 'test-temp', this.getDeterministicTimestamp().toString());
     await fs.mkdir(testDir, { recursive: true });
     
     compiler = new LaTeXCompiler({
@@ -294,7 +294,7 @@ describe('LaTeX Build Integration', () => {
   let testDir;
 
   beforeEach(async () => {
-    testDir = path.join(process.cwd(), 'test-temp-integration', Date.now().toString());
+    testDir = path.join(process.cwd(), 'test-temp-integration', this.getDeterministicTimestamp().toString());
     await fs.mkdir(testDir, { recursive: true });
     
     integration = new LaTeXBuildIntegration({
@@ -408,7 +408,7 @@ describe('Docker LaTeX Support', () => {
 
   describe('Dockerfile Generation', () => {
     it('should generate valid Dockerfile', async () => {
-      const testDir = path.join(process.cwd(), 'test-temp-docker', Date.now().toString());
+      const testDir = path.join(process.cwd(), 'test-temp-docker', this.getDeterministicTimestamp().toString());
       await fs.mkdir(testDir, { recursive: true });
       
       try {
@@ -432,7 +432,7 @@ describe('Docker LaTeX Support', () => {
 
   describe('Docker Compose Generation', () => {
     it('should generate docker-compose.yml', async () => {
-      const testDir = path.join(process.cwd(), 'test-temp-compose', Date.now().toString());
+      const testDir = path.join(process.cwd(), 'test-temp-compose', this.getDeterministicTimestamp().toString());
       await fs.mkdir(testDir, { recursive: true });
       
       try {
@@ -456,7 +456,7 @@ describe('Docker LaTeX Support', () => {
 describe('Integration Tests', () => {
   describe('End-to-End LaTeX Compilation', () => {
     it('should handle complete compilation workflow', async () => {
-      const testDir = path.join(process.cwd(), 'test-temp-e2e', Date.now().toString());
+      const testDir = path.join(process.cwd(), 'test-temp-e2e', this.getDeterministicTimestamp().toString());
       await fs.mkdir(testDir, { recursive: true });
       
       try {

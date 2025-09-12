@@ -636,9 +636,9 @@ describe('Database Migration Tests', () => {
         if (manager.connection) {
           const seeder = new TestDataSeeder(manager);
           
-          const startTime = Date.now();
+          const startTime = this.getDeterministicTimestamp();
           await seeder.seedUsers(100); // Large batch
-          const endTime = Date.now();
+          const endTime = this.getDeterministicTimestamp();
           
           const duration = endTime - startTime;
           console.log(`${manager.type}: Seeded 100 users in ${duration}ms`);
@@ -653,9 +653,9 @@ describe('Database Migration Tests', () => {
         if (manager.connection && manager.type !== 'mongodb') {
           const runner = new MigrationRunner(manager);
           
-          const startTime = Date.now();
+          const startTime = this.getDeterministicTimestamp();
           await runner.runMigrations();
-          const endTime = Date.now();
+          const endTime = this.getDeterministicTimestamp();
           
           const duration = endTime - startTime;
           console.log(`${manager.type}: Migrations completed in ${duration}ms`);

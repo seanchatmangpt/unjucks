@@ -10,7 +10,7 @@ describe("Template Rendering Property Tests", () => {
   const numRuns = 20;
   
   beforeEach(async () => {
-    tmpDir = path.join(process.cwd(), "test-bzyH4B", `template-prop-${Date.now()}`);
+    tmpDir = path.join(process.cwd(), "test-bzyH4B", `template-prop-${this.getDeterministicTimestamp()}`);
     await fs.ensureDir(tmpDir);
     
     nunjucksEnv = new nunjucks.Environment(null, {

@@ -62,7 +62,7 @@ describe('Production Enterprise Integration Tests', () => {
       
       const samlTest = {
         provider: 'SAML',
-        startTime: Date.now(),
+        startTime: this.getDeterministicTimestamp(),
         validations: [],
         status: 'testing'
       };
@@ -93,7 +93,7 @@ describe('Production Enterprise Integration Tests', () => {
         
         samlTest.successRate = (passedValidations / totalValidations) * 100;
         samlTest.status = passedValidations === totalValidations ? 'success' : 'partial';
-        samlTest.duration = Date.now() - samlTest.startTime;
+        samlTest.duration = this.getDeterministicTimestamp() - samlTest.startTime;
         
         integrationResults.authentication.push(samlTest);
         
@@ -104,7 +104,7 @@ describe('Production Enterprise Integration Tests', () => {
       } catch (samlError) {
         samlTest.status = 'failed';
         samlTest.error = samlError.message;
-        samlTest.duration = Date.now() - samlTest.startTime;
+        samlTest.duration = this.getDeterministicTimestamp() - samlTest.startTime;
         
         integrationResults.authentication.push(samlTest);
         throw samlError;
@@ -116,7 +116,7 @@ describe('Production Enterprise Integration Tests', () => {
       
       const oidcTest = {
         provider: 'OIDC',
-        startTime: Date.now(),
+        startTime: this.getDeterministicTimestamp(),
         validations: [],
         status: 'testing'
       };
@@ -147,7 +147,7 @@ describe('Production Enterprise Integration Tests', () => {
         
         oidcTest.successRate = (passedValidations / totalValidations) * 100;
         oidcTest.status = passedValidations === totalValidations ? 'success' : 'partial';
-        oidcTest.duration = Date.now() - oidcTest.startTime;
+        oidcTest.duration = this.getDeterministicTimestamp() - oidcTest.startTime;
         
         integrationResults.authentication.push(oidcTest);
         
@@ -158,7 +158,7 @@ describe('Production Enterprise Integration Tests', () => {
       } catch (oidcError) {
         oidcTest.status = 'failed';
         oidcTest.error = oidcError.message;
-        oidcTest.duration = Date.now() - oidcTest.startTime;
+        oidcTest.duration = this.getDeterministicTimestamp() - oidcTest.startTime;
         
         integrationResults.authentication.push(oidcTest);
         throw oidcError;
@@ -170,7 +170,7 @@ describe('Production Enterprise Integration Tests', () => {
       
       const ldapTest = {
         provider: 'LDAP/AD',
-        startTime: Date.now(),
+        startTime: this.getDeterministicTimestamp(),
         validations: [],
         status: 'testing'
       };
@@ -205,7 +205,7 @@ describe('Production Enterprise Integration Tests', () => {
         
         ldapTest.successRate = (passedValidations / totalValidations) * 100;
         ldapTest.status = passedValidations === totalValidations ? 'success' : 'partial';
-        ldapTest.duration = Date.now() - ldapTest.startTime;
+        ldapTest.duration = this.getDeterministicTimestamp() - ldapTest.startTime;
         
         integrationResults.authentication.push(ldapTest);
         
@@ -216,7 +216,7 @@ describe('Production Enterprise Integration Tests', () => {
       } catch (ldapError) {
         ldapTest.status = 'failed';
         ldapTest.error = ldapError.message;
-        ldapTest.duration = Date.now() - ldapTest.startTime;
+        ldapTest.duration = this.getDeterministicTimestamp() - ldapTest.startTime;
         
         integrationResults.authentication.push(ldapTest);
         throw ldapError;
@@ -230,7 +230,7 @@ describe('Production Enterprise Integration Tests', () => {
       
       const rbacTest = {
         system: 'RBAC',
-        startTime: Date.now(),
+        startTime: this.getDeterministicTimestamp(),
         validations: [],
         status: 'testing'
       };
@@ -266,7 +266,7 @@ describe('Production Enterprise Integration Tests', () => {
         
         rbacTest.successRate = (passedValidations / totalValidations) * 100;
         rbacTest.status = passedValidations === totalValidations ? 'success' : 'partial';
-        rbacTest.duration = Date.now() - rbacTest.startTime;
+        rbacTest.duration = this.getDeterministicTimestamp() - rbacTest.startTime;
         
         integrationResults.authorization.push(rbacTest);
         
@@ -277,7 +277,7 @@ describe('Production Enterprise Integration Tests', () => {
       } catch (rbacError) {
         rbacTest.status = 'failed';
         rbacTest.error = rbacError.message;
-        rbacTest.duration = Date.now() - rbacTest.startTime;
+        rbacTest.duration = this.getDeterministicTimestamp() - rbacTest.startTime;
         
         integrationResults.authorization.push(rbacTest);
         throw rbacError;
@@ -289,7 +289,7 @@ describe('Production Enterprise Integration Tests', () => {
       
       const abacTest = {
         system: 'ABAC',
-        startTime: Date.now(),
+        startTime: this.getDeterministicTimestamp(),
         validations: [],
         status: 'testing'
       };
@@ -324,7 +324,7 @@ describe('Production Enterprise Integration Tests', () => {
         
         abacTest.successRate = (passedValidations / totalValidations) * 100;
         abacTest.status = passedValidations === totalValidations ? 'success' : 'partial';
-        abacTest.duration = Date.now() - abacTest.startTime;
+        abacTest.duration = this.getDeterministicTimestamp() - abacTest.startTime;
         
         integrationResults.authorization.push(abacTest);
         
@@ -335,7 +335,7 @@ describe('Production Enterprise Integration Tests', () => {
       } catch (abacError) {
         abacTest.status = 'failed';
         abacTest.error = abacError.message;
-        abacTest.duration = Date.now() - abacTest.startTime;
+        abacTest.duration = this.getDeterministicTimestamp() - abacTest.startTime;
         
         integrationResults.authorization.push(abacTest);
         throw abacError;
@@ -349,7 +349,7 @@ describe('Production Enterprise Integration Tests', () => {
       
       const gatewayTest = {
         component: 'API Gateway',
-        startTime: Date.now(),
+        startTime: this.getDeterministicTimestamp(),
         validations: [],
         status: 'testing'
       };
@@ -384,7 +384,7 @@ describe('Production Enterprise Integration Tests', () => {
         
         gatewayTest.successRate = (passedValidations / totalValidations) * 100;
         gatewayTest.status = passedValidations === totalValidations ? 'success' : 'partial';
-        gatewayTest.duration = Date.now() - gatewayTest.startTime;
+        gatewayTest.duration = this.getDeterministicTimestamp() - gatewayTest.startTime;
         
         integrationResults.integration.push(gatewayTest);
         
@@ -395,7 +395,7 @@ describe('Production Enterprise Integration Tests', () => {
       } catch (gatewayError) {
         gatewayTest.status = 'failed';
         gatewayTest.error = gatewayError.message;
-        gatewayTest.duration = Date.now() - gatewayTest.startTime;
+        gatewayTest.duration = this.getDeterministicTimestamp() - gatewayTest.startTime;
         
         integrationResults.integration.push(gatewayTest);
         throw gatewayError;
@@ -407,7 +407,7 @@ describe('Production Enterprise Integration Tests', () => {
       
       const versioningTest = {
         component: 'API Versioning',
-        startTime: Date.now(),
+        startTime: this.getDeterministicTimestamp(),
         validations: [],
         status: 'testing'
       };
@@ -434,7 +434,7 @@ describe('Production Enterprise Integration Tests', () => {
         
         versioningTest.successRate = (passedValidations / totalValidations) * 100;
         versioningTest.status = passedValidations === totalValidations ? 'success' : 'partial';
-        versioningTest.duration = Date.now() - versioningTest.startTime;
+        versioningTest.duration = this.getDeterministicTimestamp() - versioningTest.startTime;
         
         integrationResults.integration.push(versioningTest);
         
@@ -445,7 +445,7 @@ describe('Production Enterprise Integration Tests', () => {
       } catch (versioningError) {
         versioningTest.status = 'failed';
         versioningTest.error = versioningError.message;
-        versioningTest.duration = Date.now() - versioningTest.startTime;
+        versioningTest.duration = this.getDeterministicTimestamp() - versioningTest.startTime;
         
         integrationResults.integration.push(versioningTest);
         throw versioningError;
@@ -459,7 +459,7 @@ describe('Production Enterprise Integration Tests', () => {
       
       const loggingTest = {
         system: 'Centralized Logging',
-        startTime: Date.now(),
+        startTime: this.getDeterministicTimestamp(),
         validations: [],
         status: 'testing'
       };
@@ -494,7 +494,7 @@ describe('Production Enterprise Integration Tests', () => {
         
         loggingTest.successRate = (passedValidations / totalValidations) * 100;
         loggingTest.status = passedValidations === totalValidations ? 'success' : 'partial';
-        loggingTest.duration = Date.now() - loggingTest.startTime;
+        loggingTest.duration = this.getDeterministicTimestamp() - loggingTest.startTime;
         
         integrationResults.monitoring.push(loggingTest);
         
@@ -505,7 +505,7 @@ describe('Production Enterprise Integration Tests', () => {
       } catch (loggingError) {
         loggingTest.status = 'failed';
         loggingTest.error = loggingError.message;
-        loggingTest.duration = Date.now() - loggingTest.startTime;
+        loggingTest.duration = this.getDeterministicTimestamp() - loggingTest.startTime;
         
         integrationResults.monitoring.push(loggingTest);
         throw loggingError;
@@ -517,7 +517,7 @@ describe('Production Enterprise Integration Tests', () => {
       
       const monitoringTest = {
         system: 'Enterprise Monitoring',
-        startTime: Date.now(),
+        startTime: this.getDeterministicTimestamp(),
         validations: [],
         status: 'testing'
       };
@@ -548,7 +548,7 @@ describe('Production Enterprise Integration Tests', () => {
         
         monitoringTest.successRate = (passedValidations / totalValidations) * 100;
         monitoringTest.status = passedValidations === totalValidations ? 'success' : 'partial';
-        monitoringTest.duration = Date.now() - monitoringTest.startTime;
+        monitoringTest.duration = this.getDeterministicTimestamp() - monitoringTest.startTime;
         
         integrationResults.monitoring.push(monitoringTest);
         
@@ -559,7 +559,7 @@ describe('Production Enterprise Integration Tests', () => {
       } catch (monitoringError) {
         monitoringTest.status = 'failed';
         monitoringTest.error = monitoringError.message;
-        monitoringTest.duration = Date.now() - monitoringTest.startTime;
+        monitoringTest.duration = this.getDeterministicTimestamp() - monitoringTest.startTime;
         
         integrationResults.monitoring.push(monitoringTest);
         throw monitoringError;
@@ -573,7 +573,7 @@ describe('Production Enterprise Integration Tests', () => {
       
       const mqTest = {
         system: 'Message Queue',
-        startTime: Date.now(),
+        startTime: this.getDeterministicTimestamp(),
         validations: [],
         status: 'testing'
       };
@@ -604,7 +604,7 @@ describe('Production Enterprise Integration Tests', () => {
         
         mqTest.successRate = (passedValidations / totalValidations) * 100;
         mqTest.status = passedValidations === totalValidations ? 'success' : 'partial';
-        mqTest.duration = Date.now() - mqTest.startTime;
+        mqTest.duration = this.getDeterministicTimestamp() - mqTest.startTime;
         
         integrationResults.integration.push(mqTest);
         
@@ -615,7 +615,7 @@ describe('Production Enterprise Integration Tests', () => {
       } catch (mqError) {
         mqTest.status = 'failed';
         mqTest.error = mqError.message;
-        mqTest.duration = Date.now() - mqTest.startTime;
+        mqTest.duration = this.getDeterministicTimestamp() - mqTest.startTime;
         
         integrationResults.integration.push(mqTest);
         throw mqError;
@@ -627,7 +627,7 @@ describe('Production Enterprise Integration Tests', () => {
       
       const eventTest = {
         system: 'Event-Driven Architecture',
-        startTime: Date.now(),
+        startTime: this.getDeterministicTimestamp(),
         validations: [],
         status: 'testing'
       };
@@ -654,7 +654,7 @@ describe('Production Enterprise Integration Tests', () => {
         
         eventTest.successRate = (passedValidations / totalValidations) * 100;
         eventTest.status = passedValidations === totalValidations ? 'success' : 'partial';
-        eventTest.duration = Date.now() - eventTest.startTime;
+        eventTest.duration = this.getDeterministicTimestamp() - eventTest.startTime;
         
         integrationResults.integration.push(eventTest);
         
@@ -665,7 +665,7 @@ describe('Production Enterprise Integration Tests', () => {
       } catch (eventError) {
         eventTest.status = 'failed';
         eventTest.error = eventError.message;
-        eventTest.duration = Date.now() - eventError.startTime;
+        eventTest.duration = this.getDeterministicTimestamp() - eventError.startTime;
         
         integrationResults.integration.push(eventTest);
         throw eventError;
@@ -679,7 +679,7 @@ describe('Production Enterprise Integration Tests', () => {
       
       const k8sTest = {
         platform: 'Kubernetes',
-        startTime: Date.now(),
+        startTime: this.getDeterministicTimestamp(),
         validations: [],
         status: 'testing'
       };
@@ -714,7 +714,7 @@ describe('Production Enterprise Integration Tests', () => {
         
         k8sTest.successRate = (passedValidations / totalValidations) * 100;
         k8sTest.status = passedValidations === totalValidations ? 'success' : 'partial';
-        k8sTest.duration = Date.now() - k8sTest.startTime;
+        k8sTest.duration = this.getDeterministicTimestamp() - k8sTest.startTime;
         
         integrationResults.integration.push(k8sTest);
         
@@ -725,7 +725,7 @@ describe('Production Enterprise Integration Tests', () => {
       } catch (k8sError) {
         k8sTest.status = 'failed';
         k8sTest.error = k8sError.message;
-        k8sTest.duration = Date.now() - k8sTest.startTime;
+        k8sTest.duration = this.getDeterministicTimestamp() - k8sTest.startTime;
         
         integrationResults.integration.push(k8sTest);
         throw k8sError;
@@ -737,7 +737,7 @@ describe('Production Enterprise Integration Tests', () => {
       
       const meshTest = {
         platform: 'Service Mesh',
-        startTime: Date.now(),
+        startTime: this.getDeterministicTimestamp(),
         validations: [],
         status: 'testing'
       };
@@ -764,7 +764,7 @@ describe('Production Enterprise Integration Tests', () => {
         
         meshTest.successRate = (passedValidations / totalValidations) * 100;
         meshTest.status = passedValidations === totalValidations ? 'success' : 'partial';
-        meshTest.duration = Date.now() - meshTest.startTime;
+        meshTest.duration = this.getDeterministicTimestamp() - meshTest.startTime;
         
         integrationResults.integration.push(meshTest);
         
@@ -775,7 +775,7 @@ describe('Production Enterprise Integration Tests', () => {
       } catch (meshError) {
         meshTest.status = 'failed';
         meshTest.error = meshError.message;
-        meshTest.duration = Date.now() - meshTest.startTime;
+        meshTest.duration = this.getDeterministicTimestamp() - meshTest.startTime;
         
         integrationResults.integration.push(meshTest);
         throw meshError;
@@ -1151,7 +1151,7 @@ function generateEnterpriseReport(results) {
                              integrationSuccessRate >= 85 && overallStatus !== 'CRITICAL';
   
   return {
-    timestamp: new Date().toISOString(),
+    timestamp: this.getDeterministicDate().toISOString(),
     authenticationSystems,
     authSuccessRate,
     authorizationSystems,

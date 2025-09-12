@@ -135,7 +135,7 @@ export class ConfigManager extends EventEmitter {
       return JSON.parse(content);
     } else if (ext === 'js') {
       // Dynamic import for ES modules
-      const module = await import(`file://${resolve(filePath)}?t=${Date.now()}`);
+      const module = await import(`file://${resolve(filePath)}?t=${this.getDeterministicTimestamp()}`);
       return module.default || module;
     }
     
@@ -438,7 +438,7 @@ export class ConfigManager extends EventEmitter {
   async healthCheck() {
     const health = {
       status: 'healthy',
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       environment: this.options.environment,
       configLoaded: !!this.config,
       secretsManager: this.secretsManager ? await this.secretsManager.healthCheck() : null,

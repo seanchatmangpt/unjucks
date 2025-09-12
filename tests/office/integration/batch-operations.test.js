@@ -22,7 +22,7 @@ class MockBatchProcessor {
     if (!Array.isArray(operations)) throw new Error('Operations must be an array');
     if (operations.length === 0) return { results: [], totalProcessed: 0 };
 
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     const results = [];
     const processingOptions = { ...this.options, ...options };
 
@@ -43,7 +43,7 @@ class MockBatchProcessor {
       })));
     }
 
-    const endTime = Date.now();
+    const endTime = this.getDeterministicTimestamp();
     const successful = results.filter(r => r.status === 'success').length;
     const failed = results.filter(r => r.status === 'error').length;
 
@@ -59,7 +59,7 @@ class MockBatchProcessor {
   }
 
   async processOperation(operation, options) {
-    const operationId = `op_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const operationId = `op_${this.getDeterministicTimestamp()}_${Math.random().toString(36).substr(2, 9)}`;
     this.activeOperations.add(operationId);
 
     try {
@@ -129,8 +129,8 @@ class MockBatchProcessor {
         case 'metadata':
           results.metadata = {
             author: 'John Doe',
-            created: new Date().toISOString(),
-            modified: new Date().toISOString(),
+            created: this.getDeterministicDate().toISOString(),
+            modified: this.getDeterministicDate().toISOString(),
             pages: Math.floor(Math.random() * 50) + 1
           };
           break;
@@ -166,7 +166,7 @@ class MockBatchProcessor {
     return {
       operationType: 'inject',
       template: operation.template,
-      output: operation.output || `output_${Date.now()}.docx`,
+      output: operation.output || `output_${this.getDeterministicTimestamp()}.docx`,
       injections: injectionResults,
       injectionCount: injections.length
     };
@@ -270,9 +270,9 @@ export const testSuites = [
             extractionTypes: ['text']
           }));
 
-          const startTime = Date.now();
+          const startTime = this.getDeterministicTimestamp();
           const result = await processor.processBatch(operations);
-          const endTime = Date.now();
+          const endTime = this.getDeterministicTimestamp();
 
           assert.strictEqual(result.totalProcessed, 10);
           assert.strictEqual(result.concurrency, 3);
@@ -545,9 +545,9 @@ export const testSuites = [
             extractionTypes: ['text']
           }));
 
-          const startTime = Date.now();
+          const startTime = this.getDeterministicTimestamp();
           const result = await processor.processBatch(operations);
-          const endTime = Date.now();
+          const endTime = this.getDeterministicTimestamp();
 
           assert.strictEqual(result.totalProcessed, 50);
           assert.ok(result.throughput > 0);

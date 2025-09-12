@@ -231,7 +231,7 @@ class PCIDSSValidator {
     }
     runPCIComplianceAssessment() {
         console.log('🔍 Starting PCI DSS compliance assessment...');
-        const startTime = new Date();
+        const startTime = this.getDeterministicDate();
         this.violations = [];
         // Perform network security tests
         this.testNetworkSecurity();
@@ -252,10 +252,10 @@ class PCIDSSValidator {
         // Generate compliance report
         const report = {
             reportId: this.generateReportId(),
-            generatedAt: new Date().toISOString(),
+            generatedAt: this.getDeterministicDate().toISOString(),
             assessmentPeriod: {
-                startDate: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString(),
-                endDate: new Date().toISOString()
+                startDate: new Date(this.getDeterministicTimestamp() - 365 * 24 * 60 * 60 * 1000).toISOString(),
+                endDate: this.getDeterministicDate().toISOString()
             },
             merchantLevel: this.config.merchantLevel,
             scope: this.defineCDEScope(),
@@ -277,7 +277,7 @@ class PCIDSSValidator {
         if (this.config.generateAOC && this.isAOCRequired()) {
             this.generateAttestationOfCompliance(report);
         }
-        const duration = Date.now() - startTime.getTime();
+        const duration = this.getDeterministicTimestamp() - startTime.getTime();
         console.log(`✅ PCI DSS compliance assessment completed in ${duration}ms`);
         console.log(`📊 Results: ${this.violations.length} violations found`);
         return report;
@@ -302,7 +302,7 @@ class PCIDSSValidator {
                 severity: 'critical',
                 description: 'No firewall configurations found in scope',
                 evidence: ['Network configuration files'],
-                detectedAt: new Date().toISOString(),
+                detectedAt: this.getDeterministicDate().toISOString(),
                 riskRating: 10,
                 businessImpact: 'high',
                 remediation: {
@@ -330,7 +330,7 @@ class PCIDSSValidator {
                     severity: 'high',
                     description: `Firewall "${firewall.name}" contains default configurations`,
                     evidence: [`Firewall config: ${firewall.id}`],
-                    detectedAt: new Date().toISOString(),
+                    detectedAt: this.getDeterministicDate().toISOString(),
                     riskRating: 8,
                     businessImpact: 'high',
                     remediation: {
@@ -355,7 +355,7 @@ class PCIDSSValidator {
                     severity: 'medium',
                     description: `Firewall "${firewall.name}" has ${firewall.testResults.failed} failed test(s)`,
                     evidence: [`Test results: ${firewall.testResults}`],
-                    detectedAt: new Date().toISOString(),
+                    detectedAt: this.getDeterministicDate().toISOString(),
                     riskRating: 6,
                     businessImpact: 'medium',
                     remediation: {
@@ -382,7 +382,7 @@ class PCIDSSValidator {
                 severity: 'critical',
                 description: 'Network segmentation not implemented to isolate CDE',
                 evidence: ['Network topology documentation'],
-                detectedAt: new Date().toISOString(),
+                detectedAt: this.getDeterministicDate().toISOString(),
                 riskRating: 9,
                 businessImpact: 'high',
                 remediation: {
@@ -413,7 +413,7 @@ class PCIDSSValidator {
                     severity: 'high',
                     description: `Wireless network "${wireless.name}" lacks strong encryption`,
                     evidence: [`Wireless config: ${wireless.id}`],
-                    detectedAt: new Date().toISOString(),
+                    detectedAt: this.getDeterministicDate().toISOString(),
                     riskRating: 8,
                     businessImpact: 'high',
                     remediation: {
@@ -457,7 +457,7 @@ class PCIDSSValidator {
                 severity: 'critical',
                 description: `${defaultPasswordSystems.length} systems with default passwords detected`,
                 evidence: ['System scan results', 'Authentication logs'],
-                detectedAt: new Date().toISOString(),
+                detectedAt: this.getDeterministicDate().toISOString(),
                 riskRating: 10,
                 businessImpact: 'high',
                 remediation: {
@@ -563,7 +563,7 @@ class PCIDSSValidator {
                 severity: 'high',
                 description: 'No vulnerability scans performed in assessment period',
                 evidence: ['Vulnerability scan records'],
-                detectedAt: new Date().toISOString(),
+                detectedAt: this.getDeterministicDate().toISOString(),
                 riskRating: 8,
                 businessImpact: 'high',
                 remediation: {
@@ -592,7 +592,7 @@ class PCIDSSValidator {
                 severity: 'high',
                 description: `Unresolved vulnerabilities found: ${criticalVulns} critical, ${highVulns} high`,
                 evidence: [`Vulnerability scan: ${recentScan.id}`],
-                detectedAt: new Date().toISOString(),
+                detectedAt: this.getDeterministicDate().toISOString(),
                 riskRating: 8,
                 businessImpact: 'high',
                 remediation: {
@@ -811,13 +811,13 @@ class PCIDSSValidator {
         return this.config.merchantLevel === '1' || this.config.merchantLevel === '2';
     }
     generateReportId() {
-        const now = new Date();
+        const now = this.getDeterministicDate();
         const dateStr = now.toISOString().slice(0, 10).replace(/-/g, '');
         const timeStr = now.toTimeString().slice(0, 8).replace(/:/g, '');
         return `PCI-${dateStr}-${timeStr}`;
     }
     generateViolationId() {
-        return `PCI-V-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
+        return `PCI-V-${this.getDeterministicTimestamp()}-${Math.random().toString(36).substr(2, 5)}`;
     }
     savePCIReport(report) {
         const reportPath = (0, path_1.join)(this.config.outputDir, `pci-dss-report-${report.reportId}.json`);

@@ -173,9 +173,9 @@ export class SecurityManager extends EventEmitter {
     // Store token metadata for tracking
     this.sessions.set(token, {
       payload,
-      createdAt: Date.now(),
-      expiresAt: Date.now() + this.parseTimeToMs(tokenOptions.expiresIn),
-      lastUsed: Date.now()
+      createdAt: this.getDeterministicTimestamp(),
+      expiresAt: this.getDeterministicTimestamp() + this.parseTimeToMs(tokenOptions.expiresIn),
+      lastUsed: this.getDeterministicTimestamp()
     });
     
     this.metrics.authSuccesses++;
@@ -203,7 +203,7 @@ export class SecurityManager extends EventEmitter {
       // Update last used timestamp
       const session = this.sessions.get(token);
       if (session) {
-        session.lastUsed = Date.now();
+        session.lastUsed = this.getDeterministicTimestamp();
       }
       
       this.emit('token-verified', { userId: decoded.userId || decoded.sub });
@@ -235,7 +235,7 @@ export class SecurityManager extends EventEmitter {
     return {
       id: keyId,
       key: `kgen_${key}`,
-      createdAt: Date.now()
+      createdAt: this.getDeterministicTimestamp()
     };
   }
 
@@ -471,8 +471,8 @@ export class SecurityManager extends EventEmitter {
     if (!this.suspiciousIPs.has(ip)) {
       this.suspiciousIPs.set(ip, {
         activities: [],
-        firstSeen: Date.now(),
-        lastSeen: Date.now(),
+        firstSeen: this.getDeterministicTimestamp(),
+        lastSeen: this.getDeterministicTimestamp(),
         count: 0
       });
     }
@@ -480,9 +480,9 @@ export class SecurityManager extends EventEmitter {
     const record = this.suspiciousIPs.get(ip);
     record.activities.push({
       type: activityType,
-      timestamp: Date.now()
+      timestamp: this.getDeterministicTimestamp()
     });
-    record.lastSeen = Date.now();
+    record.lastSeen = this.getDeterministicTimestamp();
     record.count++;
     
     this.metrics.suspiciousActivity++;
@@ -569,7 +569,7 @@ export class SecurityManager extends EventEmitter {
    * Cleanup expired sessions
    */
   cleanupExpiredSessions() {
-    const now = Date.now();
+    const now = this.getDeterministicTimestamp();
     let cleaned = 0;
     
     for (const [token, session] of this.sessions.entries()) {
@@ -604,7 +604,7 @@ export class SecurityManager extends EventEmitter {
    * Cleanup rate limit store
    */
   cleanupRateLimitStore() {
-    const now = Date.now();
+    const now = this.getDeterministicTimestamp();
     const oneHour = 60 * 60 * 1000;
     
     for (const [key, data] of this.rateLimitStore.entries()) {

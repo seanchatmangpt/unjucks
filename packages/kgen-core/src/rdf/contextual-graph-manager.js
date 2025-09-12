@@ -132,7 +132,7 @@ export class ContextualGraphManager extends EventEmitter {
     // Create context metadata
     const metadata = {
       id: contextId,
-      created: Date.now(),
+      created: this.getDeterministicTimestamp(),
       createdBy: contextData.createdBy || 'system',
       version: '1.0.0',
       description: contextData.description || '',
@@ -157,7 +157,7 @@ export class ContextualGraphManager extends EventEmitter {
     if (this.config.enableVersioning) {
       this.versions.set(contextId, [{
         version: '1.0.0',
-        timestamp: Date.now(),
+        timestamp: this.getDeterministicTimestamp(),
         hash: null,
         changes: [],
         snapshot: null
@@ -178,7 +178,7 @@ export class ContextualGraphManager extends EventEmitter {
     this._logAuditEvent({
       type: 'context_created',
       contextId,
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       actor: contextData.createdBy || 'system',
       details: { description: contextData.description }
     });
@@ -217,7 +217,7 @@ export class ContextualGraphManager extends EventEmitter {
       statement.object,
       {
         graph: namedNode(contextId),
-        timestamp: new Date(),
+        timestamp: this.getDeterministicDate(),
         source: provenanceData.source || 'user',
         confidence: provenanceData.confidence || 1.0,
         metadata: {
@@ -234,7 +234,7 @@ export class ContextualGraphManager extends EventEmitter {
       const change = {
         id: this._generateId(),
         type: 'statement_added',
-        timestamp: Date.now(),
+        timestamp: this.getDeterministicTimestamp(),
         statement: this._serializeQuad(statement),
         provenance: provenanceData,
         context: contextId
@@ -260,7 +260,7 @@ export class ContextualGraphManager extends EventEmitter {
     this._logAuditEvent({
       type: 'statement_added',
       contextId,
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       actor: provenanceData.addedBy || 'system',
       details: {
         subject: subject.value || subject,
@@ -305,7 +305,7 @@ export class ContextualGraphManager extends EventEmitter {
       const change = {
         id: this._generateId(),
         type: 'statement_removed',
-        timestamp: Date.now(),
+        timestamp: this.getDeterministicTimestamp(),
         statement: this._serializeQuad(statementToRemove),
         provenance: provenanceData,
         context: contextId
@@ -326,7 +326,7 @@ export class ContextualGraphManager extends EventEmitter {
     this._logAuditEvent({
       type: 'statement_removed',
       contextId,
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       actor: provenanceData.removedBy || 'system',
       details: {
         subject: subject.value || subject,
@@ -392,7 +392,7 @@ export class ContextualGraphManager extends EventEmitter {
       total: contextGraph.length,
       returned: results.length,
       context: contextId,
-      timestamp: Date.now()
+      timestamp: this.getDeterministicTimestamp()
     };
   }
 
@@ -442,7 +442,7 @@ export class ContextualGraphManager extends EventEmitter {
         this._logAuditEvent({
           type: 'version_restored',
           contextId,
-          timestamp: Date.now(),
+          timestamp: this.getDeterministicTimestamp(),
           details: { targetVersion, method: 'snapshot' }
         });
         
@@ -492,7 +492,7 @@ export class ContextualGraphManager extends EventEmitter {
         removed,
         modified
       },
-      timestamp: Date.now()
+      timestamp: this.getDeterministicTimestamp()
     };
   }
 
@@ -566,7 +566,7 @@ export class ContextualGraphManager extends EventEmitter {
     // Filter by time range if specified
     if (options.from || options.to) {
       const fromTime = options.from ? new Date(options.from).getTime() : 0;
-      const toTime = options.to ? new Date(options.to).getTime() : Date.now();
+      const toTime = options.to ? new Date(options.to).getTime() : this.getDeterministicTimestamp();
       
       trail = trail.filter(event => 
         event.timestamp >= fromTime && event.timestamp <= toTime
@@ -596,7 +596,7 @@ export class ContextualGraphManager extends EventEmitter {
       events: trail,
       total: this.auditLog.length,
       filtered: trail.length,
-      timestamp: Date.now()
+      timestamp: this.getDeterministicTimestamp()
     };
   }
 
@@ -627,7 +627,7 @@ export class ContextualGraphManager extends EventEmitter {
       versions: [],
       auditTrail: [],
       exported: {
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         version: '1.0.0',
         format: 'kgen-contextual-graph-v1'
       }
@@ -730,7 +730,7 @@ export class ContextualGraphManager extends EventEmitter {
     this._logAuditEvent({
       type: 'context_imported',
       contextId,
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       details: {
         quads: importData.graph.count,
         versions: importData.versions?.length || 0,
@@ -909,7 +909,7 @@ export class ContextualGraphManager extends EventEmitter {
     const contextGraph = this.contextGraphs.get(contextId);
     
     if (metadata && contextGraph) {
-      metadata.lastModified = Date.now();
+      metadata.lastModified = this.getDeterministicTimestamp();
       metadata.tripleCount = contextGraph.length;
       metadata.hash = await this.hashCalculator.calculateGraphHash(contextGraph);
       
@@ -932,7 +932,7 @@ export class ContextualGraphManager extends EventEmitter {
     
     const newVersion = {
       version: nextVersion,
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       hash,
       changes: [...changes],
       snapshot: null
@@ -947,7 +947,7 @@ export class ContextualGraphManager extends EventEmitter {
         version: nextVersion,
         graph: [...contextGraph],
         metadata: { ...this.contextMetadata.get(contextId) },
-        timestamp: Date.now()
+        timestamp: this.getDeterministicTimestamp()
       });
       newVersion.snapshot = snapshotId;
     }
@@ -975,7 +975,7 @@ export class ContextualGraphManager extends EventEmitter {
     const activity = {
       id: 'activity_' + this._generateId(),
       type: PROV.Activity,
-      startedAtTime: Date.now(),
+      startedAtTime: this.getDeterministicTimestamp(),
       endedAtTime: null,
       wasAssociatedWith: contextData.createdBy || 'system',
       used: contextData.sources || [],
@@ -988,7 +988,7 @@ export class ContextualGraphManager extends EventEmitter {
       entity: contextId,
       activity: activity.id,
       agent: contextData.createdBy || 'system',
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       wasGeneratedBy: activity.id,
       derivedFrom: contextData.derivedFrom || []
     };
@@ -1004,7 +1004,7 @@ export class ContextualGraphManager extends EventEmitter {
       entity: entityId,
       activity: provenanceData.activity,
       agent: provenanceData.agent || 'system',
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       wasGeneratedBy: provenanceData.activity,
       derivedFrom: provenanceData.derivedFrom || [],
       used: provenanceData.used || [],
@@ -1021,7 +1021,7 @@ export class ContextualGraphManager extends EventEmitter {
     const auditEvent = {
       id: this._generateId(),
       ...event,
-      timestamp: event.timestamp || Date.now()
+      timestamp: event.timestamp || this.getDeterministicTimestamp()
     };
     
     this.auditLog.push(auditEvent);
@@ -1033,7 +1033,7 @@ export class ContextualGraphManager extends EventEmitter {
   _setupAuditTrail() {
     // Setup periodic cleanup of old audit events
     setInterval(() => {
-      const cutoffTime = Date.now() - (30 * 24 * 60 * 60 * 1000); // 30 days
+      const cutoffTime = this.getDeterministicTimestamp() - (30 * 24 * 60 * 60 * 1000); // 30 days
       this.auditLog = this.auditLog.filter(event => event.timestamp > cutoffTime);
     }, 24 * 60 * 60 * 1000); // Daily cleanup
   }

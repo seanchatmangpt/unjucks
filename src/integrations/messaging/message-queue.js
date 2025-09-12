@@ -81,7 +81,7 @@ export class MessageQueueIntegration extends EventEmitter {
       ...config,
       connected: false,
       connection: null,
-      createdAt: new Date()
+      createdAt: this.getDeterministicDate()
     });
     
     logger.info(`Message broker registered: ${name}`, { type: config.type });
@@ -100,7 +100,7 @@ export class MessageQueueIntegration extends EventEmitter {
     try {
       broker.connection = await this.createConnection(broker);
       broker.connected = true;
-      broker.connectedAt = new Date();
+      broker.connectedAt = this.getDeterministicDate();
       
       this.emit('broker:connected', { brokerName, broker });
       logger.info(`Connected to message broker: ${brokerName}`);
@@ -342,7 +342,7 @@ export class MessageQueueIntegration extends EventEmitter {
   async prepareMessage(message, options) {
     const messagePayload = {
       id: crypto.randomUUID(),
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       data: message,
       headers: options.headers || {},
       priority: options.priority || 0,
@@ -396,7 +396,7 @@ export class MessageQueueIntegration extends EventEmitter {
           {
             persistent: true,
             messageId: message.id,
-            timestamp: Date.now(),
+            timestamp: this.getDeterministicTimestamp(),
             headers: message.headers
           }
         );
@@ -424,7 +424,7 @@ export class MessageQueueIntegration extends EventEmitter {
       active: true,
       messageCount: 0,
       errorCount: 0,
-      createdAt: new Date()
+      createdAt: this.getDeterministicDate()
     };
 
     this.consumers.set(consumer.id, consumer);
@@ -598,7 +598,7 @@ export class MessageQueueIntegration extends EventEmitter {
         originalQueue: queue.name,
         originalMessage: message,
         error: error.message,
-        failedAt: new Date().toISOString()
+        failedAt: this.getDeterministicDate().toISOString()
       };
       
       await this.publish(dlqName, dlqMessage);

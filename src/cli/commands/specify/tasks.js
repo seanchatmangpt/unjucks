@@ -91,7 +91,7 @@ export const tasksCommand = defineCommand({
   },
   async run(context) {
     const { args } = context;
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
 
     try {
       console.log(chalk.blue("🔧 Breaking Down Specifications into Tasks"));
@@ -189,7 +189,7 @@ export const tasksCommand = defineCommand({
         console.log(formattedOutput.substring(0, 1500) + (formattedOutput.length > 1500 ? '...\n[truncated]' : ''));
         console.log(chalk.gray("=" * 60));
         
-        console.log(chalk.blue(`\n✨ Task breakdown completed in ${Date.now() - startTime}ms`));
+        console.log(chalk.blue(`\n✨ Task breakdown completed in ${this.getDeterministicTimestamp() - startTime}ms`));
         console.log(chalk.gray(`Run without --dry to save to: ${args.output}`));
         
         return {
@@ -203,7 +203,7 @@ export const tasksCommand = defineCommand({
       await fs.ensureDir(path.dirname(args.output));
       await fs.writeFile(args.output, formattedOutput, 'utf8');
 
-      const duration = Date.now() - startTime;
+      const duration = this.getDeterministicTimestamp() - startTime;
 
       console.log(chalk.green("\n✅ Task breakdown generated successfully"));
       console.log(chalk.cyan(`📄 Tasks saved to: ${args.output}`));
@@ -321,7 +321,7 @@ export const tasksCommand = defineCommand({
 
   formatTasksAsMarkdown(result, args) {
     let markdown = `# Development Tasks\n\n`;
-    markdown += `**Generated:** ${new Date().toISOString()}\n`;
+    markdown += `**Generated:** ${this.getDeterministicDate().toISOString()}\n`;
     markdown += `**Total Tasks:** ${result.tasks.length}\n`;
     markdown += `**Estimated Effort:** ${result.totalEstimatedHours || 'N/A'} hours\n\n`;
 
@@ -490,7 +490,7 @@ class TaskBreakdownEngine {
         totalEstimatedHours,
         averageTaskSize: uniqueTasks.length > 0 ? (totalEstimatedHours / uniqueTasks.length).toFixed(1) : 0,
         metadata: {
-          generated: new Date().toISOString(),
+          generated: this.getDeterministicDate().toISOString(),
           granularity: this.granularity,
           totalTasks: uniqueTasks.length
         }

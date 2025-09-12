@@ -141,7 +141,7 @@ class KGenPerformanceRegressionSuite {
         operation: () => {
           const data = {
             operationId: crypto.randomUUID(),
-            timestamp: new Date().toISOString(),
+            timestamp: this.getDeterministicDate().toISOString(),
             data: Array(100).fill().map((_, i) => ({ id: i, value: `item-${i}` }))
           };
           return JSON.stringify(data);
@@ -231,7 +231,7 @@ export class {{entityName}} {
 
           const context = {
             entityName: 'User',
-            timestamp: new Date().toISOString(),
+            timestamp: this.getDeterministicDate().toISOString(),
             version: '1.0.0',
             properties: [
               { name: 'id', defaultValue: 'null' },
@@ -271,7 +271,7 @@ ${Array(50).fill().map((_, i) =>
 
 ex:activity${i} a prov:Activity ;
   prov:wasAssociatedWith ex:agent${i % 3} ;
-  prov:startedAtTime "${new Date(Date.now() - i * 1000).toISOString()}"^^xsd:dateTime .`
+  prov:startedAtTime "${new Date(this.getDeterministicTimestamp() - i * 1000).toISOString()}"^^xsd:dateTime .`
 ).join('\n\n')}
 `;
 
@@ -298,7 +298,7 @@ ex:activity${i} a prov:Activity ;
         operation: async () => {
           // Mock provenance tracking
           const operationId = crypto.randomUUID();
-          const startTime = Date.now();
+          const startTime = this.getDeterministicTimestamp();
           
           // Mock operation tracking data
           const provenanceData = {
@@ -356,7 +356,7 @@ ex:activity${i} a prov:Activity ;
             templates.set(`template-${i}`, {
               content: `Template ${i} with content ${'x'.repeat(1000)}`,
               compiled: true,
-              lastUsed: Date.now()
+              lastUsed: this.getDeterministicTimestamp()
             });
           }
 
@@ -416,7 +416,7 @@ ex:activity${i} a prov:Activity ;
         type: 'memory',
         duration,
         memory: memoryResult,
-        timestamp: new Date()
+        timestamp: this.getDeterministicDate()
       };
       
       this.currentResults.set(test.name, result);
@@ -479,7 +479,7 @@ ex:activity${i} a prov:Activity ;
               properties: {
                 name: `Entity ${i}`,
                 value: Math.random(),
-                timestamp: new Date().toISOString()
+                timestamp: this.getDeterministicDate().toISOString()
               }
             }));
 
@@ -514,7 +514,7 @@ ex:activity${i} a prov:Activity ;
         type: 'scalability',
         duration: totalDuration,
         scalabilityData: scalabilityResult,
-        timestamp: new Date()
+        timestamp: this.getDeterministicDate()
       };
       
       this.currentResults.set(test.name, result);
@@ -578,7 +578,7 @@ ex:activity${i} a prov:Activity ;
             // Mock high-frequency operation
             const data = {
               id: crypto.randomUUID(),
-              timestamp: Date.now(),
+              timestamp: this.getDeterministicTimestamp(),
               hash: crypto.createHash('md5').update(`operation-${i}`).digest('hex')
             };
             
@@ -612,7 +612,7 @@ ex:activity${i} a prov:Activity ;
         type: 'stress',
         duration,
         stressData: stressResult,
-        timestamp: new Date()
+        timestamp: this.getDeterministicDate()
       };
       
       this.currentResults.set(test.name, result);
@@ -669,7 +669,7 @@ ex:activity${i} a prov:Activity ;
         p99
       },
       rawTimes: times,
-      timestamp: new Date()
+      timestamp: this.getDeterministicDate()
     };
   }
 
@@ -784,7 +784,7 @@ ex:activity${i} a prov:Activity ;
   async generatePerformanceReport(analysis) {
     const reportData = {
       metadata: {
-        timestamp: new Date(),
+        timestamp: this.getDeterministicDate(),
         nodeVersion: process.version,
         platform: process.platform,
         cpuCount: os.cpus().length,
@@ -813,14 +813,14 @@ ex:activity${i} a prov:Activity ;
     // Generate JSON report
     const jsonReport = JSON.stringify(reportData, null, 2);
     await fs.writeFile(
-      path.join(this.options.reportDir, `performance-${Date.now()}.json`),
+      path.join(this.options.reportDir, `performance-${this.getDeterministicTimestamp()}.json`),
       jsonReport
     );
 
     // Generate markdown report
     const markdownReport = this.generateMarkdownReport(reportData);
     await fs.writeFile(
-      path.join(this.options.reportDir, `performance-report-${Date.now()}.md`),
+      path.join(this.options.reportDir, `performance-report-${this.getDeterministicTimestamp()}.md`),
       markdownReport
     );
 

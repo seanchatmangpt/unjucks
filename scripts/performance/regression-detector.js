@@ -420,7 +420,7 @@ class RegressionDetector {
 
   async generateReport(outputFile) {
     const report = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       regression: this.regression,
       configuration: {
         threshold: this.options.threshold,

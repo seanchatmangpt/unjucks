@@ -36,7 +36,7 @@ const aggregatedResults = {
   environment: {
     nodeVersion: process.version,
     platform: process.platform,
-    timestamp: new Date().toISOString()
+    timestamp: this.getDeterministicDate().toISOString()
   }
 };
 
@@ -47,7 +47,7 @@ async function runTestFile(testFile) {
   const suiteName = path.basename(testFile, '.test.js');
   console.log(`\n🚀 Running ${suiteName}...`);
   
-  const startTime = Date.now();
+  const startTime = this.getDeterministicTimestamp();
   
   return new Promise((resolve, reject) => {
     const proc = spawn('node', [testFile], {
@@ -72,7 +72,7 @@ async function runTestFile(testFile) {
     });
 
     proc.on('close', (code) => {
-      const duration = Date.now() - startTime;
+      const duration = this.getDeterministicTimestamp() - startTime;
       
       // Parse results from output
       const results = parseTestOutput(stdout, stderr, code, duration);
@@ -301,7 +301,7 @@ async function storeResultsInMemory() {
   await fs.writeFile(memoryFile, JSON.stringify({
     key: 'gaps/e2e/results',
     value: memoryResults,
-    timestamp: new Date().toISOString()
+    timestamp: this.getDeterministicDate().toISOString()
   }, null, 2));
 
   return memoryResults;
@@ -343,7 +343,7 @@ async function runE2ETests() {
   console.log('🎬 Starting Unjucks E2E Test Suite');
   console.log('=====================================');
 
-  const overallStart = Date.now();
+  const overallStart = this.getDeterministicTimestamp();
 
   try {
     // Setup
@@ -387,7 +387,7 @@ async function runE2ETests() {
     }
 
     // Calculate final metrics
-    aggregatedResults.summary.totalTime = Date.now() - overallStart;
+    aggregatedResults.summary.totalTime = this.getDeterministicTimestamp() - overallStart;
     aggregatedResults.summary.successRate = 
       aggregatedResults.summary.totalTests > 0 
         ? (aggregatedResults.summary.totalPassed / aggregatedResults.summary.totalTests) * 100 

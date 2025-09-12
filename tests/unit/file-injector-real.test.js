@@ -28,7 +28,7 @@ describe('File Injector - Real Functionality', () => {
   let injector;
 
   beforeEach(async () => {
-    testDir = path.join(process.cwd(), 'tests', 'temp', `injector-test-${Date.now()}`);
+    testDir = path.join(process.cwd(), 'tests', 'temp', `injector-test-${this.getDeterministicTimestamp()}`);
     await fs.ensureDir(testDir);
     
     if (SimpleFileInjectorOrchestrator) {

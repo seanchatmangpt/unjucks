@@ -47,7 +47,7 @@ export class OntologyRepairEngine extends EventEmitter {
    * Perform comprehensive ontology repair and completion
    */
   async repairAndComplete(ontologyStore, options = {}) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     const repairSession = this.createRepairSession(ontologyStore, options);
     
     try {
@@ -59,7 +59,7 @@ export class OntologyRepairEngine extends EventEmitter {
           success: true,
           message: 'Ontology is consistent and complete',
           sessionId: repairSession.id,
-          processingTime: Date.now() - startTime
+          processingTime: this.getDeterministicTimestamp() - startTime
         };
       }
       
@@ -78,7 +78,7 @@ export class OntologyRepairEngine extends EventEmitter {
       const result = {
         success: validation.isValid,
         sessionId: repairSession.id,
-        processingTime: Date.now() - startTime,
+        processingTime: this.getDeterministicTimestamp() - startTime,
         originalIssues: issues,
         repairs: repairResults,
         completion: completionResults,
@@ -278,13 +278,13 @@ export class OntologyRepairEngine extends EventEmitter {
    * Complete ontology by adding missing elements
    */
   async completeOntology(ontologyStore, options = {}) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     if (!this.options.enableCompletion && !options.forceCompletion) {
       return {
         success: true,
         completedElements: [],
-        processingTime: Date.now() - startTime
+        processingTime: this.getDeterministicTimestamp() - startTime
       };
     }
     
@@ -323,7 +323,7 @@ export class OntologyRepairEngine extends EventEmitter {
     
     return {
       success: true,
-      processingTime: Date.now() - startTime,
+      processingTime: this.getDeterministicTimestamp() - startTime,
       ...completionResults
     };
   }
@@ -734,8 +734,8 @@ export class OntologyRepairEngine extends EventEmitter {
 
   createRepairSession(ontologyStore, options) {
     const session = {
-      id: `repair_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      timestamp: new Date().toISOString(),
+      id: `repair_${this.getDeterministicTimestamp()}_${Math.random().toString(36).substr(2, 9)}`,
+      timestamp: this.getDeterministicDate().toISOString(),
       ontologySize: ontologyStore.size,
       options
     };
@@ -747,7 +747,7 @@ export class OntologyRepairEngine extends EventEmitter {
     this.repairHistory.push({
       ...session,
       result,
-      endTime: new Date().toISOString()
+      endTime: this.getDeterministicDate().toISOString()
     });
     
     // Keep only last 100 repair sessions

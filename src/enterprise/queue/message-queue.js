@@ -209,7 +209,7 @@ export class RedisMessageQueue extends EventEmitter {
             type: messageType,
             payload,
             metadata: {
-                timestamp: new Date().toISOString(),
+                timestamp: this.getDeterministicDate().toISOString(),
                 source: options.source || 'api',
                 ...options.metadata
             }
@@ -243,7 +243,7 @@ export class RedisMessageQueue extends EventEmitter {
                 type: message.type,
                 payload: message.payload,
                 metadata: {
-                    timestamp: new Date().toISOString(),
+                    timestamp: this.getDeterministicDate().toISOString(),
                     batchId: options.batchId || crypto.randomUUID(),
                     batchIndex: index,
                     ...message.metadata
@@ -456,7 +456,7 @@ export class RabbitMQMessageQueue extends EventEmitter {
             type: messageType,
             payload,
             metadata: {
-                timestamp: new Date().toISOString(),
+                timestamp: this.getDeterministicDate().toISOString(),
                 source: options.source || 'api',
                 messageId: crypto.randomUUID(),
                 ...options.metadata
@@ -466,7 +466,7 @@ export class RabbitMQMessageQueue extends EventEmitter {
         const publishOptions = {
             persistent: true,
             priority: options.priority || PRIORITIES.NORMAL,
-            timestamp: Date.now(),
+            timestamp: this.getDeterministicTimestamp(),
             messageId: message.metadata.messageId,
             type: messageType,
             headers: options.headers || {}

@@ -76,7 +76,7 @@ export class HealthMonitor extends EventEmitter {
     
     // State management
     this.isActive = false;
-    this.startTime = Date.now();
+    this.startTime = this.getDeterministicTimestamp();
     this.lastIncidentId = 0;
     
     // Health checks registry
@@ -116,7 +116,7 @@ export class HealthMonitor extends EventEmitter {
     
     this.logger.info('Starting advanced health monitoring');
     this.isActive = true;
-    this.startTime = Date.now();
+    this.startTime = this.getDeterministicTimestamp();
     
     // Start check intervals
     this._startCheckIntervals();
@@ -299,7 +299,7 @@ export class HealthMonitor extends EventEmitter {
     const totalTime = performance.now() - startTime;
     
     const fullReport = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       duration: Math.round(totalTime),
       overall: systemHealth,
       checks: Object.fromEntries(results),
@@ -335,10 +335,10 @@ export class HealthMonitor extends EventEmitter {
     const systemHealth = this._analyzeSystemHealth(results);
     
     return {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       overall: systemHealth,
       checks: Object.fromEntries(results),
-      uptime: Date.now() - this.startTime,
+      uptime: this.getDeterministicTimestamp() - this.startTime,
       metrics: this.getMetrics()
     };
   }
@@ -347,7 +347,7 @@ export class HealthMonitor extends EventEmitter {
    * Get health metrics
    */
   getMetrics() {
-    const uptime = Date.now() - this.startTime;
+    const uptime = this.getDeterministicTimestamp() - this.startTime;
     const uptimePercentage = this.metrics.totalChecks > 0 
       ? (this.metrics.passedChecks / this.metrics.totalChecks * 100)
       : 100;
@@ -379,11 +379,11 @@ export class HealthMonitor extends EventEmitter {
       title,
       severity,
       status: 'open',
-      created: new Date().toISOString(),
-      updated: new Date().toISOString(),
+      created: this.getDeterministicDate().toISOString(),
+      updated: this.getDeterministicDate().toISOString(),
       details,
       timeline: [{
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         action: 'created',
         message: 'Incident created'
       }]
@@ -406,11 +406,11 @@ export class HealthMonitor extends EventEmitter {
       return null;
     }
     
-    Object.assign(incident, updates, { updated: new Date().toISOString() });
+    Object.assign(incident, updates, { updated: this.getDeterministicDate().toISOString() });
     
     if (updates.status) {
       incident.timeline.push({
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         action: 'status_changed',
         message: `Status changed to ${updates.status}`
       });
@@ -531,7 +531,7 @@ export class HealthMonitor extends EventEmitter {
     
     const result = {
       checkName,
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       responseTime: Math.round(responseTime),
       type: check.type,
       critical: check.critical,
@@ -591,14 +591,14 @@ export class HealthMonitor extends EventEmitter {
     
     // Track performance history for anomaly detection
     this.performanceHistory.push({
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       responseTime: result.responseTime,
       success: result.success,
       checkName: result.checkName
     });
     
     // Keep performance history within trend window
-    const cutoff = Date.now() - this.config.trendWindow;
+    const cutoff = this.getDeterministicTimestamp() - this.config.trendWindow;
     this.performanceHistory = this.performanceHistory.filter(entry => entry.timestamp > cutoff);
   }
   
@@ -632,7 +632,7 @@ export class HealthMonitor extends EventEmitter {
     return {
       status: overallStatus,
       message,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     };
   }
   

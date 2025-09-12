@@ -147,9 +147,9 @@ async function runIntegrationTests(options) {
   });
 
   // Execute integration tests
-  const startTime = Date.now();
+  const startTime = this.getDeterministicTimestamp();
   const results = await orchestrator.executeIntegrationStrategy();
-  const duration = Date.now() - startTime;
+  const duration = this.getDeterministicTimestamp() - startTime;
 
   // Display results
   displayResults(results, duration, options);

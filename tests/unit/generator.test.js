@@ -290,9 +290,9 @@ describe('Generator', () => {
       mockFs.ensureDir.mockResolvedValue();
       mockFs.writeFile.mockResolvedValue();
 
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const result = await generator.generate(options);
-      const endTime = Date.now();
+      const endTime = this.getDeterministicTimestamp();
 
       expect(result.files).toHaveLength(100);
       expect(endTime - startTime).toBeLessThan(5000); // Should complete in under 5 seconds

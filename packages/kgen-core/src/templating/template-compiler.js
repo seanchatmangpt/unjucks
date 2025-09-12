@@ -210,7 +210,7 @@ export class TemplateCompilationOptimizer {
         metadata: {
           templatePath,
           cacheKey,
-          compiledAt: Date.now(),
+          compiledAt: this.getDeterministicTimestamp(),
           optimizationLevel: this.options.optimizationLevel,
           stats: this.extractCompilationStats(startTime)
         }
@@ -936,7 +936,7 @@ export class TemplateCompilationOptimizer {
       compileTime: performance.now() - startTime,
       optimizationLevel: this.options.optimizationLevel,
       passesApplied: this.optimizationPasses.length,
-      timestamp: Date.now()
+      timestamp: this.getDeterministicTimestamp()
     };
   }
 

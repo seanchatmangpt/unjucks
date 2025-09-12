@@ -39,7 +39,7 @@ class UnjucksPerformanceMonitor {
   startProfile(operationName, metadata = {}) {
     if (!this.options.enableProfiling) return null;
 
-    const profileId = `${operationName}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const profileId = `${operationName}_${this.getDeterministicTimestamp()}_${Math.random().toString(36).substr(2, 9)}`;
     
     const profile = {
       id: profileId,
@@ -110,7 +110,7 @@ class UnjucksPerformanceMonitor {
   // Store performance metrics
   storeMetric(operation, result) {
     const metric = {
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       operation,
       duration: result.duration,
       memoryDelta: result.memoryDelta,
@@ -183,7 +183,7 @@ class UnjucksPerformanceMonitor {
     console.warn(`Performance Alert [${alert.severity}]: ${alert.message}`);
     
     this.metrics.errors.push({
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       type: alert.type,
       severity: alert.severity,
       message: alert.message,
@@ -193,7 +193,7 @@ class UnjucksPerformanceMonitor {
 
   // Clean up old metrics
   cleanupMetrics() {
-    const cutoff = Date.now() - this.options.metricsRetention;
+    const cutoff = this.getDeterministicTimestamp() - this.options.metricsRetention;
     
     Object.keys(this.metrics).forEach(key => {
       if (Array.isArray(this.metrics[key])) {
@@ -350,7 +350,7 @@ class OptimizedTemplateRenderer {
       content,
       compiled: true,
       options,
-      compiledAt: Date.now()
+      compiledAt: this.getDeterministicTimestamp()
     };
 
     return compiled;
@@ -469,7 +469,7 @@ class OptimizedFileOperations {
         options,
         resolve,
         reject,
-        timestamp: Date.now()
+        timestamp: this.getDeterministicTimestamp()
       };
 
       this.writeQueue.push(writeRequest);
@@ -660,7 +660,7 @@ class MemoryOptimizer {
   constructor(performanceMonitor) {
     this.performanceMonitor = performanceMonitor;
     this.gcThreshold = 100 * 1024 * 1024; // 100MB
-    this.lastGCTime = Date.now();
+    this.lastGCTime = this.getDeterministicTimestamp();
     this.memoryPressureLevel = 0; // 0-3 (none, low, medium, high)
     this.objectPools = new Map();
   }
@@ -683,7 +683,7 @@ class MemoryOptimizer {
 
     // Store memory snapshot
     this.performanceMonitor?.storeMetric('memory-usage', {
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       operation: 'memory-monitor',
       duration: 0,
       memoryDelta: 0,
@@ -699,7 +699,7 @@ class MemoryOptimizer {
 
     // Trigger garbage collection if needed
     if (usage.heapUsed > this.gcThreshold && 
-        Date.now() - this.lastGCTime > 30000) { // At least 30s between GC
+        this.getDeterministicTimestamp() - this.lastGCTime > 30000) { // At least 30s between GC
       this.requestGarbageCollection();
     }
 
@@ -722,7 +722,7 @@ class MemoryOptimizer {
       const freed = beforeGC.heapUsed - afterGC.heapUsed;
       
       console.log(`GC freed ${(freed / 1024 / 1024).toFixed(2)}MB`);
-      this.lastGCTime = Date.now();
+      this.lastGCTime = this.getDeterministicTimestamp();
     }
   }
 
@@ -1076,7 +1076,7 @@ async function runFileOperationBenchmarks() {
   // Single file write
   suite.addBenchmark('Single File Write', async () => {
     await suite.fileOperations.writeFile(
-      `/tmp/test-${Date.now()}.ts`,
+      `/tmp/test-${this.getDeterministicTimestamp()}.ts`,
       'export class TestService {}\n'
     );
   });
@@ -1085,7 +1085,7 @@ async function runFileOperationBenchmarks() {
   suite.addBenchmark('Batch File Writes', async () => {
     const promises = Array.from({ length: 10 }, (_, i) =>
       suite.fileOperations.writeFile(
-        `/tmp/batch-test-${Date.now()}-${i}.ts`,
+        `/tmp/batch-test-${this.getDeterministicTimestamp()}-${i}.ts`,
         `export class BatchService${i} {}\n`
       )
     );
@@ -1100,7 +1100,7 @@ async function runFileOperationBenchmarks() {
       '}\n';
 
     await suite.fileOperations.writeFile(
-      `/tmp/large-test-${Date.now()}.ts`,
+      `/tmp/large-test-${this.getDeterministicTimestamp()}.ts`,
       largeContent
     );
   }, { iterations: 5 });

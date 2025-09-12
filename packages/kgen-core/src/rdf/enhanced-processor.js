@@ -86,7 +86,7 @@ export class EnhancedRDFProcessor extends EventEmitter {
    * Enhanced graph hash - replaces naive content hash in bin/kgen.mjs
    */
   async graphHash(filePath, options = {}) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       // Validate file exists
@@ -120,8 +120,8 @@ export class EnhancedRDFProcessor extends EventEmitter {
         size: parseResult.content.length,
         parseTime: parseResult.parseTime,
         hashTime: hashResult.metadata.processingTime,
-        totalTime: Date.now() - startTime,
-        timestamp: new Date().toISOString()
+        totalTime: this.getDeterministicTimestamp() - startTime,
+        timestamp: this.getDeterministicDate().toISOString()
       };
       
       if (this.config.includeMetadata) {
@@ -148,7 +148,7 @@ export class EnhancedRDFProcessor extends EventEmitter {
         success: false,
         error: error.message,
         file: filePath,
-        timestamp: new Date().toISOString()
+        timestamp: this.getDeterministicDate().toISOString()
       };
       
       this.logger.error(`Hash generation failed for ${filePath}:`, error);
@@ -160,7 +160,7 @@ export class EnhancedRDFProcessor extends EventEmitter {
    * Enhanced graph diff - replaces naive line diff in bin/kgen.mjs
    */
   async graphDiff(file1, file2, options = {}) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       // Parse both files
@@ -206,9 +206,9 @@ export class EnhancedRDFProcessor extends EventEmitter {
           addedTriples: comparison.added.length,
           removedTriples: comparison.removed.length,
           commonTriples: comparison.common,
-          processingTime: Date.now() - startTime
+          processingTime: this.getDeterministicTimestamp() - startTime
         },
-        timestamp: new Date().toISOString()
+        timestamp: this.getDeterministicDate().toISOString()
       };
       
       // Include detailed changes if requested
@@ -234,7 +234,7 @@ export class EnhancedRDFProcessor extends EventEmitter {
         error: error.message,
         file1,
         file2,
-        timestamp: new Date().toISOString()
+        timestamp: this.getDeterministicDate().toISOString()
       };
       
       this.logger.error(`Graph comparison failed:`, error);
@@ -246,7 +246,7 @@ export class EnhancedRDFProcessor extends EventEmitter {
    * Enhanced graph index - replaces naive triple extraction in bin/kgen.mjs
    */
   async graphIndex(filePath, options = {}) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       // Parse RDF file
@@ -277,7 +277,7 @@ export class EnhancedRDFProcessor extends EventEmitter {
         indexing: {
           indexed: indexResult.indexed,
           processingTime: indexResult.processingTime,
-          totalTime: Date.now() - startTime
+          totalTime: this.getDeterministicTimestamp() - startTime
         },
         statistics: {
           subjects: report.summary.statistics.uniqueSubjects,
@@ -287,7 +287,7 @@ export class EnhancedRDFProcessor extends EventEmitter {
           uris: report.summary.statistics.uriCount,
           blankNodes: report.summary.statistics.blankNodeCount
         },
-        timestamp: new Date().toISOString()
+        timestamp: this.getDeterministicDate().toISOString()
       };
       
       // Include sample data if requested
@@ -325,7 +325,7 @@ export class EnhancedRDFProcessor extends EventEmitter {
         success: false,
         error: error.message,
         file: filePath,
-        timestamp: new Date().toISOString()
+        timestamp: this.getDeterministicDate().toISOString()
       };
       
       this.logger.error(`Graph indexing failed for ${filePath}:`, error);
@@ -432,7 +432,7 @@ export class EnhancedRDFProcessor extends EventEmitter {
         results: results.results,
         count: results.count,
         hasMore: results.hasMore,
-        timestamp: new Date().toISOString()
+        timestamp: this.getDeterministicDate().toISOString()
       };
     } catch (error) {
       return {

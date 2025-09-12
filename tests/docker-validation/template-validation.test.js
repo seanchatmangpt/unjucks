@@ -1132,15 +1132,15 @@ Slug: {{ title | slug }}
         } : null,
         joinDate: new Date(2024, i % 12, (i % 28) + 1),
         postCount: Math.floor(Math.random() * 100),
-        lastActive: new Date(Date.now() - (i * 24 * 60 * 60 * 1000)) // i days ago
+        lastActive: new Date(this.getDeterministicTimestamp() - (i * 24 * 60 * 60 * 1000)) // i days ago
       }));
 
       const data = { users };
 
       // This should complete without timeout or memory issues
-      const start = Date.now();
+      const start = this.getDeterministicTimestamp();
       const rendered = env.renderString(template, data);
-      const duration = Date.now() - start;
+      const duration = this.getDeterministicTimestamp() - start;
 
       // Should complete within reasonable time (adjust threshold as needed)
       expect(duration).toBeLessThan(1000); // 1 second

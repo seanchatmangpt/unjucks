@@ -75,7 +75,7 @@ export class AuditTrailGenerator {
     metadata = {}
   ) {
     const id = this.generateAuditId();
-    const timestamp = new Date();
+    const timestamp = this.getDeterministicDate();
     
     const auditEntry = {
       id,
@@ -154,7 +154,7 @@ export class AuditTrailGenerator {
       return {
         isValid: false,
         issues: ['Audit trail not found'],
-        verificationTimestamp: new Date()
+        verificationTimestamp: this.getDeterministicDate()
       };
     }
 
@@ -191,7 +191,7 @@ export class AuditTrailGenerator {
     return {
       isValid: issues.length === 0,
       issues,
-      verificationTimestamp: new Date()
+      verificationTimestamp: this.getDeterministicDate()
     };
   }
 
@@ -361,7 +361,7 @@ export class AuditTrailGenerator {
    * @returns {string}
    */
   generateAuditId() {
-    return `audit_${Date.now()}_${randomBytes(8).toString('hex')}`;
+    return `audit_${this.getDeterministicTimestamp()}_${randomBytes(8).toString('hex')}`;
   }
 
   /**
@@ -457,7 +457,7 @@ export class AuditTrailGenerator {
     if (metadata.userRole === 'emergency_access') score += 25;
 
     // Time-based risk (after hours access)
-    const hour = new Date().getHours();
+    const hour = this.getDeterministicDate().getHours();
     if (hour < 6 || hour > 22) score += 10;
 
     // Geographic risk
@@ -663,21 +663,21 @@ export class AuditTrailGenerator {
    * @returns {string}
    */
   generateReportId() {
-    return `report_${Date.now()}_${randomBytes(6).toString('hex')}`;
+    return `report_${this.getDeterministicTimestamp()}_${randomBytes(6).toString('hex')}`;
   }
 
   /**
    * @returns {string}
    */
   generateArchivalId() {
-    return `archival_${Date.now()}_${randomBytes(6).toString('hex')}`;
+    return `archival_${this.getDeterministicTimestamp()}_${randomBytes(6).toString('hex')}`;
   }
 
   /**
    * @returns {string}
    */
   generateExportId() {
-    return `export_${Date.now()}_${randomBytes(6).toString('hex')}`;
+    return `export_${this.getDeterministicTimestamp()}_${randomBytes(6).toString('hex')}`;
   }
 
   /**
@@ -685,7 +685,7 @@ export class AuditTrailGenerator {
    * @returns {Date}
    */
   calculateNextArchivalDate(schedule) {
-    const next = new Date();
+    const next = this.getDeterministicDate();
     switch (schedule) {
       case 'daily':
         next.setDate(next.getDate() + 1);

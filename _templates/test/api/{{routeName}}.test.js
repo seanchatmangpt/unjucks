@@ -280,7 +280,7 @@ describe('{{ routeName | titleCase }} API Routes', () => {
 
   describe('Performance', () => {
     it('should respond within acceptable time limits', async () => {
-      const startTime = Date.now()
+      const startTime = this.getDeterministicTimestamp()
       
       await request(app)
         .get('/api/{{ routeName }}')
@@ -289,7 +289,7 @@ describe('{{ routeName | titleCase }} API Routes', () => {
         {%- endif %}
         .expect(200)
       
-      const responseTime = Date.now() - startTime
+      const responseTime = this.getDeterministicTimestamp() - startTime
       expect(responseTime).toBeLessThan(1000) // Should respond within 1 second
     })
 

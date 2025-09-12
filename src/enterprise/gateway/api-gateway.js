@@ -152,7 +152,7 @@ export class APIGateway extends EventEmitter {
             res.json({
                 status: 'healthy',
                 version: '1.0.0',
-                timestamp: new Date().toISOString(),
+                timestamp: this.getDeterministicDate().toISOString(),
                 uptime: process.uptime(),
                 backends: this.getBackendStatus(),
                 metrics: this.getMetricsSummary()
@@ -223,7 +223,7 @@ export class APIGateway extends EventEmitter {
             authentication,
             transformation,
             validation,
-            createdAt: new Date().toISOString()
+            createdAt: this.getDeterministicDate().toISOString()
         };
 
         // Register backends for health checking
@@ -323,7 +323,7 @@ export class APIGateway extends EventEmitter {
                     route: routeConfig.path,
                     backend: req.selectedBackend.id,
                     statusCode: proxyRes.statusCode,
-                    responseTime: Date.now() - req.startTime
+                    responseTime: this.getDeterministicTimestamp() - req.startTime
                 });
             },
             
@@ -350,7 +350,7 @@ export class APIGateway extends EventEmitter {
                         error: 'BAD_GATEWAY',
                         message: 'Backend service unavailable',
                         requestId: req.id,
-                        timestamp: new Date().toISOString()
+                        timestamp: this.getDeterministicDate().toISOString()
                     });
                 }
             }
@@ -476,7 +476,7 @@ export class APIGateway extends EventEmitter {
                     message: 'Too many requests, please try again later',
                     retryAfter: Math.ceil(rateLimitConfig.window / 1000),
                     requestId: req.id,
-                    timestamp: new Date().toISOString()
+                    timestamp: this.getDeterministicDate().toISOString()
                 });
             }
         });
@@ -560,7 +560,7 @@ export class APIGateway extends EventEmitter {
                     error: 'VALIDATION_ERROR',
                     message: error.message,
                     requestId: req.id,
-                    timestamp: new Date().toISOString()
+                    timestamp: this.getDeterministicDate().toISOString()
                 });
             }
         };
@@ -654,11 +654,11 @@ export class APIGateway extends EventEmitter {
     }
 
     monitoringMiddleware(req, res, next) {
-        req.startTime = Date.now();
+        req.startTime = this.getDeterministicTimestamp();
         
         const originalEnd = res.end;
         res.end = function(chunk, encoding) {
-            const responseTime = Date.now() - req.startTime;
+            const responseTime = this.getDeterministicTimestamp() - req.startTime;
             
             this.updateRequestMetrics({
                 method: req.method,
@@ -821,7 +821,7 @@ export class APIGateway extends EventEmitter {
         if (backend) {
             const wasHealthy = backend.healthy;
             backend.healthy = healthy;
-            backend.lastHealthCheck = new Date().toISOString();
+            backend.lastHealthCheck = this.getDeterministicDate().toISOString();
             
             if (wasHealthy !== healthy) {
                 this.emit('backend:health_changed', { 
@@ -862,7 +862,7 @@ export class APIGateway extends EventEmitter {
         this.redis.incr(`${metricsKey}:requests`);
         
         // Update response time
-        const responseTime = Date.now() - req.startTime;
+        const responseTime = this.getDeterministicTimestamp() - req.startTime;
         this.redis.lpush(`${metricsKey}:response_times`, responseTime);
         this.redis.ltrim(`${metricsKey}:response_times`, 0, 99); // Keep last 100
         
@@ -882,7 +882,7 @@ export class APIGateway extends EventEmitter {
         // Store metrics in Redis
         const data = {
             ...metrics,
-            timestamp: new Date().toISOString()
+            timestamp: this.getDeterministicDate().toISOString()
         };
         
         this.redis.lpush(`${metricsKey}:requests`, JSON.stringify(data));
@@ -905,7 +905,7 @@ export class APIGateway extends EventEmitter {
             }
         } else {
             circuitBreaker.failures++;
-            circuitBreaker.lastFailure = Date.now();
+            circuitBreaker.lastFailure = this.getDeterministicTimestamp();
             
             if (circuitBreaker.failures >= 5) { // Threshold
                 circuitBreaker.state = 'OPEN';

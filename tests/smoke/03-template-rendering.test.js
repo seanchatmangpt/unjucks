@@ -150,7 +150,7 @@ This is the content of the document.
       // Try to use KGEN to render a template
       const testData = {
         name: 'SmokeTest',
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         items: ['Item 1', 'Item 2', 'Item 3']
       };
       

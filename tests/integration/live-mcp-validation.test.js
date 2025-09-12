@@ -632,7 +632,7 @@ export const {{ name | pascalCase }} = () => {{ name }}</div>;
         
       case 'agent_spawn':
         return { success,
-          result }_${Date.now()}`,
+          result }_${this.getDeterministicTimestamp()}`,
             agentType: params?.type
           },
           metrics: { responseTime, memoryUsage }

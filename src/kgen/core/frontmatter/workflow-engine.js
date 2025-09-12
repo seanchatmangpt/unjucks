@@ -7,7 +7,7 @@
  */
 
 import { EventEmitter } from 'events';
-import { Logger } from 'consola';
+import { Consola } from 'consola';
 import { FrontmatterParser } from './parser.js';
 import { PathResolver } from './path-resolver.js';
 import { ConditionalProcessor } from './conditional-processor.js';
@@ -44,7 +44,7 @@ export class FrontmatterWorkflowEngine extends EventEmitter {
       ...config
     };
     
-    this.logger = new Logger({ tag: 'kgen-frontmatter-workflow' });
+    this.logger = new Consola({ tag: 'kgen-frontmatter-workflow' });
     this.state = 'initialized';
     
     // Initialize error handler
@@ -140,7 +140,7 @@ export class FrontmatterWorkflowEngine extends EventEmitter {
         templateContent,
         context,
         options,
-        timestamp: new Date()
+        timestamp: this.getDeterministicDate()
       });
       
       // Parse frontmatter and extract metadata
@@ -318,7 +318,7 @@ export class FrontmatterWorkflowEngine extends EventEmitter {
         type: 'batch_frontmatter_processing',
         templateCount: templates.length,
         globalOptions,
-        timestamp: new Date()
+        timestamp: this.getDeterministicDate()
       });
       
       // Process templates with controlled concurrency
@@ -499,7 +499,7 @@ export class FrontmatterWorkflowEngine extends EventEmitter {
   // Private methods
 
   _generateOperationId() {
-    return `fwf_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    return `fwf_${this.getDeterministicTimestamp()}_${Math.random().toString(36).substr(2, 9)}`;
   }
 
   async _startProvenance(operationId, data) {
@@ -553,7 +553,7 @@ export class FrontmatterWorkflowEngine extends EventEmitter {
 
   _trackOperationStart(event) {
     this.activeOperations.set(event.operationId, {
-      startTime: Date.now(),
+      startTime: this.getDeterministicTimestamp(),
       type: 'frontmatter_workflow'
     });
   }
@@ -563,9 +563,9 @@ export class FrontmatterWorkflowEngine extends EventEmitter {
   }
 
   async _waitForActiveOperations(timeout = 30000) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
-    while (this.activeOperations.size > 0 && (Date.now() - startTime) < timeout) {
+    while (this.activeOperations.size > 0 && (this.getDeterministicTimestamp() - startTime) < timeout) {
       await new Promise(resolve => setTimeout(resolve, 100));
     }
     

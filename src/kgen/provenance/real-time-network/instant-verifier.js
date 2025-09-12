@@ -144,7 +144,7 @@ export class RealTimeProvenanceNetwork extends EventEmitter {
   async verifyInstantly(provenanceRequest, options = {}) {
     try {
       const verificationId = crypto.randomUUID();
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
       this.logger.debug(`Starting instant verification: ${verificationId}`);
       
@@ -158,7 +158,7 @@ export class RealTimeProvenanceNetwork extends EventEmitter {
           ...cached,
           verificationId,
           cached: true,
-          verificationTime: Date.now() - startTime
+          verificationTime: this.getDeterministicTimestamp() - startTime
         };
       }
       
@@ -185,7 +185,7 @@ export class RealTimeProvenanceNetwork extends EventEmitter {
         this.verificationCache.set(cacheKey, result);
       }
       
-      const verificationTime = Date.now() - startTime;
+      const verificationTime = this.getDeterministicTimestamp() - startTime;
       
       // Update metrics
       this.verificationMetrics.totalVerifications++;
@@ -238,7 +238,7 @@ export class RealTimeProvenanceNetwork extends EventEmitter {
         streamId,
         config: streamConfig,
         callback,
-        startTime: Date.now(),
+        startTime: this.getDeterministicTimestamp(),
         processedCount: 0,
         errorCount: 0,
         averageProcessingTime: 0,
@@ -288,7 +288,7 @@ export class RealTimeProvenanceNetwork extends EventEmitter {
       this.emit('streaming-verification-stopped', {
         streamId,
         processedCount: streamProcessor.processedCount,
-        duration: Date.now() - streamProcessor.startTime
+        duration: this.getDeterministicTimestamp() - streamProcessor.startTime
       });
       
       this.logger.info(`Streaming verification stopped: ${streamId}`);
@@ -297,7 +297,7 @@ export class RealTimeProvenanceNetwork extends EventEmitter {
         streamId,
         status: 'stopped',
         processedCount: streamProcessor.processedCount,
-        duration: Date.now() - streamProcessor.startTime
+        duration: this.getDeterministicTimestamp() - streamProcessor.startTime
       };
       
     } catch (error) {
@@ -314,7 +314,7 @@ export class RealTimeProvenanceNetwork extends EventEmitter {
   async broadcastVerificationRequest(verificationRequest, broadcastOptions = {}) {
     try {
       const broadcastId = crypto.randomUUID();
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
       this.logger.info(`Broadcasting verification request: ${broadcastId}`);
       
@@ -324,7 +324,7 @@ export class RealTimeProvenanceNetwork extends EventEmitter {
         broadcastId,
         request: verificationRequest,
         options: broadcastOptions,
-        timestamp: new Date(),
+        timestamp: this.getDeterministicDate(),
         sender: this.config.nodeRole,
         ttl: broadcastOptions.ttl || 10
       };
@@ -353,7 +353,7 @@ export class RealTimeProvenanceNetwork extends EventEmitter {
         requestsSent: broadcastPromises.length,
         responsesReceived: verificationResponses.length,
         responses: verificationResponses,
-        broadcastTime: Date.now() - startTime,
+        broadcastTime: this.getDeterministicTimestamp() - startTime,
         consensus: this._calculateConsensus(verificationResponses)
       };
       
@@ -415,8 +415,8 @@ export class RealTimeProvenanceNetwork extends EventEmitter {
       const client = {
         id: clientId,
         socket: ws,
-        connectedAt: new Date(),
-        lastPing: Date.now(),
+        connectedAt: this.getDeterministicDate(),
+        lastPing: this.getDeterministicTimestamp(),
         messagesReceived: 0,
         messagesSent: 0
       };
@@ -561,12 +561,12 @@ export class RealTimeProvenanceNetwork extends EventEmitter {
 
   async _performVerification(request, options, worker) {
     // Mock verification logic with varying complexity
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     // Simulate verification work
     await new Promise(resolve => setTimeout(resolve, Math.random() * 30 + 5)); // 5-35ms
     
-    const processingTime = Date.now() - startTime;
+    const processingTime = this.getDeterministicTimestamp() - startTime;
     worker.averageProcessingTime = (worker.averageProcessingTime + processingTime) / 2;
     
     // Mock verification result
@@ -784,7 +784,7 @@ export class RealTimeProvenanceNetwork extends EventEmitter {
 
   _calculateVerificationThroughput() {
     // Mock calculation
-    return this.verificationMetrics.totalVerifications / (Date.now() / 1000);
+    return this.verificationMetrics.totalVerifications / (this.getDeterministicTimestamp() / 1000);
   }
 
   _calculateNetworkLoad() {
@@ -794,14 +794,14 @@ export class RealTimeProvenanceNetwork extends EventEmitter {
 
   async _sendHeartbeats() {
     for (const [clientId, client] of this.networkClients) {
-      if (Date.now() - client.lastPing > this.config.heartbeatInterval * 2) {
+      if (this.getDeterministicTimestamp() - client.lastPing > this.config.heartbeatInterval * 2) {
         // Client timed out
         client.socket.terminate();
         this.networkClients.delete(clientId);
         this.networkMetrics.connectionsActive--;
       } else {
         // Send heartbeat
-        await this._sendToClient(client, { type: 'heartbeat', timestamp: Date.now() });
+        await this._sendToClient(client, { type: 'heartbeat', timestamp: this.getDeterministicTimestamp() });
       }
     }
   }
@@ -838,7 +838,7 @@ export class RealTimeProvenanceNetwork extends EventEmitter {
         this.peerNodes.set(peer.id, {
           ...peer,
           connected: true,
-          lastSeen: new Date(),
+          lastSeen: this.getDeterministicDate(),
           latency: Math.random() * 20 + 10
         });
       }

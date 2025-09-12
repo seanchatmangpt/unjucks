@@ -10,7 +10,7 @@ describe('CacheManager', () => {
 
   beforeEach(async () => {
     // Create unique test cache directory
-    testCacheDir = path.join(os.tmpdir(), 'kgen-cache-test-' + Date.now())
+    testCacheDir = path.join(os.tmpdir(), 'kgen-cache-test-' + this.getDeterministicTimestamp())
     
     cacheManager = new CacheManager({
       cacheDir: testCacheDir,
@@ -132,7 +132,7 @@ describe('CacheManager', () => {
   describe('metadata tracking', () => {
     it('should track creation and access times', async () => {
       const key = 'test-key'
-      const beforeTime = Date.now()
+      const beforeTime = this.getDeterministicTimestamp()
       
       await cacheManager.set(key, 'content')
       

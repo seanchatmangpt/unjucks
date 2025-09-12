@@ -583,7 +583,7 @@ export class QueryIntentAnalyzer {
       primaryIntents: intents,
       intentDistribution: intentCounts,
       sessionDuration: sessionQueries.length > 0 ? 
-        Date.now() - sessionQueries[0].timestamp : 0
+        this.getDeterministicTimestamp() - sessionQueries[0].timestamp : 0
     };
   }
 
@@ -632,7 +632,7 @@ export class QueryIntentAnalyzer {
       urgency = Math.max(urgency, 0.8);
     }
     
-    if (context.deadline && new Date(context.deadline) - Date.now() < 86400000) {
+    if (context.deadline && new Date(context.deadline) - this.getDeterministicTimestamp() < 86400000) {
       urgency = Math.max(urgency, 0.7); // Less than 24 hours
     }
     
@@ -1079,7 +1079,7 @@ export class QueryIntentAnalyzer {
       method: intentPredictions.method,
       context: contextAnalysis,
       suggestions: suggestions,
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       metadata: {
         features: intentPredictions.features,
         ensemble: intentPredictions.ensembleScores,
@@ -1128,7 +1128,7 @@ export class QueryIntentAnalyzer {
       suggestions: analysis.suggestions.length,
       sessionId: context.sessionId,
       userId: context.userId,
-      timestamp: Date.now()
+      timestamp: this.getDeterministicTimestamp()
     });
     
     // Trim session history
@@ -1141,7 +1141,7 @@ export class QueryIntentAnalyzer {
     this.feedbackHistory.push({
       queryId,
       feedback: feedbackData,
-      timestamp: Date.now()
+      timestamp: this.getDeterministicTimestamp()
     });
     
     this.metrics.feedbackReceived++;
@@ -1301,7 +1301,7 @@ export class QueryIntentAnalyzer {
 
   isComplianceReportingTime() {
     // Check if it's a typical compliance reporting time
-    const now = new Date();
+    const now = this.getDeterministicDate();
     const month = now.getMonth();
     const dayOfMonth = now.getDate();
     

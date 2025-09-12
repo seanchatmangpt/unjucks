@@ -128,7 +128,7 @@ export class IntegratedSecurityManager extends EventEmitter {
    * @returns {Promise<object>} Security validation result
    */
   async validateSecurity(request) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     const validationId = randomBytes(16).toString('hex');
     
     try {
@@ -142,7 +142,7 @@ export class IntegratedSecurityManager extends EventEmitter {
         recommendations: [],
         componentResults: {},
         metadata: {
-          timestamp: new Date(),
+          timestamp: this.getDeterministicDate(),
           request: {
             type: request.type,
             size: this._getRequestSize(request),
@@ -231,7 +231,7 @@ export class IntegratedSecurityManager extends EventEmitter {
         this.securityMetrics.threatsBlocked++;
       }
       
-      const validationTime = Date.now() - startTime;
+      const validationTime = this.getDeterministicTimestamp() - startTime;
       validationResult.metadata.validationTime = validationTime;
       this._updateSecurityMetrics(validationTime);
       
@@ -269,8 +269,8 @@ export class IntegratedSecurityManager extends EventEmitter {
         recommendations: ['Manual security review required'],
         componentResults: {},
         metadata: {
-          timestamp: new Date(),
-          validationTime: Date.now() - startTime,
+          timestamp: this.getDeterministicDate(),
+          validationTime: this.getDeterministicTimestamp() - startTime,
           error: error.message
         }
       };
@@ -405,7 +405,7 @@ export class IntegratedSecurityManager extends EventEmitter {
       this.logger.info('📊 Generating comprehensive security audit report...');
       
       const report = {
-        generatedAt: new Date(),
+        generatedAt: this.getDeterministicDate(),
         reportId: randomBytes(16).toString('hex'),
         systemStatus: this.getSecurityStatus(),
         securityEvents: this._getSecurityEventsForReport(options),
@@ -585,7 +585,7 @@ export class IntegratedSecurityManager extends EventEmitter {
     for (const framework of this.config.complianceFrameworks) {
       this.complianceStatus.set(framework, {
         status: 'monitoring',
-        lastAssessed: new Date(),
+        lastAssessed: this.getDeterministicDate(),
         violations: 0,
         recommendations: []
       });
@@ -642,7 +642,7 @@ export class IntegratedSecurityManager extends EventEmitter {
     }
     
     // Check if session is expired
-    if (Date.now() > session.expiresAt) {
+    if (this.getDeterministicTimestamp() > session.expiresAt) {
       return { authenticated: false, reason: 'Session expired' };
     }
     
@@ -818,7 +818,7 @@ export class IntegratedSecurityManager extends EventEmitter {
   async _handleHighRiskValidation(validationResult, request) {
     const alert = {
       id: randomBytes(16).toString('hex'),
-      timestamp: new Date(),
+      timestamp: this.getDeterministicDate(),
       type: 'high-risk-validation',
       riskScore: validationResult.riskScore,
       violations: validationResult.violations,
@@ -847,7 +847,7 @@ export class IntegratedSecurityManager extends EventEmitter {
   _logSecurityEvent(event) {
     this.securityEvents.push({
       ...event,
-      timestamp: new Date(),
+      timestamp: this.getDeterministicDate(),
       id: randomBytes(8).toString('hex')
     });
     
@@ -912,7 +912,7 @@ export class IntegratedSecurityManager extends EventEmitter {
     });
     
     this.emit('security-health-check', {
-      timestamp: new Date(),
+      timestamp: this.getDeterministicDate(),
       componentHealth,
       activeChecks: this.activeChecks.size,
       recentAlerts: this.securityAlerts.slice(-5)
@@ -921,7 +921,7 @@ export class IntegratedSecurityManager extends EventEmitter {
 
   _cleanupSecurityEvents() {
     const retentionMs = this.config.auditRetentionDays * 24 * 60 * 60 * 1000;
-    const cutoff = Date.now() - retentionMs;
+    const cutoff = this.getDeterministicTimestamp() - retentionMs;
     
     this.securityEvents = this.securityEvents.filter(event => 
       new Date(event.timestamp).getTime() > cutoff
@@ -951,7 +951,7 @@ export class IntegratedSecurityManager extends EventEmitter {
     
     if (options.period && options.period !== 'all-time') {
       const periodMs = this._parsePeriod(options.period);
-      const cutoff = Date.now() - periodMs;
+      const cutoff = this.getDeterministicTimestamp() - periodMs;
       events = events.filter(event => 
         new Date(event.timestamp).getTime() > cutoff
       );
@@ -1044,7 +1044,7 @@ export class IntegratedSecurityManager extends EventEmitter {
   _calculateThreatLevel() {
     const recentThreats = this.securityEvents
       .filter(e => e.type === 'threat-detection' && 
-                   Date.now() - new Date(e.timestamp).getTime() < 24 * 60 * 60 * 1000)
+                   this.getDeterministicTimestamp() - new Date(e.timestamp).getTime() < 24 * 60 * 60 * 1000)
       .length;
     
     return Math.min(recentThreats * 10, 100);
@@ -1089,7 +1089,7 @@ export class IntegratedSecurityManager extends EventEmitter {
     const reportsDir = path.join(process.cwd(), 'logs', 'security-reports');
     await fs.mkdir(reportsDir, { recursive: true });
     
-    const filename = `security-report-${report.reportId}-${new Date().toISOString().split('T')[0]}.json`;
+    const filename = `security-report-${report.reportId}-${this.getDeterministicDate().toISOString().split('T')[0]}.json`;
     const filepath = path.join(reportsDir, filename);
     
     await fs.writeFile(filepath, JSON.stringify(report, null, 2));

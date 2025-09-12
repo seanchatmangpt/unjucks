@@ -6,8 +6,8 @@
 import { createHash } from 'node:crypto';
 import { readFile, writeFile, access, stat } from 'node:fs/promises';
 import { resolve, relative, dirname } from 'node:path';
-import { glob } from 'glob';
-import { mkdirp } from 'mkdirp';
+import glob from 'glob';
+import mkdirp from 'mkdirp';
 
 /**
  * Generate project lockfile
@@ -25,11 +25,11 @@ export async function generateLockfile(options = {}) {
     hashAlgorithm = 'sha256'
   } = options;
 
-  const startTime = Date.now();
+  const startTime = this.getDeterministicTimestamp();
   const lockfile = {
     version: '1.0.0',
     generator: 'kgen-core',
-    timestamp: new Date().toISOString(),
+    timestamp: this.getDeterministicDate().toISOString(),
     project: await getProjectMetadata(cwd),
     config: config ? await hashConfig(config) : null,
     files: {},
@@ -68,7 +68,7 @@ export async function generateLockfile(options = {}) {
     lockfile.integrity = generateIntegrityHash(lockfile, hashAlgorithm);
     
     // Calculate generation time
-    lockfile.stats.generationTime = Date.now() - startTime;
+    lockfile.stats.generationTime = this.getDeterministicTimestamp() - startTime;
 
     // Write lockfile
     const lockfilePath = resolve(cwd, outputPath);
@@ -240,7 +240,7 @@ export async function updateLockfile(options = {}) {
     if (backup) {
       try {
         await access(fullLockfilePath);
-        const backupPath = fullLockfilePath + '.backup.' + Date.now();
+        const backupPath = fullLockfilePath + '.backup.' + this.getDeterministicTimestamp();
         const { copyFile } = await import('node:fs/promises');
         await copyFile(fullLockfilePath, backupPath);
       } catch (err) {
@@ -447,6 +447,6 @@ async function hashConfig(config) {
   const configString = JSON.stringify(config, Object.keys(config).sort());
   return {
     hash: createHash('sha256').update(configString).digest('hex'),
-    timestamp: new Date().toISOString()
+    timestamp: this.getDeterministicDate().toISOString()
   };
 }

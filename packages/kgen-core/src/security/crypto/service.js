@@ -98,7 +98,7 @@ export class CryptoService extends EventEmitter {
       this.emit('crypto:initialized', {
         masterKeys: this.masterKeys.size,
         classificationRules: this.classificationRules.size,
-        timestamp: new Date()
+        timestamp: this.getDeterministicDate()
       });
       
       return {
@@ -152,7 +152,7 @@ export class CryptoService extends EventEmitter {
         cipher.setAAD(Buffer.from(JSON.stringify({
           keyId,
           classification,
-          timestamp: new Date().toISOString()
+          timestamp: this.getDeterministicDate().toISOString()
         })));
         
         // Encrypt data
@@ -171,7 +171,7 @@ export class CryptoService extends EventEmitter {
           algorithm,
           keyId,
           classification,
-          timestamp: new Date().toISOString(),
+          timestamp: this.getDeterministicDate().toISOString(),
           integrity: null // Will be calculated
         };
         
@@ -192,7 +192,7 @@ export class CryptoService extends EventEmitter {
           encrypted: encryptedData,
           metadata: {
             operationId,
-            encryptedAt: new Date(),
+            encryptedAt: this.getDeterministicDate(),
             dataSize: dataBuffer.length,
             classification
           }
@@ -275,7 +275,7 @@ export class CryptoService extends EventEmitter {
           data: result,
           metadata: {
             operationId,
-            decryptedAt: new Date(),
+            decryptedAt: this.getDeterministicDate(),
             originalClassification: encryptedData.classification,
             originalTimestamp: encryptedData.timestamp
           }
@@ -441,7 +441,7 @@ export class CryptoService extends EventEmitter {
         encryptionResults,
         metadata: {
         fieldsEncrypted: encryptionResults.length,
-          timestamp: new Date()
+          timestamp: this.getDeterministicDate()
         }
       };
       
@@ -467,8 +467,8 @@ export class CryptoService extends EventEmitter {
         id: keyId,
         type: keyType,
         algorithm: options.algorithm || this.config.defaultAlgorithm,
-        createdAt: new Date(),
-        expiresAt: options.expiresAt || new Date(Date.now() + this.config.maxKeyAge),
+        createdAt: this.getDeterministicDate(),
+        expiresAt: options.expiresAt || new Date(this.getDeterministicTimestamp() + this.config.maxKeyAge),
         classification: options.classification || 'INTERNAL',
         usage: options.usage || 'encryption',
         rotationScheduled: false
@@ -524,7 +524,7 @@ export class CryptoService extends EventEmitter {
       
       // Mark old key for deprecation
       oldMetadata.deprecated = true;
-      oldMetadata.deprecatedAt = new Date();
+      oldMetadata.deprecatedAt = this.getDeterministicDate();
       oldMetadata.replacedBy = newKeyResult.keyId;
       
       // Schedule secure deletion of old key
@@ -535,7 +535,7 @@ export class CryptoService extends EventEmitter {
       this.emit('crypto:key_rotated', {
         oldKeyId: keyId,
         newKeyId: newKeyResult.keyId,
-        rotatedAt: new Date()
+        rotatedAt: this.getDeterministicDate()
       });
       
       return newKeyResult;
@@ -615,7 +615,7 @@ export class CryptoService extends EventEmitter {
     this.keyMetadata.set(masterKeyId, {
       id: masterKeyId,
       type: 'master',
-      createdAt: new Date(),
+      createdAt: this.getDeterministicDate(),
       usage: 'key_encryption'
     });
     
@@ -722,7 +722,7 @@ export class CryptoService extends EventEmitter {
   }
 
   async _checkForKeyRotation() {
-    const now = Date.now();
+    const now = this.getDeterministicTimestamp();
     
     for (const [keyId, metadata] of this.keyMetadata.entries()) {
       if (metadata.type === 'data' && !metadata.deprecated) {
@@ -915,11 +915,11 @@ export class CryptoService extends EventEmitter {
   }
 
   _generateOperationId() {
-    return `crypto_${Date.now()}_${crypto.randomBytes(4).toString('hex')}`;
+    return `crypto_${this.getDeterministicTimestamp()}_${crypto.randomBytes(4).toString('hex')}`;
   }
 
   _generateKeyId() {
-    return `key_${Date.now()}_${crypto.randomBytes(8).toString('hex')}`;
+    return `key_${this.getDeterministicTimestamp()}_${crypto.randomBytes(8).toString('hex')}`;
   }
 
   _getSupportedAlgorithms() {

@@ -123,7 +123,7 @@ export class OperationLineageTracker {
         reasoningChain: operationContext.reasoningChain || [],
         
         // Tracked timestamp
-        trackedAt: new Date().toISOString()
+        trackedAt: this.getDeterministicDate().toISOString()
       };
       
       // Store operation
@@ -204,7 +204,7 @@ export class OperationLineageTracker {
         dependencies: null,
         
         // Query metadata
-        queryTime: Date.now(),
+        queryTime: this.getDeterministicTimestamp(),
         totalNodes: 0,
         totalEdges: 0
       };
@@ -230,7 +230,7 @@ export class OperationLineageTracker {
       // Update statistics
       formattedLineage.totalNodes = formattedLineage.operations.length + formattedLineage.entities.length;
       formattedLineage.totalEdges = formattedLineage.relationships.length;
-      formattedLineage.queryDuration = Date.now() - lineage.queryTime;
+      formattedLineage.queryDuration = this.getDeterministicTimestamp() - lineage.queryTime;
       
       this.logger.debug(`Lineage retrieved: ${formattedLineage.totalNodes} nodes, ${formattedLineage.totalEdges} edges`);
       
@@ -346,7 +346,7 @@ export class OperationLineageTracker {
         rollbackComplexity: 'simple',
         rollbackSteps: [],
         
-        analysisTime: Date.now()
+        analysisTime: this.getDeterministicTimestamp()
       };
       
       // Get entity lineage
@@ -401,7 +401,7 @@ export class OperationLineageTracker {
       analysis.rollbackComplexity = this._assessRollbackComplexity(analysis);
       analysis.rollbackSteps = this._generateRollbackSteps(analysis);
       
-      analysis.analysisTime = Date.now() - analysis.analysisTime;
+      analysis.analysisTime = this.getDeterministicTimestamp() - analysis.analysisTime;
       
       this.logger.debug(`Impact analysis completed: ${analysis.riskLevel} risk, ${analysis.directlyAffected.length} direct impacts`);
       
@@ -472,14 +472,14 @@ export class OperationLineageTracker {
           entityId: input.id,
           type: input.type || 'unknown',
           properties: input.properties || {},
-          firstSeen: new Date().toISOString(),
+          firstSeen: this.getDeterministicDate().toISOString(),
           operations: new Set()
         });
       }
       
       const entity = this.lineageGraph.entities.get(input.id);
       entity.operations.add(operation.operationId);
-      entity.lastUsed = new Date().toISOString();
+      entity.lastUsed = this.getDeterministicDate().toISOString();
     }
     
     // Track output entities
@@ -507,7 +507,7 @@ export class OperationLineageTracker {
           source: input.id,
           target: output.id,
           operation: operation.operationId,
-          createdAt: new Date().toISOString()
+          createdAt: this.getDeterministicDate().toISOString()
         });
       }
     }
@@ -570,7 +570,7 @@ export class OperationLineageTracker {
         inputs: step.inputs || [],
         outputs: step.outputs || [],
         confidence: step.confidence || 1.0,
-        createdAt: new Date().toISOString()
+        createdAt: this.getDeterministicDate().toISOString()
       });
     }
   }

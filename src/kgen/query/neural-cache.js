@@ -79,7 +79,7 @@ export class NeuralAdaptiveCache extends EventEmitter {
     
     // Real-time adaptation state
     this.isTraining = false;
-    this.lastAdaptation = Date.now();
+    this.lastAdaptation = this.getDeterministicTimestamp();
     this.performanceHistory = [];
   }
 
@@ -123,7 +123,7 @@ export class NeuralAdaptiveCache extends EventEmitter {
    * @returns {Object|null} Cached result or null
    */
   async get(queryKey, context = {}) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       this.metrics.totalQueries++;
@@ -133,7 +133,7 @@ export class NeuralAdaptiveCache extends EventEmitter {
         const result = await this._handleCacheHit(queryKey, context);
         if (result) {
           this.metrics.hits++;
-          this._recordAccess(queryKey, 'hit', Date.now() - startTime);
+          this._recordAccess(queryKey, 'hit', this.getDeterministicTimestamp() - startTime);
           return result;
         }
       }
@@ -143,13 +143,13 @@ export class NeuralAdaptiveCache extends EventEmitter {
       if (neuralPrediction) {
         this.metrics.hits++;
         this.metrics.neuralPredictions++;
-        this._recordAccess(queryKey, 'neural_hit', Date.now() - startTime);
+        this._recordAccess(queryKey, 'neural_hit', this.getDeterministicTimestamp() - startTime);
         return neuralPrediction;
       }
       
       // Cache miss
       this.metrics.misses++;
-      this._recordAccess(queryKey, 'miss', Date.now() - startTime);
+      this._recordAccess(queryKey, 'miss', this.getDeterministicTimestamp() - startTime);
       
       // Preemptive loading based on access patterns
       this._schedulePreemptiveLoading(queryKey, context);
@@ -185,10 +185,10 @@ export class NeuralAdaptiveCache extends EventEmitter {
       // Store with neural enhancements
       this.cache.set(queryKey, {
         data: result,
-        timestamp: Date.now(),
+        timestamp: this.getDeterministicTimestamp(),
         ttl: predictedTTL,
         accessCount: 0,
-        lastAccessed: Date.now(),
+        lastAccessed: this.getDeterministicTimestamp(),
         neuralMetadata: metadata
       });
       
@@ -282,7 +282,7 @@ export class NeuralAdaptiveCache extends EventEmitter {
       await this._updateModelsWithAdaptations(appliedAdaptations);
       
       this.metrics.adaptations += appliedAdaptations.length;
-      this.lastAdaptation = Date.now();
+      this.lastAdaptation = this.getDeterministicTimestamp();
       
       this.emit('cache:adapted', {
         adaptationCount: appliedAdaptations.length,
@@ -346,7 +346,7 @@ export class NeuralAdaptiveCache extends EventEmitter {
       context
     );
     
-    if (Date.now() - cached.timestamp > adjustedTTL) {
+    if (this.getDeterministicTimestamp() - cached.timestamp > adjustedTTL) {
       // Expired - remove from cache
       this.cache.delete(queryKey);
       this.metadata.delete(queryKey);
@@ -355,7 +355,7 @@ export class NeuralAdaptiveCache extends EventEmitter {
     
     // Update access patterns
     cached.accessCount++;
-    cached.lastAccessed = Date.now();
+    cached.lastAccessed = this.getDeterministicTimestamp();
     
     // Learn from access pattern
     await this.accessPatternNetwork.recordAccess(queryKey, context);
@@ -407,11 +407,11 @@ export class NeuralAdaptiveCache extends EventEmitter {
       
       // Generate features for eviction prediction
       const features = {
-        age: Date.now() - cached.timestamp,
+        age: this.getDeterministicTimestamp() - cached.timestamp,
         accessCount: cached.accessCount,
-        timeSinceLastAccess: Date.now() - cached.lastAccessed,
+        timeSinceLastAccess: this.getDeterministicTimestamp() - cached.lastAccessed,
         size: metadata?.estimatedSize || 0,
-        accessFrequency: cached.accessCount / (Date.now() - cached.timestamp) * 1000
+        accessFrequency: cached.accessCount / (this.getDeterministicTimestamp() - cached.timestamp) * 1000
       };
       
       // Get eviction score from neural network
@@ -436,7 +436,7 @@ export class NeuralAdaptiveCache extends EventEmitter {
       queryKey,
       estimatedSize: size,
       complexity,
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       options,
       embedding: await this.queryEmbeddings.embed(queryKey)
     };
@@ -457,7 +457,7 @@ export class NeuralAdaptiveCache extends EventEmitter {
     this.accessHistory.push({
       queryKey,
       type,
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       responseTime
     });
     

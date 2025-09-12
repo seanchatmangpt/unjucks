@@ -33,7 +33,7 @@ class MockTemplateProcessor {
       templateType,
       variablesUsed: Object.keys(data),
       contentSize: processedContent.length,
-      processedAt: new Date().toISOString()
+      processedAt: this.getDeterministicDate().toISOString()
     };
   }
 

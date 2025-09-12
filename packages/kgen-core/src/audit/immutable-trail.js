@@ -101,7 +101,7 @@ export class ImmutableAuditTrail {
       const auditEvent = {
         // Event identity
         eventId: uuidv4(),
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         eventType: event.type,
         
         // Source information
@@ -257,12 +257,12 @@ export class ImmutableAuditTrail {
         },
         
         // Performance
-        verificationStarted: new Date().toISOString(),
+        verificationStarted: this.getDeterministicDate().toISOString(),
         verificationCompleted: null,
         duration: 0
       };
       
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
       // Filter events by date if specified
       let eventsToVerify = this.auditLog;
@@ -315,8 +315,8 @@ export class ImmutableAuditTrail {
         }
       }
       
-      verification.duration = Date.now() - startTime;
-      verification.verificationCompleted = new Date().toISOString();
+      verification.duration = this.getDeterministicTimestamp() - startTime;
+      verification.verificationCompleted = this.getDeterministicDate().toISOString();
       this.metrics.verificationOperations++;
       
       this.logger.info(`Integrity verification completed: ${verification.overallValid ? 'VALID' : 'INVALID'}`);
@@ -338,8 +338,8 @@ export class ImmutableAuditTrail {
     try {
       const {
         framework = 'SOX',
-        startDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // 30 days ago
-        endDate = new Date(),
+        startDate = new Date(this.getDeterministicTimestamp() - 30 * 24 * 60 * 60 * 1000), // 30 days ago
+        endDate = this.getDeterministicDate(),
         includeDetails = false
       } = options;
       
@@ -358,7 +358,7 @@ export class ImmutableAuditTrail {
           end: endDate.toISOString(),
           duration: endDate - startDate
         },
-        generatedAt: new Date().toISOString(),
+        generatedAt: this.getDeterministicDate().toISOString(),
         
         // Summary statistics
         summary: {
@@ -479,7 +479,7 @@ export class ImmutableAuditTrail {
   async _createGenesisBlock() {
     const genesisBlock = {
       blockNumber: 0,
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       previousHash: '0'.repeat(64),
       merkleRoot: '0'.repeat(64),
       events: [],
@@ -511,7 +511,7 @@ export class ImmutableAuditTrail {
     
     const block = {
       blockNumber: this.currentBlockNumber,
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       previousHash: this.lastBlockHash,
       merkleRoot,
       events: eventsToBlock.map(e => ({
@@ -602,7 +602,7 @@ export class ImmutableAuditTrail {
       blockHash: latestBlock.blockHash,
       blockchainTxHash: `0x${crypto.randomBytes(32).toString('hex')}`,
       blockchainBlockNumber: Math.floor(Math.random() * 1000000),
-      anchoredAt: new Date().toISOString(),
+      anchoredAt: this.getDeterministicDate().toISOString(),
       network: this.config.blockchainNetwork,
       confirmed: true
     };
@@ -684,7 +684,7 @@ export class ImmutableAuditTrail {
       algorithm: 'RSA-SHA256',
       signature,
       keyFingerprint: this.cryptoManager.keyMetadata?.fingerprint,
-      signedAt: new Date().toISOString()
+      signedAt: this.getDeterministicDate().toISOString()
     };
   }
 
@@ -701,7 +701,7 @@ export class ImmutableAuditTrail {
       algorithm: 'RSA-SHA256',
       signature,
       keyFingerprint: this.cryptoManager.keyMetadata?.fingerprint,
-      signedAt: new Date().toISOString()
+      signedAt: this.getDeterministicDate().toISOString()
     };
   }
 

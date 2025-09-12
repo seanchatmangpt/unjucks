@@ -199,7 +199,7 @@ class DegradationChecker {
 
   async saveDegradationReport(issues) {
     const report = {
-      check_time: new Date().toISOString(),
+      check_time: this.getDeterministicDate().toISOString(),
       thresholds_used: this.thresholds,
       degradation_issues: issues,
       summary: {
@@ -238,7 +238,7 @@ class DegradationChecker {
   async createEmergencyAlert(criticalIssues) {
     const emergencyAlert = {
       alert_type: 'emergency',
-      created_at: new Date().toISOString(),
+      created_at: this.getDeterministicDate().toISOString(),
       title: '🚨 CRITICAL: Workflow Performance Emergency',
       description: `${criticalIssues.length} critical performance issues detected requiring immediate attention`,
       critical_issues: criticalIssues,

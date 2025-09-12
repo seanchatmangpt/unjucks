@@ -321,7 +321,7 @@ describe('ExportCLI', () => {
           filePath: './export.json',
           size: 1024,
           metadata: {
-            generatedAt: new Date().toISOString(),
+            generatedAt: this.getDeterministicDate().toISOString(),
             dataRecords: 10
           }
         },
@@ -329,7 +329,7 @@ describe('ExportCLI', () => {
           filePath: './export.html',
           size: 2048,
           metadata: {
-            generatedAt: new Date().toISOString(),
+            generatedAt: this.getDeterministicDate().toISOString(),
             dataRecords: 10
           }
         }

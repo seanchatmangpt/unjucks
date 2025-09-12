@@ -53,7 +53,7 @@ export default defineCommand({
   async run({ args }) {
     let config;
     try {
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
       // Load configuration
       config = await loadKgenConfig(args.config);
@@ -106,7 +106,7 @@ export default defineCommand({
       // Validate template syntax
       const validation = validateTemplate(content, templateType);
       
-      const duration = Date.now() - startTime;
+      const duration = this.getDeterministicTimestamp() - startTime;
       
       const result = success({
         template: {

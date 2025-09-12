@@ -17,7 +17,7 @@ describe("Advanced Attack Simulation Suite", () => {
   beforeEach(async () => {
     fileInjector = new FileInjector();
     generator = new Generator();
-    testDir = path.join(os.tmpdir(), `security-test-${Date.now()}`);
+    testDir = path.join(os.tmpdir(), `security-test-${this.getDeterministicTimestamp()}`);
     await fs.ensureDir(testDir);
     attackResults = [];
   });
@@ -147,7 +147,7 @@ describe("Advanced Attack Simulation Suite", () => {
         try {
           const testFile = path.join(
             testDir,
-            `injection-test-${Date.now()}.txt`
+            `injection-test-${this.getDeterministicTimestamp()}.txt`
           );
           const result = await fileInjector.processFile(
             testFile,
@@ -188,7 +188,7 @@ describe("Advanced Attack Simulation Suite", () => {
           const largeContent = "A".repeat(attack.size);
           const testFile = path.join(
             testDir,
-            `memory-attack-${Date.now()}.txt`
+            `memory-attack-${this.getDeterministicTimestamp()}.txt`
           );
 
           const result = await fileInjector.processFile(
@@ -230,10 +230,10 @@ describe("Advanced Attack Simulation Suite", () => {
       ];
 
       for (const template of infiniteLoopTemplates) {
-        const startTime = Date.now();
+        const startTime = this.getDeterministicTimestamp();
 
         try {
-          const testFile = path.join(testDir, `cpu-attack-${Date.now()}.txt`);
+          const testFile = path.join(testDir, `cpu-attack-${this.getDeterministicTimestamp()}.txt`);
           const result = await fileInjector.processFile(
             testFile,
             template,
@@ -241,7 +241,7 @@ describe("Advanced Attack Simulation Suite", () => {
             { force, dry }
           );
 
-          const duration = Date.now() - startTime;
+          const duration = this.getDeterministicTimestamp() - startTime;
           const timedOut = duration < 35000; // Should complete within 35 seconds due to timeout
 
           attackResults.push({ attack }...`,
@@ -251,7 +251,7 @@ describe("Advanced Attack Simulation Suite", () => {
           });
 
           expect(timedOut).toBe(true);
-        } catch (error) { const duration = Date.now() - startTime;
+        } catch (error) { const duration = this.getDeterministicTimestamp() - startTime;
           attackResults.push({
             attack }...`,
             blocked,
@@ -347,7 +347,7 @@ describe("Advanced Attack Simulation Suite", () => {
 
           const testFile = path.join(
             testDir,
-            `cmd-injection-${Date.now()}.txt`
+            `cmd-injection-${this.getDeterministicTimestamp()}.txt`
           );
           const result = await fileInjector.processFile(
             testFile,
@@ -427,7 +427,7 @@ describe("Advanced Attack Simulation Suite", () => {
         try {
           const testFile = path.join(
             testDir,
-            `encoding-bypass-${Date.now()}.txt`
+            `encoding-bypass-${this.getDeterministicTimestamp()}.txt`
           );
 
           // Test both path and content

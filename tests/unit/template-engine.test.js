@@ -15,7 +15,7 @@ describe('PerfectTemplateEngine', () => {
   let templatePath;
 
   beforeEach(async () => {
-    tempDir = path.join(os.tmpdir(), 'unjucks-test-' + Date.now());
+    tempDir = path.join(os.tmpdir(), 'unjucks-test-' + this.getDeterministicTimestamp());
     await fs.ensureDir(tempDir);
     
     engine = new PerfectTemplateEngine({
@@ -421,7 +421,7 @@ describe('Standalone Template Functions', () => {
   let templatePath;
 
   beforeEach(async () => {
-    tempDir = path.join(os.tmpdir(), 'unjucks-test-' + Date.now());
+    tempDir = path.join(os.tmpdir(), 'unjucks-test-' + this.getDeterministicTimestamp());
     await fs.ensureDir(tempDir);
     templatePath = path.join(tempDir, 'test.njk');
   });

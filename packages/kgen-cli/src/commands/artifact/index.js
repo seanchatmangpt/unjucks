@@ -7,8 +7,10 @@
 import { defineCommand } from 'citty';
 
 import generateCommand from './generate.js';
-// import driftCommand from './drift.js';
-// import explainCommand from './explain.js';
+import driftCommand from './drift.js';
+import { driftDetectCommand } from './drift-detect.js';
+import { semanticDriftCommand } from './semantic-drift.js';
+import explainCommand from './explain.js';
 
 export default defineCommand({
   meta: {
@@ -17,8 +19,10 @@ export default defineCommand({
   },
   subCommands: {
     generate: generateCommand,
-    // drift: driftCommand,
-    // explain: explainCommand
+    drift: driftCommand,
+    'drift-detect': driftDetectCommand,
+    'semantic-drift': semanticDriftCommand,
+    explain: explainCommand
   },
   async run() {
     // Default help for artifact tool
@@ -39,13 +43,18 @@ export default defineCommand({
             usage: 'kgen artifact drift --check <directory> [options]'
           },
           {
+            name: 'drift-detect',
+            description: 'Advanced semantic drift detection with ≥90% true-positive rate',
+            usage: 'kgen artifact drift-detect <target> [options]'
+          },
+          {
             name: 'explain',
             description: 'Explain provenance and generation details of an artifact',
             usage: 'kgen artifact explain --file <path> [options]'
           }
         ]
       },
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     };
 
     console.log(JSON.stringify(result, null, 2));

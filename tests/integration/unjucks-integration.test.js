@@ -137,9 +137,9 @@ class UnjucksIntegrationTest {
     console.log(`\n🧪 Running: ${testName}`);
     
     try {
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       await testFunction();
-      const duration = Date.now() - startTime;
+      const duration = this.getDeterministicTimestamp() - startTime;
       
       console.log(`✅ PASSED: ${testName} (${duration}ms)`);
       this.passedTests++;
@@ -498,7 +498,7 @@ Bad template content <%= unclosed
    * Test 18: Performance Test
    */
   async testPerformance() {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     // Run multiple quick commands to test performance
     const commands = [
@@ -511,7 +511,7 @@ Bad template content <%= unclosed
       await this.executeCommand(cmd);
     }
     
-    const duration = Date.now() - startTime;
+    const duration = this.getDeterministicTimestamp() - startTime;
     assert(duration < 10000, 'Performance test: Commands should complete within 10 seconds');
   }
 
@@ -569,7 +569,7 @@ Bad template content <%= unclosed
     console.log('🚀 Starting Unjucks Integration Tests');
     console.log('=====================================');
     
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       await this.setup();
@@ -600,7 +600,7 @@ Bad template content <%= unclosed
       await this.cleanup();
     }
     
-    const duration = Date.now() - startTime;
+    const duration = this.getDeterministicTimestamp() - startTime;
     
     // Print summary
     console.log('\n📊 Integration Test Summary');

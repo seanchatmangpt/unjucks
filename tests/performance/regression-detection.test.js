@@ -10,7 +10,7 @@ describe('Performance Regression Detection', () => {
     // Load baseline performance data
     baselineData = await global.loadPerformanceBaseline('template-generation');
     currentMetrics = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       testResults: {}
     };
     
@@ -38,7 +38,7 @@ describe('Performance Regression Detection', () => {
     await global.savePerformanceBaseline('template-generation-current', currentMetrics);
     
     // Generate regression report
-    const reportPath = `reports/performance/regression-report-${Date.now()}.json`;
+    const reportPath = `reports/performance/regression-report-${this.getDeterministicTimestamp()}.json`;
     await fs.writeJson(reportPath, {
       baseline: baselineData,
       current: currentMetrics,
@@ -155,7 +155,7 @@ describe('Performance Regression Detection', () => {
         data: new Array(1000).fill(0).map((_, j) => ({
           index: j,
           content: `Large content ${i}-${j}`.repeat(10),
-          timestamp: Date.now()
+          timestamp: this.getDeterministicTimestamp()
         }))
       };
       
@@ -253,7 +253,7 @@ describe('Performance Regression Detection', () => {
         taskResults.push({
           taskId,
           duration: operationDuration,
-          timestamp: Date.now()
+          timestamp: this.getDeterministicTimestamp()
         });
         
         expect(rendered).toContain(`Task ${taskId}`);
@@ -319,9 +319,9 @@ describe('Performance Regression Detection', () => {
     const regressionReport = await detectAllRegressions();
     
     // Save detailed regression analysis
-    const analysisPath = `reports/performance/regression-analysis-${Date.now()}.json`;
+    const analysisPath = `reports/performance/regression-analysis-${this.getDeterministicTimestamp()}.json`;
     await fs.writeJson(analysisPath, {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       baselineVersion: baselineData.version,
       currentVersion: process.env.npm_package_version || 'unknown',
       testEnvironment: {

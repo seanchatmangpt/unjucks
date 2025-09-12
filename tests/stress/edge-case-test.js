@@ -146,7 +146,7 @@ async function runEdgeCaseTests() {
   await fs.writeFile(largeLineFile, `# Large Line Test\n\n${hugeLine}`);
   
   try {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     const result = await exportCommand.run({
       args: {
         input: largeLineFile,
@@ -155,7 +155,7 @@ async function runEdgeCaseTests() {
         quiet: true
       }
     });
-    const duration = Date.now() - startTime;
+    const duration = this.getDeterministicTimestamp() - startTime;
     console.log(`  Result: ${result.success ? '✅ SUCCESS' : '❌ FAILED'} (${duration}ms)`);
   } catch (error) {
     console.log(`  Result: ❌ ERROR - ${error.message}`);
@@ -201,7 +201,7 @@ Normal content after Unicode.
   await fs.writeFile(memoryFile, memoryContent);
   
   try {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     const startMemory = process.memoryUsage().heapUsed;
     
     const result = await exportCommand.run({
@@ -213,7 +213,7 @@ Normal content after Unicode.
       }
     });
     
-    const duration = Date.now() - startTime;
+    const duration = this.getDeterministicTimestamp() - startTime;
     const endMemory = process.memoryUsage().heapUsed;
     const memoryIncrease = endMemory - startMemory;
     

@@ -200,7 +200,7 @@ async function createBaseline(outputDir) {
   // For now, create a sample lockfile
   const baseline = {
     version: '1.0.0',
-    timestamp: new Date().toISOString(),
+    timestamp: this.getDeterministicDate().toISOString(),
     directory: outputDir,
     files: {},
     ci: {
@@ -1255,7 +1255,7 @@ function generateJUnitReport(results) {
 function generateMarkdownReport(results) {
   return `# KGEN Drift Detection Report
 
-**Generated:** ${new Date().toISOString()}
+**Generated:** ${this.getDeterministicDate().toISOString()}
 **Status:** ${results.summary?.actionRequired ? '⚠️ Action Required' : '✅ No Issues'}
 
 ## Summary

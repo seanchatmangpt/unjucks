@@ -126,7 +126,7 @@ export class GraphCompression extends EventEmitter {
       const cacheKey = this._generateCacheKey(quads, opts);
       if (this.config.enableCache && this.compressionCache.has(cacheKey)) {
         const cached = this.compressionCache.get(cacheKey);
-        if (Date.now() - cached.timestamp < this.config.cacheTTL) {
+        if (this.getDeterministicTimestamp() - cached.timestamp < this.config.cacheTTL) {
           return cached.result;
         }
       }
@@ -181,7 +181,7 @@ export class GraphCompression extends EventEmitter {
           compressedSize,
           compressionRatio,
           processingTime,
-          timestamp: Date.now(),
+          timestamp: this.getDeterministicTimestamp(),
           version: '1.0'
         }
       };
@@ -190,7 +190,7 @@ export class GraphCompression extends EventEmitter {
       if (this.config.enableCache && this.compressionCache.size < this.config.cacheMaxSize) {
         this.compressionCache.set(cacheKey, {
           result,
-          timestamp: Date.now()
+          timestamp: this.getDeterministicTimestamp()
         });
       }
       
@@ -223,7 +223,7 @@ export class GraphCompression extends EventEmitter {
       const cacheKey = this._generateDecompressionCacheKey(compressedData);
       if (this.config.enableCache && this.decompressionCache.has(cacheKey)) {
         const cached = this.decompressionCache.get(cacheKey);
-        if (Date.now() - cached.timestamp < this.config.cacheTTL) {
+        if (this.getDeterministicTimestamp() - cached.timestamp < this.config.cacheTTL) {
           return cached.result;
         }
       }
@@ -265,7 +265,7 @@ export class GraphCompression extends EventEmitter {
       if (this.config.enableCache && this.decompressionCache.size < this.config.cacheMaxSize) {
         this.decompressionCache.set(cacheKey, {
           result: decompressedQuads,
-          timestamp: Date.now()
+          timestamp: this.getDeterministicTimestamp()
         });
       }
       
@@ -342,7 +342,7 @@ export class GraphCompression extends EventEmitter {
         objects: new Map()
       },
       metadata: {
-        built: Date.now(),
+        built: this.getDeterministicTimestamp(),
         totalTerms: 0,
         compressionPotential: 0
       }
@@ -686,7 +686,7 @@ export class GraphCompression extends EventEmitter {
       format: 'HDT',
       version: '1.0',
       totalTriples: quads.length,
-      createdAt: new Date().toISOString()
+      createdAt: this.getDeterministicDate().toISOString()
     };
     
     // Build shared dictionary

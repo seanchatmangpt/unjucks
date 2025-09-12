@@ -7,7 +7,7 @@ import { performance } from 'node:perf_hooks';
 
 describe('80/20 MCP Agent Coordination Validation', () => {
   let mockSwarmId => {
-    mockSwarmId = `test-swarm-${Date.now()}`;
+    mockSwarmId = `test-swarm-${this.getDeterministicTimestamp()}`;
     coordinationStartTime = performance.now();
   });
 
@@ -132,7 +132,7 @@ describe('80/20 MCP Agent Coordination Validation', () => {
     
     // 5. Message structure validation
     const sampleMessage = { '@context' },
-      'mcp:timestamp': new Date().toISOString()
+      'mcp:timestamp': this.getDeterministicDate().toISOString()
     };
     
     expect(sampleMessage['@context']).toBeDefined();

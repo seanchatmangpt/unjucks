@@ -59,7 +59,7 @@ describe('Compliance Automation Security', () => {
 
     it('should validate audit trail requirements', async () => {
       const auditTrail = {
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         user: 'financial.analyst@company.com',
         action: 'UPDATE_REVENUE',
         previousValue: '900000',
@@ -153,7 +153,7 @@ describe('Compliance Automation Security', () => {
         prefixes: { user: 'http://example.org/user/' }
       };
 
-      const now = new Date();
+      const now = this.getDeterministicDate();
       const createdDate = new Date('2020-01-01T00:00:00Z');
       const retentionPeriod = 2 * 365 * 24 * 60 * 60 * 1000; // 2 years in ms
       
@@ -166,8 +166,8 @@ describe('Compliance Automation Security', () => {
       const dataSubjectRequest = {
         type: 'ACCESS',
         subjectId: 'user:john-doe',
-        requestDate: new Date().toISOString(),
-        deadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() // 30 days
+        requestDate: this.getDeterministicDate().toISOString(),
+        deadline: new Date(this.getDeterministicTimestamp() + 30 * 24 * 60 * 60 * 1000).toISOString() // 30 days
       };
 
       // Mock implementation of data subject rights

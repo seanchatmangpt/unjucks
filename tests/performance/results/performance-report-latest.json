@@ -1,0 +1,41 @@
+{
+  "metadata": {
+    "timestamp": "2025-09-12T18:39:35.463Z",
+    "system": {
+      "platform": "darwin",
+      "arch": "arm64",
+      "cpus": 16,
+      "cpuModel": "Apple M3 Max",
+      "totalMemory": 48,
+      "freeMemory": 0,
+      "nodeVersion": "v22.12.0",
+      "timestamp": "2025-09-12T18:37:27.329Z"
+    },
+    "testConfiguration": {
+      "iterations": 3,
+      "warmupIterations": 3,
+      "kgenBinary": "/Users/sac/unjucks/bin/kgen.mjs"
+    }
+  },
+  "results": {
+    "basicCommands": {},
+    "fileSizeScaling": {},
+    "concurrentOperations": {},
+    "largeGraphProcessing": {},
+    "cacheEffectiveness": {}
+  },
+  "summary": {
+    "overallStatus": "ACCEPTABLE",
+    "keyFindings": [
+      "Version command: 545.98ms (target: <50ms)",
+      "File scaling: SUB_LINEAR complexity",
+      "Max throughput: 9.44 ops/sec",
+      "Cache speedup: 0.98x"
+    ],
+    "performanceIssues": [
+      "Version command slower than expected",
+      "Cache not providing significant performance benefits"
+    ],
+    "recommendations": []
+  }
+}

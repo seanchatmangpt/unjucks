@@ -6,7 +6,7 @@ class FinalPerformanceAnalyzer {
   constructor() {
     this.resultsDir = 'tests/performance/results';
     this.analysisResults = {
-      analysisDate: new Date().toISOString(),
+      analysisDate: this.getDeterministicDate().toISOString(),
       nodeVersion: process.version,
       platform: process.platform,
       arch: process.arch,

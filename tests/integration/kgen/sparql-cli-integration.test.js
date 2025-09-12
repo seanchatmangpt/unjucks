@@ -37,7 +37,7 @@ describe('SPARQL CLI Integration', () => {
 
   beforeEach(async () => {
     // Create temporary test directory
-    testDir = path.join(process.cwd(), 'test-temp', `integration-${Date.now()}`);
+    testDir = path.join(process.cwd(), 'test-temp', `integration-${this.getDeterministicTimestamp()}`);
     await mkdir(testDir, { recursive: true });
 
     // Initialize components
@@ -188,9 +188,9 @@ describe('SPARQL CLI Integration', () => {
     it('should handle large query results efficiently', async () => {
       await adapter.loadGraph(sampleGraph);
       
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const result = await adapter.executeQuery('SELECT ?s ?p ?o WHERE { ?s ?p ?o }');
-      const executionTime = Date.now() - startTime;
+      const executionTime = this.getDeterministicTimestamp() - startTime;
       
       expect(result).toBeDefined();
       expect(executionTime).toBeLessThan(1000); // Should complete within 1 second

@@ -258,7 +258,7 @@ export class LaTeXCompiler extends EventEmitter {
       await this.initialize();
     }
     
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     const compileOptions = { ...this.config, ...options };
     
     try {
@@ -293,7 +293,7 @@ export class LaTeXCompiler extends EventEmitter {
         success: false,
         error: error.message,
         inputPath,
-        duration: Date.now() - startTime
+        duration: this.getDeterministicTimestamp() - startTime
       };
       
       this.statistics.errors++;
@@ -384,7 +384,7 @@ export class LaTeXCompiler extends EventEmitter {
     const inputDir = dirname(resolve(inputPath));
     const nameWithoutExt = basename(inputPath, extname(inputPath));
     
-    const tempDir = join(this.config.tempDir, `compile_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
+    const tempDir = join(this.config.tempDir, `compile_${this.getDeterministicTimestamp()}_${Math.random().toString(36).substr(2, 9)}`);
     await fs.mkdir(tempDir, { recursive: true });
     
     const tempInputPath = join(tempDir, inputFile);
@@ -717,7 +717,7 @@ export class LaTeXCompiler extends EventEmitter {
    * Update compilation statistics
    */
   updateStatistics(result, startTime) {
-    const duration = Date.now() - startTime;
+    const duration = this.getDeterministicTimestamp() - startTime;
     
     this.statistics.compilations++;
     this.statistics.totalTime += duration;

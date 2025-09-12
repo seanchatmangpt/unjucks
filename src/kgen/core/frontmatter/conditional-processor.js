@@ -7,7 +7,7 @@
  */
 
 import { EventEmitter } from 'events';
-import { Logger } from 'consola';
+import { Consola } from 'consola';
 
 export class ConditionalProcessor extends EventEmitter {
   constructor(options = {}) {
@@ -24,7 +24,7 @@ export class ConditionalProcessor extends EventEmitter {
       ...options
     };
     
-    this.logger = new Logger({ tag: 'kgen-conditional-processor' });
+    this.logger = new Consola({ tag: 'kgen-conditional-processor' });
     this.evaluationHistory = [];
     this.expressionCache = new Map();
   }
@@ -38,7 +38,7 @@ export class ConditionalProcessor extends EventEmitter {
    */
   async evaluate(frontmatter, context = {}, options = {}) {
     const operationId = options.operationId || this._generateOperationId();
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       // Extract skip condition from frontmatter
@@ -53,7 +53,7 @@ export class ConditionalProcessor extends EventEmitter {
           condition: null,
           evaluationResult: null,
           evaluationMetadata: {
-            evaluationTime: Date.now() - startTime,
+            evaluationTime: this.getDeterministicTimestamp() - startTime,
             cacheHit: false
           }
         };
@@ -89,7 +89,7 @@ export class ConditionalProcessor extends EventEmitter {
       
       // Create evaluation metadata
       const evaluationMetadata = {
-        evaluationTime: Date.now() - startTime,
+        evaluationTime: this.getDeterministicTimestamp() - startTime,
         cacheHit: false,
         expressionComplexity: this._calculateComplexity(skipCondition),
         usedVariables: evaluationResult.usedVariables || [],
@@ -114,7 +114,7 @@ export class ConditionalProcessor extends EventEmitter {
       if (this.options.enableProvenance) {
         this.evaluationHistory.push({
           operationId,
-          timestamp: new Date(),
+          timestamp: this.getDeterministicDate(),
           condition: skipCondition,
           context: this._sanitizeContext(context),
           result: shouldSkip,
@@ -135,7 +135,7 @@ export class ConditionalProcessor extends EventEmitter {
         condition: frontmatter.skipIf || null,
         evaluationResult: null,
         evaluationMetadata: {
-          evaluationTime: Date.now() - startTime,
+          evaluationTime: this.getDeterministicTimestamp() - startTime,
           cacheHit: false,
           errors: [error.message]
         }
@@ -572,7 +572,7 @@ export class ConditionalProcessor extends EventEmitter {
    * @returns {string} Operation ID
    */
   _generateOperationId() {
-    return `cond_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    return `cond_${this.getDeterministicTimestamp()}_${Math.random().toString(36).substr(2, 9)}`;
   }
 
   /**

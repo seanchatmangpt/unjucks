@@ -280,7 +280,7 @@ export class OWLReasoner extends EventEmitter {
    * @returns {Promise<Object>} Reasoning results
    */
   async performReasoning(options = {}) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     const operationId = options.operationId || crypto.randomUUID();
     
     try {
@@ -316,13 +316,13 @@ export class OWLReasoner extends EventEmitter {
       }
       
       // Build final result
-      const reasoningTime = Date.now() - startTime;
+      const reasoningTime = this.getDeterministicTimestamp() - startTime;
       const finalResults = {
         operationId,
         ...results,
         context: {
           ...context,
-          endTime: Date.now(),
+          endTime: this.getDeterministicTimestamp(),
           reasoningTime
         },
         metrics: { ...this.metrics }
@@ -345,7 +345,7 @@ export class OWLReasoner extends EventEmitter {
       return finalResults;
       
     } catch (error) {
-      const reasoningTime = Date.now() - startTime;
+      const reasoningTime = this.getDeterministicTimestamp() - startTime;
       this.logger.error(`OWL reasoning failed after ${reasoningTime}ms:`, error);
       this.emit('reasoning:error', { operationId, error, reasoningTime });
       throw error;
@@ -359,7 +359,7 @@ export class OWLReasoner extends EventEmitter {
    * @returns {Promise<Object>} Classification results
    */
   async classifyIndividuals(individuals, options = {}) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     const classifications = new Map();
     
     try {
@@ -383,7 +383,7 @@ export class OWLReasoner extends EventEmitter {
         this.individualClassifications.set(individualUri, classifications.get(individualUri));
       }
       
-      const classificationTime = Date.now() - startTime;
+      const classificationTime = this.getDeterministicTimestamp() - startTime;
       this.logger.success(`Individual classification completed in ${classificationTime}ms`);
       
       return {
@@ -1467,7 +1467,7 @@ export class OWLReasoner extends EventEmitter {
    * Perform consistency check
    */
   async _performConsistencyCheck(context) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     this.inconsistencies = [];
     
     // Check class satisfiability
@@ -1492,7 +1492,7 @@ export class OWLReasoner extends EventEmitter {
     context.consistencyChecks++;
     context.inconsistenciesFound = this.inconsistencies.length;
     
-    const checkTime = Date.now() - startTime;
+    const checkTime = this.getDeterministicTimestamp() - startTime;
     
     return {
       consistent: this.inconsistencies.length === 0,
@@ -1782,7 +1782,7 @@ export class OWLReasoner extends EventEmitter {
     this.incrementalState.pendingChanges.push({
       type: 'ontology-loaded',
       ontology: ontology.uri || 'anonymous',
-      timestamp: Date.now()
+      timestamp: this.getDeterministicTimestamp()
     });
   }
 
@@ -1791,7 +1791,7 @@ export class OWLReasoner extends EventEmitter {
    */
   async _updateIncrementalState(results) {
     this.incrementalState.lastClassification = {
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       inferences: results.totalInferences || 0,
       consistent: results.consistency?.consistent || true
     };

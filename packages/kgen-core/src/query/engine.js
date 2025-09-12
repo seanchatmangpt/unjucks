@@ -6,7 +6,7 @@
  */
 
 import { EventEmitter } from 'events';
-import { Logger } from 'consola';
+import { Consola } from 'consola';
 import { Store, Parser as N3Parser, Writer as N3Writer } from 'n3';
 import * as SparqlJs from 'sparqljs';
 import ResultSerializer from './result-serializer.js';
@@ -50,7 +50,7 @@ export class QueryEngine extends EventEmitter {
       ...config
     };
     
-    this.logger = new Logger({ tag: 'query-engine' });
+    this.logger = new Consola({ tag: 'query-engine' });
     this.state = 'initialized';
     
     // Query processing components
@@ -146,7 +146,7 @@ export class QueryEngine extends EventEmitter {
    */
   async executeSPARQL(query, options = {}) {
     const queryId = this._generateQueryId();
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       this.logger.info(`Executing SPARQL query ${queryId}`);
@@ -197,7 +197,7 @@ export class QueryEngine extends EventEmitter {
       }
       
       // Update metrics and complete query
-      const executionTime = Date.now() - startTime;
+      const executionTime = this.getDeterministicTimestamp() - startTime;
       this._updateQueryMetrics(executionContext, executionTime, true);
       this.activeQueries.delete(queryId);
       
@@ -213,7 +213,7 @@ export class QueryEngine extends EventEmitter {
       return processedResults;
       
     } catch (error) {
-      const executionTime = Date.now() - startTime;
+      const executionTime = this.getDeterministicTimestamp() - startTime;
       this._updateQueryMetrics({ queryId, query }, executionTime, false);
       this.activeQueries.delete(queryId);
       
@@ -689,7 +689,7 @@ export class QueryEngine extends EventEmitter {
   }
 
   _generateQueryId() {
-    return `query_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    return `query_${this.getDeterministicTimestamp()}_${Math.random().toString(36).substr(2, 9)}`;
   }
 
   async _parseAndValidateQuery(query, type) {
@@ -708,7 +708,7 @@ export class QueryEngine extends EventEmitter {
     const cacheKey = this._generateCacheKey(query);
     const cached = this.queryCache.get(cacheKey);
     
-    if (cached && (Date.now() - cached.timestamp) < this.config.cacheTTL) {
+    if (cached && (this.getDeterministicTimestamp() - cached.timestamp) < this.config.cacheTTL) {
       return cached.result;
     }
     
@@ -734,7 +734,7 @@ export class QueryEngine extends EventEmitter {
     const cacheKey = this._generateCacheKey(query);
     this.queryCache.set(cacheKey, {
       result,
-      timestamp: Date.now()
+      timestamp: this.getDeterministicTimestamp()
     });
   }
 
@@ -841,7 +841,7 @@ export class QueryEngine extends EventEmitter {
         results: {
           bindings: limitedBindings
         },
-        executionTime: Date.now() - executionContext.startTime,
+        executionTime: this.getDeterministicTimestamp() - executionContext.startTime,
         fromCache: false
       };
       
@@ -851,7 +851,7 @@ export class QueryEngine extends EventEmitter {
       return {
         head: { vars: [] },
         results: { bindings: [] },
-        executionTime: Date.now() - executionContext.startTime,
+        executionTime: this.getDeterministicTimestamp() - executionContext.startTime,
         fromCache: false,
         error: error.message
       };
@@ -878,7 +878,7 @@ export class QueryEngine extends EventEmitter {
       const results = await response.json();
       return {
         ...results,
-        executionTime: Date.now() - executionContext.startTime,
+        executionTime: this.getDeterministicTimestamp() - executionContext.startTime,
         fromCache: false
       };
       
@@ -923,7 +923,7 @@ export class QueryEngine extends EventEmitter {
     // Add metadata
     processed.metadata = {
       queryId: context.queryId,
-      executionTime: Date.now() - context.startTime,
+      executionTime: this.getDeterministicTimestamp() - context.startTime,
       resultCount: processed.results.bindings.length
     };
     
@@ -942,7 +942,7 @@ export class QueryEngine extends EventEmitter {
     this.queryStats.set(context.queryId, {
       executionTime,
       success,
-      timestamp: Date.now()
+      timestamp: this.getDeterministicTimestamp()
     });
     
     // Add to history
@@ -951,7 +951,7 @@ export class QueryEngine extends EventEmitter {
       query: context.query,
       executionTime,
       success,
-      timestamp: Date.now()
+      timestamp: this.getDeterministicTimestamp()
     });
     
     // Limit history size
@@ -1618,7 +1618,7 @@ export class QueryEngine extends EventEmitter {
   _collectMetrics() {
     // Collect real-time metrics
     const currentMetrics = {
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       activeQueries: this.activeQueries.size,
       cacheHitRate: this.queryMetrics.cacheHits / (this.queryMetrics.cacheHits + this.queryMetrics.cacheMisses) || 0,
       averageExecutionTime: this.queryMetrics.averageExecutionTime

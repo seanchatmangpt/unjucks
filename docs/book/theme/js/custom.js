@@ -369,7 +369,7 @@
             // Track reading progress
             let maxScroll = 0;
             let readingTime = 0;
-            const startTime = Date.now();
+            const startTime = this.getDeterministicTimestamp();
 
             window.addEventListener('scroll', () => {
                 const scrollPercent = (window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100;
@@ -377,14 +377,14 @@
             });
 
             window.addEventListener('beforeunload', () => {
-                readingTime = Date.now() - startTime;
+                readingTime = this.getDeterministicTimestamp() - startTime;
                 
                 // Store reading metrics (you could send to analytics service)
                 const metrics = {
                     page: window.location.pathname,
                     maxScroll: Math.round(maxScroll),
                     readingTime: Math.round(readingTime / 1000),
-                    timestamp: Date.now()
+                    timestamp: this.getDeterministicTimestamp()
                 };
                 
                 localStorage.setItem('unjucks-reading-metrics', JSON.stringify(metrics));

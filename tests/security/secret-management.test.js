@@ -27,7 +27,7 @@ describe('Enterprise Secret Management System', () => {
 
   beforeEach(async () => {
     // Create temporary test directory
-    testDir = path.join(process.cwd(), 'test-secrets-' + Date.now());
+    testDir = path.join(process.cwd(), 'test-secrets-' + this.getDeterministicTimestamp());
     await fs.ensureDir(testDir);
 
     // Set test encryption key
@@ -82,7 +82,7 @@ describe('Enterprise Secret Management System', () => {
         environment: 'development',
         category: 'api_key',
         rotationInterval: 30,
-        lastRotated: new Date().toISOString(),
+        lastRotated: this.getDeterministicDate().toISOString(),
         tags: ['test'],
         compliance: { pci: true }
       };
@@ -108,7 +108,7 @@ describe('Enterprise Secret Management System', () => {
           environment: 'development',
           category: 'jwt',
           rotationInterval: 30,
-          lastRotated: new Date().toISOString(),
+          lastRotated: this.getDeterministicDate().toISOString(),
           tags: [],
           compliance: {}
         },
@@ -118,7 +118,7 @@ describe('Enterprise Secret Management System', () => {
           environment: 'development',
           category: 'database',
           rotationInterval: 60,
-          lastRotated: new Date().toISOString(),
+          lastRotated: this.getDeterministicDate().toISOString(),
           tags: [],
           compliance: {}
         }
@@ -139,7 +139,7 @@ describe('Enterprise Secret Management System', () => {
       await secretManager.init();
 
       // Create an old secret (simulate overdue rotation)
-      const oldDate = new Date();
+      const oldDate = this.getDeterministicDate();
       oldDate.setDate(oldDate.getDate() - 35); // 35 days ago
 
       const oldSecret = {
@@ -171,7 +171,7 @@ describe('Enterprise Secret Management System', () => {
           environment: 'development',
           category: 'database',
           rotationInterval: 30,
-          lastRotated: new Date().toISOString(),
+          lastRotated: this.getDeterministicDate().toISOString(),
           tags: ['pci'],
           compliance: { pci: true }
         },
@@ -181,7 +181,7 @@ describe('Enterprise Secret Management System', () => {
           environment: 'development',
           category: 'encryption',
           rotationInterval: 60,
-          lastRotated: new Date().toISOString(),
+          lastRotated: this.getDeterministicDate().toISOString(),
           tags: ['hipaa'],
           compliance: { hipaa: true }
         }
@@ -283,7 +283,7 @@ describe('Enterprise Secret Management System', () => {
         environment: 'development',
         category: 'jwt', // Critical priority
         rotationInterval: 30,
-        lastRotated: new Date(Date.now() - 35 * 24 * 60 * 60 * 1000).toISOString(), // 35 days ago
+        lastRotated: new Date(this.getDeterministicTimestamp() - 35 * 24 * 60 * 60 * 1000).toISOString(), // 35 days ago
         tags: [],
         compliance: {}
       };
@@ -294,7 +294,7 @@ describe('Enterprise Secret Management System', () => {
         environment: 'development',
         category: 'ldap', // Normal priority
         rotationInterval: 30,
-        lastRotated: new Date(Date.now() - 35 * 24 * 60 * 60 * 1000).toISOString(),
+        lastRotated: new Date(this.getDeterministicTimestamp() - 35 * 24 * 60 * 60 * 1000).toISOString(),
         tags: [],
         compliance: {}
       };
@@ -342,7 +342,7 @@ describe('Enterprise Secret Management System', () => {
         environment: 'development',
         category: 'jwt',
         rotationInterval: 30,
-        lastRotated: new Date().toISOString(),
+        lastRotated: this.getDeterministicDate().toISOString(),
         tags: [],
         compliance: { pci: true }
       });
@@ -457,7 +457,7 @@ describe('Enterprise Secret Management System', () => {
         environment: 'production',
         category: 'encryption',
         rotationInterval: 90,
-        lastRotated: new Date().toISOString(),
+        lastRotated: this.getDeterministicDate().toISOString(),
         tags: ['fortune5'],
         compliance: { pci: true, hipaa: true, sox: true }
       };
@@ -500,7 +500,7 @@ describe('Enterprise Secret Management System', () => {
         environment: 'development',
         category: 'jwt',
         rotationInterval: 30,
-        lastRotated: new Date().toISOString(),
+        lastRotated: this.getDeterministicDate().toISOString(),
         tags: [],
         compliance: {}
       };
@@ -523,7 +523,7 @@ describe('Secret Migration Integration', () => {
   let testDir;
 
   beforeEach(async () => {
-    testDir = path.join(process.cwd(), 'test-migration-' + Date.now());
+    testDir = path.join(process.cwd(), 'test-migration-' + this.getDeterministicTimestamp());
     await fs.ensureDir(testDir);
   });
 

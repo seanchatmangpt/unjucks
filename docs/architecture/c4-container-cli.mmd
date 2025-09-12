@@ -1,0 +1,61 @@
+```mermaid
+C4Container
+  title Container Diagram - KGEN CLI-Driven Workflow
+  
+  Person(developer, "Developer", "Uses KGEN CLI for manual operations")
+  
+  System_Boundary(kgen, "KGEN Knowledge Graph Engine") {
+    Container(cli, "KGEN CLI", "Node.js / Citty", "Command-line interface with graph, artifact, project, and template commands")
+    
+    Container(cliEngine, "CLI Engine", "JavaScript ES Modules", "Core CLI orchestration with lazy-loaded modules for performance")
+    
+    Container(artifactGenerator, "Artifact Generator", "Nunjucks / Node.js", "Deterministic template rendering with content addressing")
+    
+    Container(graphProcessor, "Graph Processor", "N3.js / SPARQL", "RDF graph parsing, indexing, hashing, and semantic analysis")
+    
+    Container(driftDetector, "Drift Detector", "Node.js / Crypto", "Detects changes between expected and actual artifacts")
+    
+    Container(impactCalculator, "Impact Calculator", "JavaScript", "Analyzes change impact and blast radius calculation")
+    
+    Container(deterministicSystem, "Deterministic Rendering", "Nunjucks / VM2", "Sandboxed template execution with reproducible outputs")
+    
+    Container(provenanceTracker, "Provenance Tracker", "Crypto / JSON", "Cryptographic attestations and audit trails")
+    
+    Container(configManager, "Configuration Manager", "c12 / YAML", "Hierarchical configuration loading and validation")
+    
+    Container(observability, "Observability", "OpenTelemetry", "Tracing, metrics, and performance monitoring")
+    
+    ContainerDb(fileCache, "File Cache", "Local Filesystem", "Template cache, artifact cache, and state storage")
+    ContainerDb(stateStore, "State Store", "JSON Files", "Baseline state, lockfiles, and drift tracking data")
+  }
+  
+  System_Ext(gitRepo, "Git Repository", "Templates, rules, and version control")
+  System_Ext(rdfFiles, "RDF Files", "Knowledge graphs in Turtle/RDF format")
+  System_Ext(templates, "Templates", "Nunjucks templates with frontmatter")
+  
+  Rel(developer, cli, "Executes commands", "CLI")
+  
+  Rel(cli, cliEngine, "Delegates operations", "Method calls")
+  Rel(cliEngine, artifactGenerator, "Generates artifacts", "Template + Context")
+  Rel(cliEngine, graphProcessor, "Processes RDF", "Graph operations")
+  Rel(cliEngine, driftDetector, "Detects drift", "File comparison")
+  Rel(cliEngine, impactCalculator, "Calculates impact", "Change analysis")
+  Rel(cliEngine, deterministicSystem, "Renders templates", "Deterministic rendering")
+  Rel(cliEngine, provenanceTracker, "Tracks provenance", "Attestation generation")
+  Rel(cliEngine, configManager, "Loads config", "Configuration")
+  Rel(cliEngine, observability, "Sends telemetry", "Traces & metrics")
+  
+  Rel(artifactGenerator, deterministicSystem, "Uses for rendering", "Template execution")
+  Rel(artifactGenerator, provenanceTracker, "Generates attestations", "Provenance data")
+  Rel(graphProcessor, fileCache, "Caches parsed graphs", "Read/Write")
+  Rel(driftDetector, stateStore, "Stores/reads baselines", "State management")
+  
+  Rel(cliEngine, fileCache, "Caches operations", "Read/Write")
+  Rel(cliEngine, stateStore, "Manages state", "Read/Write")
+  
+  Rel(graphProcessor, rdfFiles, "Reads RDF graphs", "File I/O")
+  Rel(artifactGenerator, templates, "Loads templates", "File I/O")
+  Rel(configManager, gitRepo, "Loads configuration", "File I/O")
+  
+  UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="1")
+```

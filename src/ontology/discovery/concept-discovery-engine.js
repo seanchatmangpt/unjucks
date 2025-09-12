@@ -49,7 +49,7 @@ export class ConceptDiscoveryEngine extends EventEmitter {
    * Discover new concepts from multiple data sources
    */
   async discoverConcepts(dataSources, ontologyStore, options = {}) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     const discoverySession = this.createDiscoverySession(dataSources, options);
     
     try {
@@ -92,7 +92,7 @@ export class ConceptDiscoveryEngine extends EventEmitter {
       const result = {
         success: true,
         sessionId: discoverySession.id,
-        processingTime: Date.now() - startTime,
+        processingTime: this.getDeterministicTimestamp() - startTime,
         discoveredConcepts: finalConcepts,
         statistics: {
           totalCandidates: Array.from(discoveredConcepts.values()).length,
@@ -617,8 +617,8 @@ export class ConceptDiscoveryEngine extends EventEmitter {
 
   createDiscoverySession(dataSources, options) {
     return {
-      id: `discovery_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      timestamp: new Date().toISOString(),
+      id: `discovery_${this.getDeterministicTimestamp()}_${Math.random().toString(36).substr(2, 9)}`,
+      timestamp: this.getDeterministicDate().toISOString(),
       dataSources: Object.keys(dataSources),
       options
     };
@@ -628,7 +628,7 @@ export class ConceptDiscoveryEngine extends EventEmitter {
     this.conceptHistory.push({
       ...session,
       result,
-      endTime: new Date().toISOString()
+      endTime: this.getDeterministicDate().toISOString()
     });
     
     // Keep only last 50 discovery sessions

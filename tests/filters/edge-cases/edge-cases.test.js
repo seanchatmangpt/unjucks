@@ -126,22 +126,22 @@ describe('Edge Cases and Stress Testing', () => {
   describe('Large Data Processing', () => {
     it('should handle very large strings', () => {
       const largeString = 'A'.repeat(10000);
-      const start = Date.now();
+      const start = this.getDeterministicTimestamp();
       
       const result = env.renderString(`{{ largeString | camelCase | truncate(50) }}`, { largeString });
       
-      const end = Date.now();
+      const end = this.getDeterministicTimestamp();
       expect(result.length).toBeLessThanOrEqual(50);
       expect(end - start).toBeLessThan(1000); // Should process quickly
     });
 
     it('should handle large arrays efficiently', () => {
       const largeArray = new Array(1000).fill(0).map((_, i) => `item_${i}`);
-      const start = Date.now();
+      const start = this.getDeterministicTimestamp();
       
       const result = env.renderString('{{ largeArray | join(",") | truncate(100) }}', { largeArray });
       
-      const end = Date.now();
+      const end = this.getDeterministicTimestamp();
       expect(result).toBeTruthy();
       expect(end - start).toBeLessThan(500);
     });
@@ -252,7 +252,7 @@ describe('Edge Cases and Stress Testing', () => {
   describe('Memory and Resource Limits', () => {
     it('should handle memory efficiently with repeated operations', () => {
       const iterations = 1000;
-      const start = Date.now();
+      const start = this.getDeterministicTimestamp();
       let results = [];
 
       for (let i = 0; i < iterations; i++) {
@@ -264,7 +264,7 @@ describe('Edge Cases and Stress Testing', () => {
         results.push(result);
       }
 
-      const end = Date.now();
+      const end = this.getDeterministicTimestamp();
       expect(results.length).toBe(iterations);
       expect(end - start).toBeLessThan(5000); // Should complete in reasonable time
       
@@ -358,7 +358,7 @@ describe('Edge Cases and Stress Testing', () => {
         { value: '123', filters: 'pascalCase | rdfDatatype("integer")' },
         { value: 'true', filters: 'capitalize | rdfDatatype("boolean")' },
         { value: '"quoted"', filters: 'turtleEscape | upper' },
-        { value: new Date().toISOString(), filters: 'formatDate | rdfLiteral("en")' }
+        { value: this.getDeterministicDate().toISOString(), filters: 'formatDate | rdfLiteral("en")' }
       ];
 
       mixedTypes.forEach(({ value, filters }) => {

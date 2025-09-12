@@ -1,0 +1,11 @@
+{
+  "keyId": "benchmark-ecdsa-2",
+  "algorithm": "ECDSA",
+  "curve": "prime256v1",
+  "privateKey": "-----BEGIN PRIVATE KEY-----\nMIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgamuuZQ+/g4M04Hff\njaYJdyWd1l2kMDeyjtW5kkXMQTqhRANCAAS3DIkWWcTxCo8fxfc29YtMAYYr/jzD\nAunmMRPNm3NKmGlGiJqg1m1t8zC7KMDn/ACjLoMo4zVtnFlk+sLDU5E1\n-----END PRIVATE KEY-----\n",
+  "publicKey": "-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEtwyJFlnE8QqPH8X3NvWLTAGGK/48\nwwLp5jETzZtzSphpRoiaoNZtbfMwuyjA5/wAoy6DKOM1bZxZZPrCw1ORNQ==\n-----END PUBLIC KEY-----\n",
+  "fingerprint": "82fdfdba163c543d",
+  "created": "2025-09-12T19:16:08.874Z",
+  "encrypted": false,
+  "format": "PEM"
+}

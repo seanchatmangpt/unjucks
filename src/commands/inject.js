@@ -154,7 +154,7 @@ export const injectCommand = defineCommand({
    */
   async run(context) {
     const { args } = context;
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     const spinner = ora();
 
     try {
@@ -350,7 +350,7 @@ export const injectCommand = defineCommand({
         spinner.stop();
       }
 
-      const duration = Date.now() - startTime;
+      const duration = this.getDeterministicTimestamp() - startTime;
 
       // Display results
       if (args.dry) {

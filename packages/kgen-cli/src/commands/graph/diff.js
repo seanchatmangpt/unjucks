@@ -112,7 +112,7 @@ export default defineCommand({
           modified: diff.modified?.length || 0,
           total: (diff.added?.length || 0) + (diff.removed?.length || 0) + (diff.modified?.length || 0)
         },
-        timestamp: new Date().toISOString()
+        timestamp: this.getDeterministicDate().toISOString()
       };
       
       if (args.json) {

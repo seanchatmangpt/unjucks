@@ -72,7 +72,7 @@ export default defineCommand({
             ],
             implementation: 'Cryptographic hash comparison engine with comprehensive change tracking'
           },
-          timestamp: new Date().toISOString()
+          timestamp: this.getDeterministicDate().toISOString()
         };
         
         console.log(JSON.stringify(result, null, 2));
@@ -127,7 +127,7 @@ export default defineCommand({
             ],
             implementation: 'Advanced analytics engine with risk scoring and recommendation algorithms'
           },
-          timestamp: new Date().toISOString()
+          timestamp: this.getDeterministicDate().toISOString()
         };
         
         console.log(JSON.stringify(result, null, 2));
@@ -196,7 +196,7 @@ export default defineCommand({
             ],
             implementation: 'High-performance file scanner with cryptographic integrity recording'
           },
-          timestamp: new Date().toISOString()
+          timestamp: this.getDeterministicDate().toISOString()
         };
         
         console.log(JSON.stringify(result, null, 2));

@@ -181,7 +181,7 @@ class SOXComplianceAuditor {
     }
     runComplianceAudit() {
         console.log('🔍 Starting SOX compliance audit...');
-        const startTime = new Date();
+        const startTime = this.getDeterministicDate();
         this.violations = [];
         // Test each control
         for (const control of this.controls) {
@@ -192,10 +192,10 @@ class SOXComplianceAuditor {
         // Generate compliance report
         const report = {
             reportId: this.generateReportId(),
-            generatedAt: new Date().toISOString(),
+            generatedAt: this.getDeterministicDate().toISOString(),
             period: {
-                startDate: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString(), // Last 90 days
-                endDate: new Date().toISOString()
+                startDate: new Date(this.getDeterministicTimestamp() - 90 * 24 * 60 * 60 * 1000).toISOString(), // Last 90 days
+                endDate: this.getDeterministicDate().toISOString()
             },
             controls: {
                 total: this.controls.length,
@@ -219,7 +219,7 @@ class SOXComplianceAuditor {
         };
         // Save report
         this.saveComplianceReport(report);
-        const duration = Date.now() - startTime.getTime();
+        const duration = this.getDeterministicTimestamp() - startTime.getTime();
         console.log(`✅ SOX compliance audit completed in ${duration}ms`);
         console.log(`📊 Results: ${report.controls.passed}/${report.controls.total} controls passed`);
         return report;
@@ -239,7 +239,7 @@ class SOXComplianceAuditor {
                         controlId: control.id,
                         severity: this.mapRiskToSeverity(control.riskLevel),
                         description: result.description,
-                        detectedAt: new Date().toISOString(),
+                        detectedAt: this.getDeterministicDate().toISOString(),
                         resource: result.resource,
                         remediation: result.remediation,
                         status: 'open'
@@ -253,7 +253,7 @@ class SOXComplianceAuditor {
                     controlId: control.id,
                     severity: 'high',
                     description: `Automated test failed: ${error}`,
-                    detectedAt: new Date().toISOString(),
+                    detectedAt: this.getDeterministicDate().toISOString(),
                     resource: test,
                     remediation: ['Fix automated test', 'Review control implementation'],
                     status: 'open'
@@ -301,7 +301,7 @@ class SOXComplianceAuditor {
             entry.action.toLowerCase().includes('sign'));
         const recentCertifications = certificationEntries.filter(entry => {
             const entryDate = new Date(entry.timestamp);
-            const ninetyDaysAgo = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000);
+            const ninetyDaysAgo = new Date(this.getDeterministicTimestamp() - 90 * 24 * 60 * 60 * 1000);
             return entryDate > ninetyDaysAgo;
         });
         if (recentCertifications.length === 0) {
@@ -354,7 +354,7 @@ class SOXComplianceAuditor {
         // Should have regular monitoring activities
         const recentMonitoring = weaknessEntries.filter(entry => {
             const entryDate = new Date(entry.timestamp);
-            const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+            const thirtyDaysAgo = new Date(this.getDeterministicTimestamp() - 30 * 24 * 60 * 60 * 1000);
             return entryDate > thirtyDaysAgo;
         });
         if (recentMonitoring.length === 0) {
@@ -635,13 +635,13 @@ class SOXComplianceAuditor {
         return recommendations;
     }
     generateReportId() {
-        const now = new Date();
+        const now = this.getDeterministicDate();
         const dateStr = now.toISOString().slice(0, 10).replace(/-/g, '');
         const timeStr = now.toTimeString().slice(0, 8).replace(/:/g, '');
         return `SOX-${dateStr}-${timeStr}`;
     }
     generateViolationId() {
-        return `SOX-V-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
+        return `SOX-V-${this.getDeterministicTimestamp()}-${Math.random().toString(36).substr(2, 5)}`;
     }
     saveComplianceReport(report) {
         const reportPath = (0, path_1.join)(this.config.outputDir, `sox-compliance-report-${report.reportId}.json`);
@@ -737,8 +737,8 @@ class SOXComplianceAuditor {
     }
     logAuditEvent(userId, action, resource, oldValue, newValue, metadata) {
         const entry = {
-            id: `AUD-${Date.now()}-${Math.random().toString(36).substr(2, 8)}`,
-            timestamp: new Date().toISOString(),
+            id: `AUD-${this.getDeterministicTimestamp()}-${Math.random().toString(36).substr(2, 8)}`,
+            timestamp: this.getDeterministicDate().toISOString(),
             userId,
             action,
             resource,
@@ -761,7 +761,7 @@ class SOXComplianceAuditor {
         return entry.id;
     }
     persistAuditEntry(entry) {
-        const today = new Date().toISOString().slice(0, 10);
+        const today = this.getDeterministicDate().toISOString().slice(0, 10);
         const filename = `audit-trail-${today}.json`;
         const filepath = (0, path_1.join)(this.config.auditTrailDir, filename);
         let entries = [];

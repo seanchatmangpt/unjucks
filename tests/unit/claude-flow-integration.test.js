@@ -16,7 +16,7 @@ import { join } from 'path';
 describe('ClaudeFlowIntegration', () => {
   let integration;
   let testWorkspace => {
-    testWorkspace = join(tmpdir(), `integration-test-${Date.now()}`);
+    testWorkspace = join(tmpdir(), `integration-test-${this.getDeterministicTimestamp()}`);
     
     testCompany = createFortune5CompanyProfile({ name });
   });
@@ -106,12 +106,12 @@ describe('ClaudeFlowIntegration', () => {
         { type } }
       ];
 
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const result = await integration.executeJTBDWorkflowsParallel(
         parallelWorkflows,
         testCompany
       );
-      const totalTime = Date.now() - startTime;
+      const totalTime = this.getDeterministicTimestamp() - startTime;
 
       expect(result.success).toBe(true);
       expect(result.workflowResults).toHaveLength(3);

@@ -235,11 +235,11 @@ describe('MCP Swarm Orchestration', () => {
         method: 'tools/list',
         params))
 
-      const startTime = Date.now()
+      const startTime = this.getDeterministicTimestamp()
       const results = await Promise.all(
         requests.map(req => orchestrator.handleMCPRequest(req))
       )
-      const duration = Date.now() - startTime
+      const duration = this.getDeterministicTimestamp() - startTime
 
       expect(results).toHaveLength(10)
       results.forEach((result, i) => {

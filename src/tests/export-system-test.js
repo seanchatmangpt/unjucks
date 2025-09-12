@@ -340,7 +340,7 @@ class ExportSystemTester {
     console.log('\n📊 Generating Comprehensive Export System Report...');
     
     const report = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       testResults: this.results,
       recommendations: []
     };

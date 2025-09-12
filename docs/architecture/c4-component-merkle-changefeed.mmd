@@ -1,0 +1,161 @@
+```mermaid
+C4Component
+  title C4 Component Diagram: Merkle Changefeed & Incremental Build Triggers
+  
+  Container_Boundary(changefeed, "Merkle Changefeed Engine") {
+    Component(merkleBuilder, "Merkle Tree Builder", "multiformats, hash-wasm", "Builds Merkle trees from file hierarchies")
+    Component(changeFeedGenerator, "ChangeFeed Generator", "Event Stream", "Generates incremental change feeds")
+    Component(deltaCompressor, "Delta Compressor", "fflate, bsdiff", "Compresses change deltas")
+    Component(merkleVerifier, "Merkle Verifier", "Cryptographic", "Verifies Merkle tree integrity")
+  }
+  
+  Container_Boundary(triggers, "Build Trigger System") {
+    Component(triggerEngine, "Trigger Engine", "Event-Driven", "Processes build triggers based on changes")
+    Component(dependencyAnalyzer, "Dependency Analyzer", "Graph Analysis", "Analyzes file dependencies")
+    Component(impactCalculator, "Impact Calculator", "Change Impact", "Calculates change impact scope")
+    Component(buildScheduler, "Build Scheduler", "Task Queue", "Schedules incremental builds")
+  }
+  
+  Container_Boundary(incremental, "Incremental Build Engine") {
+    Component(diffCalculator, "Diff Calculator", "Tree Diff", "Calculates tree differences")
+    Component(affectedAnalyzer, "Affected Analyzer", "Impact Analysis", "Identifies affected artifacts")
+    Component(buildPlanner, "Build Planner", "Execution Planning", "Plans minimal rebuild strategy")
+    Component(cacheManager, "Cache Manager", "Build Cache", "Manages incremental build cache")
+  }
+  
+  Container_Boundary(streaming, "Change Streaming") {
+    Component(eventStream, "Event Stream", "Apache Kafka, Redis", "Streams change events in real-time")
+    Component(filterEngine, "Filter Engine", "Event Filtering", "Filters relevant change events")
+    Component(aggregator, "Change Aggregator", "Event Aggregation", "Aggregates related changes")
+    Component(subscriber, "Change Subscriber", "Pub/Sub", "Manages change subscriptions")
+  }
+  
+  Container_Boundary(verification, "Change Verification") {
+    Component(hashChainer, "Hash Chainer", "Blockchain-like", "Creates tamper-evident change chains")
+    Component(timestampService, "Timestamp Service", "RFC 3161", "Provides trusted timestamps")
+    Component(auditLogger, "Audit Logger", "Immutable Log", "Logs all changes for audit")
+    Component(integrityChecker, "Integrity Checker", "Cryptographic", "Verifies change integrity")
+  }
+  
+  Container_Boundary(optimization, "Performance Optimization") {
+    Component(bloomFilter, "Bloom Filter", "Probabilistic DS", "Fast change detection")
+    Component(compressionEngine, "Compression Engine", "LZ4, Zstd", "Compresses change data")
+    Component(parallelizer, "Change Parallelizer", "Concurrency", "Parallelizes change processing")
+    Component(memorizer, "Change Memoizer", "Memoization", "Caches expensive change calculations")
+  }
+  
+  SystemDb_Ext(merkleStore, "Merkle Store", "Persistent Merkle tree storage")
+  SystemDb_Ext(changeLog, "Change Log", "Immutable change history")
+  SystemDb_Ext(buildCache, "Build Cache", "Incremental build artifacts")
+  System_Ext(fileSystem, "File System", "Source file monitoring")
+  System_Ext(buildSystem, "Build System", "External build tools")
+  System_Ext(cicdPipeline, "CI/CD Pipeline", "Continuous integration")
+  
+  ' Merkle Tree Construction
+  Rel(merkleBuilder, merkleVerifier, "Tree verification")
+  Rel(merkleBuilder, merkleStore, "Persistent storage")
+  Rel(merkleVerifier, integrityChecker, "Integrity validation")
+  
+  ' Change Feed Generation
+  Rel(changeFeedGenerator, deltaCompressor, "Change compression")
+  Rel(changeFeedGenerator, eventStream, "Event publishing")
+  Rel(deltaCompressor, compressionEngine, "Delta compression")
+  
+  ' Build Triggering
+  Rel(triggerEngine, dependencyAnalyzer, "Dependency analysis")
+  Rel(dependencyAnalyzer, impactCalculator, "Impact assessment")
+  Rel(impactCalculator, buildScheduler, "Build scheduling")
+  Rel(buildScheduler, buildSystem, "Build execution")
+  
+  ' Incremental Building
+  Rel(diffCalculator, affectedAnalyzer, "Affected analysis")
+  Rel(affectedAnalyzer, buildPlanner, "Build planning")
+  Rel(buildPlanner, cacheManager, "Cache utilization")
+  Rel(cacheManager, buildCache, "Cache storage")
+  
+  ' Change Streaming
+  Rel(eventStream, filterEngine, "Event filtering")
+  Rel(filterEngine, aggregator, "Event aggregation")
+  Rel(aggregator, subscriber, "Subscription delivery")
+  Rel(subscriber, triggerEngine, "Trigger events")
+  
+  ' Verification Chain
+  Rel(hashChainer, timestampService, "Timestamp chaining")
+  Rel(timestampService, auditLogger, "Audit logging")
+  Rel(auditLogger, changeLog, "Log persistence")
+  
+  ' Performance Optimization
+  Rel(bloomFilter, diffCalculator, "Fast diff detection")
+  Rel(parallelizer, merkleBuilder, "Parallel tree building")
+  Rel(memorizer, affectedAnalyzer, "Memoized analysis")
+  
+  ' Integration Points
+  Rel(merkleBuilder, fileSystem, "File monitoring")
+  Rel(buildScheduler, cicdPipeline, "CI/CD integration")
+  Rel(eventStream, cicdPipeline, "Pipeline events")
+  
+  ' Cross-component Flows
+  Rel(merkleBuilder, diffCalculator, "Tree comparison")
+  Rel(changeFeedGenerator, hashChainer, "Change verification")
+  Rel(triggerEngine, eventStream, "Event consumption")
+  
+  UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="1")
+```
+
+## Merkle Changefeed & Incremental Build System
+
+Advanced incremental build system using Merkle trees for change detection:
+
+### Merkle Tree Architecture
+- **Content-Addressed Storage** - Files identified by cryptographic hashes
+- **Hierarchical Hashing** - Directory trees as Merkle trees
+- **Tamper Detection** - Cryptographic integrity verification
+- **Efficient Comparison** - O(log n) tree comparison
+
+### Change Detection Pipeline
+- **File System Monitoring** - Real-time file change detection
+- **Merkle Tree Diff** - Efficient tree comparison algorithms
+- **Delta Compression** - Compressed change representations
+- **Change Aggregation** - Batching related changes
+
+### Incremental Build Intelligence
+- **Dependency Analysis** - Graph-based dependency tracking
+- **Impact Calculation** - Precise change impact assessment
+- **Minimal Rebuilds** - Only rebuild affected artifacts
+- **Build Cache Management** - Intelligent caching strategies
+
+### Event-Driven Architecture
+- **Change Streaming** - Real-time change event streams
+- **Event Filtering** - Relevance-based event filtering
+- **Pub/Sub Subscriptions** - Scalable event distribution
+- **Trigger Orchestration** - Event-driven build triggers
+
+### Verification & Auditability
+- **Hash Chaining** - Blockchain-inspired change verification
+- **Trusted Timestamps** - RFC 3161 timestamping
+- **Immutable Audit Log** - Tamper-evident change history
+- **Cryptographic Proofs** - Mathematical integrity proofs
+
+### Performance Optimizations
+- **Bloom Filters** - Probabilistic change detection
+- **Parallel Processing** - Concurrent change processing
+- **Memoization** - Cached expensive calculations
+- **Compression** - LZ4/Zstd change data compression
+
+### Advanced Features
+- **Cross-Repository Changes** - Multi-repo dependency tracking
+- **Semantic Versioning** - Version-aware change impact
+- **Conditional Builds** - Context-dependent build logic
+- **Build Prediction** - Predictive build scheduling
+
+### Integration Capabilities
+- **CI/CD Pipelines** - Seamless CI/CD integration
+- **Build Tools** - Universal build tool compatibility
+- **Version Control** - Git-native change detection
+- **Container Builds** - Docker layer-aware building
+
+### Scalability Features
+- **Distributed Architecture** - Horizontally scalable
+- **Sharded Storage** - Partitioned Merkle storage
+- **Load Balancing** - Distributed change processing
+- **Fault Tolerance** - Resilient to component failures

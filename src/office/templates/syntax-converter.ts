@@ -160,7 +160,7 @@ export class SyntaxConverter {
    * @returns Promise resolving to conversion result
    */
   async convert(content: string, options: SyntaxConversionOptions): Promise<SyntaxConversionResult> {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     this.logger.debug(`Converting syntax from ${options.from} to ${options.to}`);
     
     try {
@@ -189,7 +189,7 @@ export class SyntaxConverter {
         return {
           content,
           variablesConverted: 0,
-          stats: { ...stats, duration: Date.now() - startTime },
+          stats: { ...stats, duration: this.getDeterministicTimestamp() - startTime },
           validation: { valid: true, errors: [], warnings: [] },
           warnings
         };
@@ -237,7 +237,7 @@ export class SyntaxConverter {
         convertedContent = convertedContent.replace(regex, converted);
       }
       
-      stats.duration = Date.now() - startTime;
+      stats.duration = this.getDeterministicTimestamp() - startTime;
       
       // Validate conversion if requested
       const validation = options.validate 

@@ -178,12 +178,12 @@ export class DriftDetectionEngine extends EventEmitter {
    * Detect drift between current state and lockfile
    */
   async detectDrift(options: Partial<DriftDetectionOptions> = {}): Promise<DriftDetectionResults> {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     const mergedOptions = { ...this.config, ...options };
     
     const results: DriftDetectionResults = {
       success: false,
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       lockFile: resolve(mergedOptions.lockFile || 'kgen.lock.json'),
       totalFiles: 0,
       unchanged: 0,
@@ -262,7 +262,7 @@ export class DriftDetectionEngine extends EventEmitter {
       results.recommendations = this.generateRecommendations(results);
 
       results.success = true;
-      results.validationTime = Date.now() - startTime;
+      results.validationTime = this.getDeterministicTimestamp() - startTime;
 
       // Update statistics
       this.updateStats(results);
@@ -271,7 +271,7 @@ export class DriftDetectionEngine extends EventEmitter {
       consola.success(`✅ Drift detection completed in ${results.validationTime}ms`);
 
     } catch (error) {
-      results.validationTime = Date.now() - startTime;
+      results.validationTime = this.getDeterministicTimestamp() - startTime;
       consola.error('❌ Drift detection failed:', error.message);
       throw error;
     }

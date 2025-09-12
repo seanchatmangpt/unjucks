@@ -122,9 +122,9 @@ describe('TurtleParser', () => {
         ${largeTurtleContent}
       `;
       
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const result = await parser.parse(fullContent);
-      const endTime = Date.now();
+      const endTime = this.getDeterministicTimestamp();
       
       expect(result.triples.length).toBe(1000);
       expect(endTime - startTime).toBeLessThan(5000); // Should complete within 5 seconds

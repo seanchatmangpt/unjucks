@@ -76,7 +76,7 @@ class UserJourney {
   }
 
   async executeStep(step, stepNumber) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       let result;
@@ -106,7 +106,7 @@ class UserJourney {
         description: step.description,
         type: step.type,
         success: true,
-        duration: Date.now() - startTime,
+        duration: this.getDeterministicTimestamp() - startTime,
         result,
         context: step.saveContext ? result : null
       };
@@ -117,7 +117,7 @@ class UserJourney {
         description: step.description,
         type: step.type,
         success: false,
-        duration: Date.now() - startTime,
+        duration: this.getDeterministicTimestamp() - startTime,
         error: error.message
       };
     }
@@ -363,7 +363,7 @@ class E2ETestRunner {
     }
     
     const report = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       totalJourneys: this.journeys.length,
       passed,
       failed: this.journeys.length - passed,

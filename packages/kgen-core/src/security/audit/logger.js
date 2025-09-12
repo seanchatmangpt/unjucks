@@ -114,7 +114,7 @@ export class AuditLogger extends EventEmitter {
       // Log initialization event
       await this.logSecurityEvent('SYSTEM', 'audit_logger_initialized', {
         configuration: this._getSafeConfig(),
-        timestamp: new Date().toISOString()
+        timestamp: this.getDeterministicDate().toISOString()
       });
       
       return { status: 'success', auditPath: this.config.auditPath };
@@ -135,7 +135,7 @@ export class AuditLogger extends EventEmitter {
       userId: data.userId || data.username,
       ip: data.ip,
       userAgent: data.userAgent,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     });
   }
 
@@ -150,7 +150,7 @@ export class AuditLogger extends EventEmitter {
       operation: data.operation,
       decision: data.authorized ? 'GRANTED' : 'DENIED',
       reason: data.reason,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     });
   }
 
@@ -165,7 +165,7 @@ export class AuditLogger extends EventEmitter {
       reason,
       severity: 'HIGH',
       requiresInvestigation: true,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     });
   }
 
@@ -180,7 +180,7 @@ export class AuditLogger extends EventEmitter {
       violationType: policyResult.violationType,
       severity: policyResult.severity || 'MEDIUM',
       details: policyResult.details,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     });
   }
 
@@ -195,7 +195,7 @@ export class AuditLogger extends EventEmitter {
       violationType: complianceResult.violationType,
       severity: complianceResult.severity || 'HIGH',
       remediation: complianceResult.remediation,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     });
   }
 
@@ -209,7 +209,7 @@ export class AuditLogger extends EventEmitter {
       violationType: governanceResult.violationType,
       severity: governanceResult.severity || 'MEDIUM',
       impact: governanceResult.impact,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     });
   }
 
@@ -224,7 +224,7 @@ export class AuditLogger extends EventEmitter {
       classification: data.classification,
       size: data.size,
       encrypted: data.encrypted || false,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     });
   }
 
@@ -238,7 +238,7 @@ export class AuditLogger extends EventEmitter {
       sensitiveFields: data.sensitiveFields,
       encryptionAlgorithm: 'AES-256-GCM',
       keyId: 'sensitive_data_key',
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     });
   }
 
@@ -252,7 +252,7 @@ export class AuditLogger extends EventEmitter {
       operation: data.operation,
       classification: data.classification,
       size: data.size,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     });
   }
 
@@ -292,7 +292,7 @@ export class AuditLogger extends EventEmitter {
       severity: anomaly.severity || 'MEDIUM',
       details: anomaly.details,
       confidence: anomaly.confidence,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     });
   }
 
@@ -321,7 +321,7 @@ export class AuditLogger extends EventEmitter {
         id: this._generateEventId(),
         category,
         eventType,
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         data: this._sanitizeEventData(data),
         metadata: {
           version: '1.0',
@@ -378,7 +378,7 @@ export class AuditLogger extends EventEmitter {
         integrityStatus: {
           totalChecked: auditLogs.length,
           integrityViolations: this.metrics.integrityViolations,
-          lastIntegrityCheck: new Date().toISOString()
+          lastIntegrityCheck: this.getDeterministicDate().toISOString()
         },
         metrics: { ...this.metrics }
       };
@@ -422,7 +422,7 @@ export class AuditLogger extends EventEmitter {
         totalEvents: events.length,
         integrityViolations,
         isIntact: integrityViolations === 0,
-        verifiedAt: new Date().toISOString()
+        verifiedAt: this.getDeterministicDate().toISOString()
       };
       
       // Log integrity check
@@ -451,7 +451,7 @@ export class AuditLogger extends EventEmitter {
       const exportData = {
         framework,
         timeframe,
-        exportDate: new Date().toISOString(),
+        exportDate: this.getDeterministicDate().toISOString(),
         totalEvents: complianceLogs.length,
         events: complianceLogs,
         integrity: {
@@ -524,7 +524,7 @@ export class AuditLogger extends EventEmitter {
       // Log shutdown
       await this.logSecurityEvent('SYSTEM', 'audit_logger_shutdown', {
         finalMetrics: this.metrics,
-        timestamp: new Date().toISOString()
+        timestamp: this.getDeterministicDate().toISOString()
       });
       
       // Clear intervals
@@ -567,7 +567,7 @@ export class AuditLogger extends EventEmitter {
   }
 
   async _initializeLogFile() {
-    const timestamp = new Date().toISOString().split('T')[0];
+    const timestamp = this.getDeterministicDate().toISOString().split('T')[0];
     const filename = `audit_${timestamp}.jsonl`;
     this.currentLogFile = path.join(this.config.auditPath, filename);
     
@@ -719,7 +719,7 @@ export class AuditLogger extends EventEmitter {
   }
 
   _generateEventId() {
-    return `audit_${Date.now()}_${crypto.randomBytes(8).toString('hex')}`;
+    return `audit_${this.getDeterministicTimestamp()}_${crypto.randomBytes(8).toString('hex')}`;
   }
 
   _sanitizeEventData(data) {

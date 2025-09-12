@@ -53,7 +53,7 @@ describe('Performance Infrastructure Integration', () => {
     const largeArray = new Array(50000).fill(0).map((_, i) => ({
       id: i,
       data: `data-${i}`,
-      timestamp: Date.now()
+      timestamp: this.getDeterministicTimestamp()
     }));
     
     const finalMemory = process.memoryUsage();
@@ -72,7 +72,7 @@ describe('Performance Infrastructure Integration', () => {
     // Test cache set performance
     const start1 = performance.now();
     const key = 'test-key';
-    const value = { data: 'test-data', timestamp: Date.now() };
+    const value = { data: 'test-data', timestamp: this.getDeterministicTimestamp() };
     cache.set(key, value);
     const end1 = performance.now();
     
@@ -146,7 +146,7 @@ describe('Performance Infrastructure Integration', () => {
       cacheMisses: 2,
       operationType: 'test-operation',
       tripleCount: 100,
-      timestamp: Date.now()
+      timestamp: this.getDeterministicTimestamp()
     };
 
     const initialMetricsCount = performanceMonitor.getMetrics().length;
@@ -196,7 +196,7 @@ describe('Performance Infrastructure Integration', () => {
       () => Array.from({ length: 50 }, (_, i) => i * 2),
       () => 'hello world'.toUpperCase(),
       () => JSON.parse('{"test": true}'),
-      () => new Date().toISOString(),
+      () => this.getDeterministicDate().toISOString(),
       () => Math.random() * 100
     ];
 

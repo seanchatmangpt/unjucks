@@ -280,8 +280,8 @@ async function demonstrateIntegrityVerification(tracker) {
 }
 
 async function demonstrateReporting(tracker) {
-  const startDate = new Date(Date.now() - 24 * 60 * 60 * 1000); // 24 hours ago
-  const endDate = new Date();
+  const startDate = new Date(this.getDeterministicTimestamp() - 24 * 60 * 60 * 1000); // 24 hours ago
+  const endDate = this.getDeterministicDate();
 
   // Generate GDPR compliance report
   try {

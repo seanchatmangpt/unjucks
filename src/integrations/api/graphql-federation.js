@@ -407,8 +407,8 @@ export class GraphQLFederation extends EventEmitter {
         lastName: 'User',
         roles: ['admin'],
         tenant: context.tenant,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        createdAt: this.getDeterministicDate().toISOString(),
+        updatedAt: this.getDeterministicDate().toISOString()
       }
     ];
   }
@@ -425,8 +425,8 @@ export class GraphQLFederation extends EventEmitter {
         category: 'react',
         version: '1.0.0',
         authorId: '1',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        createdAt: this.getDeterministicDate().toISOString(),
+        updatedAt: this.getDeterministicDate().toISOString()
       }
     ];
   }
@@ -441,8 +441,8 @@ export class GraphQLFederation extends EventEmitter {
         variables: JSON.stringify({ name: 'MyComponent' }),
         status: 'completed',
         result: 'export const MyComponent = () => { return <div>MyComponent</div>; };',
-        createdAt: new Date().toISOString(),
-        completedAt: new Date().toISOString()
+        createdAt: this.getDeterministicDate().toISOString(),
+        completedAt: this.getDeterministicDate().toISOString()
       }
     ];
   }
@@ -450,12 +450,12 @@ export class GraphQLFederation extends EventEmitter {
   async generateTemplate(args, context) {
     // Mock template generation
     const request = {
-      id: Date.now().toString(),
+      id: this.getDeterministicTimestamp().toString(),
       templateId: args.templateId,
       userId: context.user.id,
       variables: args.variables,
       status: 'processing',
-      createdAt: new Date().toISOString()
+      createdAt: this.getDeterministicDate().toISOString()
     };
 
     // Emit subscription event
@@ -471,12 +471,12 @@ export class GraphQLFederation extends EventEmitter {
   async createTemplate(args, context) {
     // Mock template creation
     return {
-      id: Date.now().toString(),
+      id: this.getDeterministicTimestamp().toString(),
       ...args,
       authorId: context.user.id,
       version: '1.0.0',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      createdAt: this.getDeterministicDate().toISOString(),
+      updatedAt: this.getDeterministicDate().toISOString()
     };
   }
 
@@ -486,7 +486,7 @@ export class GraphQLFederation extends EventEmitter {
     return {
       id,
       ...updates,
-      updatedAt: new Date().toISOString()
+      updatedAt: this.getDeterministicDate().toISOString()
     };
   }
 
@@ -499,8 +499,8 @@ export class GraphQLFederation extends EventEmitter {
       firstName: `User`,
       lastName: id,
       roles: ['user'],
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      createdAt: this.getDeterministicDate().toISOString(),
+      updatedAt: this.getDeterministicDate().toISOString()
     }));
   }
 
@@ -515,8 +515,8 @@ export class GraphQLFederation extends EventEmitter {
       category: 'general',
       version: '1.0.0',
       authorId: '1',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      createdAt: this.getDeterministicDate().toISOString(),
+      updatedAt: this.getDeterministicDate().toISOString()
     }));
   }
 
@@ -529,8 +529,8 @@ export class GraphQLFederation extends EventEmitter {
       variables: '{}',
       status: 'completed',
       result: 'Generated content',
-      createdAt: new Date().toISOString(),
-      completedAt: new Date().toISOString()
+      createdAt: this.getDeterministicDate().toISOString(),
+      completedAt: this.getDeterministicDate().toISOString()
     }));
   }
 

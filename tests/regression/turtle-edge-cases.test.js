@@ -151,9 +151,9 @@ describe('Turtle Edge Cases and Regression Tests', () => {
         @prefix ex } ex:property "value${i}" .`
         ).join('\n');
 
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const result = await parser.parseContent(content);
-      const endTime = Date.now();
+      const endTime = this.getDeterministicTimestamp();
 
       expect(result.success).toBe(true);
       expect(endTime - startTime).toBeLessThan(5000); // Should be reasonably fast

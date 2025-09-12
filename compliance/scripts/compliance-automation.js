@@ -157,7 +157,7 @@ class ComplianceAutomation {
     const rule = {
       id: ruleId,
       ...ruleConfig,
-      createdAt: new Date().toISOString(),
+      createdAt: this.getDeterministicDate().toISOString(),
       lastExecuted: null,
       executionCount: 0,
       status: 'active'
@@ -222,7 +222,7 @@ class ComplianceAutomation {
     if (!rule || !rule.enabled) return;
 
     const executionId = this.generateExecutionId();
-    const startTime = new Date();
+    const startTime = this.getDeterministicDate();
 
     try {
       console.log(`[Compliance Automation] Executing rule: ${ruleId}`);
@@ -235,13 +235,13 @@ class ComplianceAutomation {
           results[action] = {
             status: 'success',
             result: actionResult,
-            executedAt: new Date().toISOString()
+            executedAt: this.getDeterministicDate().toISOString()
           };
         } catch (error) {
           results[action] = {
             status: 'error',
             error: error.message,
-            executedAt: new Date().toISOString()
+            executedAt: this.getDeterministicDate().toISOString()
           };
           console.error(`[Compliance Automation] Action failed: ${action}`, error.message);
         }
@@ -251,8 +251,8 @@ class ComplianceAutomation {
         id: executionId,
         ruleId,
         startTime: startTime.toISOString(),
-        endTime: new Date().toISOString(),
-        duration: Date.now() - startTime.getTime(),
+        endTime: this.getDeterministicDate().toISOString(),
+        duration: this.getDeterministicTimestamp() - startTime.getTime(),
         status: this.hasErrors(results) ? 'partial_success' : 'success',
         results,
         notifications: []
@@ -279,8 +279,8 @@ class ComplianceAutomation {
         id: executionId,
         ruleId,
         startTime: startTime.toISOString(),
-        endTime: new Date().toISOString(),
-        duration: Date.now() - startTime.getTime(),
+        endTime: this.getDeterministicDate().toISOString(),
+        duration: this.getDeterministicTimestamp() - startTime.getTime(),
         status: 'error',
         error: error.message
       };
@@ -452,7 +452,7 @@ class ComplianceAutomation {
    */
   async generateDailyReport() {
     const reportData = {
-      reportDate: new Date().toISOString().split('T')[0],
+      reportDate: this.getDeterministicDate().toISOString().split('T')[0],
       organization: this.config.organizationName,
       summary: {},
       details: {}
@@ -495,7 +495,7 @@ class ComplianceAutomation {
   async runFullComplianceScan() {
     const scanResults = {
       scanId: this.generateExecutionId(),
-      startTime: new Date().toISOString(),
+      startTime: this.getDeterministicDate().toISOString(),
       scannedSystems: [],
       findings: [],
       recommendations: []
@@ -543,7 +543,7 @@ class ComplianceAutomation {
       }
     }
 
-    scanResults.endTime = new Date().toISOString();
+    scanResults.endTime = this.getDeterministicDate().toISOString();
     scanResults.summary = {
       totalSystems: systems.length,
       healthySystems: scanResults.scannedSystems.filter(s => s.status === 'compliant' || s.status === 'ready').length,
@@ -579,14 +579,14 @@ class ComplianceAutomation {
           controlId: control.id,
           testId,
           status: 'passed',
-          testedAt: new Date().toISOString()
+          testedAt: this.getDeterministicDate().toISOString()
         });
       } catch (error) {
         testResults.push({
           controlId: control.id,
           status: 'failed',
           error: error.message,
-          testedAt: new Date().toISOString()
+          testedAt: this.getDeterministicDate().toISOString()
         });
       }
     }
@@ -613,7 +613,7 @@ class ComplianceAutomation {
   async comprehensiveComplianceReview() {
     const review = {
       reviewId: this.generateExecutionId(),
-      reviewDate: new Date().toISOString(),
+      reviewDate: this.getDeterministicDate().toISOString(),
       scope: 'comprehensive',
       findings: [],
       recommendations: [],
@@ -830,13 +830,13 @@ class ComplianceAutomation {
     for (const channel of rule.notifications) {
       try {
         await this.sendNotification(channel, rule, execution);
-        notifications.push({ channel, status: 'sent', sentAt: new Date().toISOString() });
+        notifications.push({ channel, status: 'sent', sentAt: this.getDeterministicDate().toISOString() });
       } catch (error) {
         notifications.push({ 
           channel, 
           status: 'failed', 
           error: error.message, 
-          attemptedAt: new Date().toISOString() 
+          attemptedAt: this.getDeterministicDate().toISOString() 
         });
       }
     }
@@ -868,7 +868,7 @@ class ComplianceAutomation {
    * Generate execution ID
    */
   generateExecutionId() {
-    return `exec_${Date.now()}_${crypto.randomBytes(4).toString('hex')}`;
+    return `exec_${this.getDeterministicTimestamp()}_${crypto.randomBytes(4).toString('hex')}`;
   }
 
   /**

@@ -214,11 +214,11 @@ FORCE_COLOR=1
    * Test a single workflow with act
    */
   async testWorkflow(workflow, options = {}) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     const testResult = {
       workflow: workflow.file,
       name: workflow.name,
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       platform: options.platform || 'ubuntu-latest',
       event: options.event || 'push',
       job: options.job || null,
@@ -244,7 +244,7 @@ FORCE_COLOR=1
       if (this.options.dryRun) {
         testResult.status = 'dry_run_passed';
         testResult.actCompatible = true;
-        testResult.executionTime = Date.now() - startTime;
+        testResult.executionTime = this.getDeterministicTimestamp() - startTime;
         return testResult;
       }
 
@@ -252,7 +252,7 @@ FORCE_COLOR=1
       const result = await this.executeActCommand(actCommand);
       
       testResult.output = result.output;
-      testResult.executionTime = Date.now() - startTime;
+      testResult.executionTime = this.getDeterministicTimestamp() - startTime;
       
       if (result.success) {
         testResult.status = 'passed';
@@ -270,7 +270,7 @@ FORCE_COLOR=1
     } catch (error) {
       testResult.status = 'error';
       testResult.errors.push(error.message);
-      testResult.executionTime = Date.now() - startTime;
+      testResult.executionTime = this.getDeterministicTimestamp() - startTime;
       this.testResults.summary.failedTests++;
       
       console.error(`❌ Error testing workflow ${workflow.name}: ${error.message}`);
@@ -486,7 +486,7 @@ FORCE_COLOR=1
   generateReport() {
     const report = {
       metadata: {
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         framework: 'ACT Validation Framework v1.0.0',
         totalExecutionTime: this.testResults.summary.totalExecutionTime,
         environment: {
@@ -504,7 +504,7 @@ FORCE_COLOR=1
     };
 
     // Save detailed report
-    const reportPath = path.join(this.options.testResultsDir, `act-validation-report-${Date.now()}.json`);
+    const reportPath = path.join(this.options.testResultsDir, `act-validation-report-${this.getDeterministicTimestamp()}.json`);
     fs.writeFileSync(reportPath, JSON.stringify(report, null, 2));
 
     // Generate markdown summary

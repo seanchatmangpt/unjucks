@@ -15,7 +15,7 @@ export class TestCoordinationHooks extends EventEmitter {
       claudeFlowPath: options.claudeFlowPath || 'npx claude-flow@alpha',
       timeout: options.timeout || 10000,
       retryAttempts: options.retryAttempts || 2,
-      sessionId: options.sessionId || `test-session-${Date.now()}`,
+      sessionId: options.sessionId || `test-session-${this.getDeterministicTimestamp()}`,
       ...options
     };
     
@@ -41,7 +41,7 @@ export class TestCoordinationHooks extends EventEmitter {
       type: 'pre-task',
       description,
       metadata,
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       sessionId: this.options.sessionId
     };
 
@@ -60,7 +60,7 @@ export class TestCoordinationHooks extends EventEmitter {
       type: 'post-task',
       taskId,
       results,
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       sessionId: this.options.sessionId
     };
 
@@ -79,7 +79,7 @@ export class TestCoordinationHooks extends EventEmitter {
       type: 'post-edit',
       filePath,
       memoryKey,
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       sessionId: this.options.sessionId
     };
 
@@ -103,7 +103,7 @@ export class TestCoordinationHooks extends EventEmitter {
       type: 'notify',
       message,
       level,
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       sessionId: this.options.sessionId
     };
 
@@ -121,7 +121,7 @@ export class TestCoordinationHooks extends EventEmitter {
     const hookData = {
       type: 'session-restore',
       sessionId,
-      timestamp: Date.now()
+      timestamp: this.getDeterministicTimestamp()
     };
 
     return this.executeHook('hooks', ['session-restore', '--session-id', sessionId], hookData);
@@ -138,7 +138,7 @@ export class TestCoordinationHooks extends EventEmitter {
     const hookData = {
       type: 'session-end',
       exportMetrics,
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       sessionId: this.options.sessionId
     };
 
@@ -163,7 +163,7 @@ export class TestCoordinationHooks extends EventEmitter {
       key,
       value: typeof value === 'object' ? JSON.stringify(value) : String(value),
       namespace,
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       sessionId: this.options.sessionId
     };
 
@@ -187,7 +187,7 @@ export class TestCoordinationHooks extends EventEmitter {
       type: 'memory-retrieve',
       key,
       namespace,
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       sessionId: this.options.sessionId
     };
 
@@ -222,7 +222,7 @@ export class TestCoordinationHooks extends EventEmitter {
       type: 'swarm-coordination',
       action,
       data,
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       sessionId: this.options.sessionId
     };
 
@@ -247,7 +247,7 @@ export class TestCoordinationHooks extends EventEmitter {
       operation,
       duration,
       metadata,
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       sessionId: this.options.sessionId
     };
 
@@ -270,7 +270,7 @@ export class TestCoordinationHooks extends EventEmitter {
    * Execute generic hook command
    */
   async executeHook(command, args = [], hookData = {}) {
-    const hookId = `hook-${Date.now()}-${Math.random().toString(36).substring(2)}`;
+    const hookId = `hook-${this.getDeterministicTimestamp()}-${Math.random().toString(36).substring(2)}`;
     this.activeHooks.add(hookId);
     this.stats.totalHooks++;
 
@@ -284,7 +284,7 @@ export class TestCoordinationHooks extends EventEmitter {
       command,
       args,
       data: hookData,
-      startTime: Date.now(),
+      startTime: this.getDeterministicTimestamp(),
       success: false,
       output: null,
       error: null
@@ -296,7 +296,7 @@ export class TestCoordinationHooks extends EventEmitter {
       hookInfo.success = result.success;
       hookInfo.output = result.stdout;
       hookInfo.error = result.stderr;
-      hookInfo.duration = Date.now() - hookInfo.startTime;
+      hookInfo.duration = this.getDeterministicTimestamp() - hookInfo.startTime;
 
       if (result.success) {
         this.stats.successfulHooks++;
@@ -316,7 +316,7 @@ export class TestCoordinationHooks extends EventEmitter {
 
     } catch (error) {
       hookInfo.error = error.message;
-      hookInfo.duration = Date.now() - hookInfo.startTime;
+      hookInfo.duration = this.getDeterministicTimestamp() - hookInfo.startTime;
       
       if (error.message.includes('timeout')) {
         this.stats.timeoutHooks++;
@@ -430,7 +430,7 @@ export class TestCoordinationHooks extends EventEmitter {
    * Batch multiple hooks for efficiency
    */
   async batchHooks(hooks) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     const results = [];
 
     for (const hook of hooks) {
@@ -446,7 +446,7 @@ export class TestCoordinationHooks extends EventEmitter {
       }
     }
 
-    const duration = Date.now() - startTime;
+    const duration = this.getDeterministicTimestamp() - startTime;
     
     await this.trackPerformance('batch-hooks', duration, {
       hookCount: hooks.length,
@@ -467,7 +467,7 @@ export class TestCoordinationHooks extends EventEmitter {
    */
   getStats() {
     const recentHooks = this.hookHistory.filter(h => 
-      Date.now() - h.startTime < 300000 // Last 5 minutes
+      this.getDeterministicTimestamp() - h.startTime < 300000 // Last 5 minutes
     );
 
     return {
@@ -565,11 +565,11 @@ export function withCoordinationHooks(testName) {
       try {
         await lifecycle.start();
         const result = await originalMethod.apply(this, args);
-        await lifecycle.end({ success: true, duration: Date.now() });
+        await lifecycle.end({ success: true, duration: this.getDeterministicTimestamp() });
         return result;
       } catch (error) {
         await lifecycle.error(error);
-        await lifecycle.end({ success: false, error: error.message, duration: Date.now() });
+        await lifecycle.end({ success: false, error: error.message, duration: this.getDeterministicTimestamp() });
         throw error;
       }
     };

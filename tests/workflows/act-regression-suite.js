@@ -64,7 +64,7 @@ class ActRegressionSuite {
     console.log('🎯 Establishing regression testing baseline...');
 
     const baseline = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       version: this.getProjectVersion(),
       gitCommit: this.getGitCommit(),
       environment: {
@@ -148,7 +148,7 @@ class ActRegressionSuite {
     }
 
     // Save baseline
-    const baselineFile = path.join(this.options.baselineDir, `baseline-${Date.now()}.json`);
+    const baselineFile = path.join(this.options.baselineDir, `baseline-${this.getDeterministicTimestamp()}.json`);
     const latestBaselineFile = path.join(this.options.baselineDir, 'latest-baseline.json');
     
     fs.writeFileSync(baselineFile, JSON.stringify(baseline, null, 2));
@@ -201,7 +201,7 @@ class ActRegressionSuite {
 
     const currentResults = await validator.validateAllWorkflows();
     this.currentResults = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       version: this.getProjectVersion(),
       gitCommit: this.getGitCommit(),
       summary: currentResults.summary,
@@ -415,7 +415,7 @@ class ActRegressionSuite {
   generateRegressionReport() {
     const report = {
       metadata: {
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         baseline: {
           timestamp: this.baseline.timestamp,
           version: this.baseline.version,
@@ -442,7 +442,7 @@ class ActRegressionSuite {
     };
 
     // Save regression report
-    const reportFile = path.join(this.options.regressionsDir, `regression-report-${Date.now()}.json`);
+    const reportFile = path.join(this.options.regressionsDir, `regression-report-${this.getDeterministicTimestamp()}.json`);
     fs.writeFileSync(reportFile, JSON.stringify(report, null, 2));
 
     // Generate markdown report

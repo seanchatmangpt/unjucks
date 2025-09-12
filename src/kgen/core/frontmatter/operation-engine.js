@@ -9,7 +9,7 @@
 import fs from 'fs/promises';
 import path from 'path';
 import { EventEmitter } from 'events';
-import { Logger } from 'consola';
+import { Consola } from 'consola';
 import nunjucks from 'nunjucks';
 
 export class OperationEngine extends EventEmitter {
@@ -32,7 +32,7 @@ export class OperationEngine extends EventEmitter {
       ...options
     };
     
-    this.logger = new Logger({ tag: 'kgen-operation-engine' });
+    this.logger = new Consola({ tag: 'kgen-operation-engine' });
     this.activeOperations = new Map();
     this.operationHistory = [];
     this.backupRegistry = new Map();
@@ -86,7 +86,7 @@ export class OperationEngine extends EventEmitter {
       provenanceContext
     } = operationConfig;
     
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       this.logger.info(`Starting operation execution ${operationId}`);
@@ -105,7 +105,7 @@ export class OperationEngine extends EventEmitter {
           reason: conditionalResult.reason,
           artifacts: [],
           operationMetadata: {
-            executionTime: Date.now() - startTime,
+            executionTime: this.getDeterministicTimestamp() - startTime,
             operationType: 'skip'
           }
         };
@@ -135,7 +135,7 @@ export class OperationEngine extends EventEmitter {
       
       // Create operation metadata
       const operationMetadata = {
-        executionTime: Date.now() - startTime,
+        executionTime: this.getDeterministicTimestamp() - startTime,
         operationType,
         contentSize: renderResult.content.length,
         usedVariables: renderResult.usedVariables,
@@ -150,7 +150,7 @@ export class OperationEngine extends EventEmitter {
         targetPath: pathResolution.resolvedPath,
         success: true,
         metadata: operationMetadata,
-        timestamp: new Date()
+        timestamp: this.getDeterministicDate()
       });
       
       // Emit completion event
@@ -179,7 +179,7 @@ export class OperationEngine extends EventEmitter {
         targetPath: pathResolution?.resolvedPath,
         success: false,
         error: error.message,
-        timestamp: new Date()
+        timestamp: this.getDeterministicDate()
       });
       
       this.emit('operation:error', { operationId, error });
@@ -196,7 +196,7 @@ export class OperationEngine extends EventEmitter {
    */
   async executeBatch(operations) {
     const batchId = this._generateOperationId();
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       this.logger.info(`Starting batch operation ${batchId} with ${operations.length} operations`);
@@ -240,7 +240,7 @@ export class OperationEngine extends EventEmitter {
         results: successful,
         errors: failed,
         batchMetadata: {
-          executionTime: Date.now() - startTime,
+          executionTime: this.getDeterministicTimestamp() - startTime,
           concurrency: this.options.maxConcurrentOperations
         }
       };
@@ -293,7 +293,7 @@ export class OperationEngine extends EventEmitter {
    * @returns {Promise<Object>} Render result
    */
   async _renderContent(content, context, options = {}) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       // Track used variables
@@ -314,7 +314,7 @@ export class OperationEngine extends EventEmitter {
         success: true,
         content: renderedContent,
         usedVariables: Array.from(usedVariables),
-        renderTime: Date.now() - startTime,
+        renderTime: this.getDeterministicTimestamp() - startTime,
         originalSize: content.length,
         renderedSize: renderedContent.length
       };
@@ -323,7 +323,7 @@ export class OperationEngine extends EventEmitter {
       return {
         success: false,
         error: error.message,
-        renderTime: Date.now() - startTime
+        renderTime: this.getDeterministicTimestamp() - startTime
       };
     }
   }
@@ -473,7 +473,7 @@ export class OperationEngine extends EventEmitter {
         path: targetPath,
         size: stats.size,
         created: !await this._fileExists(targetPath),
-        modified: new Date(),
+        modified: this.getDeterministicDate(),
         operationId
       }]
     };
@@ -544,7 +544,7 @@ export class OperationEngine extends EventEmitter {
         originalSize,
         injectionPoint,
         created: false,
-        modified: new Date(),
+        modified: this.getDeterministicDate(),
         operationId
       }]
     };
@@ -592,7 +592,7 @@ export class OperationEngine extends EventEmitter {
         size: stats.size,
         originalSize,
         created,
-        modified: new Date(),
+        modified: this.getDeterministicDate(),
         operationId
       }]
     };
@@ -640,7 +640,7 @@ export class OperationEngine extends EventEmitter {
         size: stats.size,
         originalSize,
         created,
-        modified: new Date(),
+        modified: this.getDeterministicDate(),
         operationId
       }]
     };
@@ -686,7 +686,7 @@ export class OperationEngine extends EventEmitter {
         originalSize: existingContent.length,
         lineNumber,
         created: false,
-        modified: new Date(),
+        modified: this.getDeterministicDate(),
         operationId
       }]
     };
@@ -820,7 +820,7 @@ export class OperationEngine extends EventEmitter {
    * @returns {Promise<string>} Backup file path
    */
   async _createBackup(filePath, operationId) {
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const timestamp = this.getDeterministicDate().toISOString().replace(/[:.]/g, '-');
     const backupName = `${path.basename(filePath)}.${operationId}.${timestamp}.backup`;
     const backupPath = path.join(this.options.backupDirectory, backupName);
     
@@ -844,7 +844,7 @@ export class OperationEngine extends EventEmitter {
     this.backupRegistry.get(operationId).push({
       originalPath,
       backupPath,
-      timestamp: new Date()
+      timestamp: this.getDeterministicDate()
     });
   }
 
@@ -895,7 +895,7 @@ export class OperationEngine extends EventEmitter {
    * @returns {string} Operation ID
    */
   _generateOperationId() {
-    return `op_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    return `op_${this.getDeterministicTimestamp()}_${Math.random().toString(36).substr(2, 9)}`;
   }
 
   /**

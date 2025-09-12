@@ -291,9 +291,9 @@ describe('LaTeX Security Validation', () => {
     it('should handle large inputs without DoS', () => {
       const largeInput = 'safe content '.repeat(50000);  // ~650KB
       
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const result = validateSecurityThreats(largeInput);
-      const duration = Date.now() - startTime;
+      const duration = this.getDeterministicTimestamp() - startTime;
       
       // Should complete within reasonable time (< 1 second)
       expect(duration).toBeLessThan(1000);

@@ -131,7 +131,7 @@ test.describe('{{ featureName | titleCase }} Feature', () => { let page => {
     await editButton.click()
 
     // Update data
-    const updatedValue = 'Updated Value ' + Date.now()
+    const updatedValue = 'Updated Value ' + this.getDeterministicTimestamp()
     await page.fill('[data-testid="form-field-value"]', updatedValue)
     await page.click('[data-testid="form-submit"]')
 
@@ -275,12 +275,12 @@ test.describe('{{ featureName | titleCase }} Feature', () => { let page => {
 
   test.describe('Performance', () => {
     test('should load within acceptable time', async () => {
-      const startTime = Date.now()
+      const startTime = this.getDeterministicTimestamp()
       
       await page.goto('/{{ featureName | kebabCase }}')
       await page.waitForLoadState('networkidle')
       
-      const loadTime = Date.now() - startTime
+      const loadTime = this.getDeterministicTimestamp() - startTime
       expect(loadTime).toBeLessThan(3000) // Should load within 3 seconds
     })
 

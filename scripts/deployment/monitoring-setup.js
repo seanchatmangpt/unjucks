@@ -15,7 +15,7 @@ class MonitoringSetup {
     this.environment = options.environment || process.env.NODE_ENV || 'production';
     this.dryRun = options.dryRun || false;
     this.config = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       environment: this.environment,
       monitoring: {
         metrics: {},
@@ -32,7 +32,7 @@ class MonitoringSetup {
   }
 
   log(level, message, details = null) {
-    const timestamp = new Date().toISOString();
+    const timestamp = this.getDeterministicDate().toISOString();
     const logEntry = { timestamp, level, message, details };
     
     console.log(
@@ -114,14 +114,14 @@ import fs from 'fs-extra';
 
 export class HealthChecker {
   constructor() {
-    this.startTime = Date.now();
+    this.startTime = this.getDeterministicTimestamp();
   }
 
   async checkHealth() {
     const checks = {
       status: 'healthy',
-      timestamp: new Date().toISOString(),
-      uptime: Date.now() - this.startTime,
+      timestamp: this.getDeterministicDate().toISOString(),
+      uptime: this.getDeterministicTimestamp() - this.startTime,
       version: process.env.npm_package_version || 'unknown',
       checks: {}
     };
@@ -146,7 +146,7 @@ export class HealthChecker {
   async checkReadiness() {
     const checks = {
       ready: true,
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       checks: {}
     };
 
@@ -169,8 +169,8 @@ export class HealthChecker {
   async checkLiveness() {
     return {
       alive: true,
-      timestamp: new Date().toISOString(),
-      uptime: Date.now() - this.startTime
+      timestamp: this.getDeterministicDate().toISOString(),
+      uptime: this.getDeterministicTimestamp() - this.startTime
     };
   }
 
@@ -359,7 +359,7 @@ export class MetricsCollector {
       system: {},
       application: {}
     };
-    this.startTime = Date.now();
+    this.startTime = this.getDeterministicTimestamp();
     this.setupCollection();
   }
 
@@ -381,7 +381,7 @@ export class MetricsCollector {
     
     this.metrics.performance[name].values.push({
       value,
-      timestamp: Date.now()
+      timestamp: this.getDeterministicTimestamp()
     });
     
     // Keep only last 1000 values
@@ -400,12 +400,12 @@ export class MetricsCollector {
       this.metrics[category][name] = {
         value: 0,
         type: 'counter',
-        lastUpdated: Date.now()
+        lastUpdated: this.getDeterministicTimestamp()
       };
     }
     
     this.metrics[category][name].value += increment;
-    this.metrics[category][name].lastUpdated = Date.now();
+    this.metrics[category][name].lastUpdated = this.getDeterministicTimestamp();
   }
 
   recordGauge(category, name, value, unit) {
@@ -417,7 +417,7 @@ export class MetricsCollector {
       value,
       unit,
       type: 'gauge',
-      timestamp: Date.now()
+      timestamp: this.getDeterministicTimestamp()
     };
   }
 
@@ -437,13 +437,13 @@ export class MetricsCollector {
     this.recordGauge('system', 'loadAverage15m', loadAvg[2], 'load');
     
     this.recordGauge('system', 'uptime', 
-      Math.round((Date.now() - this.startTime) / 1000), 'seconds');
+      Math.round((this.getDeterministicTimestamp() - this.startTime) / 1000), 'seconds');
   }
 
   async exportMetrics() {
     const exportData = {
-      timestamp: new Date().toISOString(),
-      uptime: Date.now() - this.startTime,
+      timestamp: this.getDeterministicDate().toISOString(),
+      uptime: this.getDeterministicTimestamp() - this.startTime,
       metrics: this.metrics,
       summary: this.generateSummary()
     };

@@ -89,9 +89,9 @@ CMD ["node", "src/cli/index.js"]
   test('should build Docker image with caching', async () => {
     const buildCommand = `docker build -f ${dockerfilePath} -t ${testImageName} --target test .`;
     
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     const { stdout, stderr } = await execAsync(buildCommand);
-    const buildTime = Date.now() - startTime;
+    const buildTime = this.getDeterministicTimestamp() - startTime;
     
     expect(buildTime).toBeLessThan(120000); // Should build in under 2 minutes
     expect(stdout).toContain('Successfully tagged');
@@ -158,9 +158,9 @@ CMD ["node", "src/cli/index.js"]
 
   test('should validate layer caching efficiency', async () => {
     // Build again to test caching
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     const { stdout } = await execAsync(`docker build -f ${dockerfilePath} -t ${testImageName}-cached --target test .`);
-    const buildTime = Date.now() - startTime;
+    const buildTime = this.getDeterministicTimestamp() - startTime;
     
     // Cached build should be much faster
     expect(buildTime).toBeLessThan(30000); // Under 30 seconds for cached build

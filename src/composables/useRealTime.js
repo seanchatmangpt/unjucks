@@ -53,8 +53,8 @@ export const useRealTime = () => {
       id: sessionId,
       templateId: '',
       participants: [],
-      createdAt: new Date(),
-      lastActivity: new Date()
+      createdAt: this.getDeterministicDate(),
+      lastActivity: this.getDeterministicDate()
     }
   }
 

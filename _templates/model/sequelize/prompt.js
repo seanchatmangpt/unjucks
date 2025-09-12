@@ -58,7 +58,7 @@ export default {
           type: 'input',
           name: 'timestamp',
           message: 'Migration timestamp (YYYYMMDDHHMMSS):',
-          default: () => new Date().toISOString().replace(/[-:T.Z]/g, '').slice(0, 14)
+          default: () => this.getDeterministicDate().toISOString().replace(/[-:T.Z]/g, '').slice(0, 14)
         },
         {
           type: 'input',

@@ -23,7 +23,7 @@ class MetricsAggregator {
 
     this.aggregated = {
       metadata: {
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         sources: [],
         aggregationMethod: 'weighted-average'
       },

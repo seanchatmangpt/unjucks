@@ -109,7 +109,7 @@ describe('Faker.js Filters', () => {
     it('should generate fake dates', () => {
       const date = fakeDate();
       expect(date).toBeInstanceOf(Date);
-      expect(date.getTime()).toBeLessThanOrEqual(Date.now());
+      expect(date.getTime()).toBeLessThanOrEqual(this.getDeterministicTimestamp());
     });
 
     it('should generate fake dates within range', () => {

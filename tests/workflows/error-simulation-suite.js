@@ -92,7 +92,7 @@ class ActErrorSimulationSuite {
     const scenario = {
       name: scenarioName,
       description: this.getScenarioDescription(scenarioName),
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       status: 'unknown',
       expectedResult: 'failure',
       actualResult: 'unknown',
@@ -102,7 +102,7 @@ class ActErrorSimulationSuite {
       recommendations: []
     };
 
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
 
     try {
       // Create test workflow for scenario
@@ -115,7 +115,7 @@ class ActErrorSimulationSuite {
       scenario.actualResult = result.success ? 'success' : 'failure';
       scenario.errorDetected = !result.success;
       scenario.errorMessages = result.errors;
-      scenario.executionTime = Date.now() - startTime;
+      scenario.executionTime = this.getDeterministicTimestamp() - startTime;
 
       // Validate scenario outcome
       if (scenario.expectedResult === 'failure' && scenario.actualResult === 'failure') {
@@ -140,7 +140,7 @@ class ActErrorSimulationSuite {
     } catch (error) {
       scenario.status = 'error';
       scenario.errorMessages.push(error.message);
-      scenario.executionTime = Date.now() - startTime;
+      scenario.executionTime = this.getDeterministicTimestamp() - startTime;
       console.log(`  ❌ Scenario execution error: ${error.message}`);
     }
 
@@ -486,7 +486,7 @@ jobs:
 
     const report = {
       metadata: {
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         framework: 'ACT Error Simulation Suite',
         version: '1.0.0',
         totalExecutionTime: this.errorResults.scenarios.reduce((sum, s) => sum + s.executionTime, 0)
@@ -501,7 +501,7 @@ jobs:
       Math.round((report.summary.detectedErrors / report.summary.executedScenarios) * 100) : 0;
 
     // Save JSON report
-    const reportFile = path.join(this.options.resultsDir, `error-simulation-report-${Date.now()}.json`);
+    const reportFile = path.join(this.options.resultsDir, `error-simulation-report-${this.getDeterministicTimestamp()}.json`);
     fs.writeFileSync(reportFile, JSON.stringify(report, null, 2));
 
     // Generate markdown report

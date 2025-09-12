@@ -354,7 +354,7 @@ export class MCPBridge extends EventEmitter {
         steps: workflow.steps.map(step => ({ ...step, status: 'pending' })),
         currentStep: 0,
         metadata: {
-          startTime: new Date().toISOString(),
+          startTime: this.getDeterministicDate().toISOString(),
           job: workflow.job
         }
       };
@@ -411,14 +411,14 @@ export class MCPBridge extends EventEmitter {
       
       // Update workflow completion status
       const success = errors.length === 0;
-      this.memory.workflows[workflow.id].metadata.endTime = new Date().toISOString();
+      this.memory.workflows[workflow.id].metadata.endTime = this.getDeterministicDate().toISOString();
       this.memory.workflows[workflow.id].metadata.success = success;
       
       // Sync workflow results to swarm memory
       await this.syncWorkflowToSwarm(workflow.id, results, errors);
       
       if (this.config.debugMode) {
-        const duration = Date.now() - new Date(this.memory.workflows[workflow.id].metadata.startTime).getTime();
+        const duration = this.getDeterministicTimestamp() - new Date(this.memory.workflows[workflow.id].metadata.startTime).getTime();
         console.log(chalk.green(`[MCP Bridge] JTBD workflow completed in ${duration}ms`));
         console.log(chalk.gray(`Success: ${success}, Steps: ${results.length}, Errors: ${errors.length}`));
       }
@@ -456,7 +456,7 @@ export class MCPBridge extends EventEmitter {
         unjucksMcp: this.config.unjucksMcpCommand
       },
       memoryNamespace: this.config.memoryNamespace,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     };
 
     try {
@@ -1077,7 +1077,7 @@ export class MCPBridge extends EventEmitter {
           action: 'store',
           namespace: this.config.memoryNamespace,
           key: `workflow-${workflowId}`,
-          value: { results, errors, timestamp: new Date().toISOString() }
+          value: { results, errors, timestamp: this.getDeterministicDate().toISOString() }
         }
       });
 

@@ -5,7 +5,7 @@
  * including variable extraction, context population, and metadata retrieval.
  */
 
-import { Logger } from 'consola';
+import { Consola } from 'consola';
 
 export class TemplateQueryPatterns {
   constructor(config = {}) {
@@ -23,7 +23,7 @@ export class TemplateQueryPatterns {
       ...config
     };
     
-    this.logger = new Logger({ tag: 'template-query-patterns' });
+    this.logger = new Consola({ tag: 'template-query-patterns' });
     this.patterns = new Map();
     this.customPatterns = new Map();
     

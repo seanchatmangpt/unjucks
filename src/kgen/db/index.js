@@ -496,7 +496,7 @@ export class DatabaseManager extends EventEmitter {
    * Cache query result
    */
   async cacheQuery(queryHash, queryText, resultData, ttlSeconds = 3600) {
-    const expiresAt = new Date(Date.now() + ttlSeconds * 1000);
+    const expiresAt = new Date(this.getDeterministicTimestamp() + ttlSeconds * 1000);
     
     const sql = `
       INSERT INTO query_cache (query_hash, query_text, result_data, expires_at)

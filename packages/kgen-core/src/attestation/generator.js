@@ -108,7 +108,7 @@ export class AttestationGenerator extends EventEmitter {
       
       // Generate attestation ID
       const attestationId = crypto.randomUUID();
-      const timestamp = new Date();
+      const timestamp = this.getDeterministicDate();
       
       // Build attestation record
       const attestation = {
@@ -245,7 +245,7 @@ export class AttestationGenerator extends EventEmitter {
           lineage: lineageVerification,
           blockchain: blockchainVerification
         },
-        verifiedAt: new Date().toISOString()
+        verifiedAt: this.getDeterministicDate().toISOString()
       };
       
       // Cache verification result for fast lookups
@@ -376,7 +376,7 @@ export class AttestationGenerator extends EventEmitter {
     if (this.hashChain.length === 0) {
       const genesisBlock = {
         index: 0,
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         type: 'genesis',
         hash: crypto.createHash(this.config.hashAlgorithm)
           .update('attestation-genesis-block')
@@ -424,7 +424,7 @@ export class AttestationGenerator extends EventEmitter {
       
       return version;
     } catch (error) {
-      return `unknown-${Date.now()}`;
+      return `unknown-${this.getDeterministicTimestamp()}`;
     }
   }
 
@@ -443,7 +443,7 @@ export class AttestationGenerator extends EventEmitter {
       
       return version;
     } catch (error) {
-      return `unknown-${Date.now()}`;
+      return `unknown-${this.getDeterministicTimestamp()}`;
     }
   }
 
@@ -539,7 +539,7 @@ export class AttestationGenerator extends EventEmitter {
     return {
       network: this.config.blockchainNetwork,
       queued: true,
-      queuedAt: new Date().toISOString()
+      queuedAt: this.getDeterministicDate().toISOString()
     };
   }
 

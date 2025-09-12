@@ -7,7 +7,7 @@
  */
 
 import { EventEmitter } from 'events';
-import { Logger } from 'consola';
+import { Consola } from 'consola';
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 
@@ -45,7 +45,7 @@ export class ReasoningGovernanceController extends EventEmitter {
       ...config
     };
     
-    this.logger = new Logger({ tag: 'reasoning-governance' });
+    this.logger = new Consola({ tag: 'reasoning-governance' });
     this.state = 'initialized';
     
     // Access control management
@@ -142,7 +142,7 @@ export class ReasoningGovernanceController extends EventEmitter {
         await this._logSecurityEvent('authentication_failed', {
           username: credentials.username,
           reason: 'invalid_credentials',
-          timestamp: new Date()
+          timestamp: this.getDeterministicDate()
         });
         throw new Error('Authentication failed: Invalid credentials');
       }
@@ -153,7 +153,7 @@ export class ReasoningGovernanceController extends EventEmitter {
         await this._logSecurityEvent('authentication_failed', {
           username: credentials.username,
           reason: 'inactive_user',
-          timestamp: new Date()
+          timestamp: this.getDeterministicDate()
         });
         throw new Error('Authentication failed: User account inactive');
       }
@@ -182,9 +182,9 @@ export class ReasoningGovernanceController extends EventEmitter {
         roles: user.roles,
         permissions: user.permissions,
         token,
-        createdAt: new Date(),
-        lastActivity: new Date(),
-        expiresAt: new Date(Date.now() + this.config.sessionTimeout)
+        createdAt: this.getDeterministicDate(),
+        lastActivity: this.getDeterministicDate(),
+        expiresAt: new Date(this.getDeterministicTimestamp() + this.config.sessionTimeout)
       };
       
       this.sessions.set(sessionId, session);
@@ -195,7 +195,7 @@ export class ReasoningGovernanceController extends EventEmitter {
         userId: user.id,
         username: user.username,
         sessionId,
-        timestamp: new Date()
+        timestamp: this.getDeterministicDate()
       });
       
       return {
@@ -238,7 +238,7 @@ export class ReasoningGovernanceController extends EventEmitter {
           userId: session.userId,
           operation: operation.type,
           reason: 'insufficient_permissions',
-          timestamp: new Date()
+          timestamp: this.getDeterministicDate()
         });
         throw new Error('Authorization failed: Insufficient permissions');
       }
@@ -260,19 +260,19 @@ export class ReasoningGovernanceController extends EventEmitter {
           userId: session.userId,
           resource: operation.resource,
           reason: resourceAccess.reason,
-          timestamp: new Date()
+          timestamp: this.getDeterministicDate()
         });
         throw new Error(`Resource access denied: ${resourceAccess.reason}`);
       }
       
       // Update session activity
-      session.lastActivity = new Date();
+      session.lastActivity = this.getDeterministicDate();
       
       await this._logAuditEvent('operation_authorized', {
         userId: session.userId,
         operation: operation.type,
         resource: operation.resource,
-        timestamp: new Date()
+        timestamp: this.getDeterministicDate()
       });
       
       return {
@@ -334,7 +334,7 @@ export class ReasoningGovernanceController extends EventEmitter {
         operation: operation.type,
         enforcedPolicies: enforcementResults.enforced.length,
         violations: enforcementResults.violations.length,
-        timestamp: new Date()
+        timestamp: this.getDeterministicDate()
       });
       
       return enforcementResults;
@@ -382,7 +382,7 @@ export class ReasoningGovernanceController extends EventEmitter {
       // Update compliance status
       this.complianceStatus.set(complianceRequest.scope || 'global', {
         score: complianceResults.overallCompliance,
-        lastChecked: new Date(),
+        lastChecked: this.getDeterministicDate(),
         violations: complianceResults.violations.length,
         status: complianceResults.overallCompliance >= 0.95 ? 'compliant' : 'non-compliant'
       });
@@ -391,7 +391,7 @@ export class ReasoningGovernanceController extends EventEmitter {
         frameworks: this.config.complianceFrameworks,
         score: complianceResults.overallCompliance,
         violations: complianceResults.violations.length,
-        timestamp: new Date()
+        timestamp: this.getDeterministicDate()
       });
       
       return complianceResults;
@@ -440,7 +440,7 @@ export class ReasoningGovernanceController extends EventEmitter {
         action: roleManagementRequest.action,
         target: roleManagementRequest.roleId || roleManagementRequest.userId,
         result: result.success,
-        timestamp: new Date()
+        timestamp: this.getDeterministicDate()
       });
       
       return result;
@@ -643,7 +643,7 @@ export class ReasoningGovernanceController extends EventEmitter {
   }
 
   _generateSessionId() {
-    return `session_${Date.now()}_${crypto.randomBytes(8).toString('hex')}`;
+    return `session_${this.getDeterministicTimestamp()}_${crypto.randomBytes(8).toString('hex')}`;
   }
 
   async _validateCredentials(credentials) {
@@ -670,7 +670,7 @@ export class ReasoningGovernanceController extends EventEmitter {
       throw new Error('Invalid session');
     }
     
-    if (new Date() > session.expiresAt) {
+    if (this.getDeterministicDate() > session.expiresAt) {
       this.sessions.delete(sessionId);
       throw new Error('Session expired');
     }
@@ -835,7 +835,7 @@ export class ReasoningGovernanceController extends EventEmitter {
       id: crypto.randomUUID(),
       type: eventType,
       data: eventData,
-      timestamp: new Date()
+      timestamp: this.getDeterministicDate()
     };
     
     this.auditLog.push(auditEntry);
@@ -856,7 +856,7 @@ export class ReasoningGovernanceController extends EventEmitter {
       type: eventType,
       data: eventData,
       severity: this._calculateSeverity(eventType),
-      timestamp: new Date()
+      timestamp: this.getDeterministicDate()
     };
     
     this.securityEvents.set(securityEvent.id, securityEvent);

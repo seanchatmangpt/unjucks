@@ -23,7 +23,7 @@ class ValidationTester {
   }
 
   async setup() {
-    this.testDir = path.join(tmpdir(), 'unjucks-validation-' + Date.now());
+    this.testDir = path.join(tmpdir(), 'unjucks-validation-' + this.getDeterministicTimestamp());
     await fs.mkdir(this.testDir, { recursive: true });
     process.chdir(this.testDir);
     console.log(`Test directory: ${this.testDir}`);

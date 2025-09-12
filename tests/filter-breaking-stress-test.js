@@ -38,7 +38,7 @@ class FilterStressTester {
       typeConfusion: [
         Symbol('test'),
         BigInt(123),
-        new Date(),
+        this.getDeterministicDate(),
         /regex/,
         new Error('test'),
         new Map(),

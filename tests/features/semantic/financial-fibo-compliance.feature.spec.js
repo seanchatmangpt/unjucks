@@ -35,7 +35,7 @@ defineFeature(feature, (test) => {
 
   beforeEach(() => {
     processedData = null;
-    startTime = Date.now();
+    startTime = this.getDeterministicTimestamp();
   });
 
   test('Process Derivatives Portfolio with FIBO Classification', ({ given, when, then }) => {
@@ -58,7 +58,7 @@ defineFeature(feature, (test) => {
     });
 
     when('I process the portfolio through financial templates', async () => {
-      startTime = Date.now();
+      startTime = this.getDeterministicTimestamp();
       processedData = await processDerivativesPortfolio(portfolioData, fiboOntology);
     });
 

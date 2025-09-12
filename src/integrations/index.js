@@ -32,7 +32,7 @@ export class EnterpriseIntegrationHub extends EventEmitter {
     this.integrations = new Map();
     this.healthStatus = new Map();
     this.metrics = new Map();
-    this.startupTime = new Date();
+    this.startupTime = this.getDeterministicDate();
     
     this.initializeIntegrations();
     this.setupHealthChecks();
@@ -205,7 +205,7 @@ export class EnterpriseIntegrationHub extends EventEmitter {
   // Health Checks
   async performHealthChecks() {
     const health = {
-      timestamp: new Date(),
+      timestamp: this.getDeterministicDate(),
       status: 'healthy',
       services: {}
     };
@@ -222,7 +222,7 @@ export class EnterpriseIntegrationHub extends EventEmitter {
         health.services[name] = {
           status: 'unhealthy',
           error: error.message,
-          lastCheck: new Date()
+          lastCheck: this.getDeterministicDate()
         };
         health.status = 'unhealthy';
       }
@@ -237,8 +237,8 @@ export class EnterpriseIntegrationHub extends EventEmitter {
   async checkServiceHealth(name, integration) {
     const health = {
       status: 'healthy',
-      lastCheck: new Date(),
-      uptime: Date.now() - this.startupTime.getTime()
+      lastCheck: this.getDeterministicDate(),
+      uptime: this.getDeterministicTimestamp() - this.startupTime.getTime()
     };
 
     // Service-specific health checks
@@ -279,10 +279,10 @@ export class EnterpriseIntegrationHub extends EventEmitter {
   // Metrics Collection
   async collectMetrics() {
     const metrics = {
-      timestamp: new Date(),
+      timestamp: this.getDeterministicDate(),
       integrations: {},
       overall: {
-        uptime: Date.now() - this.startupTime.getTime(),
+        uptime: this.getDeterministicTimestamp() - this.startupTime.getTime(),
         activeIntegrations: this.integrations.size,
         memoryUsage: process.memoryUsage(),
         cpuUsage: process.cpuUsage()
@@ -298,7 +298,7 @@ export class EnterpriseIntegrationHub extends EventEmitter {
       }
     }
 
-    this.metrics.set(Date.now(), metrics);
+    this.metrics.set(this.getDeterministicTimestamp(), metrics);
     this.emit('metrics:collected', metrics);
 
     // Cleanup old metrics (keep last 100 entries)
@@ -343,7 +343,7 @@ export class EnterpriseIntegrationHub extends EventEmitter {
     const status = {
       initialized: this.integrations.size > 0,
       services: {},
-      uptime: Date.now() - this.startupTime.getTime(),
+      uptime: this.getDeterministicTimestamp() - this.startupTime.getTime(),
       version: process.env.npm_package_version || '1.0.0'
     };
 

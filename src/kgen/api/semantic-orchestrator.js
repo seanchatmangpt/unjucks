@@ -404,7 +404,7 @@ export class SemanticOrchestrator extends EventEmitter {
       routing: {},
       quality: {},
       compliance: {},
-      created: new Date()
+      created: this.getDeterministicDate()
     };
     
     // Analyze request for intelligent routing
@@ -448,7 +448,7 @@ export class SemanticOrchestrator extends EventEmitter {
   }
 
   _generatePipelineId() {
-    return `semantic_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    return `semantic_${this.getDeterministicTimestamp()}_${Math.random().toString(36).substr(2, 9)}`;
   }
 
   _getCapabilitySummary() {

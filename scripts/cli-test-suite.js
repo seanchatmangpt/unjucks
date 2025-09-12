@@ -18,7 +18,7 @@ class CLITestSuite {
       warnings: [],
       dependencies: { missing: [], installed: [] }
     };
-    this.startTime = Date.now();
+    this.startTime = this.getDeterministicTimestamp();
     this.cliPath = path.resolve(__dirname, '../bin/unjucks.cjs');
   }
 
@@ -225,7 +225,7 @@ class CLITestSuite {
   generateReport() {
     this.log('\n📊 Generating Test Report...', 'blue');
     
-    const totalTime = Date.now() - this.startTime;
+    const totalTime = this.getDeterministicTimestamp() - this.startTime;
     const totalTests = this.results.working.length + this.results.failing.length;
     
     const report = {
@@ -239,7 +239,7 @@ class CLITestSuite {
       },
       dependencies: this.results.dependencies,
       results: this.results,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     };
 
     // Save detailed report

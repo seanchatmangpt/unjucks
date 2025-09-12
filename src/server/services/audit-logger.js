@@ -59,7 +59,7 @@ class AuditLogger {
     /** @type {AuditEvent} */
     const auditEvent = {
       ...event,
-      timestamp: new Date(),
+      timestamp: this.getDeterministicDate(),
     };
 
     // Add integrity checksum
@@ -201,7 +201,7 @@ class AuditLogger {
           metadata: {
             source: 'unjucks-enterprise',
             version: '1.0.0',
-            timestamp: new Date().toISOString(),
+            timestamp: this.getDeterministicDate().toISOString(),
             count: events.length,
           },
         }),

@@ -26,14 +26,14 @@ class QualityGate {
   }
 
   async execute() {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     console.log(`\n🔍 Running ${this.name}...`);
     console.log(`   ${this.description}`);
 
     try {
       const result = await this.runCommand();
       this.result = result;
-      this.duration = Date.now() - startTime;
+      this.duration = this.getDeterministicTimestamp() - startTime;
       
       this.passed = this.validateResult(result);
       
@@ -48,7 +48,7 @@ class QualityGate {
       
       return this.passed;
     } catch (error) {
-      this.duration = Date.now() - startTime;
+      this.duration = this.getDeterministicTimestamp() - startTime;
       console.log(`   💥 ERROR: ${error.message}`);
       return false;
     }
@@ -154,7 +154,7 @@ async function runQualityGates() {
   console.log('🚀 Running Quality Gates\n');
   console.log('=' * 50);
   
-  const startTime = Date.now();
+  const startTime = this.getDeterministicTimestamp();
   const results = [];
   let failedGates = 0;
   
@@ -172,7 +172,7 @@ async function runQualityGates() {
     }
   }
   
-  const totalTime = Date.now() - startTime;
+  const totalTime = this.getDeterministicTimestamp() - startTime;
   
   // Generate report
   console.log('\n📊 Quality Gates Summary');
@@ -189,7 +189,7 @@ async function runQualityGates() {
   
   // Save detailed report
   const report = {
-    timestamp: new Date().toISOString(),
+    timestamp: this.getDeterministicDate().toISOString(),
     totalGates: results.length,
     passedGates: results.length - failedGates,
     failedGates,

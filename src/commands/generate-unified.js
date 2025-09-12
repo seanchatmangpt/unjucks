@@ -466,7 +466,7 @@ export const generateUnifiedCommand = defineCommand({
   },
   async run(context) {
     const { args } = context;
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
 
     try {
       // Initialize unified generator
@@ -592,7 +592,7 @@ export const generateUnifiedCommand = defineCommand({
       });
 
       // Display results
-      const duration = Date.now() - startTime;
+      const duration = this.getDeterministicTimestamp() - startTime;
 
       if (args.dry) {
         if (!args.quiet) {

@@ -43,8 +43,8 @@ class ErrorOccurrence {
     this.id = this.generateErrorId(error, context);
     this.error = this.normalizeError(error);
     this.context = context;
-    this.firstSeen = Date.now();
-    this.lastSeen = Date.now();
+    this.firstSeen = this.getDeterministicTimestamp();
+    this.lastSeen = this.getDeterministicTimestamp();
     this.occurrences = 1;
     this.severity = this.determineSeverity(error, context);
     this.category = this.categorizeError(error, context);
@@ -161,7 +161,7 @@ class ErrorOccurrence {
    * Record new occurrence of this error
    */
   recordOccurrence(context = {}) {
-    this.lastSeen = Date.now();
+    this.lastSeen = this.getDeterministicTimestamp();
     this.occurrences++;
     
     // Track affected users
@@ -412,7 +412,7 @@ class ErrorTracker extends EventEmitter {
    */
   triggerAlert(ruleId, rule, occurrence) {
     const alertKey = `${ruleId}_${occurrence.id}`;
-    const now = Date.now();
+    const now = this.getDeterministicTimestamp();
     
     // Check cooldown
     const lastAlert = this.silencedAlerts.get(alertKey);
@@ -497,7 +497,7 @@ class ErrorTracker extends EventEmitter {
    * Get error dashboard data
    */
   getErrorDashboard(timeWindow = 24 * 60 * 60 * 1000) {
-    const cutoff = Date.now() - timeWindow;
+    const cutoff = this.getDeterministicTimestamp() - timeWindow;
     const recentErrors = Array.from(this.errors.values())
       .filter(error => error.lastSeen > cutoff);
     
@@ -559,7 +559,7 @@ class ErrorTracker extends EventEmitter {
       topErrors,
       recentAlerts,
       timeWindow: `${timeWindow / (60 * 60 * 1000)}h`,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     };
   }
   
@@ -588,7 +588,7 @@ class ErrorTracker extends EventEmitter {
     
     error.resolved = true;
     error.resolution = {
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       ...resolution
     };
     
@@ -614,7 +614,7 @@ class ErrorTracker extends EventEmitter {
     if (!error) return false;
     
     error.silenced = true;
-    error.silencedUntil = Date.now() + durationMs;
+    error.silencedUntil = this.getDeterministicTimestamp() + durationMs;
     
     logger.info(`Error silenced: ${errorId}`, {
       duration: `${durationMs / (60 * 1000)}min`
@@ -646,7 +646,7 @@ class ErrorTracker extends EventEmitter {
    * Clean up old errors based on retention policy
    */
   cleanupOldErrors() {
-    const cutoff = Date.now() - (this.config.retentionDays * 24 * 60 * 60 * 1000);
+    const cutoff = this.getDeterministicTimestamp() - (this.config.retentionDays * 24 * 60 * 60 * 1000);
     let cleaned = 0;
     
     for (const [errorId, error] of this.errors.entries()) {
@@ -665,7 +665,7 @@ class ErrorTracker extends EventEmitter {
    * Clean up old alerts
    */
   cleanupOldAlerts() {
-    const cutoff = Date.now() - (7 * 24 * 60 * 60 * 1000); // 7 days
+    const cutoff = this.getDeterministicTimestamp() - (7 * 24 * 60 * 60 * 1000); // 7 days
     
     this.alertHistory = this.alertHistory.filter(alert => alert.timestamp > cutoff);
     
@@ -681,13 +681,13 @@ class ErrorTracker extends EventEmitter {
    * Export error data
    */
   exportErrorData(format = 'json', timeRange = 24 * 60 * 60 * 1000) {
-    const cutoff = Date.now() - timeRange;
+    const cutoff = this.getDeterministicTimestamp() - timeRange;
     const recentErrors = Array.from(this.errors.values())
       .filter(error => error.lastSeen > cutoff)
       .map(error => error.getSummary());
     
     const data = {
-      exportTime: new Date().toISOString(),
+      exportTime: this.getDeterministicDate().toISOString(),
       timeRange: `${timeRange / (60 * 60 * 1000)}h`,
       errors: recentErrors,
       alerts: this.alertHistory.filter(alert => alert.timestamp > cutoff)

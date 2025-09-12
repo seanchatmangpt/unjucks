@@ -144,7 +144,7 @@ export class DistributedCache extends EventEmitter {
         if (!entry) return null;
         
         // Check TTL
-        if (entry.expiry && Date.now() > entry.expiry) {
+        if (entry.expiry && this.getDeterministicTimestamp() > entry.expiry) {
           nodeStorage.delete(key);
           return null;
         }
@@ -160,8 +160,8 @@ export class DistributedCache extends EventEmitter {
         
         const entry = {
           value,
-          timestamp: Date.now(),
-          expiry: options.ttl ? Date.now() + options.ttl : Date.now() + this.config.ttl,
+          timestamp: this.getDeterministicTimestamp(),
+          expiry: options.ttl ? this.getDeterministicTimestamp() + options.ttl : this.getDeterministicTimestamp() + this.config.ttl,
           version: crypto.randomUUID(),
           size: this.estimateSize(value)
         };
@@ -218,7 +218,7 @@ export class DistributedCache extends EventEmitter {
         if (!entry) return null;
         
         // Check TTL
-        if (entry.expiry && Date.now() > entry.expiry) {
+        if (entry.expiry && this.getDeterministicTimestamp() > entry.expiry) {
           this.distributedClient.storage.delete(key);
           return null;
         }
@@ -229,8 +229,8 @@ export class DistributedCache extends EventEmitter {
       set: async (key, value, options = {}) => {
         const entry = {
           value,
-          timestamp: Date.now(),
-          expiry: options.ttl ? Date.now() + options.ttl : Date.now() + this.config.ttl,
+          timestamp: this.getDeterministicTimestamp(),
+          expiry: options.ttl ? this.getDeterministicTimestamp() + options.ttl : this.getDeterministicTimestamp() + this.config.ttl,
           version: crypto.randomUUID(),
           size: this.estimateSize(value)
         };
@@ -268,7 +268,7 @@ export class DistributedCache extends EventEmitter {
       throw new Error('Cache not initialized');
     }
     
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       // Step 1: Check local cache first
@@ -276,7 +276,7 @@ export class DistributedCache extends EventEmitter {
       if (value !== null) {
         this.statistics.hits++;
         this.statistics.localHits++;
-        this.updateAccessPattern(key, 'local-hit', Date.now() - startTime);
+        this.updateAccessPattern(key, 'local-hit', this.getDeterministicTimestamp() - startTime);
         return value;
       }
       
@@ -289,13 +289,13 @@ export class DistributedCache extends EventEmitter {
         // Store in local cache for future access
         this.setLocalCache(key, value, { fromDistributed: true });
         
-        this.updateAccessPattern(key, 'distributed-hit', Date.now() - startTime);
+        this.updateAccessPattern(key, 'distributed-hit', this.getDeterministicTimestamp() - startTime);
         return value;
       }
       
       // Cache miss
       this.statistics.misses++;
-      this.updateAccessPattern(key, 'miss', Date.now() - startTime);
+      this.updateAccessPattern(key, 'miss', this.getDeterministicTimestamp() - startTime);
       
       // Trigger prefetch if this key follows a pattern
       this.considerPrefetch(key);
@@ -317,7 +317,7 @@ export class DistributedCache extends EventEmitter {
       throw new Error('Cache not initialized');
     }
     
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       // Estimate data size
@@ -339,7 +339,7 @@ export class DistributedCache extends EventEmitter {
       this.statistics.puts++;
       this.statistics.bytesStored += size;
       
-      this.updateAccessPattern(key, 'put', Date.now() - startTime);
+      this.updateAccessPattern(key, 'put', this.getDeterministicTimestamp() - startTime);
       
       if (this.debug) {
         console.log(`[DistributedCache] Set key ${key}, replicated to ${results.length} nodes`);
@@ -473,7 +473,7 @@ export class DistributedCache extends EventEmitter {
     if (!entry) return null;
     
     // Check TTL
-    if (entry.expiry && Date.now() > entry.expiry) {
+    if (entry.expiry && this.getDeterministicTimestamp() > entry.expiry) {
       this.deleteFromLocalCache(key);
       return null;
     }
@@ -492,8 +492,8 @@ export class DistributedCache extends EventEmitter {
     
     const entry = {
       value,
-      timestamp: Date.now(),
-      expiry: options.ttl ? Date.now() + options.ttl : Date.now() + this.config.ttl,
+      timestamp: this.getDeterministicTimestamp(),
+      expiry: options.ttl ? this.getDeterministicTimestamp() + options.ttl : this.getDeterministicTimestamp() + this.config.ttl,
       accessCount: 1,
       size: this.estimateSize(value),
       fromDistributed: options.fromDistributed || false
@@ -504,7 +504,7 @@ export class DistributedCache extends EventEmitter {
     
     // Update metadata
     this.cacheMetadata.set(key, {
-      lastAccess: Date.now(),
+      lastAccess: this.getDeterministicTimestamp(),
       accessCount: (this.cacheMetadata.get(key)?.accessCount || 0) + 1,
       localCached: true
     });
@@ -616,8 +616,8 @@ export class DistributedCache extends EventEmitter {
     }
     
     metadata.accessCount++;
-    metadata.lastAccess = Date.now();
-    metadata.operations.push({ operation, timestamp: Date.now(), latency });
+    metadata.lastAccess = this.getDeterministicTimestamp();
+    metadata.operations.push({ operation, timestamp: this.getDeterministicTimestamp(), latency });
     metadata.totalLatency += latency;
     metadata.averageLatency = metadata.totalLatency / metadata.accessCount;
     
@@ -717,7 +717,7 @@ export class DistributedCache extends EventEmitter {
   startEvictionProcess() {
     setInterval(() => {
       // Evict expired entries
-      const now = Date.now();
+      const now = this.getDeterministicTimestamp();
       
       for (const [key, entry] of this.localCache) {
         if (entry.expiry && now > entry.expiry) {
@@ -738,7 +738,7 @@ export class DistributedCache extends EventEmitter {
   async syncCacheConsistency() {
     if (this.config.consistencyLevel === 'eventual') {
       // For eventual consistency, just clean up expired entries
-      const now = Date.now();
+      const now = this.getDeterministicTimestamp();
       
       for (const [nodeId, nodeStorage] of this.distributedClient.nodes || []) {
         for (const [key, entry] of nodeStorage) {
@@ -773,7 +773,7 @@ export class DistributedCache extends EventEmitter {
   addCacheNode(nodeId, nodeInfo) {
     this.cacheNodes.set(nodeId, {
       ...nodeInfo,
-      addedAt: Date.now(),
+      addedAt: this.getDeterministicTimestamp(),
       status: 'active'
     });
     
@@ -811,8 +811,8 @@ export class DistributedCache extends EventEmitter {
    */
   async healthCheck() {
     try {
-      const testKey = `health:${this.nodeId}:${Date.now()}`;
-      const testValue = { timestamp: Date.now(), nodeId: this.nodeId };
+      const testKey = `health:${this.nodeId}:${this.getDeterministicTimestamp()}`;
+      const testValue = { timestamp: this.getDeterministicTimestamp(), nodeId: this.nodeId };
       
       // Test write
       await this.set(testKey, testValue, { ttl: 60000 });

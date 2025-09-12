@@ -146,7 +146,7 @@ class AdvancedInputValidator extends EventEmitter {
   async validateInput(input, context = {}) {
     try {
       this.metrics.validationAttempts++;
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
       const validationResult = {
         valid: false,
@@ -210,7 +210,7 @@ class AdvancedInputValidator extends EventEmitter {
       
       // Final validation decision
       validationResult.valid = validationResult.threats.length === 0;
-      validationResult.metrics.validationTime = Date.now() - startTime;
+      validationResult.metrics.validationTime = this.getDeterministicTimestamp() - startTime;
       
       // Cache result for performance
       if (this.config.trackingEnabled) {
@@ -999,8 +999,8 @@ class AdvancedInputValidator extends EventEmitter {
     const inputHash = createHash('sha256').update(JSON.stringify(input)).digest('hex');
     const cacheEntry = {
       result,
-      timestamp: Date.now(),
-      expiresAt: Date.now() + 300000 // 5 minutes
+      timestamp: this.getDeterministicTimestamp(),
+      expiresAt: this.getDeterministicTimestamp() + 300000 // 5 minutes
     };
     
     this.validationCache.set(inputHash, cacheEntry);
@@ -1012,7 +1012,7 @@ class AdvancedInputValidator extends EventEmitter {
   }
   
   _cleanupCache() {
-    const now = Date.now();
+    const now = this.getDeterministicTimestamp();
     for (const [key, entry] of this.validationCache.entries()) {
       if (now > entry.expiresAt) {
         this.validationCache.delete(key);

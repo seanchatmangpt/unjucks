@@ -157,7 +157,7 @@ describe('Security Integration Tests', () => {
       const normalActivity = {
         inputSize: 100,
         inputType: 'template',
-        timestamp: Date.now()
+        timestamp: this.getDeterministicTimestamp()
       };
 
       const result = await threatDetector.monitorBehavior(userId, normalActivity);
@@ -173,7 +173,7 @@ describe('Security Integration Tests', () => {
         await threatDetector.monitorBehavior(userId, {
           inputSize: 100,
           inputType: 'template',
-          timestamp: Date.now() - (i * 1000)
+          timestamp: this.getDeterministicTimestamp() - (i * 1000)
         });
       }
 
@@ -181,7 +181,7 @@ describe('Security Integration Tests', () => {
       const anomalousActivity = {
         inputSize: 10000, // 100x larger than baseline
         inputType: 'template',
-        timestamp: Date.now()
+        timestamp: this.getDeterministicTimestamp()
       };
 
       const result = await threatDetector.monitorBehavior(userId, anomalousActivity);
@@ -401,11 +401,11 @@ describe('Security Integration Tests', () => {
         user: { id: `user-${i}`, sessionId: `session-${i}` }
       }));
 
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const results = await Promise.all(
         requests.map(req => securityManager.validateSecurity(req))
       );
-      const duration = Date.now() - startTime;
+      const duration = this.getDeterministicTimestamp() - startTime;
 
       expect(results).toHaveLength(10);
       expect(results.every(r => r.validationId)).toBe(true);
@@ -421,9 +421,9 @@ describe('Security Integration Tests', () => {
         user: { id: 'test-user', sessionId: 'test-session' }
       };
 
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const result = await securityManager.validateSecurity(request);
-      const duration = Date.now() - startTime;
+      const duration = this.getDeterministicTimestamp() - startTime;
 
       expect(result.validationId).toBeDefined();
       expect(duration).toBeLessThan(5000); // Should complete within 5 seconds

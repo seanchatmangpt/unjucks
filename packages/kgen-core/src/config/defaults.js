@@ -63,7 +63,7 @@ export const defaultConfig = {
     
     // Global variables available in all templates
     globalVars: {
-      timestamp: () => new Date().toISOString(),
+      timestamp: () => this.getDeterministicDate().toISOString(),
       version: '1.0.0'
     },
     

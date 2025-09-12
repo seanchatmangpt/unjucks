@@ -1,0 +1,40 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{metadata.title}}</title>
+    <meta name="generator" content="KGEN v{{version}}">
+</head>
+<body>
+    <h1>{{title}}</h1>
+    
+    {{#if graph}}
+    <section class="rdf-data">
+        <h2>RDF Graph Data</h2>
+        <p>Triples: {{graph.triples}}</p>
+        <p>Subjects: {{graph.subjects}}</p>
+        <p>Generated: {{buildTime}}</p>
+    </section>
+    {{/if}}
+    
+    <section class="items">
+        {{#each items}}
+        <div class="item" data-id="{{id}}">
+            <h3>{{name}}</h3>
+            <p>{{description}}</p>
+            {{#if properties}}
+            <ul>
+            {{#each properties}}
+            <li>{{key}}: {{value}}</li>
+            {{/each}}
+            </ul>
+            {{/if}}
+        </div>
+        {{/each}}
+    </section>
+    
+    <footer>
+        <p>Performance test generated at {{timestamp}}</p>
+    </footer>
+</body>
+</html>

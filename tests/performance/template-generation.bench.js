@@ -208,7 +208,7 @@ describe('Template Generation Benchmarks', () => {
     
     const data = {
       title: 'Fortune 5 Performance Test',
-      year: new Date().getFullYear(),
+      year: this.getDeterministicDate().getFullYear(),
       company: 'Unjucks Corp',
       navigation: [
         { url: '/', label: 'Home' },
@@ -250,7 +250,7 @@ describe('Template Generation Benchmarks', () => {
       items: Array.from({ length: 100 }, (_, i) => ({
         title: `Item ${id}-${i}`,
         description: `Description for item ${id}-${i}`,
-        created: Date.now() - (i * 1000 * 60 * 60) // Hours ago
+        created: this.getDeterministicTimestamp() - (i * 1000 * 60 * 60) // Hours ago
       }))
     });
 

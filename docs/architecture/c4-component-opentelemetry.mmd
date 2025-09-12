@@ -1,0 +1,160 @@
+```mermaid
+C4Component
+  title C4 Component Diagram: OpenTelemetry Tracing & Metrics
+  
+  Container_Boundary(telemetry, "OpenTelemetry Core") {
+    Component(tracingProvider, "Tracing Provider", "@opentelemetry/sdk-trace-node", "Manages distributed tracing")
+    Component(metricsProvider, "Metrics Provider", "@opentelemetry/sdk-metrics", "Collects and exports metrics")
+    Component(logsProvider, "Logs Provider", "@opentelemetry/sdk-logs", "Structured logging with correlation")
+    Component(resourceDetector, "Resource Detector", "@opentelemetry/resources", "Auto-detects service resources")
+  }
+  
+  Container_Boundary(instrumentation, "Auto-Instrumentation") {
+    Component(httpInstrumentation, "HTTP Instrumentation", "@opentelemetry/instrumentation-http", "HTTP request/response tracing")
+    Component(fsInstrumentation, "FS Instrumentation", "@opentelemetry/instrumentation-fs", "File system operation tracing")
+    Component(gitInstrumentation, "Git Instrumentation", "Custom", "Git operation tracing")
+    Component(templateInstrumentation, "Template Instrumentation", "Custom", "Template rendering tracing")
+    Component(rdfInstrumentation, "RDF Instrumentation", "Custom", "RDF processing tracing")
+  }
+  
+  Container_Boundary(custom_metrics, "Custom Metrics") {
+    Component(generationMetrics, "Generation Metrics", "Counter, Histogram", "Template generation metrics")
+    Component(performanceMetrics, "Performance Metrics", "Gauge, Histogram", "System performance metrics")
+    Component(errorMetrics, "Error Metrics", "Counter, Gauge", "Error rate and type metrics")
+    Component(dependencyMetrics, "Dependency Metrics", "Counter, Histogram", "Dependency resolution metrics")
+  }
+  
+  Container_Boundary(tracing, "Distributed Tracing") {
+    Component(spanProcessor, "Span Processor", "Batch/Simple", "Processes and batches spans")
+    Component(contextManager, "Context Manager", "Async Context", "Manages trace context propagation")
+    Component(samplingStrategy, "Sampling Strategy", "Probabilistic/Rate", "Configures trace sampling")
+    Component(attributeProcessor, "Attribute Processor", "Span Enhancement", "Enriches spans with metadata")
+  }
+  
+  Container_Boundary(exporters, "Data Exporters") {
+    Component(jaegerExporter, "Jaeger Exporter", "@opentelemetry/exporter-jaeger", "Exports traces to Jaeger")
+    Component(prometheusExporter, "Prometheus Exporter", "@opentelemetry/exporter-prometheus", "Exports metrics to Prometheus")
+    Component(otlpExporter, "OTLP Exporter", "@opentelemetry/exporter-otlp", "Exports to OTLP collectors")
+    Component(consoleExporter, "Console Exporter", "@opentelemetry/exporter-console", "Exports to console for development")
+  }
+  
+  Container_Boundary(collectors, "Data Collectors") {
+    Component(businessMetrics, "Business Metrics", "Custom Collectors", "Collects business-specific metrics")
+    Component(systemMetrics, "System Metrics", "Node.js Metrics", "Collects system resource metrics")
+    Component(customTraces, "Custom Traces", "Manual Instrumentation", "Application-specific tracing")
+    Component(errorTracker, "Error Tracker", "Exception Handling", "Tracks and correlates errors")
+  }
+  
+  SystemDb_Ext(jaegerBackend, "Jaeger Backend", "Distributed tracing backend")
+  SystemDb_Ext(prometheusServer, "Prometheus Server", "Metrics collection and storage")
+  SystemDb_Ext(grafanaDashboard, "Grafana Dashboard", "Metrics visualization")
+  System_Ext(otlpCollector, "OTEL Collector", "OpenTelemetry Collector")
+  System_Ext(alertManager, "Alert Manager", "Prometheus AlertManager")
+  
+  ' Core Telemetry Setup
+  Rel(tracingProvider, spanProcessor, "Span processing")
+  Rel(metricsProvider, prometheusExporter, "Metrics export")
+  Rel(logsProvider, otlpExporter, "Logs export")
+  Rel(resourceDetector, tracingProvider, "Resource attributes")
+  
+  ' Auto-Instrumentation
+  Rel(tracingProvider, httpInstrumentation, "HTTP tracing")
+  Rel(tracingProvider, fsInstrumentation, "File system tracing")
+  Rel(tracingProvider, gitInstrumentation, "Git tracing")
+  Rel(tracingProvider, templateInstrumentation, "Template tracing")
+  Rel(tracingProvider, rdfInstrumentation, "RDF tracing")
+  
+  ' Custom Metrics Collection
+  Rel(metricsProvider, generationMetrics, "Generation metrics")
+  Rel(metricsProvider, performanceMetrics, "Performance metrics")
+  Rel(metricsProvider, errorMetrics, "Error metrics")
+  Rel(metricsProvider, dependencyMetrics, "Dependency metrics")
+  
+  ' Tracing Infrastructure
+  Rel(spanProcessor, contextManager, "Context propagation")
+  Rel(contextManager, samplingStrategy, "Sampling decisions")
+  Rel(samplingStrategy, attributeProcessor, "Span enrichment")
+  
+  ' Data Export Pipeline
+  Rel(spanProcessor, jaegerExporter, "Trace export")
+  Rel(jaegerExporter, jaegerBackend, "Jaeger ingestion")
+  Rel(prometheusExporter, prometheusServer, "Metrics scraping")
+  Rel(otlpExporter, otlpCollector, "OTLP protocol")
+  Rel(consoleExporter, systemMetrics, "Development output")
+  
+  ' Custom Data Collection
+  Rel(businessMetrics, generationMetrics, "Business metrics")
+  Rel(systemMetrics, performanceMetrics, "System metrics")
+  Rel(customTraces, tracingProvider, "Manual traces")
+  Rel(errorTracker, errorMetrics, "Error correlation")
+  
+  ' External Integrations
+  Rel(prometheusServer, grafanaDashboard, "Metrics visualization")
+  Rel(prometheusServer, alertManager, "Alert rules")
+  Rel(otlpCollector, jaegerBackend, "Trace forwarding")
+  
+  ' Cross-component Correlation
+  Rel(errorTracker, tracingProvider, "Error-trace correlation")
+  Rel(contextManager, metricsProvider, "Metrics correlation")
+  Rel(attributeProcessor, businessMetrics, "Business context")
+  
+  UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="1")
+```
+
+## OpenTelemetry Observability Architecture
+
+Comprehensive observability with OpenTelemetry standards compliance:
+
+### Three Pillars of Observability
+- **Distributed Tracing** - Request flow across system components
+- **Metrics Collection** - System and business performance metrics
+- **Structured Logging** - Correlated logs with trace context
+
+### Auto-Instrumentation Coverage
+- **HTTP Operations** - Automatic HTTP request/response tracing
+- **File System** - File I/O operation monitoring
+- **Git Operations** - Version control operation tracking
+- **Template Rendering** - Template processing performance
+- **RDF Processing** - Knowledge graph operation metrics
+
+### Custom Metrics Portfolio
+- **Generation Metrics** - Template generation rates and success
+- **Performance Metrics** - CPU, memory, and throughput metrics
+- **Error Metrics** - Error rates, types, and recovery times
+- **Dependency Metrics** - Dependency resolution performance
+
+### Advanced Tracing Features
+- **Context Propagation** - Trace context across async boundaries
+- **Sampling Strategies** - Intelligent trace sampling
+- **Span Enhancement** - Rich span metadata and attributes
+- **Error Correlation** - Exception tracking with trace correlation
+
+### Export Destinations
+- **Jaeger** - Distributed tracing visualization
+- **Prometheus** - Time-series metrics storage
+- **OTLP Collector** - Vendor-neutral telemetry collection
+- **Console** - Development and debugging output
+
+### Business Intelligence
+- **Generation Analytics** - Template usage patterns
+- **Performance Optimization** - Bottleneck identification
+- **Error Analysis** - Failure mode analysis
+- **Resource Planning** - Capacity planning insights
+
+### Monitoring & Alerting
+- **SLA Monitoring** - Service level agreement tracking
+- **Anomaly Detection** - Statistical anomaly identification
+- **Alert Rules** - Proactive issue notification
+- **Dashboard Analytics** - Real-time operational dashboards
+
+### Development Features
+- **Local Development** - Console exporter for debugging
+- **Testing Integration** - Test-specific telemetry
+- **Performance Profiling** - Detailed performance analysis
+- **Debug Tracing** - Enhanced debugging with traces
+
+### Production Readiness
+- **High Availability** - Resilient telemetry collection
+- **Security** - Secure credential management
+- **Compliance** - GDPR/SOC2 compliant data handling
+- **Cost Optimization** - Efficient data collection and storage

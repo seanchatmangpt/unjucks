@@ -20,7 +20,7 @@ class ArchitectureTester {
   constructor() {
     this.results = new Map();
     this.currentArch = os.arch();
-    this.workspaceDir = path.join(os.tmpdir(), `unjucks-arch-test-${Date.now()}`);
+    this.workspaceDir = path.join(os.tmpdir(), `unjucks-arch-test-${this.getDeterministicTimestamp()}`);
   }
 
   async setup() {
@@ -329,7 +329,7 @@ class ArchitectureTester {
 
   async generateReport() {
     const report = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       currentArchitecture: this.currentArch,
       platform: os.platform(),
       nodeVersion: process.version,

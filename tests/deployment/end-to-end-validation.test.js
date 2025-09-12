@@ -13,7 +13,7 @@ describe('End-to-End Deployment Validation', () => {
   let validationResults = {};
 
   beforeAll(async () => {
-    deploymentId = `e2e-test-${Date.now()}`;
+    deploymentId = `e2e-test-${this.getDeterministicTimestamp()}`;
     console.log(`🚀 Starting E2E deployment validation: ${deploymentId}`);
     
     // Initialize coordination hooks
@@ -193,11 +193,11 @@ describe('End-to-End Deployment Validation', () => {
       ];
       
       for (const command of testCommands) {
-        const startTime = Date.now();
+        const startTime = this.getDeterministicTimestamp();
         
         try {
           execSync(command, { stdio: 'pipe', timeout: 5000 });
-          const duration = Date.now() - startTime;
+          const duration = this.getDeterministicTimestamp() - startTime;
           performanceTests.push({ command, duration, success: true });
           
           // Should complete within reasonable time
@@ -205,7 +205,7 @@ describe('End-to-End Deployment Validation', () => {
         } catch (error) {
           performanceTests.push({ 
             command, 
-            duration: Date.now() - startTime, 
+            duration: this.getDeterministicTimestamp() - startTime, 
             success: false,
             error: error.message
           });
@@ -500,7 +500,7 @@ describe('End-to-End Deployment Validation', () => {
   async function generateValidationReport() {
     const report = {
       deploymentId,
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       environment: 'e2e-test',
       summary: {
         totalChecks: 0,

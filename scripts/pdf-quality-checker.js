@@ -480,7 +480,7 @@ class PDFQualityChecker {
     generateReport(validations) {
         const report = {
             summary: {
-                timestamp: new Date().toISOString(),
+                timestamp: this.getDeterministicDate().toISOString(),
                 total: this.results.total,
                 passed: this.results.passed,
                 failed: this.results.failed,

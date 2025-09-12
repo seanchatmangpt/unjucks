@@ -14,7 +14,7 @@ describe('TemplateScanner - Real Functionality', () => {
 
   beforeEach(async () => {
     // Create unique test directory
-    testDir = path.join(process.cwd(), 'tests', 'temp', `scanner-test-${Date.now()}`);
+    testDir = path.join(process.cwd(), 'tests', 'temp', `scanner-test-${this.getDeterministicTimestamp()}`);
     templatesDir = path.join(testDir, '_templates');
     
     await fs.ensureDir(templatesDir);

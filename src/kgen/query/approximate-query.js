@@ -121,7 +121,7 @@ export class ApproximateQueryEngine extends EventEmitter {
    * @returns {Promise<Object>} Approximate results with confidence bounds
    */
   async executeApproximateQuery(query, dataset, options = {}) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       this.logger.info('Executing approximate SPARQL query');
@@ -178,8 +178,8 @@ export class ApproximateQueryEngine extends EventEmitter {
         execution: {
           strategy: strategy.name,
           sampleSize: sample.size,
-          executionTime: Date.now() - startTime,
-          speedup: await this._calculateSpeedup(queryAnalysis, Date.now() - startTime)
+          executionTime: this.getDeterministicTimestamp() - startTime,
+          speedup: await this._calculateSpeedup(queryAnalysis, this.getDeterministicTimestamp() - startTime)
         },
         metadata: {
           datasetSize: dataset.size,

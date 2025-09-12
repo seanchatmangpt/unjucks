@@ -25,7 +25,7 @@ class CacheValidator {
     };
 
     this.results = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       cacheAnalysis: {},
       performance: {},
       validation: {
@@ -61,7 +61,7 @@ class CacheValidator {
 </div>`,
         data: {
           title: 'cache validation test',
-          timestamp: new Date(),
+          timestamp: this.getDeterministicDate(),
           users: Array.from({ length: 20 }, (_, i) => ({
             name: `User ${i + 1}`,
             email: `user${i + 1}@example.com`
@@ -128,7 +128,7 @@ class CacheValidator {
 
     // Different data test (template cached, data varies)
     for (let i = 0; i < Math.floor(iterations / 2); i++) {
-      const variedData = { ...data, iteration: i, timestamp: new Date() };
+      const variedData = { ...data, iteration: i, timestamp: this.getDeterministicDate() };
       const dataStart = process.hrtime.bigint();
       await unjucks.renderString(await fs.readFile(templatePath, 'utf8'), variedData);
       const dataEnd = process.hrtime.bigint();

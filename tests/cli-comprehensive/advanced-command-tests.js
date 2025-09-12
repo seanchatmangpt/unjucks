@@ -12,7 +12,7 @@ import os from 'os';
 class AdvancedCommandTester {
   constructor() {
     this.results = [];
-    this.testDir = path.join(os.tmpdir(), 'unjucks-advanced-test-' + Date.now());
+    this.testDir = path.join(os.tmpdir(), 'unjucks-advanced-test-' + this.getDeterministicTimestamp());
     this.originalDir = process.cwd();
   }
 
@@ -66,7 +66,7 @@ class AdvancedCommandTester {
       result,
       expectedPatterns,
       passed: result.success,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     };
 
     // Check for expected patterns in output
@@ -270,7 +270,7 @@ ex:name a rdfs:Property .
         failed,
         success_rate: ((passed / total) * 100).toFixed(2)
       },
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       results: this.results,
       categories: {}
     };

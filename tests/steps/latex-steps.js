@@ -526,7 +526,7 @@ Then('I should see package-not-found error message', function () {
 // Store results in memory (Claude-Flow integration)
 Then('store test results in memory under hive\\/tests\\/latex', async function () {
   const results = {
-    timestamp: new Date().toISOString(),
+    timestamp: this.getDeterministicDate().toISOString(),
     lastGeneratedFile: testContext.lastGeneratedFile,
     compilationResult: testContext.compilationResult,
     testsPassed: !testContext.compilationResult || testContext.compilationResult.success

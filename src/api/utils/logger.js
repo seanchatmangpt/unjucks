@@ -14,7 +14,7 @@ class Logger {
   }
 
   formatMessage(level, message, meta = {}) {
-    const timestamp = new Date().toISOString();
+    const timestamp = this.getDeterministicDate().toISOString();
     const metaStr = Object.keys(meta).length ? ` ${JSON.stringify(meta)}` : '';
     return `[${timestamp}] ${level.toUpperCase()}: ${message}${metaStr}\n`;
   }
@@ -54,4 +54,4 @@ class Logger {
   }
 }
 
-module.exports = new Logger();
+module.exports = new Consola();

@@ -149,7 +149,7 @@ async function listTemplatesForGenerator(templatesDir, generator, detailed) {
       generatorPath,
       templates,
       count: templates.length,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     };
 
     return createJSONToolResult(result);
@@ -178,7 +178,7 @@ async function listAllGenerators(templatesDir, detailed) {
       generators,
       count: generators.length,
       totalTemplates: generators.reduce((sum, gen) => sum + (gen.templateCount || 0), 0),
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     };
 
     return createJSONToolResult(result);

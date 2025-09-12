@@ -7,7 +7,7 @@
  */
 
 import { EventEmitter } from 'events';
-import { Logger } from 'consola';
+import { Consola } from 'consola';
 import { WebSocket, WebSocketServer } from 'ws';
 import crypto from 'crypto';
 
@@ -44,7 +44,7 @@ export class CollaborativeReasoningEngine extends EventEmitter {
       ...config
     };
     
-    this.logger = new Logger({ tag: 'collaborative-reasoning' });
+    this.logger = new Consola({ tag: 'collaborative-reasoning' });
     this.state = 'initialized';
     
     // Collaboration state
@@ -154,8 +154,8 @@ export class CollaborativeReasoningEngine extends EventEmitter {
         ...collaborator,
         sessionId,
         status: 'active',
-        joinedAt: new Date(),
-        lastActivity: Date.now(),
+        joinedAt: this.getDeterministicDate(),
+        lastActivity: this.getDeterministicTimestamp(),
         
         // Capabilities and performance
         capabilities: collaborator.capabilities || [],
@@ -230,7 +230,7 @@ export class CollaborativeReasoningEngine extends EventEmitter {
    */
   async executeCollaborativeReasoning(sessionId, reasoningTask, options = {}) {
     const taskId = this._generateTaskId();
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       this.logger.info(`Starting collaborative reasoning task ${taskId} in session ${sessionId}`);
@@ -290,7 +290,7 @@ export class CollaborativeReasoningEngine extends EventEmitter {
       await this._learnFromCollaboration(taskContext, mergedResults);
       
       // Update metrics
-      const executionTime = Date.now() - startTime;
+      const executionTime = this.getDeterministicTimestamp() - startTime;
       this._updateCollaborationMetrics(taskId, executionTime, true);
       
       this.emit('collaborative:completed', {
@@ -317,7 +317,7 @@ export class CollaborativeReasoningEngine extends EventEmitter {
       };
       
     } catch (error) {
-      const executionTime = Date.now() - startTime;
+      const executionTime = this.getDeterministicTimestamp() - startTime;
       this._updateCollaborationMetrics(taskId, executionTime, false);
       
       this.emit('collaborative:failed', { taskId, sessionId, error, executionTime });
@@ -394,9 +394,9 @@ export class CollaborativeReasoningEngine extends EventEmitter {
       const syncResults = await this._propagateSynchronizedState(resolvedState, session);
       
       // Update session state
-      session.lastSync = Date.now();
+      session.lastSync = this.getDeterministicTimestamp();
       session.syncHistory.push({
-        timestamp: Date.now(),
+        timestamp: this.getDeterministicTimestamp(),
         conflicts: conflicts.length,
         participants: stateSnapshot.participants.length,
         success: syncResults.success
@@ -555,19 +555,19 @@ export class CollaborativeReasoningEngine extends EventEmitter {
   }
 
   _generateSessionId() {
-    return `session_${Date.now()}_${crypto.randomBytes(4).toString('hex')}`;
+    return `session_${this.getDeterministicTimestamp()}_${crypto.randomBytes(4).toString('hex')}`;
   }
 
   _generateCollaboratorId() {
-    return `collaborator_${Date.now()}_${crypto.randomBytes(4).toString('hex')}`;
+    return `collaborator_${this.getDeterministicTimestamp()}_${crypto.randomBytes(4).toString('hex')}`;
   }
 
   _generateTaskId() {
-    return `task_${Date.now()}_${crypto.randomBytes(4).toString('hex')}`;
+    return `task_${this.getDeterministicTimestamp()}_${crypto.randomBytes(4).toString('hex')}`;
   }
 
   _generateShareId() {
-    return `share_${Date.now()}_${crypto.randomBytes(4).toString('hex')}`;
+    return `share_${this.getDeterministicTimestamp()}_${crypto.randomBytes(4).toString('hex')}`;
   }
 
   async _validateCollaborator(collaborator) {
@@ -584,7 +584,7 @@ export class CollaborativeReasoningEngine extends EventEmitter {
       protocol: collaborator.communication.protocol,
       endpoint: collaborator.communication.endpoint,
       compression: collaborator.communication.compression,
-      established: Date.now()
+      established: this.getDeterministicTimestamp()
     };
     
     this.communicationChannels.set(collaborator.id, channelConfig);
@@ -601,9 +601,9 @@ export class CollaborativeReasoningEngine extends EventEmitter {
       
       // Session state
       status: 'active',
-      createdAt: new Date(),
-      lastActivity: Date.now(),
-      lastSync: Date.now(),
+      createdAt: this.getDeterministicDate(),
+      lastActivity: this.getDeterministicTimestamp(),
+      lastSync: this.getDeterministicTimestamp(),
       
       // Performance tracking
       taskHistory: [],
@@ -637,7 +637,7 @@ export class CollaborativeReasoningEngine extends EventEmitter {
       type: 'session-knowledge',
       sessionId,
       knowledge: Array.from(session.knowledgeBase.entries()),
-      timestamp: Date.now()
+      timestamp: this.getDeterministicTimestamp()
     };
     
     await this._sendToCollaborator(collaboratorId, knowledgePacket);

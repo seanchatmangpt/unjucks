@@ -131,7 +131,7 @@ async function readCoverageResults(outputDir) {
     return {
       detailed: coverageData,
       summary: summaryData,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     };
     
   } catch (error) {
@@ -327,7 +327,7 @@ function generateCoverageReport(analysisResult, options = {}) {
   // Save report if requested
   if (outputPath) {
     const reportData = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       analysis,
       coverage: coverage.summary,
       success: analysisResult.success

@@ -102,7 +102,7 @@ export class ValidationEngine extends EventEmitter {
         rules: this.templateValidationRules.size + this.codeValidationRules.size + 
                this.dataValidationRules.size + this.fileValidationRules.size,
         patterns: this.securityPatterns.size + this.vulnerabilityPatterns.size,
-        timestamp: new Date()
+        timestamp: this.getDeterministicDate()
       });
       
       return {
@@ -124,7 +124,7 @@ export class ValidationEngine extends EventEmitter {
    */
   async validateTemplate(template) {
     try {
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       this.metrics.validationsPerformed++;
       
       this.logger.debug(`Validating template: ${template.name}`);
@@ -133,7 +133,7 @@ export class ValidationEngine extends EventEmitter {
       const cacheKey = this._generateCacheKey('template', template);
       if (this.config.enableCaching && this.validationCache.has(cacheKey)) {
         const cached = this.validationCache.get(cacheKey);
-        if (Date.now() - cached.timestamp < this.config.cacheTimeout) {
+        if (this.getDeterministicTimestamp() - cached.timestamp < this.config.cacheTimeout) {
           this.metrics.cacheHits++;
           return cached.result;
         }
@@ -195,7 +195,7 @@ export class ValidationEngine extends EventEmitter {
       this._cacheResult(cacheKey, validationResult);
       
       // Update average validation time
-      const validationTime = Date.now() - startTime;
+      const validationTime = this.getDeterministicTimestamp() - startTime;
       this.metrics.averageValidationTime = 
         (this.metrics.averageValidationTime + validationTime) / 2;
       
@@ -429,7 +429,7 @@ export class ValidationEngine extends EventEmitter {
       
       ruleMap.set(rule.id, {
         ...rule,
-        createdAt: new Date(),
+        createdAt: this.getDeterministicDate(),
         enabled: rule.enabled !== false
       });
       
@@ -1077,13 +1077,13 @@ export class ValidationEngine extends EventEmitter {
     if (this.config.enableCaching) {
       this.validationCache.set(cacheKey, {
         result,
-        timestamp: Date.now()
+        timestamp: this.getDeterministicTimestamp()
       });
     }
   }
 
   _cleanupExpiredCache() {
-    const now = Date.now();
+    const now = this.getDeterministicTimestamp();
     
     for (const [key, cached] of this.validationCache.entries()) {
       if (now - cached.timestamp > this.config.cacheTimeout) {

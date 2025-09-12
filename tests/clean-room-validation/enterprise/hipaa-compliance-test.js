@@ -11,7 +11,7 @@ const crypto = require('crypto');
 class HIPAAComplianceTestRunner {
   constructor() {
     this.testResults = [];
-    this.startTime = Date.now();
+    this.startTime = this.getDeterministicTimestamp();
   }
 
   /**
@@ -266,10 +266,10 @@ class HIPAAComplianceTestRunner {
           const encrypted = {
             algorithm: 'AES-256-GCM',
             encryptedData: Buffer.from(JSON.stringify(data)).toString('base64'),
-            keyId: 'phi-key-' + Date.now(),
+            keyId: 'phi-key-' + this.getDeterministicTimestamp(),
             iv: crypto.randomBytes(16).toString('hex'),
             tag: crypto.randomBytes(16).toString('hex'),
-            timestamp: new Date().toISOString()
+            timestamp: this.getDeterministicDate().toISOString()
           };
           
           return encrypted;
@@ -544,19 +544,19 @@ class HIPAAComplianceTestRunner {
             requiresHHSNotification: patientsAffected > 0,
             requiresMediaNotification: patientsAffected >= 500,
             requiresPatientNotification: patientsAffected > 0,
-            notificationDeadline: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000) // 60 days
+            notificationDeadline: new Date(this.getDeterministicTimestamp() + 60 * 24 * 60 * 60 * 1000) // 60 days
           };
         },
         notifyHHS: async (assessment) => {
-          return { notified: true, timestamp: new Date(), recipient: 'HHS Secretary' };
+          return { notified: true, timestamp: this.getDeterministicDate(), recipient: 'HHS Secretary' };
         },
         notifyMedia: async (assessment) => {
-          return { notified: true, timestamp: new Date(), outlets: ['Local media outlets'] };
+          return { notified: true, timestamp: this.getDeterministicDate(), outlets: ['Local media outlets'] };
         },
         notifyPatients: async (assessment) => {
           return { 
             notified: true, 
-            timestamp: new Date(), 
+            timestamp: this.getDeterministicDate(), 
             patientsNotified: assessment.patientsAffected,
             method: assessment.patientsAffected > 10 ? 'mail' : 'phone'
           };
@@ -680,7 +680,7 @@ class HIPAAComplianceTestRunner {
           
           // Time-based access check (emergency access)
           if (timeBasedAccess) {
-            const currentHour = new Date().getHours();
+            const currentHour = this.getDeterministicDate().getHours();
             const isBusinessHours = currentHour >= 8 && currentHour <= 17;
             const isEmergency = purpose.emergency || false;
             validationChecks.push(isBusinessHours || isEmergency);
@@ -730,7 +730,7 @@ class HIPAAComplianceTestRunner {
 
       // Simulate audit logging
       const auditEvent = {
-        auditId: 'HIPAA_PHI_' + Date.now(),
+        auditId: 'HIPAA_PHI_' + this.getDeterministicTimestamp(),
         operation: 'PHI_ACCESS',
         user: {
           roleHash: this.hashValue(testUser.role),
@@ -742,7 +742,7 @@ class HIPAAComplianceTestRunner {
         fieldsAccessed: ['name', 'diagnosis', 'medications'],
         hipaaRules: ['PRIVACY_RULE', 'SECURITY_RULE', 'MINIMUM_NECESSARY'],
         complianceFramework: 'HIPAA',
-        timestamp: new Date().toISOString()
+        timestamp: this.getDeterministicDate().toISOString()
       };
 
       const auditValid = auditEvent.auditId && 
@@ -891,7 +891,7 @@ class HIPAAComplianceTestRunner {
   }
 
   generateTestReport() {
-    const endTime = Date.now();
+    const endTime = this.getDeterministicTimestamp();
     const duration = endTime - this.startTime;
     const passedTests = this.testResults.filter(test => test.passed).length;
     const totalTests = this.testResults.length;
@@ -904,7 +904,7 @@ class HIPAAComplianceTestRunner {
         failedTests: totalTests - passedTests,
         successRate: `${((passedTests / totalTests) * 100).toFixed(1)}%`,
         duration: `${duration}ms`,
-        timestamp: new Date().toISOString()
+        timestamp: this.getDeterministicDate().toISOString()
       },
       results: this.testResults,
       compliance: {

@@ -108,7 +108,7 @@ class QualityMonitor {
   }
 
   async performQualityCheck() {
-    const timestamp = new Date().toISOString();
+    const timestamp = this.getDeterministicDate().toISOString();
     console.log(`\n🔍 Quality check at ${new Date(timestamp).toLocaleString()}`);
     
     const metrics = await this.collectCurrentMetrics();
@@ -418,8 +418,8 @@ class QualityMonitor {
   async handleAlert(alert) {
     const alertData = {
       ...alert,
-      id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      timestamp: new Date().toISOString()
+      id: `${this.getDeterministicTimestamp()}-${Math.random().toString(36).substr(2, 9)}`,
+      timestamp: this.getDeterministicDate().toISOString()
     };
     
     // Store alert
@@ -512,7 +512,7 @@ class QualityMonitor {
     const { timeout = 30000 } = options;
     
     return new Promise((resolve, reject) => {
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const [cmd, ...args] = command.split(' ');
       
       const process = spawn(cmd, args, {
@@ -546,7 +546,7 @@ class QualityMonitor {
           code,
           stdout,
           stderr,
-          duration: Date.now() - startTime
+          duration: this.getDeterministicTimestamp() - startTime
         });
       });
       
@@ -592,7 +592,7 @@ class QualityMonitor {
 
   async generateMonitoringReport() {
     const report = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       summary: {
         totalChecks: this.monitoringData.metrics.length,
         totalAlerts: this.monitoringData.alerts.length,

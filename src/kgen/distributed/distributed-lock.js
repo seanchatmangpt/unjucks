@@ -99,7 +99,7 @@ export class DistributedLock extends EventEmitter {
       setNX: async (key, value, ttl) => {
         if (this.client.storage.has(key)) {
           const existing = this.client.storage.get(key);
-          if (existing.expiry > Date.now()) {
+          if (existing.expiry > this.getDeterministicTimestamp()) {
             return false; // Key exists and not expired
           }
           // Clean up expired key
@@ -108,8 +108,8 @@ export class DistributedLock extends EventEmitter {
         
         this.client.storage.set(key, {
           value,
-          expiry: Date.now() + ttl,
-          timestamp: Date.now()
+          expiry: this.getDeterministicTimestamp() + ttl,
+          timestamp: this.getDeterministicTimestamp()
         });
         
         return true;
@@ -120,7 +120,7 @@ export class DistributedLock extends EventEmitter {
         const entry = this.client.storage.get(key);
         if (!entry) return null;
         
-        if (entry.expiry <= Date.now()) {
+        if (entry.expiry <= this.getDeterministicTimestamp()) {
           this.client.storage.delete(key);
           return null;
         }
@@ -146,8 +146,8 @@ export class DistributedLock extends EventEmitter {
         const entry = this.client.storage.get(key);
         if (!entry) return false;
         
-        if (entry.value === expectedValue && entry.expiry > Date.now()) {
-          entry.expiry = Date.now() + newTTL;
+        if (entry.value === expectedValue && entry.expiry > this.getDeterministicTimestamp()) {
+          entry.expiry = this.getDeterministicTimestamp() + newTTL;
           return true;
         }
         
@@ -170,15 +170,15 @@ export class DistributedLock extends EventEmitter {
         // Simplified consensus: majority of nodes must agree
         const lock = this.client.locks.get(key);
         
-        if (lock && lock.expiry > Date.now() && lock.owner !== nodeId) {
+        if (lock && lock.expiry > this.getDeterministicTimestamp() && lock.owner !== nodeId) {
           return false; // Lock held by another node
         }
         
         // Grant lock
         this.client.locks.set(key, {
           owner: nodeId,
-          expiry: Date.now() + ttl,
-          timestamp: Date.now(),
+          expiry: this.getDeterministicTimestamp() + ttl,
+          timestamp: this.getDeterministicTimestamp(),
           votes: 1 // Simplified - in real implementation would require majority
         });
         
@@ -196,8 +196,8 @@ export class DistributedLock extends EventEmitter {
       
       renewLock: async (key, nodeId, newTTL) => {
         const lock = this.client.locks.get(key);
-        if (lock && lock.owner === nodeId && lock.expiry > Date.now()) {
-          lock.expiry = Date.now() + newTTL;
+        if (lock && lock.owner === nodeId && lock.expiry > this.getDeterministicTimestamp()) {
+          lock.expiry = this.getDeterministicTimestamp() + newTTL;
           return true;
         }
         return false;
@@ -215,14 +215,14 @@ export class DistributedLock extends EventEmitter {
       
       acquire: async (key, nodeId, ttl) => {
         const existing = this.client.locks.get(key);
-        if (existing && existing.expiry > Date.now()) {
+        if (existing && existing.expiry > this.getDeterministicTimestamp()) {
           return false;
         }
         
         this.client.locks.set(key, {
           owner: nodeId,
-          expiry: Date.now() + ttl,
-          timestamp: Date.now()
+          expiry: this.getDeterministicTimestamp() + ttl,
+          timestamp: this.getDeterministicTimestamp()
         });
         
         return true;
@@ -240,7 +240,7 @@ export class DistributedLock extends EventEmitter {
       renew: async (key, nodeId, newTTL) => {
         const lock = this.client.locks.get(key);
         if (lock && lock.owner === nodeId) {
-          lock.expiry = Date.now() + newTTL;
+          lock.expiry = this.getDeterministicTimestamp() + newTTL;
           return true;
         }
         return false;
@@ -255,7 +255,7 @@ export class DistributedLock extends EventEmitter {
     const ttl = Math.min(options.ttl || this.config.defaultTTL, this.config.maxTTL);
     const timeout = options.timeout || this.config.acquireTimeout;
     const nodeId = options.nodeId || this.nodeId;
-    const lockValue = `${nodeId}:${crypto.randomUUID()}:${Date.now()}`;
+    const lockValue = `${nodeId}:${crypto.randomUUID()}:${this.getDeterministicTimestamp()}`;
     
     // Check if we already have a pending acquisition for this lock
     if (this.pendingAcquisitions.has(lockKey)) {
@@ -277,10 +277,10 @@ export class DistributedLock extends EventEmitter {
    * Attempt to acquire lock with retries
    */
   async attemptAcquisition(lockKey, lockValue, ttl, timeout, nodeId) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     let attempt = 0;
     
-    while (Date.now() - startTime < timeout && attempt < this.config.maxRetries) {
+    while (this.getDeterministicTimestamp() - startTime < timeout && attempt < this.config.maxRetries) {
       attempt++;
       
       try {
@@ -293,8 +293,8 @@ export class DistributedLock extends EventEmitter {
             value: lockValue,
             nodeId,
             ttl,
-            acquiredAt: Date.now(),
-            expiresAt: Date.now() + ttl,
+            acquiredAt: this.getDeterministicTimestamp(),
+            expiresAt: this.getDeterministicTimestamp() + ttl,
             renewCount: 0
           };
           
@@ -326,7 +326,7 @@ export class DistributedLock extends EventEmitter {
       }
       
       // Wait before retry
-      if (attempt < this.config.maxRetries && Date.now() - startTime < timeout) {
+      if (attempt < this.config.maxRetries && this.getDeterministicTimestamp() - startTime < timeout) {
         await this.sleep(this.config.retryDelay * Math.min(attempt, 5)); // Exponential backoff cap
       }
     }
@@ -400,7 +400,7 @@ export class DistributedLock extends EventEmitter {
         this.stopAutoRenewal(lockKey);
         this.activeLocks.delete(lockKey);
         
-        const holdTime = Date.now() - lockInfo.acquiredAt;
+        const holdTime = this.getDeterministicTimestamp() - lockInfo.acquiredAt;
         this.updateHoldTimeStatistics(holdTime);
         
         this.statistics.locksReleased++;
@@ -460,7 +460,7 @@ export class DistributedLock extends EventEmitter {
       }
       
       if (renewed) {
-        lockInfo.expiresAt = Date.now() + newTTL;
+        lockInfo.expiresAt = this.getDeterministicTimestamp() + newTTL;
         lockInfo.renewCount++;
         
         this.statistics.renewalsSucceeded++;
@@ -604,7 +604,7 @@ export class DistributedLock extends EventEmitter {
    */
   async healthCheck() {
     try {
-      const testKey = `health:${this.nodeId}:${Date.now()}`;
+      const testKey = `health:${this.nodeId}:${this.getDeterministicTimestamp()}`;
       
       // Test acquire
       const acquired = await this.acquire(testKey, { ttl: 10000 });
@@ -648,7 +648,7 @@ export class DistributedLock extends EventEmitter {
    * Cleanup expired locks and timers
    */
   cleanup() {
-    const now = Date.now();
+    const now = this.getDeterministicTimestamp();
     const expiredLocks = [];
     
     for (const [lockKey, lockInfo] of this.activeLocks) {

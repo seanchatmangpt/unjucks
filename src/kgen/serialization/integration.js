@@ -214,7 +214,7 @@ export class KGenSerializationIntegration extends EventEmitter {
         ...masterValidation,
         kgen: kgenValidation,
         overall: masterValidation.syntaxValid && kgenValidation.valid,
-        timestamp: new Date()
+        timestamp: this.getDeterministicDate()
       };
       
     } catch (error) {
@@ -407,7 +407,7 @@ export class KGenSerializationIntegration extends EventEmitter {
         this.serializationCache.delete(oldestKey);
       }
       
-      this.serializationCache.set(cacheKey, Date.now());
+      this.serializationCache.set(cacheKey, this.getDeterministicTimestamp());
       
     } catch (error) {
       this.logger.error('Failed to cache serialization result:', error);
@@ -493,7 +493,7 @@ export class KGenSerializationIntegration extends EventEmitter {
         integrationVersion: '1.0.0',
         subsystemsUsed: this._getActiveIntegrations(),
         enterpriseFeatures: this.config.enterpriseFeatures,
-        timestamp: new Date()
+        timestamp: this.getDeterministicDate()
       }
     };
   }
@@ -541,7 +541,7 @@ export class KGenSerializationIntegration extends EventEmitter {
         data: serialization.turtle,
         provenance,
         format,
-        combinedAt: new Date()
+        combinedAt: this.getDeterministicDate()
       }
     };
   }

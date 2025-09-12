@@ -421,14 +421,14 @@ describe('N3ReasoningEngine', () => {
 
     it('should optimize reasoning with caching', async () => {
       // First reasoning pass
-      const start1 = Date.now();
+      const start1 = this.getDeterministicTimestamp();
       const result1 = await engine.performReasoning(testStore);
-      const time1 = Date.now() - start1;
+      const time1 = this.getDeterministicTimestamp() - start1;
 
       // Second reasoning pass (should use cache)
-      const start2 = Date.now();
+      const start2 = this.getDeterministicTimestamp();
       const result2 = await engine.performReasoning(testStore);
-      const time2 = Date.now() - start2;
+      const time2 = this.getDeterministicTimestamp() - start2;
 
       expect(time2).toBeLessThan(time1);
       expect(result2.statistics.cacheHits).toBeGreaterThan(0);
@@ -448,9 +448,9 @@ describe('N3ReasoningEngine', () => {
         largeDataset.addQuads(triples);
       }
 
-      const start = Date.now();
+      const start = this.getDeterministicTimestamp();
       const result = await engine.performReasoning(largeDataset);
-      const time = Date.now() - start;
+      const time = this.getDeterministicTimestamp() - start;
 
       expect(result.inferredTriples.length).toBeGreaterThan(1000);
       expect(time).toBeLessThan(10000); // Should complete within 10 seconds

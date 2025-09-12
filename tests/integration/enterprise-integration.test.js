@@ -254,7 +254,7 @@ describe('KGEN Enterprise Integration Tests', () => {
             const eventData = {
                 id: 'test-graph-123',
                 name: 'Test Graph',
-                createdAt: new Date().toISOString()
+                createdAt: this.getDeterministicDate().toISOString()
             };
 
             const deliveryCount = await webhookManager.triggerWebhook(
@@ -287,7 +287,7 @@ describe('KGEN Enterprise Integration Tests', () => {
     describe('Message Queue Integration', () => {
         test('should queue and process messages', async () => {
             const messageType = 'test.message';
-            const payload = { test: 'data', timestamp: Date.now() };
+            const payload = { test: 'data', timestamp: this.getDeterministicTimestamp() };
 
             // Queue message
             const job = await messageQueue.queueMessage(messageType, payload, {
@@ -698,9 +698,9 @@ export const testUtils = {
     },
 
     async waitForJob(jobId, timeout = 10000) {
-        const startTime = Date.now();
+        const startTime = this.getDeterministicTimestamp();
         
-        while (Date.now() - startTime < timeout) {
+        while (this.getDeterministicTimestamp() - startTime < timeout) {
             const response = await request(`http://localhost:${TEST_CONFIG.api.port}`)
                 .get(`/api/v1/jobs/${jobId}`)
                 .set('Authorization', `Bearer ${authToken}`);

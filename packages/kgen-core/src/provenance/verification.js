@@ -80,7 +80,7 @@ export class CryptographicVerifier {
    * @returns {Promise<Object>} Verification result
    */
   async verifyArtifact(artifactPath, attestation = null) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     const verificationId = uuidv4();
     
     try {
@@ -104,7 +104,7 @@ export class CryptographicVerifier {
       const result = {
         verificationId,
         artifactPath: path.resolve(artifactPath),
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         valid: true,
         errors: [],
         warnings: [],
@@ -150,7 +150,7 @@ export class CryptographicVerifier {
       await this.verifyIntegrityDatabase(artifactPath, result);
       
       // Update metrics
-      result.metrics.verificationTime = Date.now() - startTime;
+      result.metrics.verificationTime = this.getDeterministicTimestamp() - startTime;
       this.metrics.verificationsPerformed++;
       
       if (!result.valid) {
@@ -175,12 +175,12 @@ export class CryptographicVerifier {
       return {
         verificationId,
         artifactPath: path.resolve(artifactPath),
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         valid: false,
         errors: [`Verification failed: ${error.message}`],
         warnings: [],
         checks: {},
-        metrics: { verificationTime: Date.now() - startTime }
+        metrics: { verificationTime: this.getDeterministicTimestamp() - startTime }
       };
     }
   }
@@ -193,7 +193,7 @@ export class CryptographicVerifier {
    * @returns {Promise<void>}
    */
   async verifyHashes(artifactPath, attestation, result) {
-    const hashStartTime = Date.now();
+    const hashStartTime = this.getDeterministicTimestamp();
     
     try {
       // Compute current hash
@@ -236,7 +236,7 @@ export class CryptographicVerifier {
         }
       }
       
-      result.metrics.hashComputeTime = Date.now() - hashStartTime;
+      result.metrics.hashComputeTime = this.getDeterministicTimestamp() - hashStartTime;
     } catch (error) {
       result.errors.push(`Hash verification failed: ${error.message}`);
       result.valid = false;
@@ -250,7 +250,7 @@ export class CryptographicVerifier {
    * @returns {Promise<void>}
    */
   async verifySignature(attestation, result) {
-    const signatureStartTime = Date.now();
+    const signatureStartTime = this.getDeterministicTimestamp();
     
     try {
       const signature = attestation.signature;
@@ -300,7 +300,7 @@ export class CryptographicVerifier {
         }
       }
       
-      result.metrics.signatureVerifyTime = Date.now() - signatureStartTime;
+      result.metrics.signatureVerifyTime = this.getDeterministicTimestamp() - signatureStartTime;
       this.metrics.signaturesVerified++;
     } catch (error) {
       result.errors.push(`Signature verification failed: ${error.message}`);
@@ -338,7 +338,7 @@ export class CryptographicVerifier {
       // Verify timestamps
       if (attestation.timestamp) {
         const timestamp = new Date(attestation.timestamp);
-        const now = new Date();
+        const now = this.getDeterministicDate();
         
         if (timestamp > now) {
           result.warnings.push('Attestation timestamp is in the future');
@@ -586,8 +586,8 @@ export class CryptographicVerifier {
     const cacheKey = path.resolve(artifactPath);
     const cacheEntry = {
       result,
-      timestamp: Date.now(),
-      expires: Date.now() + this.config.cacheTimeout
+      timestamp: this.getDeterministicTimestamp(),
+      expires: this.getDeterministicTimestamp() + this.config.cacheTimeout
     };
     
     this.verificationCache.set(cacheKey, cacheEntry);
@@ -602,7 +602,7 @@ export class CryptographicVerifier {
     const cacheKey = path.resolve(artifactPath);
     const entry = this.verificationCache.get(cacheKey);
     
-    if (entry && Date.now() < entry.expires) {
+    if (entry && this.getDeterministicTimestamp() < entry.expires) {
       this.metrics.cacheHits++;
       return entry.result;
     }

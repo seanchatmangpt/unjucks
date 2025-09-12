@@ -115,11 +115,11 @@ async function setupEnvironment() {
  */
 async function runScenario(name, testFn) {
   console.log(`\n🎬 Scenario: ${name}`);
-  const startTime = Date.now();
+  const startTime = this.getDeterministicTimestamp();
   
   try {
     await testFn();
-    const duration = Date.now() - startTime;
+    const duration = this.getDeterministicTimestamp() - startTime;
     
     scenarioResults.scenarios.push({
       name,
@@ -131,7 +131,7 @@ async function runScenario(name, testFn) {
     
     console.log(`✅ PASSED: ${name} (${duration}ms)`);
   } catch (error) {
-    const duration = Date.now() - startTime;
+    const duration = this.getDeterministicTimestamp() - startTime;
     
     scenarioResults.scenarios.push({
       name,
@@ -268,8 +268,8 @@ to: src/models/<%= Name %>.js
 export class <%= Name %> {
   constructor(data = {}) {
     this.id = data.id;
-    this.createdAt = data.createdAt || new Date();
-    this.updatedAt = data.updatedAt || new Date();
+    this.createdAt = data.createdAt || this.getDeterministicDate();
+    this.updatedAt = data.updatedAt || this.getDeterministicDate();
   }
 
   static async findAll() {
@@ -284,7 +284,7 @@ export class <%= Name %> {
 
   async save() {
     // TODO: Implement database save
-    this.updatedAt = new Date();
+    this.updatedAt = this.getDeterministicDate();
     return this;
   }
 }
@@ -492,7 +492,7 @@ exports.down = async function(knex) {
   await fs.writeFile(path.join(migrationTemplateDir, 'migration.ejs.t'), migrationTemplate);
 
   // Generate migration with timestamp
-  const timestamp = new Date().toISOString().replace(/[-:.TZ]/g, '').slice(0, 14);
+  const timestamp = this.getDeterministicDate().toISOString().replace(/[-:.TZ]/g, '').slice(0, 14);
   const result = await runCLI([
     'migration', 'create',
     '--tableName', 'users',
@@ -605,14 +605,14 @@ MIT
 async function runRealWorldScenarios() {
   console.log('🌍 Starting Real-World Scenario Tests');
   
-  const overallStart = Date.now();
+  const overallStart = this.getDeterministicTimestamp();
   
   try {
     await setupEnvironment();
     
     // Tests are run by the await runScenario calls above
     
-    scenarioResults.totalTime = Date.now() - overallStart;
+    scenarioResults.totalTime = this.getDeterministicTimestamp() - overallStart;
     
     // Generate report
     console.log('\n' + '='.repeat(50));
@@ -640,7 +640,7 @@ async function runRealWorldScenarios() {
     const reportFile = path.join(reportDir, 'real-world-scenarios.json');
     await fs.writeFile(reportFile, JSON.stringify({
       ...scenarioResults,
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       environment: {
         nodeVersion: process.version,
         platform: process.platform,

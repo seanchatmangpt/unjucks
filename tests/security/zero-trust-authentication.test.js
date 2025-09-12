@@ -236,8 +236,8 @@ describe('Zero-Trust Authentication Security', () => {
       const session = {
         sessionId: 'sess-123',
         userId: 'user123',
-        createdAt: Date.now() - 1800000, // 30 minutes ago
-        lastActivity: Date.now() - 60000, // 1 minute ago
+        createdAt: this.getDeterministicTimestamp() - 1800000, // 30 minutes ago
+        lastActivity: this.getDeterministicTimestamp() - 60000, // 1 minute ago
         deviceFingerprint: 'device-123',
         ipAddress: '10.0.1.100'
       };
@@ -286,12 +286,12 @@ describe('Zero-Trust Authentication Security', () => {
       const approval = {
         approved: true,
         approvedBy: 'manager@company.com',
-        approvedAt: Date.now(),
-        validUntil: Date.now() + accessRequest.duration
+        approvedAt: this.getDeterministicTimestamp(),
+        validUntil: this.getDeterministicTimestamp() + accessRequest.duration
       };
 
       expect(approval.approved).toBe(true);
-      expect(approval.validUntil).toBeGreaterThan(Date.now());
+      expect(approval.validUntil).toBeGreaterThan(this.getDeterministicTimestamp());
     });
 
     it('should enforce principle of least privilege', async () => {
@@ -323,7 +323,7 @@ describe('Zero-Trust Authentication Security', () => {
     it('should log all authentication events', async () => {
       const authEvents = [
         {
-          timestamp: Date.now(),
+          timestamp: this.getDeterministicTimestamp(),
           eventType: 'LOGIN_SUCCESS',
           userId: 'user123',
           ipAddress: '10.0.1.100',
@@ -331,13 +331,13 @@ describe('Zero-Trust Authentication Security', () => {
           riskScore: 0.2
         },
         {
-          timestamp: Date.now() + 1000,
+          timestamp: this.getDeterministicTimestamp() + 1000,
           eventType: 'MFA_CHALLENGE',
           userId: 'user123',
           method: 'TOTP'
         },
         {
-          timestamp: Date.now() + 2000,
+          timestamp: this.getDeterministicTimestamp() + 2000,
           eventType: 'ACCESS_GRANTED',
           userId: 'user123',
           resource: '/api/data',
@@ -404,12 +404,12 @@ describe('Zero-Trust Authentication Security', () => {
       };
 
       const requestHistory = Array(120).fill(null).map((_, i) => ({
-        timestamp: Date.now() - (i * 500), // Every 500ms
+        timestamp: this.getDeterministicTimestamp() - (i * 500), // Every 500ms
         success: Math.random() > 0.1 // 90% success rate
       }));
 
       const recentRequests = requestHistory.filter(req => 
-        Date.now() - req.timestamp < rateLimitConfig.windowMs
+        this.getDeterministicTimestamp() - req.timestamp < rateLimitConfig.windowMs
       );
 
       expect(recentRequests.length).toBeGreaterThan(rateLimitConfig.maxRequests);

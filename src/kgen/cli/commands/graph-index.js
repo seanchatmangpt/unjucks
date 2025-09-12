@@ -139,7 +139,7 @@ export const graphIndexCommand = {
       }
       
       // Execute graph indexing
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
       const indexResult = await adapter.executeGraphIndex(graphPath, {
         format: options.format,
@@ -147,7 +147,7 @@ export const graphIndexCommand = {
         validate: options.validate
       });
       
-      const totalTime = Date.now() - startTime;
+      const totalTime = this.getDeterministicTimestamp() - startTime;
       
       // Output results
       if (options['output-format'] === 'json') {

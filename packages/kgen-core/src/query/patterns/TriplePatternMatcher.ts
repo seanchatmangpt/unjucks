@@ -61,7 +61,7 @@ export class TriplePatternMatcher extends EventEmitter {
     bindings: Binding[] = [{}],
     options: MatchingOptions = {}
   ): Promise<PatternMatch> {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       // Apply existing bindings to pattern
@@ -74,7 +74,7 @@ export class TriplePatternMatcher extends EventEmitter {
       const matches = await this.executePatternMatch(boundPattern, strategy, options);
       
       // Calculate statistics
-      const cost = Date.now() - startTime;
+      const cost = this.getDeterministicTimestamp() - startTime;
       const selectivity = this.calculateSelectivity(boundPattern, matches.length);
       
       // Update statistics
@@ -161,7 +161,7 @@ export class TriplePatternMatcher extends EventEmitter {
    * Build or rebuild all indexes
    */
   buildIndexes(): void {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     // Clear existing indexes
     Object.values(this.indexes).forEach(index => index.clear());
@@ -175,7 +175,7 @@ export class TriplePatternMatcher extends EventEmitter {
       this.indexSize++;
     }
     
-    const buildTime = Date.now() - startTime;
+    const buildTime = this.getDeterministicTimestamp() - startTime;
     
     this.emit('indexes:built', {
       indexSize: this.indexSize,
@@ -722,7 +722,7 @@ export class TriplePatternMatcher extends EventEmitter {
     existing.averageCost = existing.totalCost / existing.executionCount;
     existing.averageResults = existing.totalResults / existing.executionCount;
     existing.bestSelectivity = Math.min(existing.bestSelectivity, selectivity);
-    existing.lastExecuted = Date.now();
+    existing.lastExecuted = this.getDeterministicTimestamp();
 
     this.statistics.set(key, existing);
   }

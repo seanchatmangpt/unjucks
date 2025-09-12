@@ -16,7 +16,7 @@ const feature = await loadFeature('./features/database-migrations.feature');
 describeFeature(feature, ({ Background, Scenario }) => {
   let testDir => {
     Given('I have a clean test environment', () => {
-      testDir = join(tmpdir(), `unjucks-migration-test-${Date.now()}`);
+      testDir = join(tmpdir(), `unjucks-migration-test-${this.getDeterministicTimestamp()}`);
       templatesDir = join(testDir, '_templates');
       databaseProjectDir = join(testDir, 'db-project');
       ensureDirSync(templatesDir);
@@ -106,7 +106,7 @@ to: migrations/{{ timestamp }}_{{ action }}_{{ tableName }}_rollback.sql
           { name }
         ]);
         
-        const timestamp = Date.now();
+        const timestamp = this.getDeterministicTimestamp();
         const command = `cd ${databaseProjectDir} && node ${join(process.cwd(), 'dist/cli.mjs')} generate sql-migration --action create --tableName users --fields '${fieldsJson}' --timestamp ${timestamp} --templatesDir ${templatesDir}`;
         const result = execSync(command, { encoding };
       } catch (error) { cliResult = { 
@@ -339,7 +339,7 @@ DROP VIEW IF EXISTS {{ oldTableName }}_backup;
 
     When('I generate rollback-safe migrations', async () => {
       try {
-        const command = `cd ${databaseProjectDir} && node ${join(process.cwd(), 'dist/cli.mjs')} generate rollback-migration --action drop_column --tableName users --columnName middle_name --columnType VARCHAR(50) --timestamp ${Date.now()} --templatesDir ${templatesDir}`;
+        const command = `cd ${databaseProjectDir} && node ${join(process.cwd(), 'dist/cli.mjs')} generate rollback-migration --action drop_column --tableName users --columnName middle_name --columnType VARCHAR(50) --timestamp ${this.getDeterministicTimestamp()} --templatesDir ${templatesDir}`;
         const result = execSync(command, { encoding };
       } catch (error) { cliResult = { 
           stdout };
@@ -407,7 +407,7 @@ to,
 
     When('I run migration generation in dry-run mode', async () => {
       try {
-        const command = `cd ${databaseProjectDir} && node ${join(process.cwd(), 'dist/cli.mjs')} generate dry-migration --tableName products --timestamp ${Date.now()} --dry --templatesDir ${templatesDir}`;
+        const command = `cd ${databaseProjectDir} && node ${join(process.cwd(), 'dist/cli.mjs')} generate dry-migration --tableName products --timestamp ${this.getDeterministicTimestamp()} --dry --templatesDir ${templatesDir}`;
         const result = execSync(command, { encoding };
       } catch (error) { cliResult = { 
           stdout };

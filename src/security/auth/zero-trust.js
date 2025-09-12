@@ -107,7 +107,7 @@ class ZeroTrustManager {
     }
 
     // Update last seen
-    trustedDevice.lastSeen = new Date()
+    trustedDevice.lastSeen = this.getDeterministicDate()
     trustedDevice.ipAddress = request.ip
 
     return trustedDevice.trustScore > 0.5
@@ -129,7 +129,7 @@ class ZeroTrustManager {
     const isValidChain = await this.verifyCertificateChain(clientCert)
     
     // Check certificate expiry
-    const now = new Date()
+    const now = this.getDeterministicDate()
     const isNotExpired = new Date(clientCert.validTo) > now
 
     // Check certificate revocation
@@ -179,7 +179,7 @@ class ZeroTrustManager {
     const device = {
       id: fingerprint,
       fingerprint,
-      lastSeen: new Date(),
+      lastSeen: this.getDeterministicDate(),
       trustScore: 0.1, // Low initial trust
       ipAddress: request.ip,
       userAgent: request.userAgent,
@@ -244,7 +244,7 @@ class ZeroTrustManager {
         clientIP: ip,
         network,
         error: error.message,
-        timestamp: new Date().toISOString()
+        timestamp: this.getDeterministicDate().toISOString()
       });
       return false; // Fail secure
     }
@@ -303,7 +303,7 @@ class ZeroTrustManager {
    * @returns {Promise<number>}
    */
   async getRequestFrequency(ip) {
-    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000)
+    const oneHourAgo = new Date(this.getDeterministicTimestamp() - 60 * 60 * 1000)
     return this.securityEvents.filter(event => 
       event.source === ip && event.timestamp > oneHourAgo
     ).length
@@ -348,8 +348,8 @@ class ZeroTrustManager {
    */
   async logSecurityEvent(event) {
     const securityEvent = {
-      id: createHash('sha256').update(JSON.stringify(event) + Date.now()).digest('hex'),
-      timestamp: new Date(),
+      id: createHash('sha256').update(JSON.stringify(event) + this.getDeterministicTimestamp()).digest('hex'),
+      timestamp: this.getDeterministicDate(),
       ...event
     }
 

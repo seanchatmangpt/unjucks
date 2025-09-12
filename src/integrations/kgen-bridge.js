@@ -139,7 +139,7 @@ export class KgenBridge {
    * @returns {Promise<Object>} Enhanced result with KGEN analysis
    */
   async processWorkflowResult(workflowResult) {
-    const processingId = `kgen-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const processingId = `kgen-${this.getDeterministicTimestamp()}-${Math.random().toString(36).substr(2, 9)}`;
     
     try {
       this.logger.info(`Processing workflow result through KGEN: ${processingId}`);
@@ -571,7 +571,7 @@ export class KgenBridge {
           },
           metadata: {
             workflowId: workflowResult.workflowId,
-            createdAt: new Date()
+            createdAt: this.getDeterministicDate()
           }
         });
       });
@@ -590,7 +590,7 @@ export class KgenBridge {
           },
           metadata: {
             workflowId: workflowResult.workflowId,
-            usedAt: new Date()
+            usedAt: this.getDeterministicDate()
           }
         });
       });
@@ -615,7 +615,7 @@ export class KgenBridge {
             source: artifact.template,
             target: artifact.id,
             properties: {
-              generatedAt: new Date(),
+              generatedAt: this.getDeterministicDate(),
               workflowId: workflowResult.workflowId
             }
           });
@@ -635,7 +635,7 @@ export class KgenBridge {
             target: 'external-dependencies',
             properties: {
               type: 'import-dependency',
-              detectedAt: new Date()
+              detectedAt: this.getDeterministicDate()
             }
           });
         }

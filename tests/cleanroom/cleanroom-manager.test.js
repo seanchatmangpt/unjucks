@@ -13,7 +13,7 @@ describe('CleanroomManager', () => {
 
   beforeEach(async () => {
     // Create temporary directory for tests
-    testDir = path.join(process.cwd(), 'test-cleanroom-' + Date.now());
+    testDir = path.join(process.cwd(), 'test-cleanroom-' + this.getDeterministicTimestamp());
     await fs.mkdir(testDir, { recursive: true });
 
     cleanroomManager = new CleanroomManager({

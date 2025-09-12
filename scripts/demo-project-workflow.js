@@ -84,7 +84,7 @@ console.log("Hello World!");
     const artifact2Path = path.join(demoDir, 'generated-output-2.json');
     const artifact2Content = JSON.stringify({
       message: "Goodbye World!",
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       generator: "demo-template-2"
     }, null, 2);
     await fs.writeFile(artifact2Path, artifact2Content);
@@ -93,7 +93,7 @@ console.log("Hello World!");
     const attestation1 = {
       artifactPath: artifact1Path,
       artifactHash: 'mock-hash-1',
-      generatedAt: new Date().toISOString(),
+      generatedAt: this.getDeterministicDate().toISOString(),
       templateId: 'demo-template-1',
       operationId: 'demo-op-1',
       engineVersion: '1.0.0'
@@ -103,7 +103,7 @@ console.log("Hello World!");
     const attestation2 = {
       artifactPath: artifact2Path,
       artifactHash: 'mock-hash-2',
-      generatedAt: new Date().toISOString(),
+      generatedAt: this.getDeterministicDate().toISOString(),
       templateId: 'demo-template-2',
       operationId: 'demo-op-2',
       engineVersion: '1.0.0'
@@ -133,7 +133,7 @@ console.log("Hello World!");
           purpose: request.purpose
         },
         size: 1024,
-        createdAt: new Date().toISOString()
+        createdAt: this.getDeterministicDate().toISOString()
       };
     };
 

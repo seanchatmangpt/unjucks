@@ -114,9 +114,9 @@ async function runTest(testName, testFn) {
     await setupTestDir();
     process.chdir(TEST_CONFIG.tempDir);
     
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     await testFn();
-    const duration = Date.now() - startTime;
+    const duration = this.getDeterministicTimestamp() - startTime;
     
     testResults.passed++;
     testResults.details.push({
@@ -392,7 +392,7 @@ unless_exists: true
 ---
 /**
  * <%= name %> Component
- * Generated on <%= new Date().toISOString() %>
+ * Generated on <%= this.getDeterministicDate().toISOString() %>
  */
 import React from 'react';
 
@@ -500,7 +500,7 @@ export const <%= name %><%= i %> = 'bulk-generated-<%= i %>';
 `;
   await fs.writeFile(path.join(templatesDir, 'index.ejs.t'), bulkTemplate);
 
-  const startTime = Date.now();
+  const startTime = this.getDeterministicTimestamp();
 
   // Generate multiple files by running command multiple times
   const promises = [];
@@ -511,7 +511,7 @@ export const <%= name %><%= i %> = 'bulk-generated-<%= i %>';
   }
 
   const results = await Promise.all(promises);
-  const duration = Date.now() - startTime;
+  const duration = this.getDeterministicTimestamp() - startTime;
 
   // Verify all generations succeeded
   for (const result of results) {
@@ -559,14 +559,14 @@ async function runAllTests() {
   console.log(`📁 Test directory: ${TEST_CONFIG.tempDir}`);
   console.log(`🔧 CLI path: ${TEST_CONFIG.cliPath}`);
   
-  const startTime = Date.now();
+  const startTime = this.getDeterministicTimestamp();
   
   // Cleanup before starting
   await cleanupTestDir();
   
   // All test execution is handled by individual runTest calls above
   
-  const totalTime = Date.now() - startTime;
+  const totalTime = this.getDeterministicTimestamp() - startTime;
   
   // Generate final report
   console.log('\n' + '='.repeat(60));
@@ -593,7 +593,7 @@ async function runAllTests() {
       failed: testResults.failed,
       successRate: (testResults.passed / testResults.total) * 100,
       totalTimeMs: totalTime,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     },
     tests: testResults.details,
     errors: testResults.errors,
@@ -624,7 +624,7 @@ const memoryKey = 'gaps/e2e/results';
 const memoryResults = {
   testSuite: 'E2E User Journeys',
   results: testResults,
-  timestamp: new Date().toISOString(),
+  timestamp: this.getDeterministicDate().toISOString(),
   status: testResults.failed === 0 ? 'ALL_PASSED' : 'SOME_FAILED'
 };
 

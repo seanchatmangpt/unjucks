@@ -15,7 +15,7 @@ const feature = await loadFeature('./features/documentation-generation.feature')
 describeFeature(feature, ({ Background, Scenario }) => {
   let testDir => {
     Given('I have a clean test environment', () => {
-      testDir = join(tmpdir(), `unjucks-docs-test-${Date.now()}`);
+      testDir = join(tmpdir(), `unjucks-docs-test-${this.getDeterministicTimestamp()}`);
       templatesDir = join(testDir, '_templates');
       projectDir = join(testDir, 'project');
       ensureDirSync(templatesDir);
@@ -164,7 +164,7 @@ This project is licensed under the {{ license }} License.
 
 ---
 
-Generated on {{ new Date().toLocaleDateString() }}
+Generated on {{ this.getDeterministicDate().toLocaleDateString() }}
 `);
 
       await templateBuilder.addFile('CONTRIBUTING.md.ejs', `---
@@ -441,7 +441,7 @@ All API endpoints return errors in the following format:
 
 ---
 
-*Generated on {{ new Date().toISOString() }}*
+*Generated on {{ this.getDeterministicDate().toISOString() }}*
 `);
 
       await templateBuilder.addFile('postman-collection.json.ejs', `---
@@ -584,7 +584,7 @@ to)
 {% endfor %}
 
 ---
-*Last updated: {{ new Date().toLocaleDateString() }}*
+*Last updated: {{ this.getDeterministicDate().toLocaleDateString() }}*
 `);
 
       // HTML format

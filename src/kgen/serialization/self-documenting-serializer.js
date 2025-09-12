@@ -87,8 +87,8 @@ export class SelfDocumentingSerializer extends EventEmitter {
     try {
       this.logger.info('Starting self-documenting serialization...');
       
-      const startTime = Date.now();
-      const context = { ...this.config, ...options, timestamp: new Date() };
+      const startTime = this.getDeterministicTimestamp();
+      const context = { ...this.config, ...options, timestamp: this.getDeterministicDate() };
       
       // Get canonical serialization first
       const canonical = await this.canonicalSerializer.serializeCanonical(quads, options);
@@ -108,7 +108,7 @@ export class SelfDocumentingSerializer extends EventEmitter {
         canonical, 
         analysis, 
         context,
-        Date.now() - startTime
+        this.getDeterministicTimestamp() - startTime
       );
       
       const result = {

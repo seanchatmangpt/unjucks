@@ -194,7 +194,7 @@ class KGenTestOrchestrator extends EventEmitter {
     }
 
     this.isRunning = true;
-    this.overallResults.startTime = new Date();
+    this.overallResults.startTime = this.getDeterministicDate();
     const overallStartTime = performance.now();
 
     try {
@@ -214,7 +214,7 @@ class KGenTestOrchestrator extends EventEmitter {
       // Calculate overall results
       this.calculateOverallResults(results);
       this.overallResults.totalDuration = performance.now() - overallStartTime;
-      this.overallResults.endTime = new Date();
+      this.overallResults.endTime = this.getDeterministicDate();
 
       // Generate comprehensive reports
       await this.generateComprehensiveReports();
@@ -432,7 +432,7 @@ class KGenTestOrchestrator extends EventEmitter {
         name: suiteDefinition.name,
         category: suiteDefinition.category,
         duration: performance.now() - startTime,
-        timestamp: new Date()
+        timestamp: this.getDeterministicDate()
       };
 
     } catch (error) {
@@ -444,7 +444,7 @@ class KGenTestOrchestrator extends EventEmitter {
         name: suiteDefinition.name,
         category: suiteDefinition.category,
         duration: performance.now() - startTime,
-        timestamp: new Date()
+        timestamp: this.getDeterministicDate()
       };
     }
   }
@@ -470,7 +470,7 @@ class KGenTestOrchestrator extends EventEmitter {
         error: error.message,
         suite: suiteDefinition.id,
         duration: performance.now() - startTime,
-        timestamp: new Date()
+        timestamp: this.getDeterministicDate()
       };
     }
   }
@@ -660,7 +660,7 @@ class KGenTestOrchestrator extends EventEmitter {
 
     const reportData = {
       metadata: {
-        timestamp: new Date(),
+        timestamp: this.getDeterministicDate(),
         orchestrator: 'KGEN Test Orchestrator',
         version: '1.0.0',
         platform: process.platform,
@@ -688,21 +688,21 @@ class KGenTestOrchestrator extends EventEmitter {
     // Generate master JSON report
     const jsonReport = JSON.stringify(reportData, null, 2);
     await fs.writeFile(
-      path.join(this.options.reportDir, `kgen-test-orchestration-${Date.now()}.json`),
+      path.join(this.options.reportDir, `kgen-test-orchestration-${this.getDeterministicTimestamp()}.json`),
       jsonReport
     );
 
     // Generate master HTML report
     const htmlReport = this.generateHTMLReport(reportData);
     await fs.writeFile(
-      path.join(this.options.reportDir, `kgen-test-orchestration-${Date.now()}.html`),
+      path.join(this.options.reportDir, `kgen-test-orchestration-${this.getDeterministicTimestamp()}.html`),
       htmlReport
     );
 
     // Generate master markdown report
     const markdownReport = this.generateMarkdownReport(reportData);
     await fs.writeFile(
-      path.join(this.options.reportDir, `kgen-test-orchestration-${Date.now()}.md`),
+      path.join(this.options.reportDir, `kgen-test-orchestration-${this.getDeterministicTimestamp()}.md`),
       markdownReport
     );
 

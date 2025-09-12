@@ -178,7 +178,7 @@ export class ChaosEngineer extends EventEmitter {
       id: experimentId,
       type: experimentType,
       target: targetService,
-      startTime: Date.now(),
+      startTime: this.getDeterministicTimestamp(),
       duration: options.duration || this.config.defaultDuration,
       phase: ExperimentPhase.PREPARE,
       metrics: {
@@ -397,7 +397,7 @@ export class ChaosEngineer extends EventEmitter {
     this._log(experiment, 'Starting analysis phase');
     await this._executeAnalysisPhase(experiment, definition);
     
-    experiment.endTime = Date.now();
+    experiment.endTime = this.getDeterministicTimestamp();
   }
   
   /**
@@ -435,9 +435,9 @@ export class ChaosEngineer extends EventEmitter {
    * Execute monitor phase
    */
   async _executeMonitorPhase(experiment, definition) {
-    const monitoringEnd = Date.now() + experiment.duration;
+    const monitoringEnd = this.getDeterministicTimestamp() + experiment.duration;
     
-    while (Date.now() < monitoringEnd && experiment.phase === ExperimentPhase.MONITOR) {
+    while (this.getDeterministicTimestamp() < monitoringEnd && experiment.phase === ExperimentPhase.MONITOR) {
       const healthMetrics = await definition.monitor(experiment.target);
       
       this._log(experiment, `Health metrics: ${JSON.stringify(healthMetrics)}`);
@@ -456,7 +456,7 @@ export class ChaosEngineer extends EventEmitter {
    * Execute recovery phase
    */
   async _executeRecoveryPhase(experiment, definition) {
-    const recoveryStart = Date.now();
+    const recoveryStart = this.getDeterministicTimestamp();
     
     this._log(experiment, 'Starting recovery process');
     
@@ -468,7 +468,7 @@ export class ChaosEngineer extends EventEmitter {
       // Wait for system to stabilize
       await this._waitForRecovery(experiment.target);
       
-      const recoveryTime = Date.now() - recoveryStart;
+      const recoveryTime = this.getDeterministicTimestamp() - recoveryStart;
       experiment.metrics.recoveryTime = recoveryTime;
       
       // Update average recovery time
@@ -606,9 +606,9 @@ export class ChaosEngineer extends EventEmitter {
    * Wait for system recovery
    */
   async _waitForRecovery(target, timeout = 60000) {
-    const start = Date.now();
+    const start = this.getDeterministicTimestamp();
     
-    while (Date.now() - start < timeout) {
+    while (this.getDeterministicTimestamp() - start < timeout) {
       try {
         // Check if system is healthy
         const health = await this._checkTargetHealth(target);
@@ -662,7 +662,7 @@ export class ChaosEngineer extends EventEmitter {
    */
   _log(experiment, message) {
     experiment.logs.push({
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       phase: experiment.phase,
       message
     });
@@ -674,7 +674,7 @@ export class ChaosEngineer extends EventEmitter {
    * Generate experiment ID
    */
   _generateExperimentId() {
-    return `chaos-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
+    return `chaos-${this.getDeterministicTimestamp()}-${Math.random().toString(36).substring(2, 8)}`;
   }
   
   /**

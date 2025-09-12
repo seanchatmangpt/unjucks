@@ -194,7 +194,7 @@ class KGenTestFrameworkArchitect {
         id: suite.id,
         category: suite.category,
         name: suite.name,
-        startTime: new Date(),
+        startTime: this.getDeterministicDate(),
         tests: [],
         passed: 0,
         failed: 0,
@@ -221,7 +221,7 @@ class KGenTestFrameworkArchitect {
 
       // Calculate duration
       suiteResults.duration = performance.now() - this.suiteStartTime;
-      suiteResults.endTime = new Date();
+      suiteResults.endTime = this.getDeterministicDate();
 
       // Store results
       this.testResults.set(suite.id, suiteResults);
@@ -251,7 +251,7 @@ class KGenTestFrameworkArchitect {
       category: test.category || 'general',
       status: 'pending',
       duration: 0,
-      startTime: new Date(),
+      startTime: this.getDeterministicDate(),
       endTime: null,
       error: null,
       assertions: 0,
@@ -294,7 +294,7 @@ class KGenTestFrameworkArchitect {
       this.logger.debug(`  ❌ ${test.name}: ${error.message}`);
     } finally {
       testResult.duration = performance.now() - this.testStartTime;
-      testResult.endTime = new Date();
+      testResult.endTime = this.getDeterministicDate();
     }
 
     return testResult;
@@ -471,7 +471,7 @@ class KGenTestFrameworkArchitect {
             this.performanceMetrics.push({
               label,
               duration,
-              timestamp: new Date()
+              timestamp: this.getDeterministicDate()
             });
             return duration;
           }
@@ -780,7 +780,7 @@ SELECT ?entity WHERE {
             files: ['output/TestEntity.js'],
             provenance: {
               operationId: 'test-op-123',
-              timestamp: new Date().toISOString()
+              timestamp: this.getDeterministicDate().toISOString()
             }
           };
           
@@ -873,7 +873,7 @@ SELECT ?entity WHERE {
           this.benchmarkResults.push({
             test: 'template-rendering',
             ...benchmark,
-            timestamp: new Date()
+            timestamp: this.getDeterministicDate()
           });
           
           return {
@@ -1070,7 +1070,7 @@ SELECT ?entity WHERE {
   async generateComprehensiveReport() {
     const reportData = {
       metadata: {
-        timestamp: new Date(),
+        timestamp: this.getDeterministicDate(),
         framework: 'KGEN Testing Framework Architect',
         version: '1.0.0',
         node_version: process.version,

@@ -119,7 +119,7 @@ global.detectRegression = (current, baseline, threshold = 0.1) => {
 // Performance report generation
 global.generatePerformanceReport = () => {
   const report = {
-    timestamp: new Date().toISOString(),
+    timestamp: this.getDeterministicDate().toISOString(),
     testDuration: global.performanceMetrics.testStartTime ? 
       performance.now() - global.performanceMetrics.testStartTime : 0,
     measurements: global.performanceMetrics.measurements,
@@ -149,7 +149,7 @@ global.savePerformanceBaseline = async (testName, metrics) => {
   
   const baselinePath = path.join(baselineDir, `${testName}.json`);
   await fs.writeJson(baselinePath, {
-    timestamp: new Date().toISOString(),
+    timestamp: this.getDeterministicDate().toISOString(),
     metrics,
     version: process.env.npm_package_version || 'unknown'
   }, { spaces: 2 });
@@ -180,7 +180,7 @@ afterAll(async () => {
   await fs.ensureDir('reports/performance');
   
   // Save detailed performance report
-  const reportPath = `reports/performance/test-run-${Date.now()}.json`;
+  const reportPath = `reports/performance/test-run-${this.getDeterministicTimestamp()}.json`;
   await fs.writeJson(reportPath, report, { spaces: 2 });
   
   console.log(`Performance report saved to: ${reportPath}`);

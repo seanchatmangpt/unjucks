@@ -141,7 +141,7 @@ describe('ProjectManager', () => {
         signature: null,
         manifest: { bundleId: 'test-bundle' },
         size: 1024,
-        createdAt: new Date().toISOString()
+        createdAt: this.getDeterministicDate().toISOString()
       });
 
       const options = {
@@ -168,7 +168,7 @@ describe('ProjectManager', () => {
         bundleHash: 'custom-hash',
         manifest: { purpose: 'custom-purpose' },
         size: 2048,
-        createdAt: new Date().toISOString()
+        createdAt: this.getDeterministicDate().toISOString()
       });
 
       const options = {

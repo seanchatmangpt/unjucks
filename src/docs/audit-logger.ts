@@ -146,9 +146,9 @@ export interface AuditLoggerConfig {
 export class AuditLogger extends EventEmitter {
   private config: AuditLoggerConfig;
   private eventBuffer: AuditEvent[] = [];
-  private lastFlush: number = Date.now();
+  private lastFlush: number = this.getDeterministicTimestamp();
   private alerts: AuditAlert[] = [];
-  private alertLastCheck: number = Date.now();
+  private alertLastCheck: number = this.getDeterministicTimestamp();
   private eventIndex: Map<string, Set<string>> = new Map();
   private sequenceNumber: number = 0;
   private lastEventHash: string = '';
@@ -297,7 +297,7 @@ export class AuditLogger extends EventEmitter {
     const data = {
       sequence: this.sequenceNumber,
       lastHash: this.lastEventHash,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     };
     writeFileSync(sequenceFile, JSON.stringify(data, null, 2), 'utf-8');
   }
@@ -327,7 +327,7 @@ export class AuditLogger extends EventEmitter {
     const auditEvent: AuditEvent = {
       ...event,
       id: this.generateEventId(),
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       hash: ''
     };
 
@@ -361,7 +361,7 @@ export class AuditLogger extends EventEmitter {
   }
 
   private generateEventId(): string {
-    const timestamp = Date.now();
+    const timestamp = this.getDeterministicTimestamp();
     const random = randomBytes(4).toString('hex');
     return `AUD-${timestamp}-${random}`;
   }
@@ -450,7 +450,7 @@ export class AuditLogger extends EventEmitter {
 
     try {
       // Write to daily log file
-      const today = new Date().toISOString().slice(0, 10);
+      const today = this.getDeterministicDate().toISOString().slice(0, 10);
       const logFile = join(this.config.logDir, 'daily', `audit-${today}.jsonl`);
       
       const logEntries = this.eventBuffer.map(event => JSON.stringify(event)).join('\n') + '\n';
@@ -473,7 +473,7 @@ export class AuditLogger extends EventEmitter {
 
       // Clear buffer
       this.eventBuffer = [];
-      this.lastFlush = Date.now();
+      this.lastFlush = this.getDeterministicTimestamp();
 
     } catch (error) {
       console.error('❌ Error flushing audit buffer:', error);
@@ -502,7 +502,7 @@ export class AuditLogger extends EventEmitter {
   }
 
   private checkAlerts(): void {
-    const now = Date.now();
+    const now = this.getDeterministicTimestamp();
     
     for (const alert of this.alerts) {
       if (!alert.enabled) continue;
@@ -518,7 +518,7 @@ export class AuditLogger extends EventEmitter {
       // Check alert condition
       if (this.evaluateAlertCondition(alert)) {
         this.triggerAlert(alert);
-        alert.lastTriggered = new Date().toISOString();
+        alert.lastTriggered = this.getDeterministicDate().toISOString();
       }
     }
 
@@ -528,7 +528,7 @@ export class AuditLogger extends EventEmitter {
   private evaluateAlertCondition(alert: AuditAlert): boolean {
     const condition = alert.condition;
     const timeWindow = condition.timeWindow || 60; // Default 1 hour
-    const startTime = new Date(Date.now() - timeWindow * 60 * 1000).toISOString();
+    const startTime = new Date(this.getDeterministicTimestamp() - timeWindow * 60 * 1000).toISOString();
     
     // Query events matching condition
     const query: AuditQuery = {
@@ -551,12 +551,12 @@ export class AuditLogger extends EventEmitter {
   private triggerAlert(alert: AuditAlert): void {
     console.log(`🚨 AUDIT ALERT: ${alert.name}`);
     console.log(`   Description: ${alert.description}`);
-    console.log(`   Triggered: ${new Date().toISOString()}`);
+    console.log(`   Triggered: ${this.getDeterministicDate().toISOString()}`);
 
     // Emit alert event
     this.emit('audit-alert', {
       alert,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     });
 
     // Send notifications (would integrate with notification services)
@@ -618,7 +618,7 @@ export class AuditLogger extends EventEmitter {
     try {
       // Determine date range for file scanning
       const startDate = query.startDate ? new Date(query.startDate) : new Date(0);
-      const endDate = query.endDate ? new Date(query.endDate) : new Date();
+      const endDate = query.endDate ? new Date(query.endDate) : this.getDeterministicDate();
 
       // Scan daily log files
       const dailyDir = join(this.config.logDir, 'daily');
@@ -828,7 +828,7 @@ export class AuditLogger extends EventEmitter {
 
   public exportEvents(query: AuditQuery, format: 'json' | 'csv' | 'xlsx' = 'json'): string {
     const events = this.queryEvents(query);
-    const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+    const timestamp = this.getDeterministicDate().toISOString().slice(0, 19).replace(/:/g, '-');
     const filename = `audit-export-${timestamp}.${format}`;
     const filepath = join(this.config.logDir, filename);
 
@@ -939,7 +939,7 @@ export class AuditLogger extends EventEmitter {
   public createAlert(alert: Omit<AuditAlert, 'id'>): string {
     const newAlert: AuditAlert = {
       ...alert,
-      id: `alert-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`
+      id: `alert-${this.getDeterministicTimestamp()}-${Math.random().toString(36).substr(2, 5)}`
     };
 
     this.alerts.push(newAlert);

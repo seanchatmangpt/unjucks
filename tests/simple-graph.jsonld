@@ -1,0 +1,40 @@
+{
+  "@context": {
+    "ex": "http://example.org/",
+    "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#"
+  },
+  "@graph": [
+    {
+      "@id": "ex:UserService",
+      "@type": "ex:RESTService",
+      "ex:hasBaseURL": "http://localhost:3000",
+      "ex:hasVersion": "1.0.0",
+      "rdfs:label": "User Management API",
+      "rdfs:comment": "A REST service for managing user entities"
+    },
+    {
+      "@id": "ex:User",
+      "@type": "ex:Entity",
+      "rdfs:label": "User",
+      "rdfs:comment": "User entity with validation properties"
+    },
+    {
+      "@id": "ex:name",
+      "@type": "ex:Property",
+      "rdfs:label": "User Name",
+      "ex:hasType": "string",
+      "ex:isRequired": "true",
+      "ex:hasMinLength": "2",
+      "ex:hasMaxLength": "100"
+    },
+    {
+      "@id": "ex:email",
+      "@type": "ex:Property", 
+      "rdfs:label": "Email Address",
+      "ex:hasType": "string",
+      "ex:isRequired": "true",
+      "ex:hasPattern": "^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$"
+    }
+  ]
+}

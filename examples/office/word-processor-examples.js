@@ -32,7 +32,7 @@ async function basicWordProcessing() {
       customerName: 'John Doe',
       companyName: 'Acme Corporation',
       invoiceNumber: 'INV-2024-001',
-      date: new Date(),
+      date: this.getDeterministicDate(),
       items: [
         { description: 'Web Development', quantity: 40, rate: 125, amount: 5000 },
         { description: 'Consulting', quantity: 10, rate: 150, amount: 1500 }
@@ -314,7 +314,7 @@ async function batchProcessing() {
           customerName: 'ABC Company',
           invoiceNumber: 'INV-001',
           amount: 1500,
-          dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 days from now
+          dueDate: new Date(this.getDeterministicTimestamp() + 30 * 24 * 60 * 60 * 1000) // 30 days from now
         },
         options: {
           outputPath: './output/batch/invoice-abc-001.docx'
@@ -326,7 +326,7 @@ async function batchProcessing() {
           customerName: 'XYZ Corporation',
           invoiceNumber: 'INV-002',
           amount: 2750,
-          dueDate: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000) // 15 days from now
+          dueDate: new Date(this.getDeterministicTimestamp() + 15 * 24 * 60 * 60 * 1000) // 15 days from now
         },
         options: {
           outputPath: './output/batch/invoice-xyz-002.docx'
@@ -337,7 +337,7 @@ async function batchProcessing() {
         data: {
           customerName: '123 Industries',
           quoteNumber: 'QUO-001',
-          validUntil: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days validity
+          validUntil: new Date(this.getDeterministicTimestamp() + 7 * 24 * 60 * 60 * 1000), // 7 days validity
           items: [
             { service: 'Web Design', hours: 40, rate: 100 },
             { service: 'Development', hours: 80, rate: 125 }
@@ -536,10 +536,10 @@ async function performanceExample() {
     console.log('📊 Initial stats:', processor.getStats());
     
     // Simulate multiple processing operations
-    const testData = { name: 'Performance Test', date: new Date() };
+    const testData = { name: 'Performance Test', date: this.getDeterministicDate() };
     
     console.log('\n🏃 Running performance test...');
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     // Process same template multiple times to test caching
     for (let i = 0; i < 3; i++) {
@@ -554,7 +554,7 @@ async function performanceExample() {
       }
     }
     
-    const totalTime = Date.now() - startTime;
+    const totalTime = this.getDeterministicTimestamp() - startTime;
     const finalStats = processor.getStats();
     
     console.log('\n📈 Final Performance Stats:');

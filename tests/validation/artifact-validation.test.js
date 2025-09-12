@@ -344,13 +344,13 @@ describe('KGEN Artifact Validation', () => {
       }
 
       // Validation should complete within reasonable time
-      const start = Date.now();
+      const start = this.getDeterministicTimestamp();
       
       // Simulate validation of all files
       const files = Array.from({ length: numFiles }, (_, i) => join(testDir, `test${i}.ttl`));
       files.forEach(file => expect(existsSync(file)).toBe(true));
       
-      const duration = Date.now() - start;
+      const duration = this.getDeterministicTimestamp() - start;
       expect(duration).toBeLessThan(1000); // Should complete within 1 second
     });
   });

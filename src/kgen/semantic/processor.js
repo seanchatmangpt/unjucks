@@ -142,7 +142,7 @@ export class SemanticProcessor extends EventEmitter {
       this.ontologyCache.set(source.id || source.uri, {
         metadata,
         quads,
-        loadedAt: new Date(),
+        loadedAt: this.getDeterministicDate(),
         source
       });
       
@@ -214,7 +214,7 @@ export class SemanticProcessor extends EventEmitter {
       this.logger.info(`Starting reasoning with ${rules.length} rules`);
       
       const operationId = options.operationId || crypto.randomUUID();
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
       // Check cache first
       if (options.enableCaching !== false) {
@@ -255,7 +255,7 @@ export class SemanticProcessor extends EventEmitter {
         consistencyReport: enhancedResults.consistencyReport,
         reasoningMetrics: {
           ...enhancedResults.context,
-          enhancementTime: Date.now() - startTime,
+          enhancementTime: this.getDeterministicTimestamp() - startTime,
           totalInferences: enhancedResults.inferences?.length || 0,
           cacheHit: false
         },
@@ -268,7 +268,7 @@ export class SemanticProcessor extends EventEmitter {
         metrics: enhancedResults.metrics
       });
       
-      const totalTime = Date.now() - startTime;
+      const totalTime = this.getDeterministicTimestamp() - startTime;
       this.logger.success(
         `Reasoning completed in ${totalTime}ms: ${enhancedResults.inferences?.length || 0} inferences, ` +
         `${enhancedResults.explanations?.length || 0} explanations`
@@ -303,7 +303,7 @@ export class SemanticProcessor extends EventEmitter {
           triplesValidated: graph.triples?.length || 0,
           entitiesValidated: graph.entities?.length || 0
         },
-        validatedAt: new Date()
+        validatedAt: this.getDeterministicDate()
       };
       
       // SHACL validation
@@ -1021,7 +1021,7 @@ export class SemanticProcessor extends EventEmitter {
   }
 
   async _applyReasoningRules(store, rules, options) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     const newTriples = [];
     const appliedRules = [];
     
@@ -1045,8 +1045,8 @@ export class SemanticProcessor extends EventEmitter {
         }
         
         // Check timeout
-        if (Date.now() - startTime > this.config.reasoningTimeout) {
-          this.logger.warn(`Reasoning timeout reached after ${Date.now() - startTime}ms`);
+        if (this.getDeterministicTimestamp() - startTime > this.config.reasoningTimeout) {
+          this.logger.warn(`Reasoning timeout reached after ${this.getDeterministicTimestamp() - startTime}ms`);
           break;
         }
         
@@ -1058,7 +1058,7 @@ export class SemanticProcessor extends EventEmitter {
     return {
       newTriples,
       appliedRules,
-      reasoningTime: Date.now() - startTime
+      reasoningTime: this.getDeterministicTimestamp() - startTime
     };
   }
 
@@ -1111,7 +1111,7 @@ export class SemanticProcessor extends EventEmitter {
     const cacheKey = this._generateCacheKey(graph, rules);
     this.reasoningCache.set(cacheKey, {
       inferredGraph,
-      timestamp: Date.now()
+      timestamp: this.getDeterministicTimestamp()
     });
   }
 
@@ -1994,7 +1994,7 @@ export class SemanticProcessor extends EventEmitter {
           predicate, 
           object,
           inferred: true,
-          timestamp: new Date().toISOString()
+          timestamp: this.getDeterministicDate().toISOString()
         };
       }
       

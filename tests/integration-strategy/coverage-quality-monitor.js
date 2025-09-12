@@ -1282,7 +1282,7 @@ export class CoverageQualityMonitor {
   async generateQualityReport() {
     const report = {
       executionSummary: {
-        executionDate: new Date().toISOString(),
+        executionDate: this.getDeterministicDate().toISOString(),
         overallStatus: this.monitoringResults.overallStatus,
         qualityScore: this.monitoringResults.qualityScore,
         coverageScore: this.monitoringResults.coverageScore,
@@ -1309,7 +1309,7 @@ export class CoverageQualityMonitor {
     };
 
     // Save detailed report
-    const reportPath = path.join(this.options.reportDir, `quality-monitoring-report-${Date.now()}.json`);
+    const reportPath = path.join(this.options.reportDir, `quality-monitoring-report-${this.getDeterministicTimestamp()}.json`);
     await fs.writeJSON(reportPath, report, { spaces: 2 });
 
     // Generate summary dashboard

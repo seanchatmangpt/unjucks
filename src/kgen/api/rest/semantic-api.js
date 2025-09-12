@@ -259,7 +259,7 @@ export class SemanticAPI {
           const { graph, format = 'turtle' } = req.body;
           
           // Create temporary file for CLI bridge
-          const tempFile = `/tmp/graph_${Date.now()}.ttl`;
+          const tempFile = `/tmp/graph_${this.getDeterministicTimestamp()}.ttl`;
           await require('fs/promises').writeFile(tempFile, graph);
           
           const result = await this.cliBridge.graphHash(tempFile);
@@ -284,8 +284,8 @@ export class SemanticAPI {
           const { graph1, graph2 } = req.body;
           
           // Create temporary files
-          const tempFile1 = `/tmp/graph1_${Date.now()}.ttl`;
-          const tempFile2 = `/tmp/graph2_${Date.now()}.ttl`;
+          const tempFile1 = `/tmp/graph1_${this.getDeterministicTimestamp()}.ttl`;
+          const tempFile2 = `/tmp/graph2_${this.getDeterministicTimestamp()}.ttl`;
           
           await Promise.all([
             require('fs/promises').writeFile(tempFile1, graph1),
@@ -315,7 +315,7 @@ export class SemanticAPI {
         try {
           const { graph } = req.body;
           
-          const tempFile = `/tmp/graph_${Date.now()}.ttl`;
+          const tempFile = `/tmp/graph_${this.getDeterministicTimestamp()}.ttl`;
           await require('fs/promises').writeFile(tempFile, graph);
           
           const result = await this.cliBridge.graphIndex(tempFile);
@@ -430,8 +430,8 @@ export class SemanticAPI {
           const { artifact, attestation } = req.body;
           
           // Create temporary files for CLI bridge
-          const tempArtifact = `/tmp/artifact_${Date.now()}.txt`;
-          const tempAttestation = `/tmp/artifact_${Date.now()}.txt.attest.json`;
+          const tempArtifact = `/tmp/artifact_${this.getDeterministicTimestamp()}.txt`;
+          const tempAttestation = `/tmp/artifact_${this.getDeterministicTimestamp()}.txt.attest.json`;
           
           await Promise.all([
             require('fs/promises').writeFile(tempArtifact, artifact),
@@ -608,7 +608,7 @@ export class SemanticAPI {
     this.app.get('/health', (req, res) => {
       res.json({
         status: 'healthy',
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         uptime: process.uptime(),
         memory: process.memoryUsage(),
         version: '1.0.0'
@@ -622,7 +622,7 @@ export class SemanticAPI {
         
         res.json({
           status: 'healthy',
-          timestamp: new Date().toISOString(),
+          timestamp: this.getDeterministicDate().toISOString(),
           components: status.components,
           performance: status.performance,
           quality: status.quality
@@ -631,7 +631,7 @@ export class SemanticAPI {
         res.status(503).json({
           status: 'unhealthy',
           error: error.message,
-          timestamp: new Date().toISOString()
+          timestamp: this.getDeterministicDate().toISOString()
         });
       }
     });
@@ -642,7 +642,7 @@ export class SemanticAPI {
       
       res.status(ready ? 200 : 503).json({
         ready,
-        timestamp: new Date().toISOString()
+        timestamp: this.getDeterministicDate().toISOString()
       });
     });
 
@@ -650,7 +650,7 @@ export class SemanticAPI {
     this.app.get('/live', (req, res) => {
       res.json({
         alive: true,
-        timestamp: new Date().toISOString()
+        timestamp: this.getDeterministicDate().toISOString()
       });
     });
   }
@@ -691,10 +691,10 @@ export class SemanticAPI {
   }
 
   _requestTrackingMiddleware(req, res, next) {
-    const requestId = `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const requestId = `req_${this.getDeterministicTimestamp()}_${Math.random().toString(36).substr(2, 9)}`;
     req.requestId = requestId;
     
-    req.startTime = Date.now();
+    req.startTime = this.getDeterministicTimestamp();
     this.requestCount++;
     this.activeRequests.set(requestId, {
       method: req.method,
@@ -707,7 +707,7 @@ export class SemanticAPI {
 
     const originalEnd = res.end;
     res.end = (...args) => {
-      const duration = Date.now() - req.startTime;
+      const duration = this.getDeterministicTimestamp() - req.startTime;
       this.activeRequests.delete(requestId);
       
       this.logger.info(`${req.method} ${req.url} - ${res.statusCode} - ${duration}ms`);
@@ -750,7 +750,7 @@ export class SemanticAPI {
 
   _auditLoggingMiddleware(req, res, next) {
     const auditLog = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       requestId: req.requestId,
       method: req.method,
       url: req.url,

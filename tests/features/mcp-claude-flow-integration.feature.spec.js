@@ -66,7 +66,7 @@ describeFeature(feature, ({ Background, Scenario }) => { let globalTestState = {
     }
   });
 
-  afterAll(async () => { const totalDuration = Date.now() - globalTestState.startTime;
+  afterAll(async () => { const totalDuration = this.getDeterministicTimestamp() - globalTestState.startTime;
     
     console.log('\n📊 MCP-Claude Flow Integration Test Results');
     console.log('═══════════════════════════════════════════');
@@ -119,51 +119,51 @@ describeFeature(feature, ({ Background, Scenario }) => { let globalTestState = {
   // The test runner automatically executes them based on the imported step definitions
 
   Scenario('API Standardization Across 100+ Microservices', () => { // Scenario implementation is in mcp-claude-flow-steps.ts
-    const scenarioStart = Date.now();
+    const scenarioStart = this.getDeterministicTimestamp();
     
     // This will be called after the scenario completes
     afterEach(() => {
-      globalTestState.performanceMetrics.apiStandardization.duration = Date.now() - scenarioStart;
+      globalTestState.performanceMetrics.apiStandardization.duration = this.getDeterministicTimestamp() - scenarioStart;
       globalTestState.performanceMetrics.apiStandardization.filesGenerated = 
         typeof global !== 'undefined' && global.mcpTestState ? 
         global.mcpTestState.generatedFiles.filter(f => f.includes('enterprise-api')).length  });
   });
 
   Scenario('Compliance-Ready Service Scaffolding Generation', () => { // Scenario implementation is in mcp-claude-flow-steps.ts
-    const scenarioStart = Date.now();
+    const scenarioStart = this.getDeterministicTimestamp();
     
     afterEach(() => {
-      globalTestState.performanceMetrics.complianceScaffolding.duration = Date.now() - scenarioStart;
+      globalTestState.performanceMetrics.complianceScaffolding.duration = this.getDeterministicTimestamp() - scenarioStart;
       globalTestState.performanceMetrics.complianceScaffolding.filesGenerated = 
         typeof global !== 'undefined' && global.mcpTestState ? 
         global.mcpTestState.generatedFiles.filter(f => f.includes('compliance')).length  });
   });
 
   Scenario('Automated Database Migration Script Generation', () => { // Scenario implementation is in mcp-claude-flow-steps.ts  
-    const scenarioStart = Date.now();
+    const scenarioStart = this.getDeterministicTimestamp();
     
     afterEach(() => {
-      globalTestState.performanceMetrics.databaseMigrations.duration = Date.now() - scenarioStart;
+      globalTestState.performanceMetrics.databaseMigrations.duration = this.getDeterministicTimestamp() - scenarioStart;
       globalTestState.performanceMetrics.databaseMigrations.filesGenerated = 
         typeof global !== 'undefined' && global.mcpTestState ? 
         global.mcpTestState.generatedFiles.filter(f => f.includes('migration')).length  });
   });
 
   Scenario('Standardized CI/CD Pipeline Generation for Multi-Stack', () => { // Scenario implementation is in mcp-claude-flow-cicd-steps.ts
-    const scenarioStart = Date.now();
+    const scenarioStart = this.getDeterministicTimestamp();
     
     afterEach(() => {
-      globalTestState.performanceMetrics.cicdPipelines.duration = Date.now() - scenarioStart;
+      globalTestState.performanceMetrics.cicdPipelines.duration = this.getDeterministicTimestamp() - scenarioStart;
       globalTestState.performanceMetrics.cicdPipelines.filesGenerated = 
         typeof global !== 'undefined' && global.mcpTestState ? 
         global.mcpTestState.generatedFiles.filter(f => f.includes('cicd-pipeline')).length  });
   });
 
   Scenario('Enterprise Documentation Generation from Code Annotations', () => { // Scenario implementation is in mcp-claude-flow-docs-integration-steps.ts
-    const scenarioStart = Date.now();
+    const scenarioStart = this.getDeterministicTimestamp();
     
     afterEach(() => {
-      globalTestState.performanceMetrics.documentationGeneration.duration = Date.now() - scenarioStart;
+      globalTestState.performanceMetrics.documentationGeneration.duration = this.getDeterministicTimestamp() - scenarioStart;
       globalTestState.performanceMetrics.documentationGeneration.filesGenerated = 
         typeof global !== 'undefined' && global.mcpTestState ? 
         global.mcpTestState.generatedFiles.filter(f => f.includes('docs')).length  });

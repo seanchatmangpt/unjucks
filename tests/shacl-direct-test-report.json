@@ -1,0 +1,88 @@
+{
+  "timestamp": "2025-09-12T19:10:54.338Z",
+  "tests": {
+    "directSHACL": {
+      "success": false,
+      "error": "Cannot destructure property 'factory' of 'undefined' as it is undefined.",
+      "stage": "validator_creation",
+      "availableProperties": [
+        "Validator"
+      ]
+    },
+    "kgenCommands": {
+      "validateGraphBasic": {
+        "success": false,
+        "error": "Unexpected token 'K', \"[KGEN-TRACE\"... is not valid JSON"
+      },
+      "validateGraphWithShapes": null,
+      "validateArtifacts": {
+        "success": false,
+        "error": "Unexpected token 'K', \"[KGEN-TRACE\"... is not valid JSON"
+      },
+      "cliAvailable": true
+    },
+    "simpleValidation": {
+      "success": true,
+      "shapesCount": 1,
+      "validDataConforms": true,
+      "invalidDataViolations": 1,
+      "manualValidationWorks": true,
+      "sampleViolation": {
+        "focusNode": "http://example.org/jane",
+        "sourceShape": "http://example.org/PersonShape",
+        "sourceConstraintComponent": "http://www.w3.org/ns/shacl#minCount",
+        "resultPath": "http://example.org/name",
+        "message": "Person must have at least one name",
+        "severity": "Violation"
+      }
+    },
+    "constraintImplementation": {
+      "constraintsTested": 3,
+      "constraintsWorking": 3,
+      "coveragePercentage": 38,
+      "successPercentage": 100,
+      "constraints": {
+        "minCount": {
+          "tested": true,
+          "working": true
+        },
+        "maxCount": {
+          "tested": false,
+          "working": false
+        },
+        "datatype": {
+          "tested": true,
+          "working": true
+        },
+        "pattern": {
+          "tested": true,
+          "working": true
+        },
+        "minLength": {
+          "tested": false,
+          "working": false
+        },
+        "maxLength": {
+          "tested": false,
+          "working": false
+        },
+        "minInclusive": {
+          "tested": false,
+          "working": false
+        },
+        "maxInclusive": {
+          "tested": false,
+          "working": false
+        }
+      },
+      "implementationQuality": "good"
+    }
+  },
+  "summary": {
+    "totalTests": 4,
+    "successfulTests": 1,
+    "failedTests": 3,
+    "successRate": 25,
+    "overall": "NEEDS_WORK"
+  }
+}

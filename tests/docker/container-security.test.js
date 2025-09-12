@@ -67,7 +67,7 @@ describe('Container Security and Isolation', () => {
   test('should validate resource limits enforcement', async () => {
     const resourceCommand = `docker run --rm --memory=128m --cpus=0.5 ` +
       `${testImageName} node -e "
-        const start = Date.now();
+        const start = this.getDeterministicTimestamp();
         const arr = [];
         try {
           // Try to allocate more memory than limit
@@ -80,11 +80,11 @@ describe('Container Security and Isolation', () => {
         }
         
         // Test CPU limits
-        const cpuStart = Date.now();
-        while (Date.now() - cpuStart < 1000) {
+        const cpuStart = this.getDeterministicTimestamp();
+        while (this.getDeterministicTimestamp() - cpuStart < 1000) {
           Math.random();
         }
-        const actualTime = Date.now() - start;
+        const actualTime = this.getDeterministicTimestamp() - start;
         console.log('CPU test duration:', actualTime, 'ms');
       "`;
     

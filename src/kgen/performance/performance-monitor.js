@@ -6,7 +6,7 @@
  */
 
 import { EventEmitter } from 'events';
-import { Logger } from 'consola';
+import { Consola } from 'consola';
 import { promises as fs } from 'fs';
 import path from 'path';
 import crypto from 'crypto';
@@ -73,7 +73,7 @@ export class PerformanceMonitor extends EventEmitter {
       ...config
     };
     
-    this.logger = new Logger({ tag: 'performance-monitor' });
+    this.logger = new Consola({ tag: 'performance-monitor' });
     
     // Metrics storage
     this.metrics = {
@@ -184,7 +184,7 @@ export class PerformanceMonitor extends EventEmitter {
    * @param {Object} tags - Additional tags/labels
    * @param {Date} timestamp - Optional timestamp
    */
-  recordMetric(name, value, tags = {}, timestamp = new Date()) {
+  recordMetric(name, value, tags = {}, timestamp = this.getDeterministicDate()) {
     const metric = {
       name,
       value,
@@ -236,7 +236,7 @@ export class PerformanceMonitor extends EventEmitter {
    */
   getPerformanceSnapshot() {
     const snapshot = {
-      timestamp: new Date(),
+      timestamp: this.getDeterministicDate(),
       system: this._getLatestMetrics('system'),
       process: this._getLatestMetrics('process'),
       application: this._getLatestMetrics('application'),
@@ -259,7 +259,7 @@ export class PerformanceMonitor extends EventEmitter {
    */
   async generateReport(options = {}) {
     const timeRange = options.timeRange || 60 * 60 * 1000; // 1 hour default
-    const endTime = options.endTime || Date.now();
+    const endTime = options.endTime || this.getDeterministicTimestamp();
     const startTime = options.startTime || (endTime - timeRange);
     
     try {
@@ -267,7 +267,7 @@ export class PerformanceMonitor extends EventEmitter {
       
       const report = {
         metadata: {
-          generatedAt: new Date(),
+          generatedAt: this.getDeterministicDate(),
           timeRange: { start: new Date(startTime), end: new Date(endTime) },
           duration: timeRange
         },
@@ -360,7 +360,7 @@ export class PerformanceMonitor extends EventEmitter {
   async exportMetrics(format = 'json', options = {}) {
     const exporter = this._getMetricsExporter(format);
     const timeRange = options.timeRange || 60 * 60 * 1000; // 1 hour
-    const endTime = Date.now();
+    const endTime = this.getDeterministicTimestamp();
     const startTime = endTime - timeRange;
     
     const metricsData = {
@@ -453,7 +453,7 @@ export class PerformanceMonitor extends EventEmitter {
   }
 
   async _collectMetrics() {
-    const timestamp = Date.now();
+    const timestamp = this.getDeterministicTimestamp();
     
     // Collect from all enabled collectors
     for (const [name, collector] of this.collectors) {
@@ -537,7 +537,7 @@ export class PerformanceMonitor extends EventEmitter {
   }
 
   async _performMetricsExport() {
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const timestamp = this.getDeterministicDate().toISOString().replace(/[:.]/g, '-');
     const filename = `metrics-${timestamp}.${this.config.exportFormat}`;
     const filepath = path.join(this.config.metricsDirectory, 'exports', filename);
     
@@ -562,7 +562,7 @@ export class PerformanceMonitor extends EventEmitter {
     // Placeholder for dashboard server
     this.dashboardServer = {
       port: this.config.dashboardPort,
-      started: Date.now()
+      started: this.getDeterministicTimestamp()
     };
   }
 
@@ -684,7 +684,7 @@ export class PerformanceMonitor extends EventEmitter {
   }
 
   _cleanupOldMetrics() {
-    const cutoff = Date.now() - this.config.metricsRetention;
+    const cutoff = this.getDeterministicTimestamp() - this.config.metricsRetention;
     
     // Clean up main metrics
     for (const buffer of Object.values(this.metrics)) {
@@ -730,7 +730,7 @@ export class PerformanceMonitor extends EventEmitter {
   }
 
   async _saveReport(report, filename) {
-    const reportFile = filename || `performance-report-${Date.now()}.json`;
+    const reportFile = filename || `performance-report-${this.getDeterministicTimestamp()}.json`;
     const reportPath = path.join(this.config.metricsDirectory, 'reports', reportFile);
     
     await fs.writeFile(reportPath, JSON.stringify(report, null, 2));
@@ -776,7 +776,7 @@ export class PerformanceMonitor extends EventEmitter {
 
   // Statistics helpers
   _getMonitoringUptime() {
-    return Date.now() - (this.startTime || Date.now());
+    return this.getDeterministicTimestamp() - (this.startTime || this.getDeterministicTimestamp());
   }
 
   _getTotalMetricsCollected() {
@@ -1063,7 +1063,7 @@ class AlertManager {
           name,
           severity: rule.options.severity || 'medium',
           message: rule.options.message || `Alert: ${name}`,
-          timestamp: Date.now(),
+          timestamp: this.getDeterministicTimestamp(),
           data: snapshot
         });
       }
@@ -1148,7 +1148,7 @@ class PerformanceProfiler {
     const session = {
       id: sessionId,
       operationName,
-      startTime: Date.now(),
+      startTime: this.getDeterministicTimestamp(),
       startCpuUsage: process.cpuUsage(),
       startMemoryUsage: process.memoryUsage(),
       options
@@ -1163,7 +1163,7 @@ class PerformanceProfiler {
       return null;
     }
     
-    const endTime = Date.now();
+    const endTime = this.getDeterministicTimestamp();
     const endCpuUsage = process.cpuUsage(session.startCpuUsage);
     const endMemoryUsage = process.memoryUsage();
     

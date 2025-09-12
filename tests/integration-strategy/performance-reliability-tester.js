@@ -395,7 +395,7 @@ ex:Entity${i} a ex:TestEntity ;
           
           const operationDuration = performance.now() - operationStart;
           performanceHistory.push({
-            timestamp: Date.now(),
+            timestamp: this.getDeterministicTimestamp(),
             duration: operationDuration,
             type: 'endurance_operation'
           });
@@ -403,7 +403,7 @@ ex:Entity${i} a ex:TestEntity ;
         } catch (error) {
           failures++;
           this.failureEvents.push({
-            timestamp: Date.now(),
+            timestamp: this.getDeterministicTimestamp(),
             type: 'endurance_failure',
             error: error.message
           });
@@ -459,7 +459,7 @@ ex:Entity${i} a ex:TestEntity ;
         this.recoveryEvents.push({
           scenario: scenario.name,
           recoveryTime,
-          timestamp: Date.now()
+          timestamp: this.getDeterministicTimestamp()
         });
         
       } catch (error) {
@@ -917,7 +917,7 @@ ex:Entity${i} a ex:TestEntity ;
     };
 
     // Save report
-    const reportPath = path.join(this.options.projectRoot, 'tests/reports', `performance-reliability-report-${Date.now()}.json`);
+    const reportPath = path.join(this.options.projectRoot, 'tests/reports', `performance-reliability-report-${this.getDeterministicTimestamp()}.json`);
     await fs.ensureDir(path.dirname(reportPath));
     await fs.writeJSON(reportPath, report, { spaces: 2 });
 

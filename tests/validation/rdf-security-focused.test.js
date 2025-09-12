@@ -27,9 +27,9 @@ describe('RDF Security Validation - Focused', () => {
   describe('Critical Security Tests', () => { it('should handle large RDF datasets without memory exhaustion', async () => {
       const largeTurtle = '@prefix ex } ex:prop "value${i}" .`).join('\n');
 
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const result = await parser.parse(largeTurtle);
-      const endTime = Date.now();
+      const endTime = this.getDeterministicTimestamp();
 
       expect(result.triples.length).toBe(5000);
       expect(endTime - startTime).toBeLessThan(10000); // Should complete within 10 seconds
@@ -40,10 +40,10 @@ describe('RDF Security Validation - Focused', () => {
           return `ex:subject${i} ${props} .`;
         }).join('\n');
 
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       try {
         await parser.parse(complexTurtle);
-        const elapsed = Date.now() - startTime;
+        const elapsed = this.getDeterministicTimestamp() - startTime;
         expect(elapsed).toBeLessThan(15000); // Should complete or timeout within 15 seconds
       } catch (error) {
         // Timeout is acceptable security behavior
@@ -102,7 +102,7 @@ describe('RDF Security Validation - Focused', () => {
     it('should handle HTTP timeouts to prevent hanging requests', async () => { const loader = new RDFDataLoader({
         httpTimeout);
 
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
       const result = await loader.loadFromSource({
         type });
@@ -123,12 +123,12 @@ describe('RDF Security Validation - Focused', () => {
         // This would normally add to the store, but we're testing the filter isolation
       }
 
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
       // Execute complex query
       const results = rdfFilters.rdfQuery({ subject, predicate, object });
       
-      const endTime = Date.now();
+      const endTime = this.getDeterministicTimestamp();
       
       expect(Array.isArray(results)).toBe(true);
       expect(endTime - startTime).toBeLessThan(1000); // Should complete within 1 second

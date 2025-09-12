@@ -62,7 +62,7 @@ defineFeature(feature, (test) => {
       expect(true).toBe(true);
     });
 
-    when('I process the FHIR data through semantic templates', async () => { performanceMetrics.startTime = Date.now();
+    when('I process the FHIR data through semantic templates', async () => { performanceMetrics.startTime = this.getDeterministicTimestamp();
       performanceMetrics.memoryUsage = process.memoryUsage();
 
       // Process through RDF filters to simulate template processing
@@ -178,7 +178,7 @@ defineFeature(feature, (test) => {
     });
 
     when('I process the financial data through risk calculation templates', async () => {
-      performanceMetrics.startTime = Date.now();
+      performanceMetrics.startTime = this.getDeterministicTimestamp();
       
       // Simulate risk calculation processing
       const riskWeightTriples = fiboData.triples.filter(triple => 
@@ -198,7 +198,7 @@ defineFeature(feature, (test) => {
       }
       
       expect(totalRWA).toBeGreaterThan(0);
-      performanceMetrics.endTime = Date.now();
+      performanceMetrics.endTime = this.getDeterministicTimestamp();
     });
 
     then('the system should validate FIBO ontology compliance', () => {
@@ -304,7 +304,7 @@ defineFeature(feature, (test) => {
     });
 
     when('I process the supply chain data through traceability templates', async () => {
-      performanceMetrics.startTime = Date.now();
+      performanceMetrics.startTime = this.getDeterministicTimestamp();
       
       // Simulate traceability chain processing
       const traceabilityEvents = gs1Data.triples.filter(triple => 
@@ -322,7 +322,7 @@ defineFeature(feature, (test) => {
       
       expect(blockchainData.length).toBeGreaterThan(0);
       
-      performanceMetrics.endTime = Date.now();
+      performanceMetrics.endTime = this.getDeterministicTimestamp();
     });
 
     then('the system should validate GS1 standards compliance', () => {
@@ -423,7 +423,7 @@ defineFeature(feature, (test) => {
     });
 
     when('I process the complete dataset through semantic templates', async () => {
-      performanceMetrics.startTime = Date.now();
+      performanceMetrics.startTime = this.getDeterministicTimestamp();
       performanceMetrics.memoryUsage = process.memoryUsage();
       
       // Simulate processing all three domains
@@ -448,7 +448,7 @@ defineFeature(feature, (test) => {
       expect(healthcareProducts.length).toBeGreaterThan(0);
       expect(supplyChainProducts.length).toBeGreaterThan(0);
       
-      performanceMetrics.endTime = Date.now();
+      performanceMetrics.endTime = this.getDeterministicTimestamp();
     });
 
     then('processing should complete within 30 seconds', () => {
@@ -473,7 +473,7 @@ defineFeature(feature, (test) => {
 
     then('semantic queries should remain responsive', () => {
       // Query response time validation
-      const queryStart = Date.now();
+      const queryStart = this.getDeterministicTimestamp();
       
       // Simulate complex semantic query
       const complexQuery = fhirData.triples.filter(triple => 
@@ -481,7 +481,7 @@ defineFeature(feature, (test) => {
         triple.predicate.value.includes('identifier')
       );
       
-      const queryTime = Date.now() - queryStart;
+      const queryTime = this.getDeterministicTimestamp() - queryStart;
       expect(queryTime).toBeLessThan(100); // Sub-100ms response
       expect(complexQuery.length).toBeGreaterThan(0);
     });

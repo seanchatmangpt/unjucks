@@ -51,7 +51,7 @@ class ProductionTestOrchestrator {
     };
 
     this.results = {
-      startTime: new Date(),
+      startTime: this.getDeterministicDate(),
       endTime: null,
       duration: null,
       testResults: {},
@@ -77,7 +77,7 @@ class ProductionTestOrchestrator {
     await fs.mkdir(this.options.reportDir, { recursive: true });
     
     // Create timestamped subdirectory
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const timestamp = this.getDeterministicDate().toISOString().replace(/[:.]/g, '-');
     this.reportPath = path.join(this.options.reportDir, `run-${timestamp}`);
     await fs.mkdir(this.reportPath, { recursive: true });
     
@@ -85,7 +85,7 @@ class ProductionTestOrchestrator {
   }
 
   async runTestSuite(suiteName) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     console.log(`\n🧪 Running ${suiteName}...`);
     
     try {
@@ -101,7 +101,7 @@ class ProductionTestOrchestrator {
         timeout: this.options.timeout / this.testSuites[this.options.level].length
       });
       
-      const duration = Date.now() - startTime;
+      const duration = this.getDeterministicTimestamp() - startTime;
       
       this.results.testResults[suiteName] = {
         status: result.success ? 'PASSED' : 'FAILED',
@@ -114,7 +114,7 @@ class ProductionTestOrchestrator {
       return result.success;
       
     } catch (error) {
-      const duration = Date.now() - startTime;
+      const duration = this.getDeterministicTimestamp() - startTime;
       
       this.results.testResults[suiteName] = {
         status: 'ERROR',
@@ -208,7 +208,7 @@ class ProductionTestOrchestrator {
   }
 
   async generateReport() {
-    this.results.endTime = new Date();
+    this.results.endTime = this.getDeterministicDate();
     this.results.duration = this.results.endTime - this.results.startTime;
     
     // Calculate summary

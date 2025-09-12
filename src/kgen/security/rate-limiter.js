@@ -47,7 +47,7 @@ export class RateLimiter extends EventEmitter {
     this.logger = consola.withTag('rate-limiter');
     
     // Rate limiting stores
-    this.globalCounter = { count: 0, resetTime: Date.now() + 60000 };
+    this.globalCounter = { count: 0, resetTime: this.getDeterministicTimestamp() + 60000 };
     this.userCounters = new Map();
     this.ipCounters = new Map();
     this.burstCounters = new Map();
@@ -117,7 +117,7 @@ export class RateLimiter extends EventEmitter {
         retryAfter: 0,
         remainingRequests: 0,
         metadata: {
-          timestamp: Date.now(),
+          timestamp: this.getDeterministicTimestamp(),
           ip: request.ip,
           userId: request.userId,
           endpoint: request.endpoint
@@ -133,10 +133,10 @@ export class RateLimiter extends EventEmitter {
       // Check if IP is blocked for DDoS
       if (this.blockedIPs.has(request.ip)) {
         const blockInfo = this.blockedIPs.get(request.ip);
-        if (Date.now() < blockInfo.expiresAt) {
+        if (this.getDeterministicTimestamp() < blockInfo.expiresAt) {
           decision.allowed = false;
           decision.reason = 'IP blocked for DDoS protection';
-          decision.retryAfter = Math.ceil((blockInfo.expiresAt - Date.now()) / 1000);
+          decision.retryAfter = Math.ceil((blockInfo.expiresAt - this.getDeterministicTimestamp()) / 1000);
           this.metrics.ddosBlocks++;
           return decision;
         } else {
@@ -147,10 +147,10 @@ export class RateLimiter extends EventEmitter {
       // Check if user is blocked
       if (request.userId && this.blockedUsers.has(request.userId)) {
         const blockInfo = this.blockedUsers.get(request.userId);
-        if (Date.now() < blockInfo.expiresAt) {
+        if (this.getDeterministicTimestamp() < blockInfo.expiresAt) {
           decision.allowed = false;
           decision.reason = 'User blocked for suspicious activity';
-          decision.retryAfter = Math.ceil((blockInfo.expiresAt - Date.now()) / 1000);
+          decision.retryAfter = Math.ceil((blockInfo.expiresAt - this.getDeterministicTimestamp()) / 1000);
           return decision;
         } else {
           this.blockedUsers.delete(request.userId);
@@ -239,7 +239,7 @@ export class RateLimiter extends EventEmitter {
         retryAfter: 60,
         remainingRequests: 0,
         metadata: {
-          timestamp: Date.now(),
+          timestamp: this.getDeterministicTimestamp(),
           error: error.message
         }
       };
@@ -268,7 +268,7 @@ export class RateLimiter extends EventEmitter {
     if (errorRate > this.config.circuitBreakerThreshold && 
         circuitBreaker.totalRequests >= 10) {
       circuitBreaker.state = 'open';
-      circuitBreaker.openedAt = Date.now();
+      circuitBreaker.openedAt = this.getDeterministicTimestamp();
       this.metrics.circuitBreakerTrips++;
       
       this.emit('circuit-breaker-open', {
@@ -288,8 +288,8 @@ export class RateLimiter extends EventEmitter {
    */
   blockIP(ip, duration = this.config.blockDuration, reason = 'Manual block') {
     this.blockedIPs.set(ip, {
-      blockedAt: Date.now(),
-      expiresAt: Date.now() + duration,
+      blockedAt: this.getDeterministicTimestamp(),
+      expiresAt: this.getDeterministicTimestamp() + duration,
       reason
     });
     
@@ -305,8 +305,8 @@ export class RateLimiter extends EventEmitter {
    */
   blockUser(userId, duration = this.config.blockDuration, reason = 'Manual block') {
     this.blockedUsers.set(userId, {
-      blockedAt: Date.now(),
-      expiresAt: Date.now() + duration,
+      blockedAt: this.getDeterministicTimestamp(),
+      expiresAt: this.getDeterministicTimestamp() + duration,
       reason
     });
     
@@ -437,7 +437,7 @@ export class RateLimiter extends EventEmitter {
 
   _checkBurstLimit(request) {
     const identifier = request.ip;
-    const now = Date.now();
+    const now = this.getDeterministicTimestamp();
     
     if (!this.burstCounters.has(identifier)) {
       this.burstCounters.set(identifier, {
@@ -469,7 +469,7 @@ export class RateLimiter extends EventEmitter {
   }
 
   _checkGlobalLimit() {
-    const now = Date.now();
+    const now = this.getDeterministicTimestamp();
     
     // Reset if needed
     if (now >= this.globalCounter.resetTime) {
@@ -494,7 +494,7 @@ export class RateLimiter extends EventEmitter {
   }
 
   _checkIPLimit(ip) {
-    const now = Date.now();
+    const now = this.getDeterministicTimestamp();
     
     if (!this.ipCounters.has(ip)) {
       this.ipCounters.set(ip, {
@@ -528,7 +528,7 @@ export class RateLimiter extends EventEmitter {
   }
 
   _checkUserLimit(userId) {
-    const now = Date.now();
+    const now = this.getDeterministicTimestamp();
     
     if (!this.userCounters.has(userId)) {
       this.userCounters.set(userId, {
@@ -569,7 +569,7 @@ export class RateLimiter extends EventEmitter {
     }
     
     if (circuitBreaker.state === 'open') {
-      const now = Date.now();
+      const now = this.getDeterministicTimestamp();
       if (now - circuitBreaker.openedAt > this.config.circuitBreakerTimeout) {
         circuitBreaker.state = 'half-open';
         circuitBreaker.halfOpenRequests = 0;
@@ -632,13 +632,13 @@ export class RateLimiter extends EventEmitter {
     if (!this.suspiciousActivities.has(identifier)) {
       this.suspiciousActivities.set(identifier, {
         requests: [],
-        firstSeen: Date.now()
+        firstSeen: this.getDeterministicTimestamp()
       });
     }
     
     const activity = this.suspiciousActivities.get(identifier);
     activity.requests.push({
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       endpoint: request.endpoint,
       userId: request.userId
     });
@@ -646,7 +646,7 @@ export class RateLimiter extends EventEmitter {
     // Keep only last hour of activity
     const oneHour = 60 * 60 * 1000;
     activity.requests = activity.requests.filter(
-      req => Date.now() - req.timestamp < oneHour
+      req => this.getDeterministicTimestamp() - req.timestamp < oneHour
     );
   }
 
@@ -655,7 +655,7 @@ export class RateLimiter extends EventEmitter {
     if (!activity) return;
     
     // Check request rate in last minute
-    const lastMinute = Date.now() - 60000;
+    const lastMinute = this.getDeterministicTimestamp() - 60000;
     const recentRequests = activity.requests.filter(
       req => req.timestamp > lastMinute
     );
@@ -701,7 +701,7 @@ export class RateLimiter extends EventEmitter {
   _updateAdaptiveLimits() {
     if (!this.config.enableAdaptive) return;
     
-    const now = Date.now();
+    const now = this.getDeterministicTimestamp();
     const blockedRatio = this.metrics.blockedRequests / (this.metrics.totalRequests || 1);
     
     // Adjust limits based on system load and blocked requests
@@ -736,7 +736,7 @@ export class RateLimiter extends EventEmitter {
   }
 
   _updateCircuitBreakers() {
-    const now = Date.now();
+    const now = this.getDeterministicTimestamp();
     
     for (const [endpoint, circuitBreaker] of this.circuitBreakers.entries()) {
       if (circuitBreaker.state === 'half-open') {
@@ -773,7 +773,7 @@ export class RateLimiter extends EventEmitter {
   }
 
   _cleanupCounters() {
-    const now = Date.now();
+    const now = this.getDeterministicTimestamp();
     
     // Cleanup expired IP counters
     for (const [ip, counter] of this.ipCounters.entries()) {

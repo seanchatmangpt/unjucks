@@ -201,7 +201,7 @@ export class QuerySimilarityDetector {
       query,
       embedding,
       structure: this.analyzeQueryStructure(query),
-      timestamp: Date.now()
+      timestamp: this.getDeterministicTimestamp()
     });
     
     // Add to vector index

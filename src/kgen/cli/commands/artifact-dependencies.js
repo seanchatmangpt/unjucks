@@ -153,7 +153,7 @@ export const artifactDependenciesCommand = {
       await adapter.loadGraph(graphPath);
       
       // Execute dependency resolution
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
       const dependencyResult = await adapter.executeArtifactDependencies(artifactUris, {
         maxDepth: options['max-depth'],
@@ -183,7 +183,7 @@ export const artifactDependenciesCommand = {
         }
       }
       
-      const totalTime = Date.now() - startTime;
+      const totalTime = this.getDeterministicTimestamp() - startTime;
       
       // Format and output results
       const output = this._formatOutput(processedResult, options['output-format']);

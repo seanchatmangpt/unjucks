@@ -133,7 +133,7 @@ export class NaturalLanguageToSPARQLEngine extends EventEmitter {
    */
   async translateToSPARQL(naturalLanguageQuery, context = {}) {
     const translationId = crypto.randomUUID();
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       this.logger.info(`Translating NL query: "${naturalLanguageQuery}"`);
@@ -233,7 +233,7 @@ export class NaturalLanguageToSPARQLEngine extends EventEmitter {
           patternMatch: patternMatch ? patternMatch.id : null
         },
         metadata: {
-          translationTime: Date.now() - startTime,
+          translationTime: this.getDeterministicTimestamp() - startTime,
           cacheHit: false,
           optimized: this.config.enableQueryOptimization
         }
@@ -264,7 +264,7 @@ export class NaturalLanguageToSPARQLEngine extends EventEmitter {
       return translation;
       
     } catch (error) {
-      const translationTime = Date.now() - startTime;
+      const translationTime = this.getDeterministicTimestamp() - startTime;
       this.logger.error(`Translation failed: ${translationId}`, error);
       this.emit('translation:failed', { translationId, error, translationTime });
       throw error;
@@ -291,7 +291,7 @@ export class NaturalLanguageToSPARQLEngine extends EventEmitter {
       this.feedbackData.push({
         translationId,
         feedback: processedFeedback,
-        timestamp: Date.now()
+        timestamp: this.getDeterministicTimestamp()
       });
       
       // Update models with feedback
@@ -457,7 +457,7 @@ export class NaturalLanguageToSPARQLEngine extends EventEmitter {
       output: translation.output.sparql,
       confidence: translation.output.confidence,
       analysis: translation.analysis,
-      timestamp: Date.now()
+      timestamp: this.getDeterministicTimestamp()
     });
     
     // Limit training data size
@@ -499,12 +499,12 @@ export class NaturalLanguageToSPARQLEngine extends EventEmitter {
         this.queryGenerator.retrain(this.trainingData, this.feedbackData)
       ]);
       
-      this.lastRetraining = Date.now();
+      this.lastRetraining = this.getDeterministicTimestamp();
       this.feedbackData = []; // Clear feedback data after retraining
       
       this.emit('models:retrained', {
         trainingDataSize: this.trainingData.length,
-        retrainingTime: Date.now()
+        retrainingTime: this.getDeterministicTimestamp()
       });
       
     } catch (error) {
@@ -707,7 +707,7 @@ class ContextManager {
       lastQuery: query,
       entities,
       intent,
-      timestamp: Date.now()
+      timestamp: this.getDeterministicTimestamp()
     };
   }
 }

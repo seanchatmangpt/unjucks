@@ -1,0 +1,113 @@
+```mermaid
+C4Component
+    title Code Diagram - SHACL Policy Gate Engine
+    
+    Container_Boundary(gate, "Policy Gate Core") {
+        Component(policyGate, "SHACLPolicyGate", "Gate Engine", "Orchestrates SHACL-based policy enforcement")
+        Component(ruleEngine, "RuleEngine", "Rules Engine", "Executes SHACL validation rules")
+        Component(policyEvaluator, "PolicyEvaluator", "Evaluator", "Evaluates policy decisions")
+        Component(gateKeeper, "GateKeeper", "Controller", "Controls access based on validation results")
+    }
+    
+    Container_Boundary(shacl, "SHACL Processing") {
+        Component(shaclLoader, "SHACLShapeLoader", "Loader", "Loads and parses SHACL shapes")
+        Component(shaclValidator, "SHACLValidator", "Validator", "Validates RDF against SHACL shapes")
+        Component(constraintProcessor, "ConstraintProcessor", "Processor", "Processes SHACL constraints")
+        Component(reportGenerator, "ValidationReportGenerator", "Generator", "Generates validation reports")
+    }
+    
+    Container_Boundary(policy, "Policy Management") {
+        Component(policyRegistry, "PolicyRegistry", "Registry", "Manages policy definitions")
+        Component(policyLoader, "PolicyLoader", "Loader", "Loads policy configurations")
+        Component(policyCompiler, "PolicyCompiler", "Compiler", "Compiles policies to executable rules")
+        Component(policyVersionManager, "PolicyVersionManager", "Manager", "Manages policy versions")
+    }
+    
+    Container_Boundary(execution, "Rule Execution") {
+        Component(ruleExecutor, "RuleExecutor", "Executor", "Executes validation rules")
+        Component(conditionEvaluator, "ConditionEvaluator", "Evaluator", "Evaluates rule conditions")
+        Component(actionProcessor, "ActionProcessor", "Processor", "Processes rule actions")
+        Component(executionContext, "ExecutionContext", "Context", "Manages rule execution context")
+    }
+    
+    Container_Boundary(decision, "Decision Making") {
+        Component(decisionEngine, "DecisionEngine", "Engine", "Makes policy decisions")
+        Component(conflictResolver, "ConflictResolver", "Resolver", "Resolves policy conflicts")
+        Component(priorityManager, "PriorityManager", "Manager", "Manages rule priorities")
+        Component(decisionLogger, "DecisionLogger", "Logger", "Logs policy decisions")
+    }
+    
+    Container_Boundary(monitoring, "Monitoring & Audit") {
+        Component(auditLogger, "AuditLogger", "Logger", "Logs all policy evaluations")
+        Component(performanceMonitor, "PerformanceMonitor", "Monitor", "Monitors policy performance")
+        Component(alertingEngine, "AlertingEngine", "Alerter", "Sends policy violation alerts")
+        Component(metricsCollector, "MetricsCollector", "Collector", "Collects policy metrics")
+    }
+    
+    Container_Boundary(caching, "Policy Cache") {
+        Component(shapeCache, "ShapeCache", "Cache", "Caches SHACL shapes")
+        Component(validationCache, "ValidationCache", "Cache", "Caches validation results")
+        Component(policyCache, "PolicyCache", "Cache", "Caches compiled policies")
+        Component(ruleCache, "RuleCache", "Cache", "Caches executed rules")
+    }
+    
+    Container_Boundary(integration, "External Integration") {
+        Component(sparqlEndpoint, "SPARQLEndpoint", "SPARQL", "Integrates with SPARQL endpoints")
+        Component(rdfStore, "RDFStoreConnector", "Connector", "Connects to RDF stores")
+        Component(webhookSender, "WebhookSender", "Sender", "Sends policy event webhooks")
+        Component(apiGateway, "APIGateway", "Gateway", "Exposes policy validation API")
+    }
+    
+    Container_Boundary(optimization, "Performance Optimization") {
+        Component(ruleOptimizer, "RuleOptimizer", "Optimizer", "Optimizes rule execution")
+        Component(batchProcessor, "BatchProcessor", "Processor", "Processes rules in batches")
+        Component(parallelExecutor, "ParallelExecutor", "Executor", "Executes rules in parallel")
+        Component(memoryManager, "MemoryManager", "Manager", "Manages memory usage")
+    }
+    
+    Rel(policyGate, ruleEngine, "executes rules with")
+    Rel(policyGate, policyEvaluator, "evaluates policies with")
+    Rel(policyGate, gateKeeper, "controls access with")
+    
+    Rel(ruleEngine, shaclLoader, "loads shapes with")
+    Rel(ruleEngine, shaclValidator, "validates with")
+    Rel(shaclValidator, constraintProcessor, "processes constraints with")
+    Rel(shaclValidator, reportGenerator, "generates reports with")
+    
+    Rel(policyEvaluator, policyRegistry, "uses policies from")
+    Rel(policyRegistry, policyLoader, "loads policies with")
+    Rel(policyLoader, policyCompiler, "compiles policies with")
+    Rel(policyRegistry, policyVersionManager, "manages versions with")
+    
+    Rel(ruleEngine, ruleExecutor, "executes with")
+    Rel(ruleExecutor, conditionEvaluator, "evaluates conditions with")
+    Rel(ruleExecutor, actionProcessor, "processes actions with")
+    Rel(ruleExecutor, executionContext, "manages context with")
+    
+    Rel(policyEvaluator, decisionEngine, "makes decisions with")
+    Rel(decisionEngine, conflictResolver, "resolves conflicts with")
+    Rel(decisionEngine, priorityManager, "manages priorities with")
+    Rel(decisionEngine, decisionLogger, "logs decisions with")
+    
+    Rel(policyGate, auditLogger, "logs audits to")
+    Rel(policyGate, performanceMonitor, "monitors performance with")
+    Rel(policyGate, alertingEngine, "sends alerts with")
+    Rel(policyGate, metricsCollector, "collects metrics with")
+    
+    Rel(shaclLoader, shapeCache, "caches shapes in")
+    Rel(shaclValidator, validationCache, "caches validation in")
+    Rel(policyCompiler, policyCache, "caches policies in")
+    Rel(ruleExecutor, ruleCache, "caches rules in")
+    
+    Rel(policyGate, sparqlEndpoint, "queries with")
+    Rel(policyGate, rdfStore, "connects to")
+    Rel(alertingEngine, webhookSender, "sends webhooks with")
+    Rel(policyGate, apiGateway, "exposes API with")
+    
+    Rel(ruleEngine, ruleOptimizer, "optimizes with")
+    Rel(ruleExecutor, batchProcessor, "processes batches with")
+    Rel(ruleExecutor, parallelExecutor, "executes parallel with")
+    Rel(policyGate, memoryManager, "manages memory with")
+    
+    UpdateLayoutConfig($c4ShapeInRow="4", $c4BoundaryInRow="2")
+```

@@ -14,7 +14,7 @@ import { join } from 'path';
 describe('Swarm Topologies and Agent Orchestration', () => {
   let connector;
   let testWorkspace => {
-    testWorkspace = join(tmpdir(), `swarm-test-${Date.now()}`);
+    testWorkspace = join(tmpdir(), `swarm-test-${this.getDeterministicTimestamp()}`);
     connector = new ClaudeFlowConnector({
       workspace,
       timeout);
@@ -132,13 +132,13 @@ describe('Swarm Topologies and Agent Orchestration', () => {
           ]);
         }
 
-        const startTime = Date.now();
+        const startTime = this.getDeterministicTimestamp();
         const result = await connector.orchestrateToolExecution(
           'performance_benchmark',
           { complexity,
           1
         );
-        const executionTime = Date.now() - startTime;
+        const executionTime = this.getDeterministicTimestamp() - startTime;
 
         results.push({
           topology,

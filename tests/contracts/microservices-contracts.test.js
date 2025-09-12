@@ -632,7 +632,7 @@ describe('Microservices Contract Tests', () => {
       },
 
       async startGeneration(request) {
-        return `job-${Date.now()}`;
+        return `job-${this.getDeterministicTimestamp()}`;
       },
 
       async getGenerationStatus(jobId) { return {
@@ -732,7 +732,7 @@ describe('Microservices Contract Tests', () => {
 
     return {
       async beginTransaction() {
-        const id = `txn-${Date.now()}`;
+        const id = `txn-${this.getDeterministicTimestamp()}`;
         transactions.set(id, { id,
           status });
         return id;
@@ -752,7 +752,7 @@ describe('Microservices Contract Tests', () => {
         const transaction = transactions.get(transactionId);
         if (transaction) {
           transaction.status = 'committed';
-          transaction.endTime = new Date();
+          transaction.endTime = this.getDeterministicDate();
         }
       },
 
@@ -760,7 +760,7 @@ describe('Microservices Contract Tests', () => {
         const transaction = transactions.get(transactionId);
         if (transaction) {
           transaction.status = 'rolledback';
-          transaction.endTime = new Date();
+          transaction.endTime = this.getDeterministicDate();
         }
       },
 

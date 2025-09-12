@@ -116,7 +116,7 @@ class RegressionDetector {
     this.baseline = options.baseline;
     this.threshold = options.threshold || 0.05; // 5% degradation threshold
     this.results = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       targets: {},
       regressions: [],
       improvements: [],
@@ -162,7 +162,7 @@ class RegressionDetector {
       target: targetName,
       description: target.description,
       testFiles: target.testFiles,
-      startTime: new Date(),
+      startTime: this.getDeterministicDate(),
       endTime: null,
       duration: 0,
       tests: {
@@ -186,7 +186,7 @@ class RegressionDetector {
     ).join(' ');
 
     return new Promise((resolve) => {
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
       const testProcess = spawn('npx', [
         'vitest', 'run',
@@ -217,8 +217,8 @@ class RegressionDetector {
       });
 
       testProcess.on('close', (code) => {
-        results.duration = Date.now() - startTime;
-        results.endTime = new Date();
+        results.duration = this.getDeterministicTimestamp() - startTime;
+        results.endTime = this.getDeterministicDate();
         
         // Parse test results
         try {

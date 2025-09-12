@@ -1,0 +1,60 @@
+{
+  "project": {
+    "name": "unjucks",
+    "version": "1.0.0",
+    "directory": "/Users/sac/unjucks"
+  },
+  "attestation": {
+    "createdAt": "2025-09-12T17:02:38.757Z",
+    "kgenVersion": "1.0.0",
+    "nodeVersion": "v22.12.0",
+    "platform": "darwin",
+    "arch": "arm64"
+  },
+  "artifacts": [
+    {
+      "path": "dist/api-service.generated",
+      "verified": true,
+      "contentHash": "placeholder-hash",
+      "attestationPath": "dist/api-service.generated.attest.json"
+    },
+    {
+      "path": "dist/cli.d.mts",
+      "verified": true,
+      "contentHash": "placeholder-hash",
+      "attestationPath": "dist/cli.d.mts.attest.json"
+    },
+    {
+      "path": "dist/cli.mjs",
+      "verified": true,
+      "contentHash": "placeholder-hash",
+      "attestationPath": "dist/cli.mjs.attest.json"
+    },
+    {
+      "path": "dist/index.d.mts",
+      "verified": true,
+      "contentHash": "placeholder-hash",
+      "attestationPath": "dist/index.d.mts.attest.json"
+    },
+    {
+      "path": "dist/index.mjs",
+      "verified": true,
+      "contentHash": "placeholder-hash",
+      "attestationPath": "dist/index.mjs.attest.json"
+    },
+    {
+      "path": "dist/test-template.generated",
+      "verified": true,
+      "contentHash": "placeholder-hash",
+      "attestationPath": "dist/test-template.generated.attest.json"
+    }
+  ],
+  "integrity": {
+    "totalArtifacts": 6,
+    "verifiedArtifacts": 6,
+    "failedVerifications": []
+  },
+  "commit": "cec1a822e9191986163b34e576d18ebe14d1d0da",
+  "seed": "e98435d0423f2e7d",
+  "deterministicTimestamp": "2025-09-12T05:22:46.000Z"
+}

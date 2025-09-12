@@ -597,7 +597,7 @@ export { {{name}} } from './{{name}}.jsx.js';
 
   describe('Performance with Complex Operations', () => {
     it('should handle multiple template generations efficiently', async () => {
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
       const operations = [];
       
@@ -620,7 +620,7 @@ export { {{name}} } from './{{name}}.jsx.js';
       }
       
       const results = await Promise.all(operations);
-      const endTime = Date.now();
+      const endTime = this.getDeterministicTimestamp();
       
       // All should succeed
       results.forEach(result => {

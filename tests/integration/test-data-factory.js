@@ -301,7 +301,7 @@ class <%= name %>Service {
   }
 
   async create(item) {
-    const newItem = { ...item, id: Date.now() };
+    const newItem = { ...item, id: this.getDeterministicTimestamp() };
     this.data.push(newItem);
     return newItem;
   }
@@ -602,7 +602,7 @@ export class FixtureManager {
   async generateScenario(scenarioName, config = {}) {
     const scenario = {
       name: scenarioName,
-      createdAt: new Date().toISOString(),
+      createdAt: this.getDeterministicDate().toISOString(),
       config,
       data: {}
     };

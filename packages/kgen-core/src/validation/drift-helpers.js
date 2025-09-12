@@ -331,7 +331,7 @@ export const DriftHelperMethods = {
       
       // Backup original file if requested
       if (this.config.driftDetection.backupOriginal) {
-        const backupPath = `${targetPath}.backup.${Date.now()}`;
+        const backupPath = `${targetPath}.backup.${this.getDeterministicTimestamp()}`;
         await fs.copy(targetPath, backupPath);
         consola.info(`💾 Created backup: ${backupPath}`);
       }
@@ -372,7 +372,7 @@ export const DriftHelperMethods = {
       path: fullPath,
       content,
       hash,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     });
     
     await this.saveDriftBaseline();

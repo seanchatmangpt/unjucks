@@ -163,7 +163,7 @@ class UserJourneySimulator {
   storeJourneyData(key, data) {
     this.journeyData.set(key, {
       ...data,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     });
   }
 
@@ -180,7 +180,7 @@ class UserJourneySimulator {
   async simulateNewUserOnboarding() {
     const journey = {
       steps: [],
-      startTime: Date.now()
+      startTime: this.getDeterministicTimestamp()
     };
 
     // Step 1: Check CLI version (first thing users do)
@@ -218,7 +218,7 @@ class UserJourneySimulator {
       success: helpGenerateResult.success
     });
 
-    journey.endTime = Date.now();
+    journey.endTime = this.getDeterministicTimestamp();
     journey.duration = journey.endTime - journey.startTime;
     
     this.storeJourneyData('new_user_onboarding', journey);
@@ -231,7 +231,7 @@ class UserJourneySimulator {
   async simulateExperiencedUserWorkflow() {
     const journey = {
       steps: [],
-      startTime: Date.now()
+      startTime: this.getDeterministicTimestamp()
     };
 
     // Step 1: Quick template generation
@@ -272,7 +272,7 @@ class UserJourneySimulator {
       await this.cli.verifyFileCreated(`src/api/${apiName}.js`, apiName);
     }
 
-    journey.endTime = Date.now();
+    journey.endTime = this.getDeterministicTimestamp();
     journey.duration = journey.endTime - journey.startTime;
     
     this.storeJourneyData('experienced_user_workflow', journey);
@@ -285,7 +285,7 @@ class UserJourneySimulator {
   async simulateComplexProjectSetup() {
     const journey = {
       steps: [],
-      startTime: Date.now(),
+      startTime: this.getDeterministicTimestamp(),
       project: {
         name: faker.company.name().replace(/[^a-zA-Z0-9]/g, ''),
         type: 'fullstack-app'
@@ -365,7 +365,7 @@ class UserJourneySimulator {
       'tests': testFiles.map(t => `${t}.js`)
     });
 
-    journey.endTime = Date.now();
+    journey.endTime = this.getDeterministicTimestamp();
     journey.duration = journey.endTime - journey.startTime;
     
     this.storeJourneyData('complex_project_setup', journey);
@@ -378,7 +378,7 @@ class UserJourneySimulator {
   async simulateErrorRecoveryJourney() {
     const journey = {
       steps: [],
-      startTime: Date.now(),
+      startTime: this.getDeterministicTimestamp(),
       errors: []
     };
 
@@ -431,7 +431,7 @@ class UserJourneySimulator {
       success: forceResult.success
     });
 
-    journey.endTime = Date.now();
+    journey.endTime = this.getDeterministicTimestamp();
     journey.duration = journey.endTime - journey.startTime;
     
     this.storeJourneyData('error_recovery', journey);
@@ -444,7 +444,7 @@ class UserJourneySimulator {
   async simulatePerformanceJourney() {
     const journey = {
       steps: [],
-      startTime: Date.now(),
+      startTime: this.getDeterministicTimestamp(),
       performance: {
         operations: [],
         totalTime: 0,
@@ -460,7 +460,7 @@ class UserJourneySimulator {
     ];
 
     for (const operation of operations) {
-      const operationStart = Date.now();
+      const operationStart = this.getDeterministicTimestamp();
       
       for (let i = 0; i < operation.count; i++) {
         const name = `${operation.type}${i}`;
@@ -477,7 +477,7 @@ class UserJourneySimulator {
         }
       }
       
-      const operationEnd = Date.now();
+      const operationEnd = this.getDeterministicTimestamp();
       const operationTime = operationEnd - operationStart;
       
       journey.performance.operations.push({
@@ -497,7 +497,7 @@ class UserJourneySimulator {
     );
     journey.performance.averageTime = journey.performance.totalTime / journey.performance.totalOperations;
 
-    journey.endTime = Date.now();
+    journey.endTime = this.getDeterministicTimestamp();
     journey.duration = journey.endTime - journey.startTime;
     
     this.storeJourneyData('performance_journey', journey);
@@ -598,14 +598,14 @@ describe('End-to-End User Journeys', () => {
         'generate api users --path src/api'
       ];
 
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
       for (const operation of batchOperations) {
         const result = await cli.exec(operation);
         expect(result.success).toBe(true);
       }
       
-      const endTime = Date.now();
+      const endTime = this.getDeterministicTimestamp();
       const totalTime = endTime - startTime;
       const averageTime = totalTime / batchOperations.length;
       
@@ -717,11 +717,11 @@ describe('End-to-End User Journeys', () => {
       const largeBatch = 9;
       
       // Test small batch
-      const smallStart = Date.now();
+      const smallStart = this.getDeterministicTimestamp();
       for (let i = 0; i < smallBatch; i++) {
         await cli.exec(`generate component SmallTest${i} --path src`);
       }
-      const smallTime = Date.now() - smallStart;
+      const smallTime = this.getDeterministicTimestamp() - smallStart;
       const smallAverage = smallTime / smallBatch;
 
       // Clean workspace
@@ -729,11 +729,11 @@ describe('End-to-End User Journeys', () => {
       await fs.ensureDir(path.join(TEST_WORKSPACE, 'src'));
 
       // Test large batch
-      const largeStart = Date.now();
+      const largeStart = this.getDeterministicTimestamp();
       for (let i = 0; i < largeBatch; i++) {
         await cli.exec(`generate component LargeTest${i} --path src`);
       }
-      const largeTime = Date.now() - largeStart;
+      const largeTime = this.getDeterministicTimestamp() - largeStart;
       const largeAverage = largeTime / largeBatch;
 
       // Performance should scale roughly linearly (within 50% tolerance)

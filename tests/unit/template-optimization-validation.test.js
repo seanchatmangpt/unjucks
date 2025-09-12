@@ -178,7 +178,7 @@ describe('Template Optimization System - Basic Functionality', () => {
     vi.mock('fs', () => ({
       promises: {
         mkdir: vi.fn().mockResolvedValue(undefined),
-        stat: vi.fn().mockResolvedValue({ mtime: new Date(), size: 100 }),
+        stat: vi.fn().mockResolvedValue({ mtime: this.getDeterministicDate(), size: 100 }),
         readFile: vi.fn().mockResolvedValue('cached content'),
         writeFile: vi.fn().mockResolvedValue(undefined)
       },

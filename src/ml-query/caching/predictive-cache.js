@@ -117,10 +117,10 @@ export class PredictiveCacheManager {
   async set(queryKey, data, context = {}) {
     const cacheEntry = {
       data,
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       ttl: context.ttl || this.options.ttl,
       accessCount: 1,
-      lastAccess: Date.now(),
+      lastAccess: this.getDeterministicTimestamp(),
       context,
       predictions: await this.generatePredictions(queryKey, context)
     };
@@ -212,8 +212,8 @@ export class PredictiveCacheManager {
 
   predictTemporalQueries(currentQuery, context) {
     const predictions = [];
-    const currentHour = new Date().getHours();
-    const currentDay = new Date().getDay();
+    const currentHour = this.getDeterministicDate().getHours();
+    const currentDay = this.getDeterministicDate().getDay();
     
     // Check hourly patterns
     const hourlyPattern = this.temporalModel.hourlyPatterns.get(currentHour);
@@ -331,7 +331,7 @@ export class PredictiveCacheManager {
     // Predict when this query will be accessed next
     const historical = this.getHistoricalAccess(queryKey);
     if (historical.length < 2) {
-      return Date.now() + this.options.ttl; // Default to TTL
+      return this.getDeterministicTimestamp() + this.options.ttl; // Default to TTL
     }
     
     // Calculate average time between accesses
@@ -349,7 +349,7 @@ export class PredictiveCacheManager {
   predictAccessFrequency(queryKey, context) {
     const historical = this.getHistoricalAccess(queryKey);
     const timeWindow = 7 * 24 * 3600000; // 7 days
-    const recentAccesses = historical.filter(time => Date.now() - time < timeWindow);
+    const recentAccesses = historical.filter(time => this.getDeterministicTimestamp() - time < timeWindow);
     
     return recentAccesses.length / 7; // Accesses per day
   }
@@ -367,7 +367,7 @@ export class PredictiveCacheManager {
 
   calculateTemporalRelevance(queryKey, context) {
     // Calculate how time-sensitive this query is
-    const now = Date.now();
+    const now = this.getDeterministicTimestamp();
     const hour = new Date(now).getHours();
     const day = new Date(now).getDay();
     
@@ -390,10 +390,10 @@ export class PredictiveCacheManager {
     // Record access for pattern learning
     const access = {
       queryKey,
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       context,
-      hour: new Date().getHours(),
-      day: new Date().getDay()
+      hour: this.getDeterministicDate().getHours(),
+      day: this.getDeterministicDate().getDay()
     };
     
     this.queryHistory.push(access);
@@ -402,7 +402,7 @@ export class PredictiveCacheManager {
     const entry = this.cache.get(queryKey);
     if (entry) {
       entry.accessCount++;
-      entry.lastAccess = Date.now();
+      entry.lastAccess = this.getDeterministicTimestamp();
     }
     
     // Update temporal patterns
@@ -686,7 +686,7 @@ export class PredictiveCacheManager {
     let score = 0;
     
     // Age factor (older entries are more likely to be evicted)
-    const age = Date.now() - entry.timestamp;
+    const age = this.getDeterministicTimestamp() - entry.timestamp;
     score -= age / 3600000; // Hours old
     
     // Access frequency
@@ -699,7 +699,7 @@ export class PredictiveCacheManager {
     }
     
     // Predicted future access
-    const timeToPredictedAccess = metadata?.predictedAccess - Date.now();
+    const timeToPredictedAccess = metadata?.predictedAccess - this.getDeterministicTimestamp();
     if (timeToPredictedAccess > 0) {
       score += Math.max(0, 24 - (timeToPredictedAccess / 3600000)); // Hours until predicted access
     }
@@ -708,7 +708,7 @@ export class PredictiveCacheManager {
   }
 
   isExpired(entry) {
-    return Date.now() - entry.timestamp > entry.ttl;
+    return this.getDeterministicTimestamp() - entry.timestamp > entry.ttl;
   }
 
   getHistoricalAccess(queryKey) {
@@ -719,7 +719,7 @@ export class PredictiveCacheManager {
   }
 
   getTimePattern(context) {
-    const hour = new Date().getHours();
+    const hour = this.getDeterministicDate().getHours();
     if (hour >= 6 && hour < 12) return 'morning';
     if (hour >= 12 && hour < 18) return 'afternoon';
     if (hour >= 18 && hour < 22) return 'evening';

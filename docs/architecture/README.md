@@ -556,4 +556,211 @@ export default {
 
 ---
 
+## C4 Model Architecture Diagrams
+
+This section contains the complete C4 model architecture documentation for the KGEN Knowledge Graph Engine system. The diagrams follow the C4 model methodology, providing different levels of architectural abstraction from high-level system context down to detailed code-level components.
+
+### KGEN Architecture Overview
+
+The KGEN system extends Unjucks with deterministic knowledge graph processing, semantic validation, and cryptographic provenance tracking. The architecture follows distributed system principles with strong emphasis on reproducibility, semantic validation, and enterprise-grade security.
+
+### C4 Model Levels
+
+#### Level 1: System Context
+
+- **[c4-context.mmd](./c4-context.mmd)** - System Context Diagram
+  - Shows KGEN system in relation to external users, systems, and dependencies
+  - Depicts high-level relationships with Git repositories, CI/CD systems, RDF stores, and monitoring
+
+#### Level 2: Container Architecture
+
+- **[c4-container-cli.mmd](./c4-container-cli.mmd)** - CLI Container Diagram
+  - Command-line interface architecture and interaction patterns
+  - Shows CLI commands, argument processing, and core engine integration
+
+- **[c4-container-autonomic.mmd](./c4-container-autonomic.mmd)** - Autonomic Computing Container
+  - Self-managing system components for automatic optimization
+  - Adaptive behavior and autonomous decision-making containers
+
+#### Level 3: Component Architecture
+
+##### Core Generation Components
+
+- **[c4-component-artifact-generate.mmd](./c4-component-artifact-generate.mmd)** - Artifact Generation Workflow
+  - Complete artifact generation pipeline from templates to deterministic outputs
+  - Integration between template processing, RDF processing, and storage systems
+
+- **[c4-component-document-generation.mmd](./c4-component-document-generation.mmd)** - Document Generation System
+  - Specialized document generation components for various output formats
+  - Template-driven document creation with semantic enrichment
+
+##### Data Processing Components
+
+- **[c4-component-graph-engine.mmd](./c4-component-graph-engine.mmd)** - RDF Graph Processing Engine
+  - Semantic data processing, SPARQL querying, and knowledge graph operations
+  - Integration with external RDF stores and semantic reasoning
+
+- **[c4-component-frontmatter-engine.mmd](./c4-component-frontmatter-engine.mmd)** - Frontmatter Processing Engine
+  - Template frontmatter parsing, variable extraction, and directive processing
+  - Integration with template scanning and analysis systems
+
+- **[c4-component-uri-resolver.mmd](./c4-component-uri-resolver.mmd)** - URI Resolution System
+  - Handles URI resolution across different protocols and schemes
+  - Caching, validation, and content retrieval from various sources
+
+##### Storage & Caching Components
+
+- **[c4-component-cas-cache.mmd](./c4-component-cas-cache.mmd)** - Content-Addressed Storage System
+  - Immutable content storage with cryptographic addressing
+  - Deduplication, integrity verification, and efficient retrieval
+
+- **[c4-component-git-as-blockchain.mmd](./c4-component-git-as-blockchain.mmd)** - Git-Based Blockchain System
+  - Leveraging Git's DAG structure for blockchain-like provenance
+  - Immutable history, distributed verification, and cryptographic integrity
+
+##### Validation & Compliance Components
+
+- **[c4-component-shacl-validation.mmd](./c4-component-shacl-validation.mmd)** - SHACL Validation System
+  - Semantic validation using SHACL shapes and constraints
+  - Real-time validation, batch processing, and compliance reporting
+
+- **[c4-component-sbom-generation.mmd](./c4-component-sbom-generation.mmd)** - Software Bill of Materials Generation
+  - Automatic SBOM creation from code analysis and dependencies
+  - Supply chain security and compliance automation
+
+##### Monitoring & Analysis Components
+
+- **[c4-component-artifact-drift.mmd](./c4-component-artifact-drift.mmd)** - Artifact Drift Detection
+  - Monitors changes in generated artifacts over time
+  - Detects unintended modifications and configuration drift
+
+- **[c4-component-provenance-explain.mmd](./c4-component-provenance-explain.mmd)** - Provenance Explanation Engine
+  - Traces artifact generation history and decision points
+  - Provides detailed explanation of generation process
+
+- **[c4-component-project-lifecycle.mmd](./c4-component-project-lifecycle.mmd)** - Project Lifecycle Management
+  - Manages project evolution, versioning, and lifecycle states
+  - Integration with development workflows and release processes
+
+- **[c4-component-merkle-changefeed.mmd](./c4-component-merkle-changefeed.mmd)** - Merkle Tree Changefeed System
+  - Efficient change tracking using Merkle tree structures
+  - Real-time change propagation and integrity verification
+
+#### Level 4: Code Architecture
+
+##### Core Processing Engines
+
+- **[c4-code-deterministic-renderer.mmd](./c4-code-deterministic-renderer.mmd)** - Deterministic Rendering System
+  - Template rendering with guaranteed reproducible output
+  - Content normalization, context management, and caching strategies
+  - Validation of rendering determinism and consistency
+
+- **[c4-code-semantic-hashing.mmd](./c4-code-semantic-hashing.mmd)** - Semantic Hashing Engine
+  - Meaning-aware content hashing that remains stable across syntactic variations
+  - Machine learning-based semantic analysis and feature extraction
+  - Hash collision detection and quality analysis
+
+##### Security & Cryptography
+
+- **[c4-code-attestation-generator.mmd](./c4-code-attestation-generator.mmd)** - Cryptographic Attestation Generator
+  - Complete cryptographic proof generation system
+  - Digital signatures, Merkle proofs, and multi-format attestation output
+  - Key management, entropy sources, and verification systems
+
+- **[c4-code-policy-gate.mmd](./c4-code-policy-gate.mmd)** - SHACL Policy Gate Engine
+  - Policy enforcement through SHACL-based validation rules
+  - Rule execution, decision making, and conflict resolution
+  - Performance optimization and audit logging
+
+##### Specialized Processors
+
+- **[c4-code-opc-normalizer.mmd](./c4-code-opc-normalizer.mmd)** - OPC Document Normalizer
+  - Deterministic processing of Office documents (DOCX, XLSX, PPTX)
+  - Package structure normalization, metadata stripping, and compression management
+  - Binary content processing and validation
+
+### KGEN Architecture Patterns
+
+#### Deterministic Processing
+All KGEN components are designed to produce identical outputs given identical inputs, ensuring reproducibility across different environments and time periods.
+
+#### Content-Addressed Storage
+Extensive use of content-addressed storage patterns ensures immutability and enables efficient deduplication and caching throughout the system.
+
+#### Semantic-Aware Processing
+Components understand content semantics rather than just syntax, enabling robust handling of logically equivalent but syntactically different inputs.
+
+#### Cryptographic Provenance
+Every artifact includes cryptographic attestations that prove its generation process and enable verification of integrity and authenticity.
+
+#### Distributed Architecture
+System components can operate in distributed environments with proper coordination and consistency guarantees.
+
+### Integration Points
+
+#### External Systems
+- **Git Repositories**: Version control integration with enhanced provenance tracking
+- **RDF Triple Stores**: Semantic data integration and SPARQL querying capabilities
+- **CI/CD Pipelines**: Automated validation and artifact generation workflows
+- **Monitoring Systems**: OpenTelemetry-based observability and metrics collection
+
+#### Internal Coordination
+- **Event-Driven Architecture**: Components communicate through well-defined events and message passing
+- **Content-Addressed Coordination**: Shared state management through immutable content addressing
+- **Policy-Based Validation**: SHACL-based rules govern system behavior and data validation
+
+### Quality Attributes
+
+#### Performance
+- **Multi-level Caching**: Content-addressed storage with intelligent cache hierarchies
+- **Parallel Processing**: Concurrent execution where data dependencies allow
+- **Semantic Optimization**: ML-based analysis for intelligent processing optimization
+
+#### Security
+- **Cryptographic Integrity**: All artifacts include cryptographic proofs and signatures
+- **Immutable Audit Trail**: Complete provenance tracking with tamper evidence
+- **Policy Enforcement**: SHACL-based access control and validation rules
+
+#### Scalability
+- **Distributed Components**: Horizontal scaling support across multiple nodes
+- **Content Deduplication**: Efficient storage utilization through intelligent deduplication
+- **Incremental Processing**: Process only changed content for efficiency
+
+#### Reliability
+- **Deterministic Output**: Guaranteed reproducible results across all operations
+- **Comprehensive Validation**: Multi-stage validation pipeline with semantic checks
+- **Graceful Degradation**: Fallback mechanisms for component failures
+
+### Development Guidelines
+
+#### Adding New C4 Diagrams
+1. Follow C4 model conventions and abstraction levels
+2. Use consistent mermaid syntax and styling
+3. Maintain proper abstraction levels between diagram types
+4. Update this index when adding new diagrams
+
+#### Diagram Naming Convention
+- `c4-context-*.mmd` - System context level diagrams
+- `c4-container-*.mmd` - Container level diagrams
+- `c4-component-*.mmd` - Component level diagrams
+- `c4-code-*.mmd` - Code/class level diagrams
+
+#### Consistency Requirements
+- All diagrams should reference consistent component names and boundaries
+- Relationships should be bidirectionally coherent across diagram levels
+- Technology choices should align across all abstraction levels
+- Maintain consistent visual styling and layout patterns
+
+### Tools and Rendering
+
+These C4 diagrams are created using Mermaid syntax and can be rendered in:
+- **GitHub**: Native Mermaid support in README files
+- **Mermaid Live Editor**: Online editing and preview
+- **Visual Studio Code**: Mermaid preview extensions
+- **Documentation Generators**: GitBook, Docusaurus, VuePress with Mermaid plugins
+
+---
+
+*Total Architecture Components: 21 C4 Diagrams + Comprehensive Implementation Documentation | Last Updated: September 2025*
+
 *For implementation details and API usage, see the [API Reference](../api/README.md) and [Getting Started Guide](../getting-started.md).*

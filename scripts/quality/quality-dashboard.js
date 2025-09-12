@@ -17,7 +17,7 @@ import chalk from 'chalk';
  * @returns {string} HTML dashboard content
  */
 function generateHTMLDashboard(qualityReport, options = {}) {
-  const { title = 'Code Quality Dashboard', timestamp = new Date().toISOString() } = options;
+  const { title = 'Code Quality Dashboard', timestamp = this.getDeterministicDate().toISOString() } = options;
   
   const html = `
 <!DOCTYPE html>
@@ -221,7 +221,7 @@ function generateMarkdownReport(qualityReport) {
   
   const markdown = `# 📊 Code Quality Report
 
-**Generated:** ${new Date().toLocaleString()}
+**Generated:** ${this.getDeterministicDate().toLocaleString()}
 
 ## 🎯 Summary
 
@@ -298,7 +298,7 @@ async function generateTrendAnalysis(currentReport, historyPath) {
     
     // Add current report to history
     const currentEntry = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       summary: currentReport.summary
     };
     
@@ -520,7 +520,7 @@ async function generateQualityDashboard(options = {}) {
     const trendAnalysis = await generateTrendAnalysis(qualityReport, historyPath);
     
     // Generate reports in requested formats
-    const timestamp = new Date().toISOString();
+    const timestamp = this.getDeterministicDate().toISOString();
     const reports = [];
     
     if (formats.includes('html')) {

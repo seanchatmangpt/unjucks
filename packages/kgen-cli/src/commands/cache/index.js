@@ -3,6 +3,7 @@ import gcCommand from './gc.js'
 import lsCommand from './ls.js'
 import purgeCommand from './purge.js'
 import showCommand from './show.js'
+import statsCommand from './stats.js'
 
 export default defineCommand({
   meta: {
@@ -13,26 +14,25 @@ export default defineCommand({
     gc: gcCommand,
     ls: lsCommand,
     purge: purgeCommand,
-    show: showCommand
+    show: showCommand,
+    stats: statsCommand
   },
   async run({ args }) {
-    const result = {
-      success: true,
-      data: {
-        tool: 'cache',
-        description: 'Manage content-addressed cache',
-        verbs: ['gc', 'ls', 'purge', 'show'],
-        usage: 'kgen cache <verb> [options]',
-        examples: [
-          'kgen cache ls',
-          'kgen cache gc --maxAge 30d',
-          'kgen cache show <cache-key>',
-          'kgen cache purge --force'
-        ]
-      },
-      timestamp: new Date().toISOString()
-    }
+    const { createStandardOutput } = await import('../../../../../src/kgen/cli/standardized-output.js');
+    const output = createStandardOutput();
     
-    console.log(JSON.stringify(result, null, 2))
+    return output.success('cache:help', {
+      tool: 'cache',
+      description: 'Manage content-addressed cache',
+      verbs: ['gc', 'ls', 'purge', 'show', 'stats'],
+      usage: 'kgen cache <verb> [options]',
+      examples: [
+        'kgen cache ls',
+        'kgen cache stats --detailed',
+        'kgen cache gc --maxAge 30d',
+        'kgen cache show <cache-key>',
+        'kgen cache purge --force'
+      ]
+    });
   }
 })

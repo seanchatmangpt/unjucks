@@ -70,7 +70,7 @@ export class StreamingTurtleSerializer extends EventEmitter {
    */
   async serializeStream(inputStream, outputStream, options = {}) {
     return new Promise((resolve, reject) => {
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       let totalQuads = 0;
       
       const serializerStream = this.createSerializerStream(options);
@@ -82,7 +82,7 @@ export class StreamingTurtleSerializer extends EventEmitter {
             quadsProcessed: totalQuads,
             chunksProcessed: this.statistics.chunksProcessed,
             memoryUsage: process.memoryUsage(),
-            elapsedTime: Date.now() - startTime
+            elapsedTime: this.getDeterministicTimestamp() - startTime
           });
         }, this.config.progressInterval);
         
@@ -101,7 +101,7 @@ export class StreamingTurtleSerializer extends EventEmitter {
       
       // Handle completion
       serializerStream.on('finish', () => {
-        const processingTime = Date.now() - startTime;
+        const processingTime = this.getDeterministicTimestamp() - startTime;
         
         const result = {
           totalQuads,

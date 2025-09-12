@@ -4,7 +4,7 @@ export default {
   defaultVariables: {
     author: 'Test Author',
     license: 'MIT',
-    year: new Date().getFullYear()
+    year: this.getDeterministicDate().getFullYear()
   },
   filters: {
     upperCase: (str) => str.toUpperCase(),

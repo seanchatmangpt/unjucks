@@ -1,0 +1,81 @@
+{
+  "summary": {
+    "timestamp": "2025-09-12T19:08:51.272Z",
+    "framework": "SHACL Comprehensive Validation Test Suite",
+    "totalTests": 7,
+    "passed": 0,
+    "failed": 7,
+    "successRate": 0,
+    "totalDuration": "0.00",
+    "averageDuration": "0.00"
+  },
+  "validationAnalysis": {
+    "totalViolationReports": 0,
+    "totalConstraintViolations": 0,
+    "uniqueConstraintTypes": [],
+    "uniqueSeverityLevels": [],
+    "constraintCoverage": "0 types",
+    "severityCoverage": "0 levels",
+    "averageValidationTime": "0.00"
+  },
+  "testResults": [
+    {
+      "testName": "Unknown Test",
+      "passed": false,
+      "duration": 0,
+      "error": "SHACL validation failed: dataset or edges is required"
+    },
+    {
+      "testName": "Unknown Test",
+      "passed": false,
+      "duration": 0,
+      "error": "SHACL validation failed: dataset or edges is required"
+    },
+    {
+      "testName": "Unknown Test",
+      "passed": false,
+      "duration": 0,
+      "error": "SHACL validation failed: dataset or edges is required"
+    },
+    {
+      "testName": "Unknown Test",
+      "passed": false,
+      "duration": 0,
+      "error": "SHACL validation failed: dataset or edges is required"
+    },
+    {
+      "testName": "Unknown Test",
+      "passed": false,
+      "duration": 0,
+      "error": "SHACL validation failed: Expected entity but got eof on line 58."
+    },
+    {
+      "testName": "Unknown Test",
+      "passed": false,
+      "duration": 0,
+      "error": "SHACL validation failed: dataset or edges is required"
+    },
+    {
+      "testName": "Unknown Test",
+      "passed": false,
+      "duration": 0,
+      "error": "SHACL validation failed: dataset or edges is required"
+    }
+  ],
+  "validationReports": [],
+  "performanceMetrics": {
+    "totalTests": 0,
+    "totalValidations": 0,
+    "totalViolations": 0,
+    "averageValidationTime": 0,
+    "constraintTypesCovered": [],
+    "severityLevelsCovered": []
+  },
+  "conclusions": {
+    "shaclValidationWorking": false,
+    "constraintDetectionAccurate": false,
+    "performanceAcceptable": true,
+    "reportQualityGood": false,
+    "comprehensiveTestingComplete": true
+  }
+}

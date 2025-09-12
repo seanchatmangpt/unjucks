@@ -1,0 +1,101 @@
+{
+  "timestamp": "2025-09-12T17:02:35.696Z",
+  "version": "1.0.0",
+  "components": {
+    "CLI Basic Functionality": {
+      "description": "KGEN CLI initializes and responds to version command",
+      "passed": true,
+      "score": 1,
+      "maxScore": 1,
+      "notes": [
+        "✅ PASS"
+      ]
+    },
+    "Graph Hash Processing": {
+      "description": "Semantic RDF graph hashing with content URIs",
+      "passed": true,
+      "score": 1,
+      "maxScore": 1,
+      "notes": [
+        "✅ PASS"
+      ]
+    },
+    "Artifact Generation": {
+      "description": "Deterministic artifact generation with attestation",
+      "passed": true,
+      "score": 1,
+      "maxScore": 1,
+      "notes": [
+        "✅ PASS"
+      ]
+    },
+    "Drift Detection": {
+      "description": "Artifact drift detection and monitoring",
+      "passed": true,
+      "score": 1,
+      "maxScore": 1,
+      "notes": [
+        "✅ PASS"
+      ]
+    },
+    "Project Attestation": {
+      "description": "Cryptographic project-wide attestation",
+      "passed": true,
+      "score": 1,
+      "maxScore": 1,
+      "notes": [
+        "✅ PASS"
+      ]
+    },
+    "Template Discovery": {
+      "description": "Template discovery and analysis system",
+      "passed": true,
+      "score": 1,
+      "maxScore": 1,
+      "notes": [
+        "✅ PASS"
+      ]
+    },
+    "Rules Discovery": {
+      "description": "Reasoning rules discovery and management",
+      "passed": true,
+      "score": 1,
+      "maxScore": 1,
+      "notes": [
+        "✅ PASS"
+      ]
+    },
+    "Graph Comparison": {
+      "description": "Semantic graph comparison and impact analysis",
+      "passed": true,
+      "score": 1,
+      "maxScore": 1,
+      "notes": [
+        "✅ PASS"
+      ]
+    },
+    "Performance Compliance": {
+      "description": "Performance targets and cold start optimization",
+      "passed": true,
+      "score": 1,
+      "maxScore": 1,
+      "notes": [
+        "✅ PASS"
+      ]
+    },
+    "Configuration System": {
+      "description": "KGEN configuration loading and validation",
+      "passed": true,
+      "score": 1,
+      "maxScore": 1,
+      "notes": [
+        "✅ PASS"
+      ]
+    }
+  },
+  "overall": {
+    "ready": true,
+    "score": 10,
+    "maxScore": 10
+  }
+}

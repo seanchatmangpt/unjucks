@@ -93,7 +93,7 @@ export function createRDFProcessor(options = {}) {
     
     // Enhanced methods with deterministic processing
     async processGraphDeterministic(data, format = 'turtle', options = {}) {
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
       try {
         // Parse with canonical processor for deterministic results
@@ -119,7 +119,7 @@ export function createRDFProcessor(options = {}) {
           });
         }
         
-        const processingTime = Date.now() - startTime;
+        const processingTime = this.getDeterministicTimestamp() - startTime;
         
         return {
           success: true,
@@ -148,19 +148,19 @@ export function createRDFProcessor(options = {}) {
             totalTime: processingTime,
             throughput: Math.round(parseResult.count / (processingTime / 1000))
           },
-          timestamp: new Date().toISOString()
+          timestamp: this.getDeterministicDate().toISOString()
         };
       } catch (error) {
         return {
           success: false,
           error: error.message,
-          timestamp: new Date().toISOString()
+          timestamp: this.getDeterministicDate().toISOString()
         };
       }
     },
     
     async compareGraphsDeterministic(graph1Data, graph2Data, options = {}) {
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
       try {
         // Parse both graphs canonically
@@ -199,16 +199,16 @@ export function createRDFProcessor(options = {}) {
           differences: comparison.differences,
           summary: {
             ...comparison.summary,
-            processingTime: Date.now() - startTime
+            processingTime: this.getDeterministicTimestamp() - startTime
           },
           changes: comparison.changes || null,
-          timestamp: new Date().toISOString()
+          timestamp: this.getDeterministicDate().toISOString()
         };
       } catch (error) {
         return {
           success: false,
           error: error.message,
-          timestamp: new Date().toISOString()
+          timestamp: this.getDeterministicDate().toISOString()
         };
       }
     },
@@ -246,14 +246,14 @@ export function createRDFProcessor(options = {}) {
           count: results.count,
           hasMore: results.hasMore,
           query,
-          timestamp: new Date().toISOString()
+          timestamp: this.getDeterministicDate().toISOString()
         };
       } catch (error) {
         return {
           success: false,
           error: error.message,
           query,
-          timestamp: new Date().toISOString()
+          timestamp: this.getDeterministicDate().toISOString()
         };
       }
     },
@@ -300,7 +300,7 @@ export function createRDFProcessor(options = {}) {
         system: {
           memoryUsage: process.memoryUsage(),
           uptime: process.uptime(),
-          timestamp: new Date().toISOString()
+          timestamp: this.getDeterministicDate().toISOString()
         }
       };
     },

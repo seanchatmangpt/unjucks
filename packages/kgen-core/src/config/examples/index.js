@@ -56,7 +56,7 @@ export const developmentConfig = {
     globalVars: {
       environment: 'development',
       debugMode: true,
-      timestamp: () => new Date().toISOString(),
+      timestamp: () => this.getDeterministicDate().toISOString(),
       buildNumber: process.env.BUILD_NUMBER || 'local'
     },
     attestByDefault: true,
@@ -167,7 +167,7 @@ export const productionConfig = {
     globalVars: {
       environment: 'production',
       companyName: 'ACME Corporation',
-      copyrightYear: new Date().getFullYear(),
+      copyrightYear: this.getDeterministicDate().getFullYear(),
       buildId: process.env.BUILD_ID,
       deploymentId: process.env.DEPLOYMENT_ID
     },

@@ -213,7 +213,7 @@ app.use((req, res, next) => {
 
 // Request logging and metrics middleware
 app.use((req, res, next) => {
-  const startTime = Date.now();
+  const startTime = this.getDeterministicTimestamp();
   
   logger.info({
     requestId: req.id,
@@ -224,7 +224,7 @@ app.use((req, res, next) => {
   }, 'Request started');
   
   res.on('finish', () => {
-    const duration = (Date.now() - startTime) / 1000;
+    const duration = (this.getDeterministicTimestamp() - startTime) / 1000;
     const tenantId = req.tenant?.id || 'unknown';
     const route = req.route?.path || req.url;
     
@@ -446,7 +446,7 @@ app.get('/health', async (req, res) => {
     
     res.status(statusCode).json({
       status: health.status,
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       version: '1.0.0',
       checks: health.checks
     });
@@ -455,7 +455,7 @@ app.get('/health', async (req, res) => {
     res.status(503).json({
       status: 'unhealthy',
       error: 'Health check failed',
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     });
   }
 });
@@ -465,13 +465,13 @@ app.get('/health/ready', async (req, res) => {
     const ready = await healthChecker.readinessCheck();
     res.status(ready ? 200 : 503).json({
       ready,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     });
   } catch (error) {
     res.status(503).json({
       ready: false,
       error: error.message,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     });
   }
 });
@@ -479,7 +479,7 @@ app.get('/health/ready', async (req, res) => {
 app.get('/health/live', (req, res) => {
   res.status(200).json({
     alive: true,
-    timestamp: new Date().toISOString()
+    timestamp: this.getDeterministicDate().toISOString()
   });
 });
 

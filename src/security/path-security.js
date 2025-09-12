@@ -66,7 +66,7 @@ export class PathSecurityManager {
     const cached = this.pathValidationCache.get(cacheKey);
     
     // Return cached result if valid
-    if (cached && Date.now() - cached.timestamp < this.cacheTimeout) {
+    if (cached && this.getDeterministicTimestamp() - cached.timestamp < this.cacheTimeout) {
       if (!cached.valid) {
         throw new SecurityError(cached.error);
       }
@@ -78,14 +78,14 @@ export class PathSecurityManager {
       this.pathValidationCache.set(cacheKey, {
         valid: true,
         result,
-        timestamp: Date.now()
+        timestamp: this.getDeterministicTimestamp()
       });
       return result;
     } catch (error) {
       this.pathValidationCache.set(cacheKey, {
         valid: false,
         error: error.message,
-        timestamp: Date.now()
+        timestamp: this.getDeterministicTimestamp()
       });
       throw error;
     }
@@ -270,7 +270,7 @@ export class PathSecurityManager {
       // Check cache first
       const cacheKey = `symlink:${normalizedPath}`;
       const cached = this.symlinkCache.get(cacheKey);
-      if (cached && Date.now() - cached.timestamp < this.cacheTimeout) {
+      if (cached && this.getDeterministicTimestamp() - cached.timestamp < this.cacheTimeout) {
         if (!cached.valid) {
           throw new SecurityError(cached.error);
         }
@@ -287,7 +287,7 @@ export class PathSecurityManager {
       this.symlinkCache.set(cacheKey, {
         valid: true,
         target: realPath,
-        timestamp: Date.now()
+        timestamp: this.getDeterministicTimestamp()
       });
 
     } catch (error) {

@@ -290,7 +290,7 @@ to: src/models/Base{{ className | pascalCase }}.js
 
 export class Base{{ className | pascalCase }} {
   constructor() {
-    this.created = new Date();
+    this.created = this.getDeterministicDate();
   }
 }
 `;

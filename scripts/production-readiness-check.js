@@ -30,7 +30,7 @@ class ProductionReadinessChecker {
     this.healthMonitor = new HealthMonitor();
     
     this.results = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       overallStatus: 'unknown',
       score: 0,
       maxScore: 0,

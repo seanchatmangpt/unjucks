@@ -31,7 +31,7 @@ class TemplateBenchmark {
     
     this.results = {
       metadata: {
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         nodeVersion: process.version,
         platform: process.platform,
         arch: process.arch,
@@ -274,7 +274,7 @@ class TemplateBenchmark {
         small: {
           title: 'User Dashboard',
           description: 'Simple user dashboard',
-          timestamp: new Date(),
+          timestamp: this.getDeterministicDate(),
           users: Array.from({ length: 10 }, (_, i) => ({
             id: i + 1,
             name: `User ${i + 1}`,
@@ -286,7 +286,7 @@ class TemplateBenchmark {
         medium: {
           title: 'Advanced User Management Dashboard',
           description: 'Comprehensive user management system with roles and permissions',
-          timestamp: new Date(),
+          timestamp: this.getDeterministicDate(),
           users: Array.from({ length: 100 }, (_, i) => ({
             id: i + 1,
             name: `User ${i + 1}`,
@@ -302,7 +302,7 @@ class TemplateBenchmark {
         large: {
           title: 'Enterprise User Management Dashboard',
           description: 'Large-scale enterprise user management system with complex role hierarchies',
-          timestamp: new Date(),
+          timestamp: this.getDeterministicDate(),
           users: Array.from({ length: 1000 }, (_, i) => ({
             id: i + 1,
             name: `User ${i + 1}`,
@@ -325,7 +325,7 @@ class TemplateBenchmark {
             name: 'Simple Project',
             description: 'A simple test project',
             status: 'active',
-            lastUpdated: new Date(),
+            lastUpdated: this.getDeterministicDate(),
             teams: [
               {
                 name: 'Development',
@@ -350,7 +350,7 @@ class TemplateBenchmark {
             name: 'Medium Scale Project',
             description: 'A medium-scale development project',
             status: 'active',
-            lastUpdated: new Date(),
+            lastUpdated: this.getDeterministicDate(),
             teams: Array.from({ length: 3 }, (_, teamIndex) => ({
               name: ['Development', 'QA', 'DevOps'][teamIndex],
               members: Array.from({ length: 5 }, (_, memberIndex) => ({
@@ -377,7 +377,7 @@ class TemplateBenchmark {
             name: 'Enterprise Scale Project',
             description: 'Large enterprise development project with multiple teams',
             status: 'active',
-            lastUpdated: new Date(),
+            lastUpdated: this.getDeterministicDate(),
             teams: Array.from({ length: 10 }, (_, teamIndex) => ({
               name: `Team ${teamIndex + 1}`,
               members: Array.from({ length: 15 }, (_, memberIndex) => ({
@@ -418,9 +418,9 @@ class TemplateBenchmark {
               notifications: { email: true, push: false }
             },
             roles: [{ name: 'user', permissions: ['read'] }],
-            createdAt: new Date(),
-            updatedAt: new Date(),
-            lastLoginAt: new Date(),
+            createdAt: this.getDeterministicDate(),
+            updatedAt: this.getDeterministicDate(),
+            lastLoginAt: this.getDeterministicDate(),
             isActive: true,
             loginCount: 42
           }
@@ -455,8 +455,8 @@ class TemplateBenchmark {
               { name: 'admin', permissions: ['read', 'write', 'delete', 'manage_users'] }
             ],
             createdAt: new Date('2020-01-15T10:30:00Z'),
-            updatedAt: new Date(),
-            lastLoginAt: new Date(),
+            updatedAt: this.getDeterministicDate(),
+            lastLoginAt: this.getDeterministicDate(),
             isActive: true,
             loginCount: 1337
           }
@@ -497,8 +497,8 @@ class TemplateBenchmark {
               { name: 'tech_lead', permissions: ['read', 'write', 'assign', 'review', 'mentor'] }
             ],
             createdAt: new Date('2018-03-20T08:15:30Z'),
-            updatedAt: new Date(),
-            lastLoginAt: new Date(),
+            updatedAt: this.getDeterministicDate(),
+            lastLoginAt: this.getDeterministicDate(),
             isActive: true,
             loginCount: 5432
           }

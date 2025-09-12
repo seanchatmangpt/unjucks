@@ -6,7 +6,7 @@
  */
 
 import { EventEmitter } from 'events';
-import { Logger } from 'consola';
+import { Consola } from 'consola';
 
 export class SchemaValidator extends EventEmitter {
   constructor(options = {}) {
@@ -21,7 +21,7 @@ export class SchemaValidator extends EventEmitter {
       ...options
     };
     
-    this.logger = new Logger({ tag: 'kgen-schema-validator' });
+    this.logger = new Consola({ tag: 'kgen-schema-validator' });
     this.schemas = new Map();
     this.customValidators = new Map();
     this.validationCache = new Map();
@@ -59,7 +59,7 @@ export class SchemaValidator extends EventEmitter {
    * @returns {Promise<Object>} Validation result
    */
   async validate(frontmatter, schemaName = 'default', options = {}) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       // Generate cache key
@@ -85,7 +85,7 @@ export class SchemaValidator extends EventEmitter {
           errors: [`Schema not found: ${schemaName}`],
           warnings: [],
           validationMetadata: {
-            validationTime: Date.now() - startTime,
+            validationTime: this.getDeterministicTimestamp() - startTime,
             schemaName,
             cacheHit: false
           }
@@ -99,7 +99,7 @@ export class SchemaValidator extends EventEmitter {
       const result = {
         ...validationResult,
         validationMetadata: {
-          validationTime: Date.now() - startTime,
+          validationTime: this.getDeterministicTimestamp() - startTime,
           schemaName,
           schemaVersion: schema.version || '1.0.0',
           cacheHit: false
@@ -127,7 +127,7 @@ export class SchemaValidator extends EventEmitter {
         errors: [`Validation failed: ${error.message}`],
         warnings: [],
         validationMetadata: {
-          validationTime: Date.now() - startTime,
+          validationTime: this.getDeterministicTimestamp() - startTime,
           schemaName,
           cacheHit: false,
           error: error.message
@@ -155,7 +155,7 @@ export class SchemaValidator extends EventEmitter {
     this.schemas.set(name, {
       ...schema,
       name,
-      registeredAt: new Date()
+      registeredAt: this.getDeterministicDate()
     });
     
     this.emit('schema:registered', { name, schema });

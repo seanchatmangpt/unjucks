@@ -30,7 +30,7 @@ export function outputSuccess(message, data = null, jsonFormat = false) {
       success: true,
       message,
       data,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     }, null, 2));
   } else {
     console.log(chalk.green('✅'), message);
@@ -49,7 +49,7 @@ export function outputError(message, error = null, jsonFormat = false) {
       success: false,
       error: message,
       details: error?.message || error,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     }, null, 2));
   } else {
     console.error(chalk.red('❌'), message);
@@ -66,7 +66,7 @@ export function outputWarning(message, jsonFormat = false) {
   if (jsonFormat) {
     console.log(JSON.stringify({
       warning: message,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     }, null, 2));
   } else {
     console.log(chalk.yellow('⚠️'), message);
@@ -80,7 +80,7 @@ export function outputInfo(message, jsonFormat = false) {
   if (jsonFormat) {
     console.log(JSON.stringify({
       info: message,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     }, null, 2));
   } else {
     console.log(chalk.blue('ℹ️'), message);
@@ -141,7 +141,7 @@ export function formatHash(hash, algorithm = 'SHA256', jsonFormat = false) {
       hash,
       algorithm,
       length: hash.length,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     }, null, 2));
   } else {
     console.log(chalk.green('Hash:'), chalk.cyan(hash));
@@ -162,7 +162,7 @@ export function formatFileResult(operation, files, jsonFormat = false) {
         status: f.status || 'success'
       })),
       count: files.length,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     }, null, 2));
   } else {
     console.log(chalk.green(`${operation} completed:`));

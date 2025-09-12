@@ -89,7 +89,7 @@ class ComplianceAuditor {
    */
   async runFullAudit(secretManager, configManager) {
     const auditId = crypto.randomUUID();
-    const auditStartTime = new Date();
+    const auditStartTime = this.getDeterministicDate();
     
     this.logger.info(`Starting comprehensive compliance audit: ${auditId}`);
     
@@ -135,7 +135,7 @@ class ComplianceAuditor {
       // Generate compliance report
       await this.generateComplianceReport(auditResults);
       
-      const auditDuration = Date.now() - auditStartTime.getTime();
+      const auditDuration = this.getDeterministicTimestamp() - auditStartTime.getTime();
       this.logger.success(`Compliance audit completed in ${auditDuration}ms (Score: ${auditResults.overallScore}%)`);
       
       return auditResults;

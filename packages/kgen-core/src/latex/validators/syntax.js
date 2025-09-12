@@ -708,7 +708,7 @@ export class LaTeXSyntaxValidator {
       summary,
       parseResult,
       metadata: {
-        validatedAt: new Date().toISOString(),
+        validatedAt: this.getDeterministicDate().toISOString(),
         rulesApplied: enabledRules.length,
         inputLength: input.length
       }

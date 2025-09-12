@@ -18,7 +18,7 @@ describe('CLI Commands - Real Functionality', () => {
 
   beforeEach(async () => {
     // Create unique test directory
-    testDir = path.join(process.cwd(), 'tests', 'temp', `cli-test-${Date.now()}`);
+    testDir = path.join(process.cwd(), 'tests', 'temp', `cli-test-${this.getDeterministicTimestamp()}`);
     templatesDir = path.join(testDir, '_templates');
     outputDir = path.join(testDir, 'output');
     
@@ -34,7 +34,7 @@ describe('CLI Commands - Real Functionality', () => {
 
   afterEach(async () => {
     // Restore original directory
-    process.chdir(process.cwd().replace(`/tests/temp/cli-test-${Date.now().toString().slice(-5)}`, ''));
+    process.chdir(process.cwd().replace(`/tests/temp/cli-test-${this.getDeterministicTimestamp().toString().slice(-5)}`, ''));
     
     // Clean up test directory
     try {

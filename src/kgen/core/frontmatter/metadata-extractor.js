@@ -6,7 +6,7 @@
  */
 
 import { EventEmitter } from 'events';
-import { Logger } from 'consola';
+import { Consola } from 'consola';
 import path from 'path';
 
 export class MetadataExtractor extends EventEmitter {
@@ -24,7 +24,7 @@ export class MetadataExtractor extends EventEmitter {
       ...options
     };
     
-    this.logger = new Logger({ tag: 'kgen-metadata-extractor' });
+    this.logger = new Consola({ tag: 'kgen-metadata-extractor' });
     this.extractionCache = new Map();
     this.dependencyGraph = new Map();
     this.variableRegistry = new Map();
@@ -37,7 +37,7 @@ export class MetadataExtractor extends EventEmitter {
    * @returns {Promise<Object>} Extracted metadata
    */
   async extract(frontmatter, options = {}) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     const extractionId = this._generateExtractionId();
     
     try {
@@ -106,11 +106,11 @@ export class MetadataExtractor extends EventEmitter {
         security: securityMetadata,
         provenance: provenanceMetadata,
         extractionMetadata: {
-          extractionTime: Date.now() - startTime,
+          extractionTime: this.getDeterministicTimestamp() - startTime,
           extractionId,
           cacheHit: false,
           enabledFeatures: this._getEnabledFeatures(),
-          timestamp: new Date()
+          timestamp: this.getDeterministicDate()
         }
       };
       
@@ -123,7 +123,7 @@ export class MetadataExtractor extends EventEmitter {
       this.emit('metadata:extracted', {
         extractionId,
         metadata,
-        extractionTime: Date.now() - startTime
+        extractionTime: this.getDeterministicTimestamp() - startTime
       });
       
       return metadata;
@@ -438,7 +438,7 @@ export class MetadataExtractor extends EventEmitter {
    */
   _extractProvenanceMetadata(frontmatter, options) {
     return {
-      extractionTimestamp: new Date(),
+      extractionTimestamp: this.getDeterministicDate(),
       operationId: options.operationId || null,
       parentOperationId: options.parentOperationId || null,
       provenanceContext: options.provenanceContext || null,
@@ -1005,7 +1005,7 @@ export class MetadataExtractor extends EventEmitter {
    * @returns {string} Extraction ID
    */
   _generateExtractionId() {
-    return `meta_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    return `meta_${this.getDeterministicTimestamp()}_${Math.random().toString(36).substr(2, 9)}`;
   }
 
   /**

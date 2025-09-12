@@ -480,7 +480,7 @@ function {{functionName}}() {
         type: 'dependency',
         resource: `dependency-${i}.js`,
         hash: `sha256:${Buffer.from(`dep${i}`).toString('hex')}`,
-        timestamp: new Date(Date.now() - i * 1000).toISOString()
+        timestamp: new Date(this.getDeterministicTimestamp() - i * 1000).toISOString()
       }));
       
       const metadata = { lineage: largeLineage };

@@ -19,7 +19,7 @@ class ValidationResult {
     this.warnings = [];
     this.validatedFiles = [];
     this.skippedFiles = [];
-    this.timestamp = new Date().toISOString();
+    this.timestamp = this.getDeterministicDate().toISOString();
   }
 
   addError(file, message, context = null) {

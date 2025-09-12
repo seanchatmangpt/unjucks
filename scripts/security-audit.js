@@ -13,7 +13,7 @@ import crypto from 'crypto';
 class SecurityAuditor {
   constructor() {
     this.results = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       passed: 0,
       failed: 0,
       warnings: 0,
@@ -26,7 +26,7 @@ class SecurityAuditor {
       level,
       message,
       details,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     };
     
     this.results.checks.push(entry);

@@ -519,7 +519,7 @@ export class BloomFilterIndex extends EventEmitter {
       hashSeeds: this.hashSeeds,
       stats: this.stats,
       config: this.config,
-      lastSaved: Date.now()
+      lastSaved: this.getDeterministicTimestamp()
     };
     
     const filterPath = path.join(this.config.storageDir, 'bloom-filter.json');

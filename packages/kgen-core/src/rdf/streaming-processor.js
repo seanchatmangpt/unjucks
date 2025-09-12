@@ -54,8 +54,8 @@ export class StreamingRDFProcessor extends EventEmitter {
       memoryUsage: 0,
       throughput: 0,
       errors: 0,
-      startTime: Date.now(),
-      lastBenchmark: Date.now()
+      startTime: this.getDeterministicTimestamp(),
+      lastBenchmark: this.getDeterministicTimestamp()
     };
     
     // Indexing structures
@@ -189,7 +189,7 @@ export class StreamingRDFProcessor extends EventEmitter {
     const transactionId = this._generateTransactionId();
     const transaction = {
       id: transactionId,
-      startTime: Date.now(),
+      startTime: this.getDeterministicTimestamp(),
       operations: [],
       snapshots: new Map(),
       status: 'active',
@@ -230,9 +230,9 @@ export class StreamingRDFProcessor extends EventEmitter {
       this.transactionLog.push({
         id: transactionId,
         operations: transaction.operations.length,
-        duration: Date.now() - transaction.startTime,
+        duration: this.getDeterministicTimestamp() - transaction.startTime,
         status: 'committed',
-        timestamp: new Date().toISOString()
+        timestamp: this.getDeterministicDate().toISOString()
       });
       
       transaction.status = 'committed';
@@ -266,9 +266,9 @@ export class StreamingRDFProcessor extends EventEmitter {
       this.transactionLog.push({
         id: transactionId,
         operations: transaction.operations.length,
-        duration: Date.now() - transaction.startTime,
+        duration: this.getDeterministicTimestamp() - transaction.startTime,
         status: 'rolled-back',
-        timestamp: new Date().toISOString()
+        timestamp: this.getDeterministicDate().toISOString()
       });
       
       this.emit('transaction-rolled-back', { id: transactionId });
@@ -296,7 +296,7 @@ export class StreamingRDFProcessor extends EventEmitter {
       this.currentTransaction.operations.push({
         type: 'add',
         quads: normalizedQuads,
-        timestamp: Date.now()
+        timestamp: this.getDeterministicTimestamp()
       });
     } else {
       // Direct addition
@@ -325,7 +325,7 @@ export class StreamingRDFProcessor extends EventEmitter {
       this.currentTransaction.operations.push({
         type: 'remove',
         quads: normalizedQuads,
-        timestamp: Date.now()
+        timestamp: this.getDeterministicTimestamp()
       });
     } else {
       // Direct removal
@@ -396,7 +396,7 @@ export class StreamingRDFProcessor extends EventEmitter {
    * Get comprehensive performance statistics
    */
   getPerformanceStats() {
-    const currentTime = Date.now();
+    const currentTime = this.getDeterministicTimestamp();
     const uptimeMs = currentTime - this.metrics.startTime;
     const memUsage = process.memoryUsage();
     
@@ -528,7 +528,7 @@ export class StreamingRDFProcessor extends EventEmitter {
   }
 
   _updateMetrics() {
-    const currentTime = Date.now();
+    const currentTime = this.getDeterministicTimestamp();
     const timeDiff = currentTime - this.metrics.lastBenchmark;
     
     if (timeDiff > 0) {
@@ -540,7 +540,7 @@ export class StreamingRDFProcessor extends EventEmitter {
 
   _generateTransactionId() {
     return createHash('sha256')
-      .update(`${Date.now()}-${Math.random()}`)
+      .update(`${this.getDeterministicTimestamp()}-${Math.random()}`)
       .digest('hex')
       .substring(0, 16);
   }
@@ -549,7 +549,7 @@ export class StreamingRDFProcessor extends EventEmitter {
     // Create lightweight snapshot of current state
     transaction.snapshots.set('initial', {
       storeSize: this.graphProcessor.store.size,
-      timestamp: Date.now()
+      timestamp: this.getDeterministicTimestamp()
     });
   }
 
@@ -798,14 +798,14 @@ export class StreamingRDFProcessor extends EventEmitter {
   }
 
   _calculateThroughput() {
-    const currentTime = Date.now();
+    const currentTime = this.getDeterministicTimestamp();
     const timeElapsed = currentTime - this.metrics.startTime;
     
     return timeElapsed > 0 ? (this.metrics.triplesProcessed / timeElapsed) * 1000 : 0;
   }
 
   _calculateCurrentThroughput() {
-    const currentTime = Date.now();
+    const currentTime = this.getDeterministicTimestamp();
     const timeSinceLastBenchmark = currentTime - this.metrics.lastBenchmark;
     
     return timeSinceLastBenchmark > 0 ? (this.metrics.triplesProcessed / timeSinceLastBenchmark) * 1000 : 0;
@@ -846,7 +846,7 @@ export class StreamingRDFProcessor extends EventEmitter {
 
   _cleanupTransactionLog() {
     // Remove old transaction log entries
-    const cutoffTime = Date.now() - (24 * 60 * 60 * 1000); // 24 hours
+    const cutoffTime = this.getDeterministicTimestamp() - (24 * 60 * 60 * 1000); // 24 hours
     this.transactionLog = this.transactionLog.filter(t => 
       new Date(t.timestamp).getTime() > cutoffTime
     );

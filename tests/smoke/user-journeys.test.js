@@ -19,7 +19,7 @@ const tempDir = path.join(projectRoot, 'tests/smoke/temp-journeys');
 class UserJourneyTester {
   constructor() {
     this.results = [];
-    this.startTime = Date.now();
+    this.startTime = this.getDeterministicTimestamp();
   }
 
   async setup() {
@@ -33,7 +33,7 @@ class UserJourneyTester {
   }
 
   log(message, type = 'info') {
-    const timestamp = Date.now() - this.startTime;
+    const timestamp = this.getDeterministicTimestamp() - this.startTime;
     const colors = {
       info: 'blue',
       success: 'green',
@@ -72,7 +72,7 @@ class UserJourneyTester {
 
   async journey(name, steps) {
     this.log(`Starting journey: ${name}`, 'info');
-    const journeyStart = Date.now();
+    const journeyStart = this.getDeterministicTimestamp();
     
     try {
       const results = [];
@@ -81,9 +81,9 @@ class UserJourneyTester {
         const step = steps[i];
         this.log(`  Step ${i + 1}: ${step.description}`, 'info');
         
-        const stepStart = Date.now();
+        const stepStart = this.getDeterministicTimestamp();
         const result = await step.action();
-        const stepDuration = Date.now() - stepStart;
+        const stepDuration = this.getDeterministicTimestamp() - stepStart;
         
         results.push({
           step: i + 1,
@@ -101,7 +101,7 @@ class UserJourneyTester {
         this.log(`  ✓ Step ${i + 1} completed (${stepDuration}ms)`, 'success');
       }
       
-      const journeyDuration = Date.now() - journeyStart;
+      const journeyDuration = this.getDeterministicTimestamp() - journeyStart;
       this.results.push({
         name,
         status: 'PASS',
@@ -113,7 +113,7 @@ class UserJourneyTester {
       return true;
       
     } catch (error) {
-      const journeyDuration = Date.now() - journeyStart;
+      const journeyDuration = this.getDeterministicTimestamp() - journeyStart;
       this.results.push({
         name,
         status: 'FAIL',
@@ -130,7 +130,7 @@ class UserJourneyTester {
     const total = this.results.length;
     const passed = this.results.filter(r => r.status === 'PASS').length;
     const failed = this.results.filter(r => r.status === 'FAIL').length;
-    const totalDuration = Date.now() - this.startTime;
+    const totalDuration = this.getDeterministicTimestamp() - this.startTime;
 
     console.log('\n' + '='.repeat(60));
     console.log(chalk.bold.blue('USER JOURNEY TEST SUMMARY'));
@@ -370,9 +370,9 @@ async function journeyPerformance(tester) {
     {
       description: 'CLI startup time under 2 seconds',
       action: () => {
-        const start = Date.now();
+        const start = this.getDeterministicTimestamp();
         const result = tester.execCommand('node bin/unjucks.cjs --version');
-        const duration = Date.now() - start;
+        const duration = this.getDeterministicTimestamp() - start;
         
         return {
           success: result.success && duration < 2000,
@@ -385,9 +385,9 @@ async function journeyPerformance(tester) {
     {
       description: 'Help command response time under 1 second',
       action: () => {
-        const start = Date.now();
+        const start = this.getDeterministicTimestamp();
         const result = tester.execCommand('node bin/unjucks.cjs --help');
-        const duration = Date.now() - start;
+        const duration = this.getDeterministicTimestamp() - start;
         
         return {
           success: result.success && duration < 1000,
@@ -400,9 +400,9 @@ async function journeyPerformance(tester) {
     {
       description: 'List command response time under 3 seconds',
       action: () => {
-        const start = Date.now();
+        const start = this.getDeterministicTimestamp();
         const result = tester.execCommand('node bin/unjucks.cjs list');
-        const duration = Date.now() - start;
+        const duration = this.getDeterministicTimestamp() - start;
         
         return {
           success: duration < 3000, // Allow list to "fail" but be fast

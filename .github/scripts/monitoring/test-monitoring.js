@@ -111,7 +111,7 @@ class MonitoringTester {
       await this.test('Mock metrics collection', async () => {
         // Create mock metrics data
         const mockMetrics = {
-          collection_time: new Date().toISOString(),
+          collection_time: this.getDeterministicDate().toISOString(),
           workflows: {
             'Test Workflow': {
               total_runs: 10,
@@ -139,7 +139,7 @@ class MonitoringTester {
     await this.test('Metrics validation', async () => {
       // Test metrics structure validation
       const sampleMetrics = {
-        collection_time: new Date().toISOString(),
+        collection_time: this.getDeterministicDate().toISOString(),
         workflows: {},
         summary: {
           total_runs: 0,
@@ -196,7 +196,7 @@ class MonitoringTester {
     await this.test('HTML template generation', async () => {
       const generator = new (require('./generate-dashboard'))();
       const mockData = {
-        generated_at: new Date().toISOString(),
+        generated_at: this.getDeterministicDate().toISOString(),
         summary: { total_workflows: 5, success_rate: 95 },
         status: { level: 'healthy', message: 'All good' },
         alerts: [],

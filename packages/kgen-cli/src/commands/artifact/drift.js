@@ -4,7 +4,7 @@ import { readFileSync, existsSync } from 'fs'
 import { resolve, dirname, basename } from 'path'
 import { createHash } from 'crypto'
 
-export const driftCommand = defineCommand({
+export default defineCommand({
   meta: {
     name: 'drift',
     description: 'Detect drift between generated artifacts and their sources using attestations'
@@ -56,7 +56,7 @@ export const driftCommand = defineCommand({
     }
   },
   async run({ args }) {
-    const startTime = Date.now()
+    const startTime = this.getDeterministicTimestamp()
     
     try {
       const artifactPath = resolve(args.artifact)
@@ -127,7 +127,7 @@ export const driftCommand = defineCommand({
           sources: {},
           attestationIntegrity: null
         },
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         executionTime: 0
       }
       
@@ -329,7 +329,7 @@ export const driftCommand = defineCommand({
         }
       }
       
-      result.executionTime = Date.now() - startTime
+      result.executionTime = this.getDeterministicTimestamp() - startTime
       
       // Output results
       if (args.json) {
@@ -400,12 +400,12 @@ export const driftCommand = defineCommand({
       return result
       
     } catch (error) {
-      const executionTime = Date.now() - startTime
+      const executionTime = this.getDeterministicTimestamp() - startTime
       const errorResult = {
         success: false,
         error: error.message,
         artifact: args.artifact,
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         executionTime
       }
       
@@ -448,4 +448,5 @@ async function simulateRegeneration(attestationData, artifactPath) {
   })
 }
 
-export default driftCommand
+// Named export for backwards compatibility - reference to the default export
+export const driftCommand = defineCommand

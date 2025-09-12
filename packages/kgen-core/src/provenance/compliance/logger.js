@@ -90,7 +90,7 @@ export class ComplianceLogger extends EventEmitter {
       const event = {
         id: crypto.randomUUID(),
         type: eventType,
-        timestamp: new Date(),
+        timestamp: this.getDeterministicDate(),
         data: eventData,
         context,
         framework: this.config.complianceMode,
@@ -136,7 +136,7 @@ export class ComplianceLogger extends EventEmitter {
       purpose: accessInfo.purpose,
       legalBasis: accessInfo.legalBasis,
       accessor: accessInfo.accessor,
-      timestamp: new Date()
+      timestamp: this.getDeterministicDate()
     });
   }
 
@@ -151,7 +151,7 @@ export class ComplianceLogger extends EventEmitter {
       legalBasis: processingInfo.legalBasis,
       retentionPeriod: processingInfo.retentionPeriod,
       processor: processingInfo.processor,
-      timestamp: new Date()
+      timestamp: this.getDeterministicDate()
     });
   }
 
@@ -165,7 +165,7 @@ export class ComplianceLogger extends EventEmitter {
       consentType: consentInfo.type,
       granted: consentInfo.granted,
       purposes: consentInfo.purposes,
-      timestamp: new Date(),
+      timestamp: this.getDeterministicDate(),
       mechanism: consentInfo.mechanism
     });
   }
@@ -181,7 +181,7 @@ export class ComplianceLogger extends EventEmitter {
       accounts: transactionInfo.accounts,
       approver: transactionInfo.approver,
       controlsApplied: transactionInfo.controls,
-      timestamp: new Date()
+      timestamp: this.getDeterministicDate()
     });
   }
 
@@ -196,7 +196,7 @@ export class ComplianceLogger extends EventEmitter {
       accessType: accessInfo.type,
       dataTypes: accessInfo.dataTypes,
       justification: accessInfo.justification,
-      timestamp: new Date()
+      timestamp: this.getDeterministicDate()
     });
   }
 
@@ -224,7 +224,7 @@ export class ComplianceLogger extends EventEmitter {
         framework: this.config.complianceMode,
         period: { startDate, endDate },
         totalEvents: relevantEvents.length,
-        generatedAt: new Date(),
+        generatedAt: this.getDeterministicDate(),
         violations: this.violations.filter(v => 
           new Date(v.timestamp) >= startDate && new Date(v.timestamp) <= endDate
         ).length
@@ -249,7 +249,7 @@ export class ComplianceLogger extends EventEmitter {
     try {
       this.logger.info('Checking data retention compliance');
 
-      const now = new Date();
+      const now = this.getDeterministicDate();
       const violatingRecords = [];
       const eligibleForDeletion = [];
 
@@ -498,7 +498,7 @@ export class ComplianceLogger extends EventEmitter {
             type: violationType,
             severity,
             event: event.id,
-            timestamp: new Date(),
+            timestamp: this.getDeterministicDate(),
             framework: framework.name
           };
 
@@ -530,7 +530,7 @@ export class ComplianceLogger extends EventEmitter {
         
         const retentionDate = new Date(event.data.createdAt);
         const maxRetention = this._parseRetentionPeriod(event.data.retentionPeriod);
-        const now = new Date();
+        const now = this.getDeterministicDate();
         
         return (now.getTime() - retentionDate.getTime()) > maxRetention;
       },
@@ -561,7 +561,7 @@ export class ComplianceLogger extends EventEmitter {
 
   async _updateAuditTrail(event) {
     const auditEntry = {
-      timestamp: new Date(),
+      timestamp: this.getDeterministicDate(),
       action: 'compliance_event_logged',
       eventId: event.id,
       eventType: event.type,

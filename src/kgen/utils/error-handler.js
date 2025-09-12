@@ -35,7 +35,7 @@ export class KGenErrorHandler extends EventEmitter {
    */
   createErrorContext(operationId, error, context = {}, options = {}) {
     const errorId = crypto.randomUUID();
-    const timestamp = new Date();
+    const timestamp = this.getDeterministicDate();
     
     const errorContext = {
       errorId,
@@ -197,7 +197,7 @@ export class KGenErrorHandler extends EventEmitter {
    */
   getErrorStatistics() {
     const errors = Array.from(this.errorHistory.values());
-    const now = Date.now();
+    const now = this.getDeterministicTimestamp();
     const last24h = errors.filter(e => now - e.timestamp.getTime() < 24 * 60 * 60 * 1000);
     
     const byClassification = {};
@@ -387,14 +387,14 @@ export class KGenErrorHandler extends EventEmitter {
 export function createEnhancedTryCatch(operationId, context, errorHandler) {
   return async (operation, options = {}) => {
     try {
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const result = await operation();
       
       // Emit success event
       if (errorHandler?.config.enableEventEmission) {
         errorHandler.emit('operation:success', {
           operationId,
-          duration: Date.now() - startTime,
+          duration: this.getDeterministicTimestamp() - startTime,
           context
         });
       }

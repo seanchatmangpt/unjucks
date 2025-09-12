@@ -98,7 +98,7 @@ export class ProvenanceQueries {
    */
   async executeQuery(query, options = {}) {
     try {
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       this.logger.debug('Executing SPARQL query');
 
       // Enhanced caching with fingerprinting
@@ -106,7 +106,7 @@ export class ProvenanceQueries {
       if (!options.skipCache) {
         const cachedResult = this.queryCache.getCachedResults(queryFingerprint, options);
         if (cachedResult) {
-          this.logger.debug(`Returning cached query result (${Date.now() - startTime}ms)`);
+          this.logger.debug(`Returning cached query result (${this.getDeterministicTimestamp() - startTime}ms)`);
           return cachedResult;
         }
       }
@@ -162,7 +162,7 @@ export class ProvenanceQueries {
       }
 
       // Enhanced caching with TTL and compression
-      const executionTime = Date.now() - startTime;
+      const executionTime = this.getDeterministicTimestamp() - startTime;
       this.queryCache.cacheResults(queryFingerprint, results, {
         ...options,
         executionTime,
@@ -357,7 +357,7 @@ export class ProvenanceQueries {
     return {
       validationResults: results,
       overallValid: this._assessOverallValidity(results),
-      validatedAt: new Date()
+      validatedAt: this.getDeterministicDate()
     };
   }
 
@@ -395,7 +395,7 @@ export class ProvenanceQueries {
       regulation,
       queries,
       parameters,
-      generatedAt: new Date()
+      generatedAt: this.getDeterministicDate()
     };
   }
 
@@ -969,7 +969,7 @@ export class ProvenanceQueries {
     if (!this.queryMetrics) this.queryMetrics = [];
     
     const record = {
-      timestamp: new Date(),
+      timestamp: this.getDeterministicDate(),
       ...metrics
     };
     

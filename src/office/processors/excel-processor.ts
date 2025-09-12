@@ -679,8 +679,8 @@ export class ExcelProcessor extends BaseOfficeProcessor {
         properties: {
           title: 'Sample Excel Template',
           author: 'Template System',
-          created: new Date(),
-          modified: new Date()
+          created: this.getDeterministicDate(),
+          modified: this.getDeterministicDate()
         },
         namedRanges: {},
         charts: [],

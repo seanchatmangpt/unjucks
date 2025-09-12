@@ -35,7 +35,7 @@ class UnjucksMigrationManager {
     this.migrations.set(id, {
       id,
       ...migration,
-      timestamp: Date.now()
+      timestamp: this.getDeterministicTimestamp()
     });
   }
 
@@ -88,7 +88,7 @@ class UnjucksMigrationManager {
     const path = require('path');
     const archiver = require('archiver'); // Would need to be installed
 
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const timestamp = this.getDeterministicDate().toISOString().replace(/[:.]/g, '-');
     this.backupPath = path.join(projectPath, `../${path.basename(projectPath)}-backup-${timestamp}`);
 
     console.log(`Creating backup at: ${this.backupPath}`);
@@ -247,7 +247,7 @@ class UnjucksMigrationManager {
   async executeMigration(migration, projectPath, projectInfo) {
     console.log(`Running migration: ${migration.name}`);
     
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     const migrationResult = {
       id: migration.id,
       name: migration.name,
@@ -276,7 +276,7 @@ class UnjucksMigrationManager {
       }
 
       migrationResult.success = true;
-      migrationResult.endTime = Date.now();
+      migrationResult.endTime = this.getDeterministicTimestamp();
       
       console.log(`✅ Completed: ${migration.name} (${migrationResult.endTime - startTime}ms)`);
       if (migrationResult.changes.length > 0) {
@@ -288,7 +288,7 @@ class UnjucksMigrationManager {
 
     } catch (error) {
       migrationResult.success = false;
-      migrationResult.endTime = Date.now();
+      migrationResult.endTime = this.getDeterministicTimestamp();
       migrationResult.errors.push(error.message);
       
       console.error(`❌ Failed: ${migration.name} - ${error.message}`);
@@ -721,7 +721,7 @@ export default {
   globalVariables: {
     author: '${projectInfo.packageJson?.author || 'Your Name'}',
     license: '${projectInfo.packageJson?.license || 'MIT'}',
-    year: new Date().getFullYear()
+    year: this.getDeterministicDate().getFullYear()
   },
   
   // Plugin configuration
@@ -1042,7 +1042,7 @@ export default {
   
   globalVariables: {
     author: 'Your Name',
-    year: new Date().getFullYear()
+    year: this.getDeterministicDate().getFullYear()
   },
   
   // Generators migrated from Hygen:

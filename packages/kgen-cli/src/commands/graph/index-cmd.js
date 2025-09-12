@@ -51,7 +51,7 @@ export default defineCommand({
   },
   async run({ args }) {
     try {
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
       // Validate input file
       const graphInfo = validateTurtleFile(args.input);
@@ -161,7 +161,7 @@ export default defineCommand({
         indexMetadata: {
           groupBy: args.groupBy,
           includeTriples: args.includeTriples,
-          createdAt: new Date().toISOString(),
+          createdAt: this.getDeterministicDate().toISOString(),
           entries: Object.keys(serializedIndex).length
         },
         statistics: {
@@ -185,7 +185,7 @@ export default defineCommand({
         writeFileSync(outputPath, indexContent + '\n', 'utf8');
       }
       
-      const duration = Date.now() - startTime;
+      const duration = this.getDeterministicTimestamp() - startTime;
       
       const result = success({
         index: outputPath ? { written: outputPath } : indexData.index,

@@ -112,7 +112,7 @@ class QuickPerformanceTester {
   }
 
   generateReport() {
-    const timestamp = new Date().toISOString();
+    const timestamp = this.getDeterministicDate().toISOString();
     
     // Calculate metrics
     const quickLoadSuccessRate = this.results.quickLoad ? 

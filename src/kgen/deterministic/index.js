@@ -58,7 +58,7 @@ export class DeterministicRenderingSystem extends EventEmitter {
       errors: 0,
       recoveries: 0,
       attestations: 0,
-      startTime: new Date(),
+      startTime: this.getDeterministicDate(),
       lastRender: null
     };
     
@@ -121,7 +121,7 @@ export class DeterministicRenderingSystem extends EventEmitter {
    */
   async render(templatePath, context = {}, options = {}) {
     const renderId = this._generateRenderId();
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       this.logger.debug(`Starting deterministic render: ${templatePath}`, { renderId });
@@ -183,7 +183,7 @@ export class DeterministicRenderingSystem extends EventEmitter {
         metadata: {
           ...renderResult.metadata,
           renderId,
-          renderTime: Date.now() - startTime,
+          renderTime: this.getDeterministicTimestamp() - startTime,
           cached: renderResult.cached || false,
           rdfIntegrated: !!options.rdfContent,
           deterministic: true
@@ -192,7 +192,7 @@ export class DeterministicRenderingSystem extends EventEmitter {
       
       // Update tracking
       this.activeRenders.delete(renderId);
-      this.stats.lastRender = new Date();
+      this.stats.lastRender = this.getDeterministicDate();
       
       this.emit('render:complete', result);
       this.logger.success(`Deterministic render complete: ${templatePath}`, { renderId });
@@ -221,7 +221,7 @@ export class DeterministicRenderingSystem extends EventEmitter {
         templatePath,
         error: error.message,
         errorHandling,
-        renderTime: Date.now() - startTime
+        renderTime: this.getDeterministicTimestamp() - startTime
       };
       
       this.emit('render:error', result);
@@ -335,7 +335,7 @@ export class DeterministicRenderingSystem extends EventEmitter {
   getStatistics() {
     const baseStats = {
       ...this.stats,
-      uptime: Date.now() - this.stats.startTime.getTime(),
+      uptime: this.getDeterministicTimestamp() - this.stats.startTime.getTime(),
       cacheHitRate: (this.stats.cacheHits + this.stats.cacheMisses) > 0 
         ? this.stats.cacheHits / (this.stats.cacheHits + this.stats.cacheMisses) 
         : 0,
@@ -382,7 +382,7 @@ export class DeterministicRenderingSystem extends EventEmitter {
   async healthCheck() {
     const health = {
       status: 'healthy',
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       components: {},
       issues: []
     };
@@ -451,7 +451,7 @@ export class DeterministicRenderingSystem extends EventEmitter {
       errors: 0,
       recoveries: 0,
       attestations: 0,
-      startTime: new Date(),
+      startTime: this.getDeterministicDate(),
       lastRender: null
     };
     
@@ -472,9 +472,9 @@ export class DeterministicRenderingSystem extends EventEmitter {
       this.logger.info(`Waiting for ${this.activeRenders.size} active renders to complete`);
       
       const timeout = 30000; // 30 seconds
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
-      while (this.activeRenders.size > 0 && (Date.now() - startTime) < timeout) {
+      while (this.activeRenders.size > 0 && (this.getDeterministicTimestamp() - startTime) < timeout) {
         await new Promise(resolve => setTimeout(resolve, 100));
       }
       
@@ -515,7 +515,7 @@ export class DeterministicRenderingSystem extends EventEmitter {
   }
   
   _generateRenderId() {
-    return `render_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
+    return `render_${this.getDeterministicTimestamp()}_${Math.random().toString(36).substring(2, 8)}`;
   }
   
   async _testComponent(componentName) {

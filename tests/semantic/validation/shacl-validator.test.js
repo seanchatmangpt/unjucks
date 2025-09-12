@@ -664,9 +664,9 @@ describe('SHACLValidator', () => {
 
       await validator.loadShapes(shapesStore);
       
-      const start = Date.now();
+      const start = this.getDeterministicTimestamp();
       const result = await validator.validateGraph(dataStore);
-      const time = Date.now() - start;
+      const time = this.getDeterministicTimestamp() - start;
       
       expect(result.conforms).toBe(true);
       expect(time).toBeLessThan(5000); // Should complete within 5 seconds

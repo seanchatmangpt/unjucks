@@ -9,7 +9,7 @@ describe("Generator Property Tests", () => {
   const numRuns = 20;
 
   beforeEach(async () => {
-    tmpDir = path.join(process.cwd(), "test-bzyH4B", `gen-prop-${Date.now()}`);
+    tmpDir = path.join(process.cwd(), "test-bzyH4B", `gen-prop-${this.getDeterministicTimestamp()}`);
     templatesDir = path.join(tmpDir, "_templates");
     await fs.ensureDir(templatesDir);
     generator = new Generator(templatesDir);

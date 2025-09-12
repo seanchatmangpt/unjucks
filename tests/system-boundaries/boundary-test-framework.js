@@ -386,7 +386,7 @@ export class SystemBoundaryTestFramework {
   async test_system_interface_file_writing(boundary) {
     // Test file writing operations
     const testDir = path.join(this.options.projectRoot, 'tests/temp');
-    const testFile = path.join(testDir, `boundary-test-${Date.now()}.txt`);
+    const testFile = path.join(testDir, `boundary-test-${this.getDeterministicTimestamp()}.txt`);
     
     try {
       await fs.ensureDir(testDir);
@@ -599,7 +599,7 @@ export class SystemBoundaryTestFramework {
     };
 
     // Save report
-    const reportPath = path.join(this.options.projectRoot, 'tests/reports', `boundary-test-report-${Date.now()}.json`);
+    const reportPath = path.join(this.options.projectRoot, 'tests/reports', `boundary-test-report-${this.getDeterministicTimestamp()}.json`);
     await fs.ensureDir(path.dirname(reportPath));
     await fs.writeJSON(reportPath, report, { spaces: 2 });
 

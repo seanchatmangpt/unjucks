@@ -7,7 +7,7 @@
  */
 
 import { EventEmitter } from 'events';
-import { Logger } from 'consola';
+import { Consola } from 'consola';
 import crypto from 'crypto';
 import { ProvenanceTracker } from '../provenance/tracker.js';
 
@@ -49,7 +49,7 @@ export class ReasoningAuditProvenance extends EventEmitter {
       ...config
     };
     
-    this.logger = new Logger({ tag: 'audit-provenance' });
+    this.logger = new Consola({ tag: 'audit-provenance' });
     this.state = 'initialized';
     
     // Audit trail management
@@ -156,7 +156,7 @@ export class ReasoningAuditProvenance extends EventEmitter {
   async logReasoningOperation(operation, context = {}) {
     try {
       const auditId = this._generateAuditId();
-      const timestamp = new Date();
+      const timestamp = this.getDeterministicDate();
       
       // Create comprehensive audit record
       const auditRecord = {
@@ -248,7 +248,7 @@ export class ReasoningAuditProvenance extends EventEmitter {
         type: 'agent_interaction',
         agents: interaction.agents,
         communicationType: interaction.type,
-        timestamp: new Date(),
+        timestamp: this.getDeterministicDate(),
         
         // Communication details
         protocol: interaction.protocol,
@@ -353,7 +353,7 @@ export class ReasoningAuditProvenance extends EventEmitter {
         id: this._generateReportId(),
         type: reportConfig.type,
         period: reportConfig.period,
-        generatedAt: new Date(),
+        generatedAt: this.getDeterministicDate(),
         
         // Report content
         summary: {},
@@ -435,7 +435,7 @@ export class ReasoningAuditProvenance extends EventEmitter {
         verificationTime: 0
       };
       
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
       // Verify individual audit records
       for (const [auditId, record] of this.auditTrail) {
@@ -466,7 +466,7 @@ export class ReasoningAuditProvenance extends EventEmitter {
         }
       }
       
-      verificationResult.verificationTime = Date.now() - startTime;
+      verificationResult.verificationTime = this.getDeterministicTimestamp() - startTime;
       this.metrics.integrityChecks++;
       
       this.emit('integrity:verified', verificationResult);
@@ -596,20 +596,20 @@ export class ReasoningAuditProvenance extends EventEmitter {
   }
 
   _generateAuditId() {
-    return `audit_${Date.now()}_${crypto.randomBytes(8).toString('hex')}`;
+    return `audit_${this.getDeterministicTimestamp()}_${crypto.randomBytes(8).toString('hex')}`;
   }
 
   _generateInteractionId() {
-    return `interaction_${Date.now()}_${crypto.randomBytes(6).toString('hex')}`;
+    return `interaction_${this.getDeterministicTimestamp()}_${crypto.randomBytes(6).toString('hex')}`;
   }
 
   _generateReportId() {
-    return `report_${Date.now()}_${crypto.randomBytes(6).toString('hex')}`;
+    return `report_${this.getDeterministicTimestamp()}_${crypto.randomBytes(6).toString('hex')}`;
   }
 
   _calculateHash(operation, context) {
     // Calculate hash for audit record integrity
-    const data = JSON.stringify({ operation, context, timestamp: Date.now() });
+    const data = JSON.stringify({ operation, context, timestamp: this.getDeterministicTimestamp() });
     return crypto.createHash('sha256').update(data).digest('hex');
   }
 

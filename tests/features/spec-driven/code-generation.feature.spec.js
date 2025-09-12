@@ -118,7 +118,7 @@ class CodeGenerator {
     for (const entity of entities) {
       // Generate migration file
       const migrationCode = this.generateMigration(entity);
-      const timestamp = Date.now();
+      const timestamp = this.getDeterministicTimestamp();
       const migrationFile = {
         path: `migrations/${timestamp}_create_${entity.name.toLowerCase()}_table.js`,
         content: migrationCode,
@@ -1016,7 +1016,7 @@ jobs:
   }
 
   async createBackup(existingFile) {
-    const timestamp = Date.now();
+    const timestamp = this.getDeterministicTimestamp();
     const backupPath = `${existingFile.path}.${timestamp}.bak`;
     const fullBackupPath = path.join(this.baseDir, backupPath);
     

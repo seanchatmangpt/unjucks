@@ -193,7 +193,7 @@ export class DocumentArtifactGenerator extends EventEmitter {
       compliance = this.config.complianceMode
     } = specification;
     
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       this.logger.info(`Generating document artifact: ${template}`);
@@ -247,8 +247,8 @@ export class DocumentArtifactGenerator extends EventEmitter {
         templateHash,
         contextHash,
         specification,
-        generatedAt: new Date().toISOString(),
-        generationTime: Date.now() - startTime,
+        generatedAt: this.getDeterministicDate().toISOString(),
+        generationTime: this.getDeterministicTimestamp() - startTime,
         kgenVersion: process.env.KGEN_VERSION || '1.0.0',
         compliance: compliance || false
       };
@@ -283,8 +283,8 @@ export class DocumentArtifactGenerator extends EventEmitter {
         success: false,
         error: error.message,
         specification,
-        generatedAt: new Date().toISOString(),
-        generationTime: Date.now() - startTime
+        generatedAt: this.getDeterministicDate().toISOString(),
+        generationTime: this.getDeterministicTimestamp() - startTime
       };
     }
   }

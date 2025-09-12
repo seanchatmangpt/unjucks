@@ -58,7 +58,7 @@ class AgentContextCoordinator extends EventEmitter {
       specialization,
       context: this.createSpecializedContext(agentType, specialization),
       tokenUsage: 0,
-      lastSync: Date.now(),
+      lastSync: this.getDeterministicTimestamp(),
       patterns: new Set(),
       dependencies: new Set(),
       contributions: []
@@ -78,7 +78,7 @@ class AgentContextCoordinator extends EventEmitter {
   createSpecializedContext(agentType, specialization) {
     const baseContext = {
       sessionId: this.sessionId,
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       agentType,
       specialization
     };
@@ -207,7 +207,7 @@ class AgentContextCoordinator extends EventEmitter {
         contextKey,
         importance,
         relevance: relevance.score,
-        timestamp: Date.now(),
+        timestamp: this.getDeterministicTimestamp(),
         tokenCount: this.estimateTokens(compressedContext)
       }
     });
@@ -222,7 +222,7 @@ class AgentContextCoordinator extends EventEmitter {
     
     // Track dependencies
     toAgent.dependencies.add(fromAgentId);
-    fromAgent.contributions.push({ to: toAgentId, contextKey, timestamp: Date.now() });
+    fromAgent.contributions.push({ to: toAgentId, contextKey, timestamp: this.getDeterministicTimestamp() });
     
     this.metrics.contextSyncs++;
     this.metrics.coordinationTime += performance.now() - startTime;
@@ -445,7 +445,7 @@ class AgentContextCoordinator extends EventEmitter {
       try {
         const syncData = await this.prepareSyncData(agent, syncDepth);
         await this.applySyncData(agent, syncData);
-        agent.lastSync = Date.now();
+        agent.lastSync = this.getDeterministicTimestamp();
         
         return { agentId, success: true, tokenCount: this.estimateTokens(syncData) };
       } catch (error) {
@@ -479,7 +479,7 @@ class AgentContextCoordinator extends EventEmitter {
       relevantSharedData: this.getRelevantSharedData(agent, depth),
       patterns: this.getRelevantPatterns(agent, depth),
       metadata: {
-        timestamp: Date.now(),
+        timestamp: this.getDeterministicTimestamp(),
         depth,
         tokenCount: 0
       }
@@ -519,7 +519,7 @@ class AgentContextCoordinator extends EventEmitter {
     
     // Clean expired shared memory
     for (const [key, value] of this.sharedMemory.entries()) {
-      const age = Date.now() - value.metadata.timestamp;
+      const age = this.getDeterministicTimestamp() - value.metadata.timestamp;
       const maxAge = this.getMaxAgeForImportance(value.metadata.importance);
       
       if (age > maxAge) {
@@ -641,7 +641,7 @@ class AgentContextCoordinator extends EventEmitter {
 
   // Helper methods (simplified for brevity)
   getGlobalContext(depth) {
-    return { sessionId: this.sessionId, depth, timestamp: Date.now() };
+    return { sessionId: this.sessionId, depth, timestamp: this.getDeterministicTimestamp() };
   }
 
   getRelevantSharedData(agent, depth) {

@@ -1,0 +1,182 @@
+```mermaid
+C4Component
+  title C4 Component Diagram: JSONL Immutable Audit Bus
+  
+  Container_Boundary(audit_bus, "JSONL Audit Bus") {
+    Component(auditLogger, "Audit Logger", "Structured Logging", "Logs all system events in JSONL format")
+    Component(eventSerializer, "Event Serializer", "JSON Schema", "Serializes events to JSONL with schema validation")
+    Component(streamProcessor, "Stream Processor", "Node.js Streams", "Processes audit event streams")
+    Component(immutabilityGuard, "Immutability Guard", "Cryptographic Hashing", "Ensures audit log immutability")
+  }
+  
+  Container_Boundary(event_capture, "Event Capture Layer") {
+    Component(systemEventCapture, "System Event Capture", "Event Hooks", "Captures system-level events")
+    Component(userActionCapture, "User Action Capture", "Action Tracking", "Captures user interactions")
+    Component(dataChangeCapture, "Data Change Capture", "Change Detection", "Captures data modifications")
+    Component(performanceCapture, "Performance Capture", "Metrics Collection", "Captures performance events")
+  }
+  
+  Container_Boundary(enrichment, "Event Enrichment") {
+    Component(contextEnricher, "Context Enricher", "Context Injection", "Enriches events with contextual data")
+    Component(correlationManager, "Correlation Manager", "Event Correlation", "Correlates related events")
+    Component(metadataInjector, "Metadata Injector", "Metadata Management", "Injects system metadata")
+    Component(taxonomyMapper, "Taxonomy Mapper", "Event Classification", "Maps events to audit taxonomies")
+  }
+  
+  Container_Boundary(streaming, "Stream Processing") {
+    Component(partitionManager, "Partition Manager", "Log Partitioning", "Manages JSONL file partitions")
+    Component(rotationService, "Rotation Service", "Log Rotation", "Handles audit log rotation")
+    Component(compressionEngine, "Compression Engine", "gzip, brotli", "Compresses archived audit logs")
+    Component(indexBuilder, "Index Builder", "Search Indexing", "Builds searchable indexes")
+  }
+  
+  Container_Boundary(integrity, "Integrity Verification") {
+    Component(hashChainer, "Hash Chainer", "Merkle Chain", "Creates tamper-evident hash chains")
+    Component(signatureService, "Signature Service", "Digital Signatures", "Signs audit log segments")
+    Component(timestampService, "Timestamp Service", "RFC 3161", "Provides trusted timestamps")
+    Component(verificationEngine, "Verification Engine", "Integrity Checking", "Verifies audit log integrity")
+  }
+  
+  Container_Boundary(query_engine, "Query & Analytics") {
+    Component(queryProcessor, "Query Processor", "JSONL Querying", "Processes audit queries")
+    Component(aggregationEngine, "Aggregation Engine", "Data Aggregation", "Aggregates audit data")
+    Component(alertEngine, "Alert Engine", "Real-time Alerts", "Generates security alerts")
+    Component(reportGenerator, "Report Generator", "Compliance Reports", "Generates audit reports")
+  }
+  
+  Container_Boundary(compliance, "Compliance Framework") {
+    Component(gdprProcessor, "GDPR Processor", "Privacy Compliance", "Handles GDPR compliance")
+    Component(soc2Auditor, "SOC 2 Auditor", "SOC 2 Controls", "Validates SOC 2 compliance")
+    Component(retentionManager, "Retention Manager", "Data Retention", "Manages audit log retention")
+    Component(anonymizer, "Data Anonymizer", "PII Anonymization", "Anonymizes sensitive data")
+  }
+  
+  SystemDb_Ext(auditStorage, "Audit Storage", "Immutable JSONL storage")
+  SystemDb_Ext(archiveStorage, "Archive Storage", "Long-term audit archive")
+  SystemDb_Ext(searchIndex, "Search Index", "Elasticsearch/OpenSearch")
+  System_Ext(siemSystem, "SIEM System", "Security Information and Event Management")
+  System_Ext(complianceTools, "Compliance Tools", "GRC platforms")
+  System_Ext(timestampAuthority, "Timestamp Authority", "Trusted timestamping service")
+  
+  ' Event Capture Flow
+  Rel(systemEventCapture, auditLogger, "System events")
+  Rel(userActionCapture, auditLogger, "User actions")
+  Rel(dataChangeCapture, auditLogger, "Data changes")
+  Rel(performanceCapture, auditLogger, "Performance events")
+  
+  ' Audit Processing Pipeline
+  Rel(auditLogger, eventSerializer, "Raw events")
+  Rel(eventSerializer, streamProcessor, "Serialized events")
+  Rel(streamProcessor, immutabilityGuard, "Event stream")
+  Rel(immutabilityGuard, auditStorage, "Immutable storage")
+  
+  ' Event Enrichment
+  Rel(auditLogger, contextEnricher, "Event enrichment")
+  Rel(contextEnricher, correlationManager, "Context data")
+  Rel(correlationManager, metadataInjector, "Correlated events")
+  Rel(metadataInjector, taxonomyMapper, "Enriched events")
+  
+  ' Stream Management
+  Rel(streamProcessor, partitionManager, "Stream partitioning")
+  Rel(partitionManager, rotationService, "Partition rotation")
+  Rel(rotationService, compressionEngine, "Log compression")
+  Rel(compressionEngine, archiveStorage, "Archive storage")
+  Rel(streamProcessor, indexBuilder, "Index building")
+  Rel(indexBuilder, searchIndex, "Search indexing")
+  
+  ' Integrity Chain
+  Rel(immutabilityGuard, hashChainer, "Hash chaining")
+  Rel(hashChainer, signatureService, "Digital signing")
+  Rel(signatureService, timestampService, "Timestamping")
+  Rel(timestampService, timestampAuthority, "Trusted timestamps")
+  Rel(verificationEngine, hashChainer, "Integrity verification")
+  
+  ' Query & Analytics
+  Rel(queryProcessor, auditStorage, "Query execution")
+  Rel(queryProcessor, searchIndex, "Full-text search")
+  Rel(aggregationEngine, queryProcessor, "Data aggregation")
+  Rel(alertEngine, aggregationEngine, "Alert triggers")
+  Rel(reportGenerator, aggregationEngine, "Report data")
+  
+  ' Compliance Integration
+  Rel(gdprProcessor, anonymizer, "Data anonymization")
+  Rel(soc2Auditor, queryProcessor, "Control validation")
+  Rel(retentionManager, archiveStorage, "Retention policies")
+  Rel(reportGenerator, complianceTools, "Compliance reports")
+  
+  ' External Integration
+  Rel(alertEngine, siemSystem, "Security alerts")
+  Rel(queryProcessor, siemSystem, "Audit queries")
+  Rel(reportGenerator, complianceTools, "Audit reports")
+  
+  ' Cross-component Dependencies
+  Rel(taxonomyMapper, alertEngine, "Event classification")
+  Rel(correlationManager, reportGenerator, "Event correlation")
+  Rel(verificationEngine, soc2Auditor, "Integrity validation")
+  
+  UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="1")
+```
+
+## JSONL Immutable Audit Bus Architecture
+
+Comprehensive audit logging with JSONL-based immutable event streaming:
+
+### Core Audit Principles
+- **Immutability** - Append-only audit logs with cryptographic integrity
+- **Completeness** - Capture all system events without exception
+- **Tamper Evidence** - Cryptographic detection of unauthorized changes
+- **Non-Repudiation** - Digital signatures and trusted timestamps
+
+### JSONL Format Advantages
+- **Streaming Friendly** - Line-delimited for efficient streaming
+- **Human Readable** - JSON format for easy inspection
+- **Schema Validation** - JSON Schema compliance
+- **Tool Compatibility** - Works with standard UNIX tools
+
+### Event Capture Scope
+- **System Events** - All system-level operations and state changes
+- **User Actions** - Complete user interaction audit trail
+- **Data Changes** - Fine-grained data modification tracking
+- **Performance Events** - System performance and resource usage
+
+### Advanced Enrichment
+- **Contextual Data** - Rich context injection for events
+- **Event Correlation** - Related event linking and causality
+- **Metadata Injection** - System metadata and environment info
+- **Taxonomy Mapping** - Event classification and categorization
+
+### Integrity Assurance
+- **Hash Chaining** - Merkle-tree-like integrity chains
+- **Digital Signatures** - Cryptographic event authentication
+- **Trusted Timestamping** - RFC 3161 compliant timestamping
+- **Verification Engine** - Continuous integrity validation
+
+### Streaming Architecture
+- **Partitioned Storage** - Time-based and size-based partitioning
+- **Log Rotation** - Automated log rotation with archival
+- **Compression** - Efficient compression for archived logs
+- **Search Indexing** - Full-text and structured search capabilities
+
+### Query & Analytics
+- **Real-time Queries** - Live audit log querying
+- **Data Aggregation** - Statistical analysis and reporting
+- **Alert Generation** - Real-time security and compliance alerts
+- **Report Generation** - Automated compliance reporting
+
+### Compliance Framework
+- **GDPR Compliance** - Privacy-aware audit logging
+- **SOC 2 Controls** - Automated SOC 2 control validation
+- **Retention Policies** - Configurable data retention management
+- **Data Anonymization** - PII anonymization for privacy
+
+### Integration Capabilities
+- **SIEM Integration** - Security incident and event management
+- **GRC Platforms** - Governance, risk, and compliance tools
+- **Analytics Platforms** - Business intelligence integration
+- **Monitoring Systems** - Operations monitoring integration
+
+### Performance Features
+- **High Throughput** - Handles high-volume event streams
+- **Low Latency** - Minimal audit overhead
+- **Horizontal Scaling** - Distributed audit processing
+- **Efficient Storage** - Optimized storage with compression

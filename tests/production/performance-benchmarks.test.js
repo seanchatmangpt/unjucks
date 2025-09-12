@@ -145,10 +145,10 @@ describe('Production Performance Benchmarks - RDF/Turtle Filters', () => {
   describe('Throughput SLA Validation', () => {
     test('Templates per second exceeds 1000', async () => {
       const duration = 1000; // 1 second test
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       let operations = 0;
 
-      while (Date.now() - startTime < duration) {
+      while (this.getDeterministicTimestamp() - startTime < duration) {
         rdfFilters.rdfExists('ex:test', 'rdf:type', 'owl:Thing');
         operations++;
       }

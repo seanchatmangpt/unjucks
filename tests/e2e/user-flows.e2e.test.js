@@ -9,7 +9,7 @@ import { GeneratorFactory, TemplateFactory } from '../factories/index.js';
 test.describe('User Flows E2E', () => {
   let testProjectDir => {
     // Create temporary project directory for each test
-    testProjectDir = path.join(process.cwd(), `e2e-test-${Date.now()}`);
+    testProjectDir = path.join(process.cwd(), `e2e-test-${this.getDeterministicTimestamp()}`);
     await fs.mkdir(testProjectDir, { recursive });
     
     // Setup basic project structure

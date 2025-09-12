@@ -83,7 +83,7 @@ export class DistributedKGenArchitecture extends EventEmitter {
       throughput: 0,
       errorRate: 0,
       availability: 1.0,
-      startTime: Date.now()
+      startTime: this.getDeterministicTimestamp()
     };
     
     // Component health status
@@ -322,7 +322,7 @@ export class DistributedKGenArchitecture extends EventEmitter {
       throw new Error('Distributed architecture not initialized');
     }
     
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     const operationId = crypto.randomUUID();
     
     try {
@@ -364,7 +364,7 @@ export class DistributedKGenArchitecture extends EventEmitter {
           throw new Error(`Unknown processing strategy: ${strategy.type}`);
       }
       
-      const processingTime = Date.now() - startTime;
+      const processingTime = this.getDeterministicTimestamp() - startTime;
       
       // Update metrics
       this.updateMetrics({
@@ -387,7 +387,7 @@ export class DistributedKGenArchitecture extends EventEmitter {
       };
       
     } catch (error) {
-      const processingTime = Date.now() - startTime;
+      const processingTime = this.getDeterministicTimestamp() - startTime;
       
       console.error(`[DistributedKGen] Processing failed: ${operationId}:`, error);
       
@@ -700,7 +700,7 @@ export class DistributedKGenArchitecture extends EventEmitter {
    * Collect performance metrics
    */
   collectMetrics() {
-    const uptime = Date.now() - this.metrics.startTime;
+    const uptime = this.getDeterministicTimestamp() - this.metrics.startTime;
     
     // Calculate throughput
     if (uptime > 0) {
@@ -746,7 +746,7 @@ export class DistributedKGenArchitecture extends EventEmitter {
   getMetrics() {
     return {
       ...this.metrics,
-      uptime: Date.now() - this.metrics.startTime,
+      uptime: this.getDeterministicTimestamp() - this.metrics.startTime,
       nodeId: this.nodeId,
       nodeType: this.nodeType,
       clusterState: this.clusterState

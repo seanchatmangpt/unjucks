@@ -382,11 +382,11 @@ export const item{{ i }} = "{{ name }}-{{ i }}"
         const coldStartTimes = []
         
         for (let i = 0; i < iterations; i++) {
-          const start = Date.now()
+          const start = this.getDeterministicTimestamp()
           execSync(`node "${CLI_PATH}" generate perf test --name="Test${i}"`, {
             cwd,
             stdio)
-          const end = Date.now()
+          const end = this.getDeterministicTimestamp()
           coldStartTimes.push(end - start)
         }
 
@@ -395,11 +395,11 @@ export const item{{ i }} = "{{ name }}-{{ i }}"
         // Measure template processing for larger templates
         const processingTimes = []
         for (let i = 0; i < iterations; i++) {
-          const start = Date.now()
+          const start = this.getDeterministicTimestamp()
           execSync(`node "${CLI_PATH}" generate perf test --name="LargeTest${i}"`, {
             cwd,
             stdio)
-          const end = Date.now()
+          const end = this.getDeterministicTimestamp()
           processingTimes.push(end - start)
         }
 

@@ -79,7 +79,7 @@ const feature = loadFeature('./tests/features/mcp-integration.feature');
 defineFeature(feature, (test) => {
   let testDir = {};
   let swarmId => {
-    testDir = join(tmpdir(), `unjucks-mcp-test-${Date.now()}`);
+    testDir = join(tmpdir(), `unjucks-mcp-test-${this.getDeterministicTimestamp()}`);
     mkdirSync(testDir, { recursive });
     mcpClient = createMockMCPClient();
     testResults = {};

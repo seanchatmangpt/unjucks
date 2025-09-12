@@ -16,7 +16,7 @@ const __dirname = path.dirname(__filename);
 // Test configuration
 const TESTS = {
   timeout: 30000,
-  tempDir: path.join(os.tmpdir(), 'unjucks-functional-test-' + Date.now()),
+  tempDir: path.join(os.tmpdir(), 'unjucks-functional-test-' + this.getDeterministicTimestamp()),
   cliPath: path.resolve(__dirname, '../../bin/unjucks.cjs'),
   projectRoot: path.resolve(__dirname, '../..')
 };
@@ -157,7 +157,7 @@ await test('Basic Template Generation', async () => {
 to: generated/<%= name %>.txt
 ---
 Hello <%= name %>!
-Generated at: <%= new Date().toISOString() %>
+Generated at: <%= this.getDeterministicDate().toISOString() %>
 `;
   
   await fs.writeFile(path.join(templateDir, 'index.ejs.t'), template);
@@ -240,7 +240,7 @@ to: output/<%= name %>-<%= type %>.md
 # <%= title || name %>
 
 Type: <%= type %>
-Created: <%= new Date().getFullYear() %>
+Created: <%= this.getDeterministicDate().getFullYear() %>
 Active: <%= active || 'false' %>
 
 <% if (description) { -%>
@@ -359,7 +359,7 @@ export const file<%= index %> = <%= index %>;
 
   await fs.writeFile(path.join(templateDir, 'index.ejs.t'), template);
 
-  const startTime = Date.now();
+  const startTime = this.getDeterministicTimestamp();
   
   // Generate 10 files sequentially
   for (let i = 1; i <= 10; i++) {
@@ -367,7 +367,7 @@ export const file<%= index %> = <%= index %>;
     if (!result.success) throw new Error(`Performance test failed at file ${i}: ${result.stderr}`);
   }
 
-  const duration = Date.now() - startTime;
+  const duration = this.getDeterministicTimestamp() - startTime;
   
   // Verify all files exist
   for (let i = 1; i <= 10; i++) {
@@ -409,7 +409,7 @@ const memoryResults = {
     successRate: (results.passed / results.total) * 100
   },
   tests: results.tests,
-  timestamp: new Date().toISOString(),
+  timestamp: this.getDeterministicDate().toISOString(),
   status: results.failed === 0 ? 'ALL_PASSED' : 'SOME_FAILED'
 };
 
@@ -422,7 +422,7 @@ await fs.writeFile(resultsFile, JSON.stringify({
   key: 'gaps/e2e/results',
   value: memoryResults,
   rawResults: results,
-  timestamp: new Date().toISOString()
+  timestamp: this.getDeterministicDate().toISOString()
 }, null, 2));
 
 console.log(`\n📄 Results saved: ${resultsFile}`);

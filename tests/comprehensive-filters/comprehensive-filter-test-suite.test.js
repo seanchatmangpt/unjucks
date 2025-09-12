@@ -549,7 +549,7 @@ function generateFilterTestReport(metrics) {
     ((metrics.totalFiltersTestedCount / 65) * 100).toFixed(1) : 0;
 
   const report = {
-    timestamp: new Date().toISOString(),
+    timestamp: this.getDeterministicDate().toISOString(),
     totalFiltersExpected: 65,
     totalFiltersTested: metrics.totalFiltersTestedCount,
     successRate: `${successRate}%`,

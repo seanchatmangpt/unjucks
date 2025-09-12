@@ -35,7 +35,7 @@ class ActPerformanceBenchmarker {
 
     this.benchmarkResults = {
       metadata: {
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         framework: 'ACT Performance Benchmarker',
         version: '1.0.0',
         environment: {
@@ -259,7 +259,7 @@ class ActPerformanceBenchmarker {
    */
   async runSingleBenchmark(workflowPath, platform, event) {
     return new Promise((resolve) => {
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       let output = '';
       let error = null;
       
@@ -277,7 +277,7 @@ class ActPerformanceBenchmarker {
       });
 
       child.on('close', (code) => {
-        const executionTime = Date.now() - startTime;
+        const executionTime = this.getDeterministicTimestamp() - startTime;
         
         resolve({
           success: code === 0,
@@ -291,7 +291,7 @@ class ActPerformanceBenchmarker {
       // Timeout handling
       setTimeout(() => {
         child.kill();
-        const executionTime = Date.now() - startTime;
+        const executionTime = this.getDeterministicTimestamp() - startTime;
         
         resolve({
           success: false,
@@ -534,7 +534,7 @@ class ActPerformanceBenchmarker {
     this.benchmarkResults.recommendations = this.generateOverallRecommendations();
     
     // Save JSON report
-    const reportFile = path.join(this.options.resultsDir, `performance-benchmark-${Date.now()}.json`);
+    const reportFile = path.join(this.options.resultsDir, `performance-benchmark-${this.getDeterministicTimestamp()}.json`);
     fs.writeFileSync(reportFile, JSON.stringify(this.benchmarkResults, null, 2));
     
     // Generate markdown report

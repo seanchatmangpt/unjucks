@@ -218,7 +218,7 @@ export async function unjucksInject(params) {
           success: result.success,
           skipped: result.skipped,
           dry,
-          timestamp: new Date().toISOString()
+          timestamp: this.getDeterministicDate().toISOString()
         }
       };
       

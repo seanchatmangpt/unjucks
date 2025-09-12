@@ -58,7 +58,7 @@ describe('Template Compilation Optimizer', () => {
   let tempDir;
 
   beforeEach(async () => {
-    tempDir = join(tmpdir(), `kgen-test-${Date.now()}`);
+    tempDir = join(tmpdir(), `kgen-test-${this.getDeterministicTimestamp()}`);
     await fs.mkdir(tempDir, { recursive: true });
     
     optimizer = new TemplateCompilationOptimizer({
@@ -181,8 +181,8 @@ describe('Template Compilation Optimizer', () => {
       profiler.startProfile('test.njk');
       profiler.recordEvent('slow_phase', {});
       // Simulate slow operation
-      const start = Date.now();
-      while (Date.now() - start < 15) {} // 15ms delay
+      const start = this.getDeterministicTimestamp();
+      while (this.getDeterministicTimestamp() - start < 15) {} // 15ms delay
       profiler.recordEvent('fast_phase', {});
       profiler.endProfile();
 
@@ -225,7 +225,7 @@ describe('Template Dependency Graph', () => {
   let tempDir;
 
   beforeEach(async () => {
-    tempDir = join(tmpdir(), `kgen-dep-test-${Date.now()}`);
+    tempDir = join(tmpdir(), `kgen-dep-test-${this.getDeterministicTimestamp()}`);
     await fs.mkdir(tempDir, { recursive: true });
     
     dependencyGraph = createDependencyGraph({
@@ -491,7 +491,7 @@ describe('Incremental Template Processor', () => {
   let tempDir;
 
   beforeEach(async () => {
-    tempDir = join(tmpdir(), `kgen-inc-test-${Date.now()}`);
+    tempDir = join(tmpdir(), `kgen-inc-test-${this.getDeterministicTimestamp()}`);
     await fs.mkdir(tempDir, { recursive: true });
     
     processor = createIncrementalProcessor({
@@ -590,7 +590,7 @@ describe('Hot Template Reloader', () => {
   let tempDir;
 
   beforeEach(async () => {
-    tempDir = join(tmpdir(), `kgen-hot-test-${Date.now()}`);
+    tempDir = join(tmpdir(), `kgen-hot-test-${this.getDeterministicTimestamp()}`);
     await fs.mkdir(tempDir, { recursive: true });
     
     reloader = createHotReloader({
@@ -699,7 +699,7 @@ describe('Template Inheritance Optimizer', () => {
   let tempDir;
 
   beforeEach(async () => {
-    tempDir = join(tmpdir(), `kgen-inherit-test-${Date.now()}`);
+    tempDir = join(tmpdir(), `kgen-inherit-test-${this.getDeterministicTimestamp()}`);
     await fs.mkdir(tempDir, { recursive: true });
     
     optimizer = createInheritanceOptimizer({
@@ -895,7 +895,7 @@ describe('Integration Tests', () => {
   let memoSystem;
 
   beforeEach(async () => {
-    tempDir = join(tmpdir(), `kgen-integration-test-${Date.now()}`);
+    tempDir = join(tmpdir(), `kgen-integration-test-${this.getDeterministicTimestamp()}`);
     await fs.mkdir(tempDir, { recursive: true });
 
     optimizer = createTemplateOptimizer({
@@ -1070,7 +1070,7 @@ describe('Integration Tests', () => {
 
 describe('Performance Benchmarks', () => {
   it('should meet performance targets', async () => {
-    const tempDir = join(tmpdir(), `kgen-perf-test-${Date.now()}`);
+    const tempDir = join(tmpdir(), `kgen-perf-test-${this.getDeterministicTimestamp()}`);
     await fs.mkdir(tempDir, { recursive: true });
 
     try {

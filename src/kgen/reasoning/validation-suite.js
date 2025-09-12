@@ -7,7 +7,7 @@
  */
 
 import { EventEmitter } from 'events';
-import { Logger } from 'consola';
+import { Consola } from 'consola';
 import crypto from 'crypto';
 
 export class FederatedReasoningValidationSuite extends EventEmitter {
@@ -53,7 +53,7 @@ export class FederatedReasoningValidationSuite extends EventEmitter {
       ...config
     };
     
-    this.logger = new Logger({ tag: 'reasoning-validation' });
+    this.logger = new Consola({ tag: 'reasoning-validation' });
     this.state = 'initialized';
     
     // Validation framework
@@ -151,7 +151,7 @@ export class FederatedReasoningValidationSuite extends EventEmitter {
    */
   async validateReasoningSystem(reasoningSystem, validationConfig = {}) {
     const validationId = this._generateValidationId();
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       this.logger.info(`Starting validation ${validationId}`);
@@ -199,7 +199,7 @@ export class FederatedReasoningValidationSuite extends EventEmitter {
       );
       
       // Update metrics and cleanup
-      const validationTime = Date.now() - startTime;
+      const validationTime = this.getDeterministicTimestamp() - startTime;
       this._updateValidationMetrics(validationId, validationTime, validationReport.passed);
       this.activeTests.delete(validationId);
       
@@ -218,7 +218,7 @@ export class FederatedReasoningValidationSuite extends EventEmitter {
       return validationReport;
       
     } catch (error) {
-      const validationTime = Date.now() - startTime;
+      const validationTime = this.getDeterministicTimestamp() - startTime;
       this._updateValidationMetrics(validationId, validationTime, false);
       this.activeTests.delete(validationId);
       
@@ -248,7 +248,7 @@ export class FederatedReasoningValidationSuite extends EventEmitter {
           improvements: [],
           regressions: []
         },
-        executedAt: new Date()
+        executedAt: this.getDeterministicDate()
       };
       
       // Execute each benchmark suite
@@ -300,7 +300,7 @@ export class FederatedReasoningValidationSuite extends EventEmitter {
         overallQuality: 0,
         violations: [],
         recommendations: [],
-        executedAt: new Date()
+        executedAt: this.getDeterministicDate()
       };
       
       // Execute quality assurance rules
@@ -355,7 +355,7 @@ export class FederatedReasoningValidationSuite extends EventEmitter {
         improvements: [],
         stable: [],
         overallTrend: 'stable',
-        executedAt: new Date()
+        executedAt: this.getDeterministicDate()
       };
       
       // Compare with historical baselines
@@ -565,19 +565,19 @@ export class FederatedReasoningValidationSuite extends EventEmitter {
   }
 
   _generateValidationId() {
-    return `validation_${Date.now()}_${crypto.randomBytes(4).toString('hex')}`;
+    return `validation_${this.getDeterministicTimestamp()}_${crypto.randomBytes(4).toString('hex')}`;
   }
 
   _generateBenchmarkId() {
-    return `benchmark_${Date.now()}_${crypto.randomBytes(4).toString('hex')}`;
+    return `benchmark_${this.getDeterministicTimestamp()}_${crypto.randomBytes(4).toString('hex')}`;
   }
 
   _generateQAId() {
-    return `qa_${Date.now()}_${crypto.randomBytes(4).toString('hex')}`;
+    return `qa_${this.getDeterministicTimestamp()}_${crypto.randomBytes(4).toString('hex')}`;
   }
 
   _generateRegressionId() {
-    return `regression_${Date.now()}_${crypto.randomBytes(4).toString('hex')}`;
+    return `regression_${this.getDeterministicTimestamp()}_${crypto.randomBytes(4).toString('hex')}`;
   }
 
   // Test suite creation methods

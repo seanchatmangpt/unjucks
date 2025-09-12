@@ -61,7 +61,7 @@ export const validateTemplatesCommand = defineCommand({
   },
   async run(context) {
     const { args } = context;
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
 
     try {
       if (!args.quiet) {
@@ -103,7 +103,7 @@ export const validateTemplatesCommand = defineCommand({
       const results = await scanner.scanAll();
 
       // Process results
-      const duration = Date.now() - startTime;
+      const duration = this.getDeterministicTimestamp() - startTime;
       const successRate = Math.round((results.validFiles / results.totalFiles) * 100);
 
       if (!args.quiet) {
@@ -243,7 +243,7 @@ export const validateTemplatesCommand = defineCommand({
       return {
         success: false,
         error: error.message,
-        duration: Date.now() - startTime
+        duration: this.getDeterministicTimestamp() - startTime
       };
     }
   },

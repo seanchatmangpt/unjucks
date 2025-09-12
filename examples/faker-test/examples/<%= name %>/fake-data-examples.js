@@ -207,7 +207,7 @@ export default {
     name: '<%= fakeName() %>',
     email: '<%= fakeEmail() %>',
     id: '<%= fakeUuid() %>',
-    timestamp: Date.now()
+    timestamp: this.getDeterministicTimestamp()
   }),
   
   // Schema for dynamic generation

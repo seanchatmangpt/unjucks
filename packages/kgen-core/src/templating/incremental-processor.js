@@ -359,7 +359,7 @@ export class IncrementalTemplateProcessor extends EventEmitter {
         };
       }
 
-      const jobId = `${templatePath}-${Date.now()}`;
+      const jobId = `${templatePath}-${this.getDeterministicTimestamp()}`;
       this.activeJobs.set(jobId, {
         templatePath,
         startTime,
@@ -628,7 +628,7 @@ export class IncrementalTemplateProcessor extends EventEmitter {
         hashes: Object.fromEntries(this.lastProcessedHashes),
         outputHashes: Object.fromEntries(this.outputFileHashes),
         stats: this.stats,
-        savedAt: new Date().toISOString()
+        savedAt: this.getDeterministicDate().toISOString()
       };
 
       await fs.mkdir(dirname(this.options.stateFile), { recursive: true });

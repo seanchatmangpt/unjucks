@@ -2,7 +2,7 @@
  * CCPA Privacy Controller - FIXED VERSION
  * 
  * ✅ FIXES APPLIED:
- * - Replaced non-deterministic Math.random() + Date.now() ID generation
+ * - Replaced non-deterministic Math.random() + this.getDeterministicTimestamp() ID generation
  * - Implemented content-addressed deterministic IDs
  * - Added deterministic timestamp handling for testing
  * - Maintained full CCPA compliance while ensuring reproducibility
@@ -37,7 +37,7 @@ export class CCPAPrivacyController {
   _getTimestamp() {
     return process.env.NODE_ENV === 'test' 
       ? '2025-01-01T00:00:00.000Z'
-      : new Date().toISOString();
+      : this.getDeterministicDate().toISOString();
   }
 
   /**
@@ -522,7 +522,7 @@ export class CCPAPrivacyController {
 
     const responseTimes = requests.map(request => {
       const requested = new Date(request.requestedAt);
-      const responded = new Date(); // ✅ NOTE: In real implementation, would use actual response time
+      const responded = this.getDeterministicDate(); // ✅ NOTE: In real implementation, would use actual response time
       return responded - requested;
     });
 

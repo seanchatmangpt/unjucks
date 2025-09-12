@@ -10,7 +10,7 @@ import { resolve, extname, basename } from 'path';
 
 import { success, error, output } from '../../lib/output.js';
 import { loadKgenConfig, findFiles } from '../../lib/utils.js';
-import { FrontmatterWorkflowEngine, SchemaValidator } from '../../../src/kgen/core/frontmatter/index.js';
+import { FrontmatterWorkflowEngine, SchemaValidator } from '../../../../../src/kgen/core/frontmatter/index.js';
 
 export default defineCommand({
   meta: {
@@ -64,7 +64,7 @@ export default defineCommand({
     let workflowEngine;
     
     try {
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
       // Load configuration
       config = await loadKgenConfig(args.config);
@@ -201,7 +201,7 @@ export default defineCommand({
         }
       }
       
-      const duration = Date.now() - startTime;
+      const duration = this.getDeterministicTimestamp() - startTime;
       
       // Determine overall status
       const overallValid = invalidCount === 0 && errorCount === 0;

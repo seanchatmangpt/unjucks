@@ -100,14 +100,14 @@ describe('Final Semantic Generation Workflow', () => {
         organization }
       };
 
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
       // Generate outputs
       const rdfOutput = generateRDFFromData(largeData);
       const apiClient = generateAPIClient(largeData);
       const gqlSchema = generateGraphQLSchema(largeData);
       
-      const endTime = Date.now();
+      const endTime = this.getDeterministicTimestamp();
       const totalTime = endTime - startTime;
 
       // Performance validation

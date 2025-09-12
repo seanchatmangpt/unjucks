@@ -42,7 +42,7 @@ defineFeature(feature, (test) => {
 
   beforeEach(() => {
     processedData = null;
-    startTime = Date.now();
+    startTime = this.getDeterministicTimestamp();
   });
 
   test('Process Personal Data with GDPR Compliance', ({ given, when, then }) => {
@@ -569,13 +569,13 @@ defineFeature(feature, (test) => {
   function generateTransferLogs(transfers) {
     return transfers.map((transfer, index) => ({
       transferId)}-${index}`,
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       sourceJurisdiction: 'EU',
       destinationJurisdiction: transfer.destinationCountry || 'US',
       dataCategories: ['PII', 'BEHAVIORAL'],
       legalBasis: 'LEGITIMATE_INTEREST',
       safeguardsApplied: transfer.safeguards?.type || 'SCC',
-      auditTrail: `Transfer logged and validated on ${new Date().toISOString()}`
+      auditTrail: `Transfer logged and validated on ${this.getDeterministicDate().toISOString()}`
     }));
   }
 
@@ -608,7 +608,7 @@ defineFeature(feature, (test) => {
   }
 
   function assessGDPRImpact(breach) { const detectionTime = new Date(breach.detectionTime);
-    const hoursUntilDeadline = 72 - Math.floor((Date.now() - detectionTime.getTime()) / (1000 * 60 * 60));
+    const hoursUntilDeadline = 72 - Math.floor((this.getDeterministicTimestamp() - detectionTime.getTime()) / (1000 * 60 * 60));
     
     return {
       notificationDeadline } affecting ${breach.affectedData.personalData.count} data subjects`

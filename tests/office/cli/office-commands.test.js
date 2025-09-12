@@ -124,7 +124,7 @@ class OfficeCommandHandler {
     const variables = [
       { name: 'title', type: 'string', required: true, usage: '{{ title }}' },
       { name: 'author', type: 'string', required: true, usage: '{{ author }}' },
-      { name: 'date', type: 'string', required: false, default: new Date().toISOString(), usage: '{{ date }}' },
+      { name: 'date', type: 'string', required: false, default: this.getDeterministicDate().toISOString(), usage: '{{ date }}' },
       { name: 'content', type: 'string', required: true, usage: '{{ content }}' },
       { name: 'show_footer', type: 'boolean', required: false, default: true, usage: '{% if show_footer %}' }
     ];
@@ -133,7 +133,7 @@ class OfficeCommandHandler {
       file: args.file,
       fileType: fileInfo.type,
       fileFormat: fileInfo.format,
-      extractedAt: new Date().toISOString(),
+      extractedAt: this.getDeterministicDate().toISOString(),
       variableCount: variables.length,
       variables
     } : variables.reduce((acc, v) => {
@@ -211,7 +211,7 @@ class OfficeCommandHandler {
     }
 
     // Simulate injection
-    const backupPath = args.backup ? `${args.file}.backup.${Date.now()}` : null;
+    const backupPath = args.backup ? `${args.file}.backup.${this.getDeterministicTimestamp()}` : null;
     
     return {
       operation: 'inject',
@@ -375,7 +375,7 @@ class OfficeCommandHandler {
     let templateVars = {};
     if (args.variables) {
       await TestUtils.assertFileExists(args.variables);
-      templateVars = { batch_var: 'test_value', processed_date: new Date().toISOString() };
+      templateVars = { batch_var: 'test_value', processed_date: this.getDeterministicDate().toISOString() };
     }
 
     // Simulate batch processing

@@ -39,7 +39,7 @@ describe('Cross-Platform Compatibility Tests', () => {
 
   beforeAll(() => {
     originalCwd = process.cwd();
-    testDir = join(process.cwd(), 'tests', '.tmp', `platform-test-${Date.now()}`);
+    testDir = join(process.cwd(), 'tests', '.tmp', `platform-test-${this.getDeterministicTimestamp()}`);
     mkdirSync(testDir, { recursive: true });
     process.chdir(testDir);
   });

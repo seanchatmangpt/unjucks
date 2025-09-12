@@ -42,7 +42,7 @@ export class GraphDiffEngine {
    */
   async calculateDiff(baseGraph, targetGraph, options = {}) {
     try {
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       this.logger.debug('Calculating graph diff with impact analysis');
       
       // Get canonical N-Triples representations
@@ -65,9 +65,9 @@ export class GraphDiffEngine {
       
       // Build comprehensive diff result
       const diff = {
-        id: `diff_${Date.now()}`,
-        timestamp: new Date().toISOString(),
-        calculationTime: Date.now() - startTime,
+        id: `diff_${this.getDeterministicTimestamp()}`,
+        timestamp: this.getDeterministicDate().toISOString(),
+        calculationTime: this.getDeterministicTimestamp() - startTime,
         
         // Graph metadata
         metadata: {
@@ -201,7 +201,7 @@ export class GraphDiffEngine {
     try {
       const data = {
         version: '1.0',
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         subjects: Object.fromEntries(this.subjectIndex),
         stats: {
           totalSubjects: this.subjectIndex.size,

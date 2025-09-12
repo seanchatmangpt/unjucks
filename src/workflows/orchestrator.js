@@ -116,8 +116,8 @@ export class WorkflowOrchestrator extends EventEmitter {
    * @returns {Promise<Object>} Execution result with provenance
    */
   async executeWorkflow(workflowSpec) {
-    const workflowId = workflowSpec.id || `workflow-${Date.now()}`;
-    const startTime = Date.now();
+    const workflowId = workflowSpec.id || `workflow-${this.getDeterministicTimestamp()}`;
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       this.logger.info(`Starting workflow execution: ${workflowId}`);
@@ -176,7 +176,7 @@ export class WorkflowOrchestrator extends EventEmitter {
         provenanceContext
       );
       
-      const executionTime = Date.now() - startTime;
+      const executionTime = this.getDeterministicTimestamp() - startTime;
       this.metrics.averageExecutionTime = 
         (this.metrics.averageExecutionTime * this.metrics.totalWorkflows + executionTime) / 
         (this.metrics.totalWorkflows + 1);
@@ -465,12 +465,12 @@ export class WorkflowOrchestrator extends EventEmitter {
         generationResults.operations.push({
           operation,
           result,
-          timestamp: new Date()
+          timestamp: this.getDeterministicDate()
         });
         
         if (result.success) {
           generationResults.artifacts.push({
-            id: `artifact-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+            id: `artifact-${this.getDeterministicTimestamp()}-${Math.random().toString(36).substr(2, 9)}`,
             type: template.shouldInject ? 'injection' : 'file',
             path: template.resolvedPath,
             template: template.name,
@@ -585,7 +585,7 @@ export class WorkflowOrchestrator extends EventEmitter {
               attestation.hash,
               {
                 operationType: 'artifact-attestation',
-                timestamp: new Date(),
+                timestamp: this.getDeterministicDate(),
                 metadata: {
                   workflowId: workflowSpec.id,
                   artifactId: report.artifactId
@@ -733,7 +733,7 @@ export class WorkflowOrchestrator extends EventEmitter {
       name: 'timestamp',
       type: 'date',
       required: false,
-      defaultValue: () => new Date().toISOString(),
+      defaultValue: () => this.getDeterministicDate().toISOString(),
       description: 'Current timestamp'
     });
   }
@@ -759,7 +759,7 @@ export class WorkflowOrchestrator extends EventEmitter {
     }
     
     if (varName.toLowerCase().includes('date') || varName.toLowerCase().includes('time')) {
-      return new Date().toISOString().split('T')[0];
+      return this.getDeterministicDate().toISOString().split('T')[0];
     }
     
     return `{{${varName}}}`;
@@ -839,7 +839,7 @@ export class WorkflowOrchestrator extends EventEmitter {
     
     if (exists) {
       // Backup existing file
-      const backupPath = `${targetPath}.backup-${Date.now()}`;
+      const backupPath = `${targetPath}.backup-${this.getDeterministicTimestamp()}`;
       await fs.copyFile(targetPath, backupPath);
       transaction.addRollback(() => fs.rename(backupPath, targetPath));
     }
@@ -847,7 +847,7 @@ export class WorkflowOrchestrator extends EventEmitter {
     // Write new file
     await fs.writeFile(targetPath, operation.content, 'utf8');
     transaction.addRollback(() => exists ? 
-      fs.rename(`${targetPath}.backup-${Date.now()}`, targetPath) :
+      fs.rename(`${targetPath}.backup-${this.getDeterministicTimestamp()}`, targetPath) :
       fs.unlink(targetPath)
     );
     
@@ -885,7 +885,7 @@ export class WorkflowOrchestrator extends EventEmitter {
     const newContent = lines.join('\n');
     
     // Backup and write
-    const backupPath = `${targetPath}.backup-${Date.now()}`;
+    const backupPath = `${targetPath}.backup-${this.getDeterministicTimestamp()}`;
     if (existingContent) {
       await fs.writeFile(backupPath, existingContent, 'utf8');
       transaction.addRollback(() => fs.rename(backupPath, targetPath));
@@ -994,10 +994,10 @@ export class WorkflowOrchestrator extends EventEmitter {
     const crypto = require('crypto');
     
     const attestation = {
-      id: `attestation-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      id: `attestation-${this.getDeterministicTimestamp()}-${Math.random().toString(36).substr(2, 9)}`,
       artifactId: validationReport.artifactId,
       workflowId: workflowSpec.id,
-      timestamp: new Date(),
+      timestamp: this.getDeterministicDate(),
       validationPassed: validationReport.passed,
       checks: validationReport.checks,
       attestor: 'workflow-orchestrator',

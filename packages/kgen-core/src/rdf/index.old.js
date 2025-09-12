@@ -200,7 +200,7 @@ export class EnhancedRDFProcessor extends EventEmitter {
             count: quads.length,
             prefixes: prefixes || {},
             format,
-            parseTimestamp: new Date(),
+            parseTimestamp: this.getDeterministicDate(),
             canonical: this.config.deterministic
           });
         }
@@ -242,7 +242,7 @@ export class EnhancedRDFProcessor extends EventEmitter {
         sha256: hash,
         algorithm: this.config.hashAlgorithm,
         tripleCount: targetQuads.length,
-        timestamp: new Date(),
+        timestamp: this.getDeterministicDate(),
         canonical: true,
         normalization: normalized.metadata
       };
@@ -297,7 +297,7 @@ export class EnhancedRDFProcessor extends EventEmitter {
           originalCount: quads.length,
           normalizedCount: sortedTriples.length,
           blankNodesRenamed: Object.keys(blankNodeMap).length,
-          normalizationTimestamp: new Date(),
+          normalizationTimestamp: this.getDeterministicDate(),
           deterministic: this.config.deterministic
         }
       };
@@ -378,7 +378,7 @@ export class EnhancedRDFProcessor extends EventEmitter {
         statistics,
         ...(includeMetadata && {
           metadata: {
-            diffTimestamp: new Date(),
+            diffTimestamp: this.getDeterministicDate(),
             normalized: normalize,
             sourceHash: this.computeGraphHash(sourceQuads).sha256,
             targetHash: this.computeGraphHash(targetQuads).sha256
@@ -421,7 +421,7 @@ export class EnhancedRDFProcessor extends EventEmitter {
             triples: [],
             predicates: new Set(),
             objectTypes: new Set(),
-            lastUpdated: new Date()
+            lastUpdated: this.getDeterministicDate()
           });
         }
         

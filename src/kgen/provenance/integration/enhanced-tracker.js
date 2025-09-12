@@ -139,7 +139,7 @@ export class EnhancedProvenanceTracker extends EventEmitter {
       const operationId = operationInfo.operationId || crypto.randomUUID();
       this.logger.info(`Starting enhanced operation tracking: ${operationId}`);
       
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
       // Start core provenance tracking
       const coreContext = await this.coreTracker.startOperation(operationInfo);
@@ -149,7 +149,7 @@ export class EnhancedProvenanceTracker extends EventEmitter {
         ...coreContext,
         operationId,
         enhancements: {},
-        startTime: new Date(),
+        startTime: this.getDeterministicDate(),
         enhancementOptions
       };
       
@@ -181,7 +181,7 @@ export class EnhancedProvenanceTracker extends EventEmitter {
       // Store enhanced context
       this.operationCache.set(operationId, enhancedContext);
       
-      const initializationTime = Date.now() - startTime;
+      const initializationTime = this.getDeterministicTimestamp() - startTime;
       
       this.emit('enhanced-operation-started', {
         operationId,
@@ -209,7 +209,7 @@ export class EnhancedProvenanceTracker extends EventEmitter {
     try {
       this.logger.info(`Completing enhanced operation: ${operationId}`);
       
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const enhancedContext = this.operationCache.get(operationId);
       
       if (!enhancedContext) {
@@ -230,7 +230,7 @@ export class EnhancedProvenanceTracker extends EventEmitter {
       const enhancedRecord = {
         ...coreResult,
         enhancements: enhancementResults,
-        completionTime: Date.now() - startTime,
+        completionTime: this.getDeterministicTimestamp() - startTime,
         enhancementSummary: this._createEnhancementSummary(enhancementResults)
       };
       
@@ -247,7 +247,7 @@ export class EnhancedProvenanceTracker extends EventEmitter {
       // Clean up operation cache
       this.operationCache.delete(operationId);
       
-      const completionTime = Date.now() - startTime;
+      const completionTime = this.getDeterministicTimestamp() - startTime;
       
       this.emit('enhanced-operation-completed', {
         operationId,
@@ -275,7 +275,7 @@ export class EnhancedProvenanceTracker extends EventEmitter {
     try {
       this.logger.info(`Verifying enhanced provenance: ${provenanceRecord.operationId}`);
       
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const verificationResults = {
         core: null,
         enhancements: {},
@@ -334,12 +334,12 @@ export class EnhancedProvenanceTracker extends EventEmitter {
       // Calculate overall verification result
       verificationResults.overall = this._calculateOverallVerification(verificationResults);
       
-      const verificationTime = Date.now() - startTime;
+      const verificationTime = this.getDeterministicTimestamp() - startTime;
       
       const finalResult = {
         ...verificationResults,
         verificationTime,
-        verifiedAt: new Date(),
+        verifiedAt: this.getDeterministicDate(),
         verificationMethods: Object.keys(verificationResults.enhancements)
       };
       
@@ -660,7 +660,7 @@ export class EnhancedProvenanceTracker extends EventEmitter {
       proofId: crypto.randomUUID(),
       operationId: operationInfo.operationId,
       privacyLevel: 'high',
-      createdAt: new Date()
+      createdAt: this.getDeterministicDate()
     };
   }
 
@@ -673,7 +673,7 @@ export class EnhancedProvenanceTracker extends EventEmitter {
       keyId: keyPair.keyId,
       algorithm: 'CRYSTALS-Dilithium',
       securityLevel: 3,
-      createdAt: new Date()
+      createdAt: this.getDeterministicDate()
     };
   }
 
@@ -684,7 +684,7 @@ export class EnhancedProvenanceTracker extends EventEmitter {
       consensusId: crypto.randomUUID(),
       operationId: operationInfo.operationId,
       consensusType: 'PBFT',
-      createdAt: new Date()
+      createdAt: this.getDeterministicDate()
     };
   }
 
@@ -695,7 +695,7 @@ export class EnhancedProvenanceTracker extends EventEmitter {
       verificationId: crypto.randomUUID(),
       realTimeEnabled: true,
       targetLatency: 100,
-      createdAt: new Date()
+      createdAt: this.getDeterministicDate()
     };
   }
 
@@ -706,7 +706,7 @@ export class EnhancedProvenanceTracker extends EventEmitter {
       predictionId: crypto.randomUUID(),
       operationId: operationInfo.operationId,
       predictionEnabled: true,
-      createdAt: new Date()
+      createdAt: this.getDeterministicDate()
     };
   }
 
@@ -897,10 +897,10 @@ export class EnhancedProvenanceTracker extends EventEmitter {
       }
     });
     
-    this.componentMetrics.set(Date.now(), allMetrics);
+    this.componentMetrics.set(this.getDeterministicTimestamp(), allMetrics);
     
     // Keep only recent metrics (last hour)
-    const oneHourAgo = Date.now() - 3600000;
+    const oneHourAgo = this.getDeterministicTimestamp() - 3600000;
     for (const [timestamp] of this.componentMetrics) {
       if (timestamp < oneHourAgo) {
         this.componentMetrics.delete(timestamp);

@@ -73,7 +73,7 @@ class PrometheusCollector {
     
     try {
       const [owner, repo] = this.repository.split('/');
-      const since = new Date();
+      const since = this.getDeterministicDate();
       since.setHours(since.getHours() - this.timeWindow);
 
       // Get workflow runs
@@ -180,7 +180,7 @@ class PrometheusCollector {
 
     try {
       const [owner, repo] = this.repository.split('/');
-      const since = new Date();
+      const since = this.getDeterministicDate();
       since.setDate(since.getDate() - 7); // Last 7 days for SLO calculation
 
       const { data: workflowRuns } = await this.octokit.rest.actions.listWorkflowRunsForRepo({
@@ -253,7 +253,7 @@ class PrometheusCollector {
 
       // Also save metrics locally
       const metricsData = {
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         sessionId: this.sessionId,
         traceId: this.traceId,
         metrics: await register.getMetricsAsJSON()

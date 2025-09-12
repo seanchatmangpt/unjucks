@@ -60,7 +60,7 @@ export const initCommand = defineCommand({
   },
   async run(context) {
     const { args } = context;
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
 
     try {
       if (!args.verbose && !args.dry) {
@@ -129,7 +129,7 @@ export const initCommand = defineCommand({
           console.log(chalk.gray(`  📄 ${path.join(projectPath, file.path)}`));
         });
         
-        console.log(chalk.blue(`\n✨ Dry run completed in ${Date.now() - startTime}ms`));
+        console.log(chalk.blue(`\n✨ Dry run completed in ${this.getDeterministicTimestamp() - startTime}ms`));
         console.log(chalk.gray("Run without --dry to create the project structure"));
         
         return {
@@ -173,7 +173,7 @@ export const initCommand = defineCommand({
         }
       }
 
-      const duration = Date.now() - startTime;
+      const duration = this.getDeterministicTimestamp() - startTime;
       
       console.log(chalk.green(`\n✅ Successfully initialized spec-driven project: ${args.project}`));
       console.log(chalk.cyan(`📁 Project location: ${projectPath}`));
@@ -221,7 +221,7 @@ metadata:
   framework: "${args.framework || 'tbd'}"
   language: "${args.lang}"
   version: "1.0.0"
-  created: "${new Date().toISOString()}"
+  created: "${this.getDeterministicDate().toISOString()}"
   
 description: |
   Spec-driven development project for ${args.project}.

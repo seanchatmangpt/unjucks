@@ -170,8 +170,8 @@ class EnterpriseSecretsManager extends EventEmitter {
         iv: encryptedValue.iv,
         authTag: encryptedValue.authTag,
         keyVersion: encryptedValue.keyVersion,
-        createdAt: new Date(),
-        lastModified: new Date(),
+        createdAt: this.getDeterministicDate(),
+        lastModified: this.getDeterministicDate(),
         lastAccessed: null,
         accessCount: 0,
         version: 1
@@ -183,12 +183,12 @@ class EnterpriseSecretsManager extends EventEmitter {
         description,
         tags: new Set(tags),
         rotationInterval,
-        nextRotation: new Date(Date.now() + rotationInterval),
+        nextRotation: new Date(this.getDeterministicTimestamp() + rotationInterval),
         accessPolicy: accessPolicy || 'default',
         metadata,
         createdBy: userId,
-        createdAt: new Date(),
-        lastModified: new Date(),
+        createdAt: this.getDeterministicDate(),
+        lastModified: this.getDeterministicDate(),
         isActive: true
       };
       
@@ -224,7 +224,7 @@ class EnterpriseSecretsManager extends EventEmitter {
         action: 'store',
         secretId,
         userId,
-        timestamp: new Date(),
+        timestamp: this.getDeterministicDate(),
         success: true
       });
       
@@ -244,7 +244,7 @@ class EnterpriseSecretsManager extends EventEmitter {
         action: 'store',
         secretId,
         userId: options.userId,
-        timestamp: new Date(),
+        timestamp: this.getDeterministicDate(),
         success: false,
         error: error.message
       });
@@ -302,9 +302,9 @@ class EnterpriseSecretsManager extends EventEmitter {
       });
       
       // Update access tracking
-      secret.lastAccessed = new Date();
+      secret.lastAccessed = this.getDeterministicDate();
       secret.accessCount++;
-      secretMeta.lastModified = new Date();
+      secretMeta.lastModified = this.getDeterministicDate();
       
       // Update metrics
       this.metrics.secretsAccessed++;
@@ -316,7 +316,7 @@ class EnterpriseSecretsManager extends EventEmitter {
         secretId,
         userId,
         version: targetSecret.version,
-        timestamp: new Date(),
+        timestamp: this.getDeterministicDate(),
         success: true
       });
       
@@ -346,7 +346,7 @@ class EnterpriseSecretsManager extends EventEmitter {
         action: 'retrieve',
         secretId,
         userId: options.userId,
-        timestamp: new Date(),
+        timestamp: this.getDeterministicDate(),
         success: false,
         error: error.message
       });
@@ -388,7 +388,7 @@ class EnterpriseSecretsManager extends EventEmitter {
         authTag: encryptedValue.authTag,
         keyVersion: encryptedValue.keyVersion,
         version: newVersion,
-        lastModified: new Date()
+        lastModified: this.getDeterministicDate()
       };
       
       // Update metadata
@@ -396,7 +396,7 @@ class EnterpriseSecretsManager extends EventEmitter {
         ...existingMeta,
         description: description || existingMeta.description,
         metadata: { ...existingMeta.metadata, ...metadata },
-        lastModified: new Date()
+        lastModified: this.getDeterministicDate()
       };
       
       // Store new version
@@ -434,7 +434,7 @@ class EnterpriseSecretsManager extends EventEmitter {
         secretId,
         userId,
         version: newVersion,
-        timestamp: new Date(),
+        timestamp: this.getDeterministicDate(),
         success: true
       });
       
@@ -454,7 +454,7 @@ class EnterpriseSecretsManager extends EventEmitter {
         action: 'update',
         secretId,
         userId: options.userId,
-        timestamp: new Date(),
+        timestamp: this.getDeterministicDate(),
         success: false,
         error: error.message
       });
@@ -497,7 +497,7 @@ class EnterpriseSecretsManager extends EventEmitter {
       } else {
         // Soft delete - mark as inactive
         secretMeta.isActive = false;
-        secretMeta.deletedAt = new Date();
+        secretMeta.deletedAt = this.getDeterministicDate();
         secretMeta.deletedBy = userId;
         
         // Save updated metadata
@@ -509,7 +509,7 @@ class EnterpriseSecretsManager extends EventEmitter {
         action: force ? 'hard_delete' : 'soft_delete',
         secretId,
         userId,
-        timestamp: new Date(),
+        timestamp: this.getDeterministicDate(),
         success: true
       });
       
@@ -529,7 +529,7 @@ class EnterpriseSecretsManager extends EventEmitter {
         action: 'delete',
         secretId,
         userId: options.userId,
-        timestamp: new Date(),
+        timestamp: this.getDeterministicDate(),
         success: false,
         error: error.message
       });
@@ -560,13 +560,13 @@ class EnterpriseSecretsManager extends EventEmitter {
       // Update secret with new value
       const updateResult = await this.updateSecret(secretId, newValue, {
         userId,
-        description: `Rotated on ${new Date().toISOString()}`
+        description: `Rotated on ${this.getDeterministicDate().toISOString()}`
       });
       
       // Update rotation schedule
-      const nextRotation = new Date(Date.now() + secretMeta.rotationInterval);
+      const nextRotation = new Date(this.getDeterministicTimestamp() + secretMeta.rotationInterval);
       secretMeta.nextRotation = nextRotation;
-      secretMeta.lastRotation = new Date();
+      secretMeta.lastRotation = this.getDeterministicDate();
       
       this.rotationSchedule.set(secretId, nextRotation);
       
@@ -579,7 +579,7 @@ class EnterpriseSecretsManager extends EventEmitter {
         secretId,
         userId,
         version: updateResult.version,
-        timestamp: new Date(),
+        timestamp: this.getDeterministicDate(),
         success: true
       });
       
@@ -604,7 +604,7 @@ class EnterpriseSecretsManager extends EventEmitter {
         action: 'rotate',
         secretId,
         userId: options.userId,
-        timestamp: new Date(),
+        timestamp: this.getDeterministicDate(),
         success: false,
         error: error.message
       });
@@ -658,7 +658,7 @@ class EnterpriseSecretsManager extends EventEmitter {
       await this._logAccess({
         action: 'list',
         userId,
-        timestamp: new Date(),
+        timestamp: this.getDeterministicDate(),
         success: true,
         count: secretsList.length
       });
@@ -672,7 +672,7 @@ class EnterpriseSecretsManager extends EventEmitter {
       await this._logAccess({
         action: 'list',
         userId: options.userId,
-        timestamp: new Date(),
+        timestamp: this.getDeterministicDate(),
         success: false,
         error: error.message
       });
@@ -691,7 +691,7 @@ class EnterpriseSecretsManager extends EventEmitter {
       upcomingWeek: 0
     };
     
-    const now = Date.now();
+    const now = this.getDeterministicTimestamp();
     const weekFromNow = now + (7 * 24 * 60 * 60 * 1000);
     
     for (const rotationTime of this.rotationSchedule.values()) {
@@ -950,7 +950,7 @@ class EnterpriseSecretsManager extends EventEmitter {
   _startRotationScheduler() {
     // Check for secrets needing rotation every hour
     setInterval(async () => {
-      const now = Date.now();
+      const now = this.getDeterministicTimestamp();
       
       for (const [secretId, rotationTime] of this.rotationSchedule.entries()) {
         if (rotationTime.getTime() <= now) {
@@ -977,7 +977,7 @@ class EnterpriseSecretsManager extends EventEmitter {
     // Monitor access patterns and emit alerts
     setInterval(() => {
       const recentAccess = this.accessLog.filter(log => 
-        Date.now() - log.timestamp.getTime() < 300000 // Last 5 minutes
+        this.getDeterministicTimestamp() - log.timestamp.getTime() < 300000 // Last 5 minutes
       );
       
       const failedAccess = recentAccess.filter(log => !log.success);

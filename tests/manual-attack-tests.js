@@ -238,14 +238,14 @@ export const done = true;
 `);
 
   try {
-    const start = Date.now();
+    const start = this.getDeterministicTimestamp();
     const result = execSync('node bin/unjucks.cjs generate infinite-loop new --dest ./tests/attack-output', {
       cwd: process.cwd(),
       stdio: 'pipe',
       encoding: 'utf8',
       timeout: 5000 // 5 second timeout
     });
-    const duration = Date.now() - start;
+    const duration = this.getDeterministicTimestamp() - start;
     console.log(`✅ Completed in ${duration}ms (this could be a problem if too long)`);
   } catch (error) {
     if (error.signal === 'SIGTERM') {

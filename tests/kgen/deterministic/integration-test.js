@@ -347,7 +347,7 @@ Time: {{ BUILD_TIME }}`;
 to: non-deterministic.txt
 ---
 Random value: {{ '' | random }}
-Timestamp: ${Date.now()}`;
+Timestamp: ${this.getDeterministicTimestamp()}`;
       
       const templatePath = path.join(testTemplatesDir, 'non-deterministic.njk');
       await fs.writeFile(templatePath, nonDeterministicTemplate);
@@ -376,16 +376,16 @@ Cached content {{ index }}: {{ value }}`;
       const context = { index: 1, value: 'test' };
       
       // First render (cache miss)
-      const start1 = Date.now();
+      const start1 = this.getDeterministicTimestamp();
       const result1 = await deterministicSystem.render('cached.njk', context);
-      const time1 = Date.now() - start1;
+      const time1 = this.getDeterministicTimestamp() - start1;
       
       expect(result1.success).toBe(true);
       
       // Second render (should be cache hit)
-      const start2 = Date.now();
+      const start2 = this.getDeterministicTimestamp();
       const result2 = await deterministicSystem.render('cached.njk', context);
-      const time2 = Date.now() - start2;
+      const time2 = this.getDeterministicTimestamp() - start2;
       
       expect(result2.success).toBe(true);
       expect(result2.contentHash).toBe(result1.contentHash);

@@ -296,7 +296,7 @@ class VaultManager {
       interval,
       maxVersions,
       deleteVersionAfter,
-      lastRotation: Date.now()
+      lastRotation: this.getDeterministicTimestamp()
     });
 
     // Schedule rotation
@@ -326,7 +326,7 @@ class VaultManager {
       // Update rotation timestamp
       await this.storeSecret(`${secretPath}/rotation-config`, {
         ...await this.getSecret(`${secretPath}/rotation-config`),
-        lastRotation: Date.now()
+        lastRotation: this.getDeterministicTimestamp()
       });
 
       console.log(`Secret rotated successfully: ${secretPath}`);
@@ -358,7 +358,7 @@ class VaultManager {
         vault: false,
         engines: {},
         authentication: false,
-        timestamp: new Date().toISOString()
+        timestamp: this.getDeterministicDate().toISOString()
       };
 
       // Check Vault status
@@ -383,7 +383,7 @@ class VaultManager {
       return {
         vault: false,
         error: error.message,
-        timestamp: new Date().toISOString()
+        timestamp: this.getDeterministicDate().toISOString()
       };
     }
   }

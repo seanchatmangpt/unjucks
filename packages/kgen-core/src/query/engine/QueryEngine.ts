@@ -216,7 +216,7 @@ export class QueryEngine extends EventEmitter {
     }
 
     const queryId = this.generateQueryId();
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       this.logger.debug(`Executing SPARQL query ${queryId}`);
@@ -302,7 +302,7 @@ export class QueryEngine extends EventEmitter {
       }
       
       // Update metrics and complete query
-      const executionTime = Date.now() - startTime;
+      const executionTime = this.getDeterministicTimestamp() - startTime;
       this.updateQueryMetrics(executionContext, executionTime, true);
       this.activeQueries.delete(queryId);
       
@@ -320,7 +320,7 @@ export class QueryEngine extends EventEmitter {
       return results;
       
     } catch (error) {
-      const executionTime = Date.now() - startTime;
+      const executionTime = this.getDeterministicTimestamp() - startTime;
       this.updateQueryMetrics({ queryId, query } as QueryExecutionContext, executionTime, false);
       this.activeQueries.delete(queryId);
       
@@ -456,7 +456,7 @@ export class QueryEngine extends EventEmitter {
     try {
       this.logger.info('Calculating comprehensive graph metrics...');
       
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
       // Basic metrics
       const basicMetrics = await this.calculateBasicMetrics();
@@ -498,7 +498,7 @@ export class QueryEngine extends EventEmitter {
         derived: derivedMetrics
       };
       
-      const executionTime = Date.now() - startTime;
+      const executionTime = this.getDeterministicTimestamp() - startTime;
       
       this.emit('metrics:calculated', { 
         metrics,
@@ -719,7 +719,7 @@ export class QueryEngine extends EventEmitter {
   }
 
   private generateQueryId(): string {
-    return `query_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    return `query_${this.getDeterministicTimestamp()}_${Math.random().toString(36).substr(2, 9)}`;
   }
 
   private async parseAndValidateQuery(query: string, type: string): Promise<ParsedQuery> {
@@ -735,7 +735,7 @@ export class QueryEngine extends EventEmitter {
   }
 
   private async executeSelectQuery(context: QueryExecutionContext): Promise<QueryResults> {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     const queryToExecute = context.optimizedQuery || context.parsedQuery;
     
     try {
@@ -757,7 +757,7 @@ export class QueryEngine extends EventEmitter {
         results: { bindings: processedBindings },
         metadata: {
           queryId: context.queryId,
-          executionTime: Date.now() - startTime,
+          executionTime: this.getDeterministicTimestamp() - startTime,
           resultCount: processedBindings.length,
           fromIndex: true,
           cacheHit: false,
@@ -834,7 +834,7 @@ export class QueryEngine extends EventEmitter {
     results.metadata = {
       ...results.metadata,
       queryId: context.queryId,
-      executionTime: Date.now() - context.startTime,
+      executionTime: this.getDeterministicTimestamp() - context.startTime,
       resultCount: results.results.bindings.length,
       engineVersion: '2.0.0'
     };
@@ -861,7 +861,7 @@ export class QueryEngine extends EventEmitter {
       query: context.query,
       executionTime,
       success,
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       optimized: !!context.optimizedQuery
     });
     
@@ -1066,7 +1066,7 @@ export class QueryEngine extends EventEmitter {
 
   private collectMetrics(): void {
     const currentMetrics = {
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       activeQueries: this.activeQueries.size,
       cacheHitRate: this.queryMetrics.cacheHits / (this.queryMetrics.cacheHits + this.queryMetrics.cacheMisses) || 0,
       averageExecutionTime: this.queryMetrics.averageExecutionTime,

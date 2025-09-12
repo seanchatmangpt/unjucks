@@ -63,7 +63,7 @@ export class ArtifactExplainer {
    * @returns {Promise<Object>} Complete artifact explanation
    */
   async explainArtifact(artifactPath, options = {}) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     const explanationId = uuidv4();
     
     try {
@@ -99,7 +99,7 @@ export class ArtifactExplainer {
           lineageDepth: 0,
           verificationsPerformed: 0
         },
-        timestamp: new Date().toISOString()
+        timestamp: this.getDeterministicDate().toISOString()
       };
       
       // Step 1: Verify artifact exists and get basic information
@@ -130,7 +130,7 @@ export class ArtifactExplainer {
       explanation.summary = this.generateSummary(explanation);
       
       // Update metrics
-      explanation.metrics.explanationTime = Date.now() - startTime;
+      explanation.metrics.explanationTime = this.getDeterministicTimestamp() - startTime;
       this.updateMetrics(explanation);
       
       // Cache result
@@ -655,7 +655,7 @@ export class ArtifactExplainer {
     return {
       id: template,
       type: 'template',
-      analyzed: new Date().toISOString(),
+      analyzed: this.getDeterministicDate().toISOString(),
       // This would be expanded with actual template analysis
       metadata: {
         source: 'template registry',
@@ -673,7 +673,7 @@ export class ArtifactExplainer {
     return {
       id: rules,
       type: 'rules',
-      analyzed: new Date().toISOString(),
+      analyzed: this.getDeterministicDate().toISOString(),
       // This would be expanded with actual rules analysis
       metadata: {
         source: 'rules registry',
@@ -805,8 +805,8 @@ export class ArtifactExplainer {
     const key = path.resolve(artifactPath);
     this.explanationCache.set(key, {
       explanation,
-      timestamp: Date.now(),
-      expires: Date.now() + this.config.cacheTimeout
+      timestamp: this.getDeterministicTimestamp(),
+      expires: this.getDeterministicTimestamp() + this.config.cacheTimeout
     });
   }
 
@@ -819,7 +819,7 @@ export class ArtifactExplainer {
     const key = path.resolve(artifactPath);
     const entry = this.explanationCache.get(key);
     
-    if (entry && Date.now() < entry.expires) {
+    if (entry && this.getDeterministicTimestamp() < entry.expires) {
       return entry.explanation;
     }
     

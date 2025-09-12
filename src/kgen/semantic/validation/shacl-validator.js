@@ -254,7 +254,7 @@ export class SHACLValidator extends EventEmitter {
    * @returns {Promise<Object>} Validation report
    */
   async validateGraph(dataGraph, options = {}) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     const operationId = options.operationId || crypto.randomUUID();
     
     try {
@@ -289,8 +289,8 @@ export class SHACLValidator extends EventEmitter {
           context.shapesValidated++;
           
           // Check timeout
-          if (Date.now() - startTime > this.config.validationTimeout) {
-            this.logger.warn(`Validation timeout reached after ${Date.now() - startTime}ms`);
+          if (this.getDeterministicTimestamp() - startTime > this.config.validationTimeout) {
+            this.logger.warn(`Validation timeout reached after ${this.getDeterministicTimestamp() - startTime}ms`);
             break;
           }
           
@@ -300,7 +300,7 @@ export class SHACLValidator extends EventEmitter {
       }
       
       // Build validation report
-      const validationTime = Date.now() - startTime;
+      const validationTime = this.getDeterministicTimestamp() - startTime;
       const report = await this._buildValidationReport(validationResults, context, validationTime);
       
       // Update metrics
@@ -317,7 +317,7 @@ export class SHACLValidator extends EventEmitter {
       return report;
       
     } catch (error) {
-      const validationTime = Date.now() - startTime;
+      const validationTime = this.getDeterministicTimestamp() - startTime;
       this.logger.error(`SHACL validation failed after ${validationTime}ms:`, error);
       this.emit('validation:error', { operationId, error, validationTime });
       throw error;
@@ -335,7 +335,7 @@ export class SHACLValidator extends EventEmitter {
     const validationResults = [];
     const context = {
       operationId: options.operationId || crypto.randomUUID(),
-      startTime: Date.now(),
+      startTime: this.getDeterministicTimestamp(),
       shapesValidated: 0,
       nodesValidated: 0,
       constraintsChecked: 0
@@ -354,7 +354,7 @@ export class SHACLValidator extends EventEmitter {
       context.nodesValidated++;
     }
     
-    const validationTime = Date.now() - context.startTime;
+    const validationTime = this.getDeterministicTimestamp() - context.startTime;
     return this._buildValidationReport(validationResults, context, validationTime);
   }
 
@@ -814,7 +814,7 @@ export class SHACLValidator extends EventEmitter {
         constraintsChecked: context.constraintsChecked,
         validationTime
       },
-      validatedAt: new Date().toISOString(),
+      validatedAt: this.getDeterministicDate().toISOString(),
       operationId: context.operationId
     };
   }
@@ -834,7 +834,7 @@ export class SHACLValidator extends EventEmitter {
         constraintsChecked: 0,
         validationTime: 0
       },
-      validatedAt: new Date().toISOString(),
+      validatedAt: this.getDeterministicDate().toISOString(),
       operationId
     };
   }

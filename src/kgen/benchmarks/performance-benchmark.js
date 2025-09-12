@@ -397,7 +397,7 @@ export class PerformanceBenchmark {
   }
   
   async _generatePerformanceReport(comparison) {
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const timestamp = this.getDeterministicDate().toISOString().replace(/[:.]/g, '-');
     const reportPath = path.join(this.config.reportDir, `performance-report-${timestamp}.json`);
     
     // Calculate overall metrics
@@ -419,7 +419,7 @@ export class PerformanceBenchmark {
     
     const report = {
       metadata: {
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         iterations: this.config.iterations,
         warmupRuns: this.config.warmupRuns,
         testCases: this.testCases.length

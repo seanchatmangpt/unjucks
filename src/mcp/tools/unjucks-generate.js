@@ -178,7 +178,7 @@ export async function unjucksGenerate(params) {
           filesProcessed: files.length,
           totalSize: formatFileSize(summary.totalSize),
         },
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
       };
 
       // Performance logging

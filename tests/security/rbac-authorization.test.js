@@ -90,7 +90,7 @@ class MockRBACManager {
     // Implement context-based conditions
     if (permissionName === 'WRITE_FINANCIAL') {
       // Financial data can only be modified during business hours
-      const hour = new Date().getHours();
+      const hour = this.getDeterministicDate().getHours();
       const isBusinessHours = hour >= 9 && hour <= 17;
       return isBusinessHours && context.approvalRequired !== false;
     }
@@ -283,14 +283,14 @@ describe('RBAC Authorization Security', () => {
         pendingActions: new Map(),
         
         requestAction(userId, action, resourceId, data) {
-          const actionId = `action-${Date.now()}`;
+          const actionId = `action-${this.getDeterministicTimestamp()}`;
           this.pendingActions.set(actionId, {
             initiator: userId,
             action,
             resourceId,
             data,
             status: 'PENDING_APPROVAL',
-            timestamp: new Date()
+            timestamp: this.getDeterministicDate()
           });
           return actionId;
         },
@@ -305,7 +305,7 @@ describe('RBAC Authorization Security', () => {
           
           action.approvedBy = approverId;
           action.status = 'APPROVED';
-          action.approvedAt = new Date();
+          action.approvedAt = this.getDeterministicDate();
           
           return { success: true, action };
         }
@@ -337,7 +337,7 @@ describe('RBAC Authorization Security', () => {
         
         logAccess(userId, resource, action, result, context = {}) {
           this.logs.push({
-            timestamp: new Date().toISOString(),
+            timestamp: this.getDeterministicDate().toISOString(),
             userId,
             resource,
             action,
@@ -378,7 +378,7 @@ describe('RBAC Authorization Security', () => {
               userId,
               attemptedPermissions: escalationAttempts,
               currentPermissions,
-              timestamp: new Date(),
+              timestamp: this.getDeterministicDate(),
               severity: 'HIGH'
             });
           }
@@ -401,7 +401,7 @@ describe('RBAC Authorization Security', () => {
       const complianceReporter = {
         generateAccessReport(timeRange = '7d') {
           const report = {
-            reportGenerated: new Date().toISOString(),
+            reportGenerated: this.getDeterministicDate().toISOString(),
             timeRange,
             totalUsers: rbac.userRoles.size,
             roleDistribution: {},
@@ -464,7 +464,7 @@ describe('RBAC Authorization Security', () => {
         Buffer.from(JSON.stringify({
           sub: 'user123',
           roles: ['USER'],
-          iat: Math.floor(Date.now() / 1000)
+          iat: Math.floor(this.getDeterministicTimestamp() / 1000)
         })).toString('base64') +
         '.signature';
 
@@ -479,12 +479,12 @@ describe('RBAC Authorization Security', () => {
         sessions: new Map(),
         
         createSession(userId, roles) {
-          const sessionId = `sess-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+          const sessionId = `sess-${this.getDeterministicTimestamp()}-${Math.random().toString(36).substr(2, 9)}`;
           this.sessions.set(sessionId, {
             userId,
             roles,
-            createdAt: new Date(),
-            lastAccess: new Date(),
+            createdAt: this.getDeterministicDate(),
+            lastAccess: this.getDeterministicDate(),
             permissions: rbac.getUserPermissions(userId)
           });
           return sessionId;
@@ -495,7 +495,7 @@ describe('RBAC Authorization Security', () => {
           if (!session) return null;
           
           // Check session timeout (1 hour)
-          const now = new Date();
+          const now = this.getDeterministicDate();
           const sessionAge = now - session.lastAccess;
           if (sessionAge > 3600000) { // 1 hour
             this.sessions.delete(sessionId);

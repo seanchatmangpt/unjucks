@@ -67,7 +67,7 @@ export class SemanticProcessor extends EventEmitter {
       this.store.addQuads(quads);
       
       const metadata = { id: source.id, uri: source.uri, title: 'Ontology' };
-      this.ontologyCache.set(source.id || source.uri, { metadata, quads, loadedAt: new Date(), source });
+      this.ontologyCache.set(source.id || source.uri, { metadata, quads, loadedAt: this.getDeterministicDate(), source });
       
       this.logger.success(`Ontology loaded: ${quads.length} triples`);
       return metadata;
@@ -81,7 +81,7 @@ export class SemanticProcessor extends EventEmitter {
     try {
       const reasoningContext = {
         operationId: options.operationId,
-        startTime: Date.now(),
+        startTime: this.getDeterministicTimestamp(),
         inputTriples: graph.triples?.length || 0
       };
       
@@ -103,7 +103,7 @@ export class SemanticProcessor extends EventEmitter {
         violations: [],
         warnings: [],
         statistics: { constraintsChecked: constraints.length },
-        validatedAt: new Date()
+        validatedAt: this.getDeterministicDate()
       };
       
       this.logger.info(`Validation completed: ${validationReport.violations.length} violations`);

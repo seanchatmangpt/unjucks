@@ -199,7 +199,7 @@ class ExportQualityReport {
 
   async saveReport() {
     const reportData = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       results: this.results,
       issues: this.issues,
       recommendations: this.recommendations,

@@ -300,7 +300,7 @@ export class LaTeXTemplateSelector {
         template,
         metadata: {
           templateId,
-          generatedAt: new Date().toISOString(),
+          generatedAt: this.getDeterministicDate().toISOString(),
           kgenVersion: process.env.KGEN_VERSION || '1.0.0'
         }
       };

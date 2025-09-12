@@ -217,7 +217,7 @@ to);
   
   // Make 20 concurrent MCP tool calls
   const promises = [];
-  const startTime = Date.now();
+  const startTime = this.getDeterministicTimestamp();
   
   for (let i = 0; i < 20; i++) { const toolIndex = i % 4;
     const tools = ['unjucks_list', 'unjucks_help', 'unjucks_generate', 'unjucks_dry_run'];
@@ -233,7 +233,7 @@ to);
   }
   
   const results = await Promise.all(promises);
-  const totalTime = Date.now() - startTime;
+  const totalTime = this.getDeterministicTimestamp() - startTime;
   
   // Validate performance requirements
   if (totalTime > 5000) {

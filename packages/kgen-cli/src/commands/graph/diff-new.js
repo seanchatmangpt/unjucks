@@ -101,7 +101,7 @@ export default defineCommand({
         diff: diffResult,
         summary: diffResult.changes,
         metrics: diffResult.metrics,
-        timestamp: new Date().toISOString()
+        timestamp: this.getDeterministicDate().toISOString()
       };
       
       if (args.json) {

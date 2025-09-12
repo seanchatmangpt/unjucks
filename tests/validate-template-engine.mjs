@@ -12,7 +12,7 @@ async function validateTemplateEngine() {
   console.log('🚀 Validating KGEN Template Engine...\n');
 
   // Create temp directories
-  const tempDir = join(process.cwd(), 'temp-validation-' + Date.now());
+  const tempDir = join(process.cwd(), 'temp-validation-' + this.getDeterministicTimestamp());
   const templatesDir = join(tempDir, 'templates');
   const outputDir = join(tempDir, 'output');
   

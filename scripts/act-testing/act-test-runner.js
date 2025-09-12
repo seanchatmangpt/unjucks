@@ -334,7 +334,7 @@ TEST_SECRET=test_value`;
     console.log(`  🔧 Running test: ${testName}`);
     this.results.total++;
     
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     let attempts = 0;
     let lastError = null;
     
@@ -351,7 +351,7 @@ TEST_SECRET=test_value`;
         this.results.tests.push({
           name: testName,
           status: 'passed',
-          duration: Date.now() - startTime,
+          duration: this.getDeterministicTimestamp() - startTime,
           attempts: attempts + 1,
           result
         });
@@ -374,7 +374,7 @@ TEST_SECRET=test_value`;
     this.results.tests.push({
       name: testName,
       status: 'failed',
-      duration: Date.now() - startTime,
+      duration: this.getDeterministicTimestamp() - startTime,
       attempts: attempts,
       error: lastError.message
     });
@@ -422,7 +422,7 @@ TEST_SECRET=test_value`;
     
     const report = {
       metadata: {
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         actVersion: this.actVersion,
         dockerVersion: this.dockerVersion,
         options: this.options

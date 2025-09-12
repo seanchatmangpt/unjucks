@@ -69,8 +69,8 @@ describe('Schema.org Validation Tests', () => {
       if (format === 'YYYY') return d.getFullYear().toString();
       return d.toISOString();
     });
-    env.addFilter('now', () => new Date());
-    env.addGlobal('now', () => new Date());
+    env.addFilter('now', () => this.getDeterministicDate());
+    env.addGlobal('now', () => this.getDeterministicDate());
     env.addFilter('dump', (obj) => JSON.stringify(obj, null, 2));
     env.addFilter('join', (arr, sep = ',') => Array.isArray(arr) ? arr.join(sep) : '');
     env.addFilter('map', (arr, prop) => Array.isArray(arr) ? arr.map(item => item[prop] || item) : []);

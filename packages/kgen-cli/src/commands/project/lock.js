@@ -55,7 +55,7 @@ export default defineCommand({
   },
   async run({ args }) {
     try {
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
       // Load configuration
       const config = await loadKgenConfig(args.config);
@@ -66,7 +66,7 @@ export default defineCommand({
       // Build lockfile data
       const lockData = {
         version: '1.0.0',
-        createdAt: new Date().toISOString(),
+        createdAt: this.getDeterministicDate().toISOString(),
         project: {
           name: config.project.name,
           version: config.project.version
@@ -171,7 +171,7 @@ export default defineCommand({
       const lockContent = JSON.stringify(lockData, null, 2);
       writeFileSync(outputPath, lockContent + '\n', 'utf8');
       
-      const duration = Date.now() - startTime;
+      const duration = this.getDeterministicTimestamp() - startTime;
       
       const result = success({
         lockfile: {

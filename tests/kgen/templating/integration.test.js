@@ -68,7 +68,7 @@ describeIf('Integration Tests with Real Templates', () => {
     const result = await templatingSystem.renderString(`
 -- Test template content similar to the real one
 <%= tableName %> table schema
--- Generated: <%= new Date().toISOString() %>
+-- Generated: <%= this.getDeterministicDate().toISOString() %>
 
 CREATE TABLE IF NOT EXISTS <%= tableName %> (
   id INTEGER PRIMARY KEY AUTOINCREMENT,

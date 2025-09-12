@@ -258,7 +258,7 @@ describe('KGEN Security and Compliance', () => {
       const provenanceTracker = engine.getSubsystem('provenance');
       const auditLogs = await provenanceTracker.getAuditLogs({
         userId: user.id,
-        timeRange: { start: new Date(Date.now() - 60000), end: new Date() }
+        timeRange: { start: new Date(this.getDeterministicTimestamp() - 60000), end: this.getDeterministicDate() }
       });
 
       expect(auditLogs).toBeDefined();
@@ -298,7 +298,7 @@ describe('KGEN Security and Compliance', () => {
       const securityManager = engine.getSubsystem('security');
       const violations = await securityManager.getSecurityViolations({
         userId: maliciousUser.id,
-        timeRange: { start: new Date(Date.now() - 60000), end: new Date() }
+        timeRange: { start: new Date(this.getDeterministicTimestamp() - 60000), end: this.getDeterministicDate() }
       });
 
       expect(violations).toBeDefined();
@@ -451,7 +451,7 @@ describe('KGEN Security and Compliance', () => {
         dataSubjectId: 'subject-123',
         processingPurpose: 'knowledge_graph_generation',
         consentType: 'explicit',
-        consentDate: new Date(),
+        consentDate: this.getDeterministicDate(),
         consentMethod: 'web_form',
         withdrawalMethod: 'email'
       });
@@ -600,7 +600,7 @@ describe('KGEN Security and Compliance', () => {
       
       // Generate GDPR compliance report
       const gdprReport = await securityManager.generateComplianceReport('GDPR', {
-        timeRange: { start: new Date(Date.now() - 3600000), end: new Date() }
+        timeRange: { start: new Date(this.getDeterministicTimestamp() - 3600000), end: this.getDeterministicDate() }
       });
 
       expect(gdprReport).toBeDefined();
@@ -611,7 +611,7 @@ describe('KGEN Security and Compliance', () => {
 
       // Generate SOX compliance report
       const soxReport = await securityManager.generateComplianceReport('SOX', {
-        timeRange: { start: new Date(Date.now() - 3600000), end: new Date() }
+        timeRange: { start: new Date(this.getDeterministicTimestamp() - 3600000), end: this.getDeterministicDate() }
       });
 
       expect(soxReport).toBeDefined();
@@ -624,7 +624,7 @@ describe('KGEN Security and Compliance', () => {
       const securityManager = engine.getSubsystem('security');
       
       const metrics = await securityManager.getComplianceMetrics({
-        timeRange: { start: new Date(Date.now() - 86400000), end: new Date() }, // Last 24 hours
+        timeRange: { start: new Date(this.getDeterministicTimestamp() - 86400000), end: this.getDeterministicDate() }, // Last 24 hours
         frameworks: ['GDPR', 'SOX', 'HIPAA']
       });
 

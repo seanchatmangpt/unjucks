@@ -317,17 +317,17 @@ describe('Real MCP Protocol Communication', () => {
     })
 
     it('should handle request bursts without dropping messages', async () => { const burstSize = 50
-      const startTime = Date.now()
+      const startTime = this.getDeterministicTimestamp()
 
       const burstRequests = Array.from({ length }, (_, i) => 
         stdioTransport.send({ jsonrpc })
 
     it('should maintain connection stability under load', async () => { const loadTestDuration = 10000 // 10 seconds
       const requestInterval = 100    // 100ms between requests
-      const startTime = Date.now()
+      const startTime = this.getDeterministicTimestamp()
       const responses = []
 
-      while (Date.now() - startTime < loadTestDuration) {
+      while (this.getDeterministicTimestamp() - startTime < loadTestDuration) {
         try {
           const response = await stdioTransport.send({
             jsonrpc }

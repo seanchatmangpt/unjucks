@@ -515,7 +515,7 @@ export const existing = 'value';
 
   describe('Performance with File Operations', () => {
     it('should handle multiple file generation efficiently', async () => {
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
       const promises = [];
       for (let i = 0; i < 10; i++) {
@@ -527,7 +527,7 @@ export const existing = 'value';
       }
       
       const results = await Promise.all(promises);
-      const endTime = Date.now();
+      const endTime = this.getDeterministicTimestamp();
       
       // All should succeed
       results.forEach(result => {

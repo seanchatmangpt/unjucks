@@ -40,7 +40,7 @@ describe('Production Error Recovery and Failure Mode Tests', () => {
     errorMonitor = new EventEmitter();
     errorMonitor.on('error', (error) => {
       recoveryResults.alerts.push({
-        timestamp: Date.now(),
+        timestamp: this.getDeterministicTimestamp(),
         type: 'ERROR',
         message: error.message,
         stack: error.stack
@@ -49,7 +49,7 @@ describe('Production Error Recovery and Failure Mode Tests', () => {
 
     errorMonitor.on('recovery', (recovery) => {
       recoveryResults.recoveryAttempts.push({
-        timestamp: Date.now(),
+        timestamp: this.getDeterministicTimestamp(),
         scenario: recovery.scenario,
         strategy: recovery.strategy,
         success: recovery.success,
@@ -119,7 +119,7 @@ describe('Production Error Recovery and Failure Mode Tests', () => {
               memoryPressure = true;
               
               // Test system response to memory pressure
-              const recoveryStart = Date.now();
+              const recoveryStart = this.getDeterministicTimestamp();
               
               try {
                 // Attempt normal operations under memory pressure
@@ -137,7 +137,7 @@ describe('Production Error Recovery and Failure Mode Tests', () => {
                 }
                 
                 recoveryAttempted = true;
-                const recoveryDuration = Date.now() - recoveryStart;
+                const recoveryDuration = this.getDeterministicTimestamp() - recoveryStart;
                 
                 errorMonitor.emit('recovery', {
                   scenario,
@@ -149,7 +149,7 @@ describe('Production Error Recovery and Failure Mode Tests', () => {
               } catch (memoryError) {
                 // Expected under extreme memory pressure
                 recoveryAttempted = true;
-                const recoveryDuration = Date.now() - recoveryStart;
+                const recoveryDuration = this.getDeterministicTimestamp() - recoveryStart;
                 
                 // Check if error is handled gracefully
                 const isGraceful = memoryError.message.includes('memory') || 
@@ -278,7 +278,7 @@ describe('Production Error Recovery and Failure Mode Tests', () => {
       } catch (error) {
         errorMonitor.emit('error', error);
         recoveryResults.alerts.push({
-          timestamp: Date.now(),
+          timestamp: this.getDeterministicTimestamp(),
           type: 'MEMORY_LEAK_TEST_ERROR',
           message: error.message
         });
@@ -320,7 +320,7 @@ describe('Production Error Recovery and Failure Mode Tests', () => {
       let totalTests = corruptDataSamples.length;
       
       for (const corruptData of corruptDataSamples) {
-        const recoveryStart = Date.now();
+        const recoveryStart = this.getDeterministicTimestamp();
         
         try {
           // Test various filter methods with corrupt data
@@ -366,7 +366,7 @@ describe('Production Error Recovery and Failure Mode Tests', () => {
           if (methodsPassed >= testMethods.length * 0.8) { // 80% of methods handled gracefully
             handledGracefully++;
             
-            const recoveryDuration = Date.now() - recoveryStart;
+            const recoveryDuration = this.getDeterministicTimestamp() - recoveryStart;
             errorMonitor.emit('recovery', {
               scenario,
               strategy: 'Graceful Corrupt Data Handling',
@@ -383,7 +383,7 @@ describe('Production Error Recovery and Failure Mode Tests', () => {
               error.name === 'TypeError') {
             handledGracefully++;
             
-            const recoveryDuration = Date.now() - recoveryStart;
+            const recoveryDuration = this.getDeterministicTimestamp() - recoveryStart;
             errorMonitor.emit('recovery', {
               scenario,
               strategy: 'Exception Handling',
@@ -497,7 +497,7 @@ describe('Production Error Recovery and Failure Mode Tests', () => {
       ];
       
       for (const testCase of timeoutTests) {
-        const startTime = Date.now();
+        const startTime = this.getDeterministicTimestamp();
         
         try {
           // Set a shorter timeout for testing
@@ -513,7 +513,7 @@ describe('Production Error Recovery and Failure Mode Tests', () => {
           const result = await Promise.race([queryPromise, timeoutPromise]);
           
           // If query completed before timeout
-          const duration = Date.now() - startTime;
+          const duration = this.getDeterministicTimestamp() - startTime;
           
           recoveryResults.systemStability.push({
             test: `Query Performance - ${testCase.name}`,
@@ -524,7 +524,7 @@ describe('Production Error Recovery and Failure Mode Tests', () => {
           });
           
         } catch (timeoutError) {
-          const duration = Date.now() - startTime;
+          const duration = this.getDeterministicTimestamp() - startTime;
           
           // Timeout is expected for very large queries
           if (timeoutError.message === 'Query timeout') {
@@ -778,12 +778,12 @@ describe('Production Error Recovery and Failure Mode Tests', () => {
       ];
       
       for (const deadlockTest of deadlockTests) {
-        const startTime = Date.now();
+        const startTime = this.getDeterministicTimestamp();
         
         try {
           await deadlockTest.test();
           
-          const duration = Date.now() - startTime;
+          const duration = this.getDeterministicTimestamp() - startTime;
           
           recoveryResults.systemStability.push({
             test: `Deadlock Prevention - ${deadlockTest.name}`,
@@ -800,13 +800,13 @@ describe('Production Error Recovery and Failure Mode Tests', () => {
           });
           
         } catch (deadlockError) {
-          const duration = Date.now() - startTime;
+          const duration = this.getDeterministicTimestamp() - startTime;
           
           if (deadlockError.message.includes('deadlock') || 
               deadlockError.message.includes('timeout')) {
             
             recoveryResults.alerts.push({
-              timestamp: Date.now(),
+              timestamp: this.getDeterministicTimestamp(),
               type: 'POTENTIAL_DEADLOCK',
               test: deadlockTest.name,
               duration,
@@ -923,7 +923,7 @@ describe('Production Error Recovery and Failure Mode Tests', () => {
     console.log('\n=== ERROR RECOVERY SUMMARY ===');
     
     const summary = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       scenariosTested: recoveryResults.scenariosTested.length,
       recoveryAttempts: recoveryResults.recoveryAttempts.length,
       successfulRecoveries: recoveryResults.recoveryAttempts.filter(r => r.success).length,

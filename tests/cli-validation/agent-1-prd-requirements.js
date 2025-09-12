@@ -12,7 +12,7 @@ export class PRDRequirementsExtractor {
     this.commandMap = new Map();
     this.report = {
       agent: 'PRD Requirements Extractor',
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       requirements: {},
       coverage: {}
     };

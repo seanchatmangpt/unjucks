@@ -1,0 +1,11 @@
+{
+  "keyId": "demo-ecdsa-p256",
+  "algorithm": "ECDSA",
+  "curve": "prime256v1",
+  "privateKey": "-----BEGIN PRIVATE KEY-----\nMIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgSvvE4kBArreG6n7j\nvq98f8H2ME3Jo783K1qEo+yKiFyhRANCAARnCIaTUfHNjIm/C6Wat85o7OPBpB8E\n5ZOBXJ2sXBoMtpE+H+0CBVYNsJBPdvkEOqwHaA1jx3HyWHnGvNcNzPQG\n-----END PRIVATE KEY-----\n",
+  "publicKey": "-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEZwiGk1HxzYyJvwulmrfOaOzjwaQf\nBOWTgVydrFwaDLaRPh/tAgVWDbCQT3b5BDqsB2gNY8dx8lh5xrzXDcz0Bg==\n-----END PUBLIC KEY-----\n",
+  "fingerprint": "1968fc1593cc47ed",
+  "created": "2025-09-12T19:16:06.981Z",
+  "encrypted": false,
+  "format": "PEM"
+}

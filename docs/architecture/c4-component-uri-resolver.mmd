@@ -1,0 +1,87 @@
+```mermaid
+C4Component
+  title C4 Component Diagram: Dark-Matter URI Resolver
+  
+  Container_Boundary(kgen, "KGEN Core") {
+    Component(uriResolver, "URI Resolver", "Node.js, N3, RDF-Ext", "Resolves dark-matter URI schemes and semantic identifiers")
+    Component(schemeRegistry, "Scheme Registry", "Map<String, Handler>", "Registry of URI scheme handlers")
+    Component(semanticCache, "Semantic Cache", "LRU Cache", "Caches resolved semantic entities")
+    Component(contextLoader, "Context Loader", "JSON-LD, RDF", "Loads and validates RDF contexts")
+  }
+  
+  Container_Boundary(schemes, "URI Schemes") {
+    Component(rdfScheme, "rdf:// Handler", "RDF Processor", "Handles RDF namespace URIs")
+    Component(kgenScheme, "kgen:// Handler", "Internal", "Internal KGEN resource URIs")
+    Component(gitScheme, "git:// Handler", "Git Native", "Git commit and tree references")
+    Component(ipfsScheme, "ipfs:// Handler", "IPFS Client", "Content-addressed storage URIs")
+    Component(dnsScheme, "dns:// Handler", "DNS-SD", "Service discovery URIs")
+    Component(httpScheme, "https:// Handler", "HTTP Client", "Standard HTTP(S) URIs with semantic headers")
+  }
+  
+  Container_Boundary(resolvers, "Resolution Services") {
+    Component(ontologyResolver, "Ontology Resolver", "SPARQL, SHACL", "Resolves ontological definitions")
+    Component(provenanceResolver, "Provenance Resolver", "PROV-O", "Resolves provenance chains")
+    Component(templateResolver, "Template Resolver", "File System", "Resolves template URIs to file paths")
+    Component(ruleResolver, "Rule Resolver", "Logic Engine", "Resolves reasoning rule definitions")
+  }
+  
+  SystemDb_Ext(triplestore, "RDF Triplestore", "Knowledge graph storage")
+  SystemDb_Ext(filesystem, "File System", "Local template and rule storage")
+  System_Ext(network, "Network Services", "Remote URI resolution")
+  
+  ' URI Resolution Flow
+  Rel(uriResolver, schemeRegistry, "Dispatches by scheme", "URI")
+  Rel(schemeRegistry, rdfScheme, "rdf:// URIs")
+  Rel(schemeRegistry, kgenScheme, "kgen:// URIs")
+  Rel(schemeRegistry, gitScheme, "git:// URIs")
+  Rel(schemeRegistry, ipfsScheme, "ipfs:// URIs")
+  Rel(schemeRegistry, dnsScheme, "dns:// URIs")
+  Rel(schemeRegistry, httpScheme, "https:// URIs")
+  
+  ' Semantic Resolution
+  Rel(uriResolver, contextLoader, "Loads contexts", "JSON-LD")
+  Rel(contextLoader, ontologyResolver, "Resolves ontologies", "OWL/RDFS")
+  Rel(ontologyResolver, triplestore, "Queries", "SPARQL")
+  
+  ' Specialized Resolvers
+  Rel(uriResolver, provenanceResolver, "Provenance URIs")
+  Rel(uriResolver, templateResolver, "Template URIs")
+  Rel(uriResolver, ruleResolver, "Rule URIs")
+  Rel(templateResolver, filesystem, "Template files")
+  Rel(ruleResolver, filesystem, "Rule files")
+  
+  ' Caching
+  Rel(uriResolver, semanticCache, "Cache results", "LRU")
+  
+  ' External Resolution
+  Rel(httpScheme, network, "HTTP requests")
+  Rel(ipfsScheme, network, "IPFS gateway")
+  Rel(dnsScheme, network, "DNS queries")
+  
+  UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="1")
+```
+
+## Dark-Matter URI Schemes
+
+The URI Resolver supports sophisticated semantic addressing:
+
+### Core Schemes
+- **rdf://** - RDF namespace resolution with ontology validation
+- **kgen://** - Internal resource addressing with provenance
+- **git://** - Git-native object addressing (commits, trees, blobs)
+- **ipfs://** - Content-addressed immutable storage
+- **dns://** - Service discovery and dynamic resolution
+
+### Advanced Features
+- **Semantic Caching** - LRU cache with ontology-aware invalidation
+- **Context Loading** - JSON-LD context resolution and validation
+- **Provenance Chains** - PROV-O compliant provenance resolution
+- **Template Addressing** - URI-based template and rule resolution
+
+### Resolution Pipeline
+1. URI parsing and scheme extraction
+2. Scheme-specific handler dispatch
+3. Context loading and validation
+4. Semantic resolution with caching
+5. Provenance chain construction
+6. Result materialization and attestation

@@ -52,7 +52,7 @@ export class DeterministicErrorHandler extends EventEmitter {
       unrecoverableErrors: 0,
       errorsByCategory: {},
       errorsByTemplate: {},
-      startTime: new Date()
+      startTime: this.getDeterministicDate()
     };
     
     // Recovery strategies
@@ -68,7 +68,7 @@ export class DeterministicErrorHandler extends EventEmitter {
    */
   async handleError(error, context = {}) {
     const errorId = this._generateErrorId(error, context);
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       // Classify error
@@ -80,7 +80,7 @@ export class DeterministicErrorHandler extends EventEmitter {
         errorId,
         classification,
         timestamp: this.config.staticErrorTime,
-        handledAt: new Date().toISOString(),
+        handledAt: this.getDeterministicDate().toISOString(),
         originalError: {
           name: error.name,
           message: error.message,
@@ -119,7 +119,7 @@ export class DeterministicErrorHandler extends EventEmitter {
         recovery: recoveryResult,
         reportPath,
         handled: true,
-        handlingTime: Date.now() - startTime
+        handlingTime: this.getDeterministicTimestamp() - startTime
       };
       
       this.emit('error:handled', result);
@@ -134,7 +134,7 @@ export class DeterministicErrorHandler extends EventEmitter {
         originalError: error,
         handlingError: handlingError.message,
         handled: false,
-        handlingTime: Date.now() - startTime
+        handlingTime: this.getDeterministicTimestamp() - startTime
       };
     }
   }
@@ -233,7 +233,7 @@ export class DeterministicErrorHandler extends EventEmitter {
   getStatistics() {
     return {
       ...this.stats,
-      uptime: Date.now() - this.stats.startTime.getTime(),
+      uptime: this.getDeterministicTimestamp() - this.stats.startTime.getTime(),
       recoveryRate: this.stats.totalErrors > 0 
         ? this.stats.recoveredErrors / this.stats.totalErrors 
         : 0,
@@ -268,7 +268,7 @@ export class DeterministicErrorHandler extends EventEmitter {
       unrecoverableErrors: 0,
       errorsByCategory: {},
       errorsByTemplate: {},
-      startTime: new Date()
+      startTime: this.getDeterministicDate()
     };
     
     this.errorContextCache.clear();
@@ -594,7 +594,7 @@ export class DeterministicErrorHandler extends EventEmitter {
       
       const reportPath = path.join(
         this.config.errorReportsDir,
-        `error-${context.errorId}-${Date.now()}.json`
+        `error-${context.errorId}-${this.getDeterministicTimestamp()}.json`
       );
       
       await fs.writeFile(reportPath, JSON.stringify(report, null, 2));

@@ -18,7 +18,7 @@ describe('Package Manager Compatibility', () => {
 
   beforeAll(async () => {
     originalCwd = process.cwd();
-    testDir = path.join(os.tmpdir(), `unjucks-pm-test-${Date.now()}`);
+    testDir = path.join(os.tmpdir(), `unjucks-pm-test-${this.getDeterministicTimestamp()}`);
     await fs.ensureDir(testDir);
     process.chdir(testDir);
     

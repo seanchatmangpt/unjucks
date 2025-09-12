@@ -383,7 +383,7 @@ class TemplateService {
 
       const template = {
         ...templateData,
-        created: new Date().toISOString(),
+        created: this.getDeterministicDate().toISOString(),
         source: 'custom'
       };
 

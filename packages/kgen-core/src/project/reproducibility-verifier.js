@@ -66,7 +66,7 @@ export class ReproducibilityVerifier {
 
       const verification = {
         verificationId: this.verificationId,
-        startedAt: new Date().toISOString(),
+        startedAt: this.getDeterministicDate().toISOString(),
         request: verificationRequest,
         
         // Build results
@@ -133,7 +133,7 @@ export class ReproducibilityVerifier {
         verification.reportPath = reportPath;
       }
 
-      verification.completedAt = new Date().toISOString();
+      verification.completedAt = this.getDeterministicDate().toISOString();
       
       this.logger.success(`Reproducibility verification completed: ${verification.reproducible ? 'REPRODUCIBLE' : 'NOT REPRODUCIBLE'}`);
       
@@ -177,7 +177,7 @@ export class ReproducibilityVerifier {
         contentMatch: false,
         contentDifferences: [],
         
-        verifiedAt: new Date().toISOString()
+        verifiedAt: this.getDeterministicDate().toISOString()
       };
 
       // Reproduce the artifact
@@ -245,7 +245,7 @@ export class ReproducibilityVerifier {
         identical: false,
         differences: [],
         
-        verifiedAt: new Date().toISOString()
+        verifiedAt: this.getDeterministicDate().toISOString()
       };
 
       // Generate lockfile multiple times
@@ -289,7 +289,7 @@ export class ReproducibilityVerifier {
         commonFiles: [],
         onlyInBuild1: [],
         onlyInBuild2: [],
-        comparedAt: new Date().toISOString()
+        comparedAt: this.getDeterministicDate().toISOString()
       };
 
       // Get file listings for both builds
@@ -407,7 +407,7 @@ export class ReproducibilityVerifier {
           buildId: i,
           success: false,
           error: error.message,
-          completedAt: new Date().toISOString()
+          completedAt: this.getDeterministicDate().toISOString()
         });
         results.totalBuilds++;
       }
@@ -468,7 +468,7 @@ export class ReproducibilityVerifier {
         buildIndex,
         success: false,
         error: error.message,
-        completedAt: new Date().toISOString()
+        completedAt: this.getDeterministicDate().toISOString()
       };
     }
   }
@@ -687,7 +687,7 @@ export class ReproducibilityVerifier {
       generatedPath: null,
       hash: null,
       error: null,
-      generatedAt: new Date().toISOString()
+      generatedAt: this.getDeterministicDate().toISOString()
     };
 
     try {
@@ -763,7 +763,7 @@ export class ReproducibilityVerifier {
   }
 
   async _executeBuildCommand(buildDir, buildIndex) {
-    const startedAt = new Date();
+    const startedAt = this.getDeterministicDate();
     
     const execution = {
       command: this.config.buildCommand,
@@ -792,7 +792,7 @@ export class ReproducibilityVerifier {
       });
 
       child.on('close', (code) => {
-        const completedAt = new Date();
+        const completedAt = this.getDeterministicDate();
         execution.exitCode = code;
         execution.success = code === 0;
         execution.duration = completedAt.getTime() - startedAt.getTime();
@@ -817,7 +817,7 @@ export class ReproducibilityVerifier {
       HOME: process.env.HOME || process.env.USERPROFILE,
       PATH: process.env.PATH,
       PWD: process.cwd(),
-      TIMESTAMP: new Date().toISOString()
+      TIMESTAMP: this.getDeterministicDate().toISOString()
     };
   }
 

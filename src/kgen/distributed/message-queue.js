@@ -276,7 +276,7 @@ export class MessageQueue extends EventEmitter {
     const enrichedMessage = {
       ...message,
       messageId: crypto.randomUUID(),
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       sender: this.nodeId,
       channel
     };
@@ -357,7 +357,7 @@ export class MessageQueue extends EventEmitter {
           reject(error);
         },
         timeout: timeoutHandle,
-        startTime: Date.now()
+        startTime: this.getDeterministicTimestamp()
       });
     });
     
@@ -469,7 +469,7 @@ export class MessageQueue extends EventEmitter {
     this.pendingRequests.delete(requestId);
     
     // Calculate latency
-    const latency = Date.now() - pendingRequest.startTime;
+    const latency = this.getDeterministicTimestamp() - pendingRequest.startTime;
     this.updateLatencyStats(latency);
     
     if (error) {
@@ -491,7 +491,7 @@ export class MessageQueue extends EventEmitter {
     
     try {
       // Process the work (this would be implemented by the specific node type)
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
       // Emit work event for handlers to process
       const result = await new Promise((resolve, reject) => {
@@ -516,7 +516,7 @@ export class MessageQueue extends EventEmitter {
         });
       });
       
-      const processingTime = Date.now() - startTime;
+      const processingTime = this.getDeterministicTimestamp() - startTime;
       
       // Send response back
       if (requestId && responseChannel) {
@@ -593,7 +593,7 @@ export class MessageQueue extends EventEmitter {
     try {
       // Send a ping message to ourselves
       const testChannel = `node:${this.nodeId}:health`;
-      const testMessage = { type: 'ping', timestamp: Date.now() };
+      const testMessage = { type: 'ping', timestamp: this.getDeterministicTimestamp() };
       
       // Set up temporary subscription for health check
       let received = false;
@@ -620,7 +620,7 @@ export class MessageQueue extends EventEmitter {
       
       return {
         healthy: true,
-        latency: Date.now() - testMessage.timestamp,
+        latency: this.getDeterministicTimestamp() - testMessage.timestamp,
         statistics: this.getStatistics()
       };
       

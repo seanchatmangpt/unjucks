@@ -20,8 +20,8 @@ class PerformanceMetricsCollector {
     console.log('📊 Collecting performance metrics...');
     
     const metrics = {
-      id: `perf-${Date.now()}`,
-      timestamp: new Date().toISOString(),
+      id: `perf-${this.getDeterministicTimestamp()}`,
+      timestamp: this.getDeterministicDate().toISOString(),
       workflow_run_id: this.workflowRunId,
       branch: this.branch,
       commit: this.commit,
@@ -81,7 +81,7 @@ class PerformanceMetricsCollector {
 
     try {
       // Measure build time
-      const buildStart = Date.now();
+      const buildStart = this.getDeterministicTimestamp();
       
       try {
         execSync('npm run build:validate', { 
@@ -94,7 +94,7 @@ class PerformanceMetricsCollector {
         console.warn('Build failed during metrics collection');
       }
       
-      metrics.duration = Date.now() - buildStart;
+      metrics.duration = this.getDeterministicTimestamp() - buildStart;
       
       // Analyze bundle size if build succeeded
       if (metrics.success) {
@@ -130,7 +130,7 @@ class PerformanceMetricsCollector {
     };
 
     try {
-      const testStart = Date.now();
+      const testStart = this.getDeterministicTimestamp();
       
       // Run minimal test suite to gather metrics
       try {
@@ -167,7 +167,7 @@ class PerformanceMetricsCollector {
         console.warn('Test execution failed during metrics collection');
       }
       
-      metrics.total_duration = Date.now() - testStart;
+      metrics.total_duration = this.getDeterministicTimestamp() - testStart;
       
       // Collect coverage if available
       metrics.coverage_percentage = this.extractCoveragePercentage();
@@ -193,7 +193,7 @@ class PerformanceMetricsCollector {
 
     try {
       // Measure npm install time
-      const installStart = Date.now();
+      const installStart = this.getDeterministicTimestamp();
       
       try {
         execSync('npm ci --silent', {
@@ -204,7 +204,7 @@ class PerformanceMetricsCollector {
         console.warn('Dependency installation failed during metrics collection');
       }
       
-      metrics.install_duration = Date.now() - installStart;
+      metrics.install_duration = this.getDeterministicTimestamp() - installStart;
       
       // Count total dependencies
       try {
@@ -335,9 +335,9 @@ class PerformanceMetricsCollector {
       
       // Measure network latency to GitHub API
       try {
-        const latencyStart = Date.now();
+        const latencyStart = this.getDeterministicTimestamp();
         execSync('curl -s -o /dev/null https://api.github.com', { timeout: 10000 });
-        metrics.network_latency = Date.now() - latencyStart;
+        metrics.network_latency = this.getDeterministicTimestamp() - latencyStart;
       } catch (networkError) {
         metrics.network_latency = 0;
       }
@@ -468,8 +468,8 @@ class PerformanceMetricsCollector {
   createInitialBaseline(metrics) {
     const baselinePath = 'scripts/performance-baselines.json';
     const baseline = {
-      created: new Date().toISOString(),
-      last_updated: new Date().toISOString(),
+      created: this.getDeterministicDate().toISOString(),
+      last_updated: this.getDeterministicDate().toISOString(),
       ...metrics
     };
     

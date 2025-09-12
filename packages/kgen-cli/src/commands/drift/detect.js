@@ -59,7 +59,7 @@ async function detectDrift(options) {
 
   const results = {
     success: true,
-    timestamp: new Date().toISOString(),
+    timestamp: this.getDeterministicDate().toISOString(),
     lockFile: lockPath,
     totalFiles: 0,
     unchanged: 0,

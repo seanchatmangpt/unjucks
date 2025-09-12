@@ -284,7 +284,7 @@ class SecurityDashboardGenerator {
             <h1>🛡️ Unjucks Security Dashboard</h1>
             <div class="score">${this.overallScore}%</div>
             <p>Overall Security Score</p>
-            <div class="timestamp">Generated: ${new Date().toISOString()}</div>
+            <div class="timestamp">Generated: ${this.getDeterministicDate().toISOString()}</div>
         </div>
         
         <div class="grid">
@@ -352,7 +352,7 @@ class SecurityDashboardGenerator {
   async generateMetricsJSON() {
     const metrics = {
       overallScore: this.overallScore,
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       dashboardUrl: 'security-dashboard.html',
       ...this.results
     };

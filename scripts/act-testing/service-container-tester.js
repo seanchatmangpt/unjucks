@@ -182,7 +182,7 @@ class ServiceContainerTester {
     console.log(`      🚀 Testing service startup...`);
     
     const testName = 'service-startup';
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       // Test service container creation independently
@@ -198,7 +198,7 @@ class ServiceContainerTester {
         .map(port => `-p ${port}`)
         .join(' ');
       
-      const containerName = `act-test-${serviceName}-${Date.now()}`;
+      const containerName = `act-test-${serviceName}-${this.getDeterministicTimestamp()}`;
       const command = `docker run -d --name ${containerName} --network act-service-test ${envArgs} ${portArgs} ${image}`;
       
       if (this.options.verbose) {
@@ -216,7 +216,7 @@ class ServiceContainerTester {
       serviceResult.tests.push({
         name: testName,
         success: true,
-        duration: Date.now() - startTime,
+        duration: this.getDeterministicTimestamp() - startTime,
         details: 'Service container started successfully'
       });
       
@@ -224,7 +224,7 @@ class ServiceContainerTester {
       serviceResult.tests.push({
         name: testName,
         success: false,
-        duration: Date.now() - startTime,
+        duration: this.getDeterministicTimestamp() - startTime,
         error: error.message,
         limitations: ['Service container may not start in act environment']
       });
@@ -235,7 +235,7 @@ class ServiceContainerTester {
     console.log(`      🔗 Testing service connectivity...`);
     
     const testName = 'service-connectivity';
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       // Test with act's service container execution
@@ -253,7 +253,7 @@ class ServiceContainerTester {
       serviceResult.tests.push({
         name: testName,
         success: result.exitCode <= 1 && connectivityIssues.length === 0,
-        duration: Date.now() - startTime,
+        duration: this.getDeterministicTimestamp() - startTime,
         exitCode: result.exitCode,
         issues: connectivityIssues,
         limitations: [
@@ -266,7 +266,7 @@ class ServiceContainerTester {
       serviceResult.tests.push({
         name: testName,
         success: false,
-        duration: Date.now() - startTime,
+        duration: this.getDeterministicTimestamp() - startTime,
         error: error.message
       });
     }
@@ -276,7 +276,7 @@ class ServiceContainerTester {
     console.log(`      🔄 Testing service integration...`);
     
     const testName = 'service-integration';
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       // Test full workflow execution with services
@@ -293,7 +293,7 @@ class ServiceContainerTester {
       serviceResult.tests.push({
         name: testName,
         success: result.exitCode <= 1,
-        duration: Date.now() - startTime,
+        duration: this.getDeterministicTimestamp() - startTime,
         exitCode: result.exitCode,
         issues: integrationIssues,
         output: result.stdout.slice(-500), // Last 500 chars
@@ -304,7 +304,7 @@ class ServiceContainerTester {
       serviceResult.tests.push({
         name: testName,
         success: false,
-        duration: Date.now() - startTime,
+        duration: this.getDeterministicTimestamp() - startTime,
         error: error.message
       });
     }
@@ -347,7 +347,7 @@ class ServiceContainerTester {
       console.log(`        💻 Executing: ${command}`);
     }
     
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       const { stdout, stderr } = await execAsync(command, {
@@ -359,7 +359,7 @@ class ServiceContainerTester {
         exitCode: 0,
         stdout,
         stderr,
-        duration: Date.now() - startTime
+        duration: this.getDeterministicTimestamp() - startTime
       };
       
     } catch (error) {
@@ -367,7 +367,7 @@ class ServiceContainerTester {
         exitCode: error.code || 1,
         stdout: error.stdout || '',
         stderr: error.stderr || error.message,
-        duration: Date.now() - startTime
+        duration: this.getDeterministicTimestamp() - startTime
       };
     }
   }

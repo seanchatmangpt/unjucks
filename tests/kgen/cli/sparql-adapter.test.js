@@ -68,7 +68,7 @@ describe('SparqlCliAdapter', () => {
 
   beforeEach(async () => {
     // Create test directory
-    testDir = path.join(process.cwd(), 'test-temp', `sparql-${Date.now()}`);
+    testDir = path.join(process.cwd(), 'test-temp', `sparql-${this.getDeterministicTimestamp()}`);
     await mkdir(testDir, { recursive: true });
 
     // Create sample graph file

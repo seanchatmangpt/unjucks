@@ -63,7 +63,7 @@ export default defineCommand({
             ],
             implementation: 'Built with N3.js parser, AJV schema validation, and custom semantic analyzers'
           },
-          timestamp: new Date().toISOString()
+          timestamp: this.getDeterministicDate().toISOString()
         };
         
         console.log(JSON.stringify(result, null, 2));
@@ -111,7 +111,7 @@ export default defineCommand({
             ],
             implementation: 'Custom SHACL engine built on N3.js Store with full constraint component support'
           },
-          timestamp: new Date().toISOString()
+          timestamp: this.getDeterministicDate().toISOString()
         };
         
         console.log(JSON.stringify(result, null, 2));
@@ -153,7 +153,7 @@ export default defineCommand({
             ],
             implementation: 'AJV JSON Schema validation with custom semantic analyzers and file system checks'
           },
-          timestamp: new Date().toISOString()
+          timestamp: this.getDeterministicDate().toISOString()
         };
         
         console.log(JSON.stringify(result, null, 2));
@@ -200,7 +200,7 @@ export default defineCommand({
             ],
             implementation: 'Custom parsers for each template engine with AST analysis and cross-reference tracking'
           },
-          timestamp: new Date().toISOString()
+          timestamp: this.getDeterministicDate().toISOString()
         };
         
         console.log(JSON.stringify(result, null, 2));
@@ -249,7 +249,7 @@ export default defineCommand({
             ],
             implementation: 'Cryptographic verification engine with in-toto attestation support and integrity checking'
           },
-          timestamp: new Date().toISOString()
+          timestamp: this.getDeterministicDate().toISOString()
         };
         
         console.log(JSON.stringify(result, null, 2));

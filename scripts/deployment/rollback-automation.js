@@ -16,7 +16,7 @@ class RollbackAutomation {
     this.environment = options.environment || process.env.NODE_ENV || 'staging';
     this.maxRollbackAttempts = 3;
     this.rollbackConfig = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       environment: this.environment,
       steps: [],
       errors: [],
@@ -25,7 +25,7 @@ class RollbackAutomation {
   }
 
   log(level, message, details = null) {
-    const timestamp = new Date().toISOString();
+    const timestamp = this.getDeterministicDate().toISOString();
     const logEntry = { timestamp, level, message, details };
     
     console.log(
@@ -72,16 +72,16 @@ class RollbackAutomation {
     await fs.ensureDir(stateDir);
     
     const state = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       environment: this.environment,
       commit: this.getCurrentCommit(),
       version: await this.getCurrentVersion(),
-      deploymentId: process.env.DEPLOYMENT_ID || `deploy-${Date.now()}`,
+      deploymentId: process.env.DEPLOYMENT_ID || `deploy-${this.getDeterministicTimestamp()}`,
       files: await this.captureFileState(),
       config: await this.captureConfigState()
     };
     
-    const statePath = path.join(stateDir, `rollback-state-${Date.now()}.json`);
+    const statePath = path.join(stateDir, `rollback-state-${this.getDeterministicTimestamp()}.json`);
     
     if (!this.dryRun) {
       await fs.writeJson(statePath, state, { spaces: 2 });
@@ -343,7 +343,7 @@ class RollbackAutomation {
     this.log('info', 'Notifying stakeholders...');
     
     const status = success ? 'SUCCESS' : 'FAILED';
-    const message = `Rollback ${status} for ${this.environment} environment at ${new Date().toISOString()}`;
+    const message = `Rollback ${status} for ${this.environment} environment at ${this.getDeterministicDate().toISOString()}`;
     
     // This would integrate with your notification system (Slack, email, etc.)
     if (!this.dryRun) {
@@ -355,9 +355,9 @@ class RollbackAutomation {
   }
 
   async generateRollbackReport(success) {
-    const reportPath = `tests/rollback-report-${Date.now()}.json`;
+    const reportPath = `tests/rollback-report-${this.getDeterministicTimestamp()}.json`;
     this.rollbackConfig.success = success;
-    this.rollbackConfig.completedAt = new Date().toISOString();
+    this.rollbackConfig.completedAt = this.getDeterministicDate().toISOString();
     
     if (!this.dryRun) {
       await fs.ensureDir(path.dirname(reportPath));

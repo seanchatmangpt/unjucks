@@ -66,7 +66,7 @@ describe('AttestationBundler', () => {
     const attestation1 = {
       artifactPath: file1Path,
       artifactHash: 'hash1',
-      generatedAt: new Date().toISOString(),
+      generatedAt: this.getDeterministicDate().toISOString(),
       templateId: 'template-1',
       operationId: 'op-1'
     };
@@ -77,7 +77,7 @@ describe('AttestationBundler', () => {
     const attestation2 = {
       artifactPath: file2Path,
       artifactHash: 'hash2',
-      generatedAt: new Date().toISOString(),
+      generatedAt: this.getDeterministicDate().toISOString(),
       templateId: 'template-2',
       operationId: 'op-2'
     };
@@ -247,8 +247,8 @@ describe('AttestationBundler', () => {
       
       const mockEntries = {
         'artifacts/': { isDirectory: true },
-        'artifacts/test-file.js': { isDirectory: false, size: 100, compressedSize: 80, time: new Date() },
-        'manifest.json': { isDirectory: false, size: 200, compressedSize: 150, time: new Date() }
+        'artifacts/test-file.js': { isDirectory: false, size: 100, compressedSize: 80, time: this.getDeterministicDate() },
+        'manifest.json': { isDirectory: false, size: 200, compressedSize: 150, time: this.getDeterministicDate() }
       };
 
       const mockZip = {

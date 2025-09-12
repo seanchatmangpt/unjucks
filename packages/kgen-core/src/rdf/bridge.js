@@ -53,7 +53,7 @@ export class RDFBridge extends EventEmitter {
    */
   async loadGraph(filePath, options = {}) {
     try {
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
       // Read file content
       const content = await readFile(filePath, 'utf8');
@@ -73,7 +73,7 @@ export class RDFBridge extends EventEmitter {
           hash: contentHash,
           processor: this.hashCache.get(contentHash),
           cached: true,
-          loadTime: Date.now() - startTime
+          loadTime: this.getDeterministicTimestamp() - startTime
         };
       }
       
@@ -110,7 +110,7 @@ export class RDFBridge extends EventEmitter {
         parseResult,
         indexResult,
         cached: false,
-        loadTime: Date.now() - startTime,
+        loadTime: this.getDeterministicTimestamp() - startTime,
         stats: processor.getStats()
       };
       
@@ -167,7 +167,7 @@ export class RDFBridge extends EventEmitter {
         throw new Error('Diff engine not enabled. Set enableDiffEngine: true in config.');
       }
       
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
       // Load graphs if they're file paths
       const processor1 = typeof graph1 === 'string' 
@@ -184,7 +184,7 @@ export class RDFBridge extends EventEmitter {
       this.stats.diffsCalculated++;
       this.emit('diff-calculated', diff);
       
-      this.logger.success(`Diff calculated in ${Date.now() - startTime}ms: ${diff.changes.total} changes`);
+      this.logger.success(`Diff calculated in ${this.getDeterministicTimestamp() - startTime}ms: ${diff.changes.total} changes`);
       return diff;
       
     } catch (error) {
@@ -205,7 +205,7 @@ export class RDFBridge extends EventEmitter {
         throw new Error('Indexer not enabled. Set enableIndexing: true in config.');
       }
       
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const processors = [];
       
       // Load all graphs
@@ -227,7 +227,7 @@ export class RDFBridge extends EventEmitter {
         processors,
         subjectIndex,
         indexReport,
-        processingTime: Date.now() - startTime,
+        processingTime: this.getDeterministicTimestamp() - startTime,
         graphCount: processors.length
       };
       
@@ -357,7 +357,7 @@ export class RDFBridge extends EventEmitter {
     
     const data = {
       version: '1.0',
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       ...indexResult
     };
     

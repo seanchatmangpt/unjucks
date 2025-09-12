@@ -1,0 +1,25 @@
+/**
+ * Generated OpenTelemetry Demo Service
+ * 
+ * Traced generation: {{observability.traceId}}
+ * Generated at: {{generation.timestamp}}
+ */
+
+class DemoService {
+  constructor() {
+    this.component = "{{component}}";
+    this.performance = "{{performance}}";
+    this.coverage = "{{coverage}}";
+  }
+
+  getObservabilityInfo() {
+    return {
+      component: this.component,
+      performance: this.performance,
+      coverage: this.coverage,
+      traced: true
+    };
+  }
+}
+
+module.exports = DemoService;

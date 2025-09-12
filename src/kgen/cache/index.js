@@ -185,7 +185,7 @@ export class CacheManager extends EventEmitter {
       const cacheEntry = {
         data: data.toString('base64'),
         compressed,
-        timestamp: Date.now(),
+        timestamp: this.getDeterministicTimestamp(),
         ttl: actualTTL,
         size: data.length
       };
@@ -445,7 +445,7 @@ export class CacheManager extends EventEmitter {
     
     this.memoryCache.set(key, {
       ...cacheEntry,
-      lastAccessed: Date.now()
+      lastAccessed: this.getDeterministicTimestamp()
     });
     this.memoryCacheSize += cacheEntry.size;
   }
@@ -462,7 +462,7 @@ export class CacheManager extends EventEmitter {
     }
     
     // Update access time
-    entry.lastAccessed = Date.now();
+    entry.lastAccessed = this.getDeterministicTimestamp();
     
     return this.deserializeCacheEntrySync(entry);
   }
@@ -471,7 +471,7 @@ export class CacheManager extends EventEmitter {
    * Check if cache entry is expired
    */
   isExpired(entry) {
-    return Date.now() - entry.timestamp > entry.ttl * 1000;
+    return this.getDeterministicTimestamp() - entry.timestamp > entry.ttl * 1000;
   }
 
   /**
@@ -598,10 +598,10 @@ export class CacheManager extends EventEmitter {
     // Test Redis connection
     if (this.redis) {
       try {
-        const start = Date.now();
+        const start = this.getDeterministicTimestamp();
         await this.redis.ping();
         health.redis.connected = true;
-        health.redis.latency = Date.now() - start;
+        health.redis.latency = this.getDeterministicTimestamp() - start;
       } catch (error) {
         health.redis.error = error.message;
       }
@@ -657,7 +657,7 @@ export class CacheManager extends EventEmitter {
     return this.set(cacheKey, {
       query: queryText,
       result,
-      timestamp: Date.now()
+      timestamp: this.getDeterministicTimestamp()
     }, ttl || this.config.queryTTL || 1800); // 30 minutes default
   }
 

@@ -7,7 +7,7 @@
  */
 
 import { EventEmitter } from 'events';
-import { Logger } from 'consola';
+import { Consola } from 'consola';
 import { MetadataExtractor } from '../core/frontmatter/metadata-extractor.js';
 import { FrontmatterParser } from '../../lib/frontmatter-parser.js';
 import { SemanticProcessor } from '../semantic/processor.js';
@@ -47,7 +47,7 @@ export class VariableResolutionSystem extends EventEmitter {
       ...config
     };
     
-    this.logger = new Logger({ tag: 'kgen-variable-resolution' });
+    this.logger = new Consola({ tag: 'kgen-variable-resolution' });
     this.state = 'initialized';
     
     // Initialize error handler
@@ -205,7 +205,7 @@ export class VariableResolutionSystem extends EventEmitter {
       // Create comprehensive result
       const result = {
         operationId,
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         baseVariables,
         deepAnalysis,
         typeInference,
@@ -234,7 +234,7 @@ export class VariableResolutionSystem extends EventEmitter {
       if (this.config.enableCache) {
         this.variableCache.set(cacheKey, {
           result,
-          timestamp: Date.now()
+          timestamp: this.getDeterministicTimestamp()
         });
       }
       
@@ -327,7 +327,7 @@ export class VariableResolutionSystem extends EventEmitter {
       // Create comprehensive result
       const result = {
         operationId,
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         resolvedVariables,
         resolutionContext,
         validation,
@@ -345,7 +345,7 @@ export class VariableResolutionSystem extends EventEmitter {
       if (this.config.enableCache) {
         this.resolutionCache.set(cacheKey, {
           result,
-          timestamp: Date.now()
+          timestamp: this.getDeterministicTimestamp()
         });
       }
       
@@ -383,7 +383,7 @@ export class VariableResolutionSystem extends EventEmitter {
           value,
           type: typeof value,
           source: 'global',
-          registeredAt: new Date().toISOString(),
+          registeredAt: this.getDeterministicDate().toISOString(),
           metadata: options.metadata || {}
         });
       }
@@ -456,7 +456,7 @@ export class VariableResolutionSystem extends EventEmitter {
   // Private methods
 
   _generateOperationId() {
-    return `vrs_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    return `vrs_${this.getDeterministicTimestamp()}_${Math.random().toString(36).substr(2, 9)}`;
   }
 
   _generateCacheKey(operation, ...args) {
@@ -465,7 +465,7 @@ export class VariableResolutionSystem extends EventEmitter {
   }
 
   _isCacheExpired(timestamp) {
-    return Date.now() - timestamp > this.config.maxCacheAge;
+    return this.getDeterministicTimestamp() - timestamp > this.config.maxCacheAge;
   }
 
   async _performDeepVariableAnalysis(parseResult, baseVariables, options) {
@@ -848,8 +848,8 @@ export class VariableResolutionSystem extends EventEmitter {
     if (lowerVar.includes('description')) return 'Default description';
     if (lowerVar.includes('url') || lowerVar.includes('link')) return 'https://example.com';
     if (lowerVar.includes('email')) return 'user@example.com';
-    if (lowerVar.includes('date')) return new Date().toISOString().split('T')[0];
-    if (lowerVar.includes('time')) return new Date().toISOString();
+    if (lowerVar.includes('date')) return this.getDeterministicDate().toISOString().split('T')[0];
+    if (lowerVar.includes('time')) return this.getDeterministicDate().toISOString();
     if (lowerVar.includes('count') || lowerVar.includes('number')) return 0;
     if (lowerVar.includes('enable') || lowerVar.includes('is') || lowerVar.includes('has')) return false;
     if (lowerVar.includes('list') || lowerVar.includes('items') || lowerVar.includes('array')) return [];
@@ -969,19 +969,19 @@ export class VariableResolutionSystem extends EventEmitter {
   _initializeBuiltinVariables() {
     // Initialize system variables
     this.systemVariables.set('timestamp', {
-      value: () => new Date().toISOString(),
+      value: () => this.getDeterministicDate().toISOString(),
       type: 'function',
       source: 'system'
     });
     
     this.systemVariables.set('date', {
-      value: () => new Date().toISOString().split('T')[0],
+      value: () => this.getDeterministicDate().toISOString().split('T')[0],
       type: 'function',
       source: 'system'
     });
     
     this.systemVariables.set('year', {
-      value: () => new Date().getFullYear(),
+      value: () => this.getDeterministicDate().getFullYear(),
       type: 'function',
       source: 'system'
     });

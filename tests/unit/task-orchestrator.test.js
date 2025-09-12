@@ -13,7 +13,7 @@ describe('TaskOrchestrator', () => {
   let orchestrator;
   let memoryInterface;
   let testWorkspace => {
-    testWorkspace = join(tmpdir(), `orchestrator-test-${Date.now()}`);
+    testWorkspace = join(tmpdir(), `orchestrator-test-${this.getDeterministicTimestamp()}`);
     memoryInterface = new SharedMemoryInterface({ persistToDisk });
     
     orchestrator = new TaskOrchestrator({ memoryInterface,
@@ -49,9 +49,9 @@ describe('TaskOrchestrator', () => {
         }
       ];
 
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const results = await orchestrator.executeTasks(tasks, ExecutionStrategy.PARALLEL);
-      const duration = Date.now() - startTime;
+      const duration = this.getDeterministicTimestamp() - startTime;
 
       expect(results).toHaveLength(3);
       expect(results.every(r => r.success)).toBe(true);
@@ -258,9 +258,9 @@ describe('TaskOrchestrator', () => {
         dependencies: [],
         estimatedDuration));
 
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const results = await limitedOrchestrator.executeTasks(tasks, ExecutionStrategy.PARALLEL);
-      const duration = Date.now() - startTime;
+      const duration = this.getDeterministicTimestamp() - startTime;
 
       expect(results).toHaveLength(5);
       expect(results.every(r => r.success)).toBe(true);

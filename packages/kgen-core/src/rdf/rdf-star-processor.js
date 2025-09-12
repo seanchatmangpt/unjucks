@@ -110,7 +110,7 @@ export class RDFStarProcessor extends EventEmitter {
     // Add metadata
     const metadata = {
       id: this._generateId(),
-      created: Date.now(),
+      created: this.getDeterministicTimestamp(),
       nestingDepth,
       hash: this._calculateQuotedTripleHash(quotedTriple),
       ...options.metadata
@@ -155,7 +155,7 @@ export class RDFStarProcessor extends EventEmitter {
     const annotation = {
       id: this._generateId(),
       quad: annotationQuad,
-      created: Date.now(),
+      created: this.getDeterministicTimestamp(),
       source: options.source || 'system',
       confidence: options.confidence || 1.0,
       ...options.metadata
@@ -186,7 +186,7 @@ export class RDFStarProcessor extends EventEmitter {
     const provenance = {
       id: this._generateId(),
       statement: statementKey,
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       source: provenanceData.source,
       agent: provenanceData.agent,
       activity: provenanceData.activity,
@@ -391,7 +391,7 @@ export class RDFStarProcessor extends EventEmitter {
       annotations: [],
       provenance: [],
       metadata: {
-        exported: new Date().toISOString(),
+        exported: this.getDeterministicDate().toISOString(),
         totalQuotedTriples: this.quotedTriples.size,
         totalAnnotations: Array.from(this.annotations.values()).reduce((sum, arr) => sum + arr.length, 0),
         totalProvenance: this.provenanceGraph.size,

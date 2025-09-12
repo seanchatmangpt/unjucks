@@ -1,0 +1,10 @@
+<http://example.org/UserService> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://example.org/RESTService> .
+<http://example.org/UserService> <http://example.org/hasBaseURL> "http://localhost:3000" .
+<http://example.org/UserService> <http://example.org/hasVersion> "1.0.0" .
+<http://example.org/UserService> <http://www.w3.org/2000/01/rdf-schema#label> "User Management API" .
+<http://example.org/User> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://example.org/Entity> .
+<http://example.org/User> <http://www.w3.org/2000/01/rdf-schema#label> "User" .
+<http://example.org/name> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://example.org/Property> .
+<http://example.org/name> <http://www.w3.org/2000/01/rdf-schema#label> "User Name" .
+<http://example.org/name> <http://example.org/hasType> "string" .
+<http://example.org/name> <http://example.org/isRequired> "true" .

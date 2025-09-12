@@ -133,9 +133,9 @@ describe('AttestationVerifier', () => {
 
   describe('batchVerify', () => {
     it('should verify multiple artifacts in parallel', async () => {
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const result = await verifier.batchVerify(testArtifacts);
-      const duration = Date.now() - startTime;
+      const duration = this.getDeterministicTimestamp() - startTime;
 
       expect(result.success).toBe(true);
       expect(result.totalArtifacts).toBe(testArtifacts.length);
@@ -341,9 +341,9 @@ describe('AttestationVerifier', () => {
 
   describe('performance', () => {
     it('should verify quickly with small files', async () => {
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const result = await verifier.fastVerify(testArtifacts[0]);
-      const duration = Date.now() - startTime;
+      const duration = this.getDeterministicTimestamp() - startTime;
 
       expect(result.verified).toBe(true);
       expect(duration).toBeLessThan(100); // Should be very fast

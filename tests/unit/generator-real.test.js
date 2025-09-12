@@ -434,7 +434,7 @@ describe('Generator Class - Real Implementation', () => {
 
   describe('Performance and Caching', () => {
     it('should handle large numbers of generators efficiently', async () => {
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
       // Create many generators
       for (let i = 0; i < 50; i++) {
@@ -447,7 +447,7 @@ describe('Generator Class - Real Implementation', () => {
       }
       
       const generators = await generator.listGenerators();
-      const endTime = Date.now();
+      const endTime = this.getDeterministicTimestamp();
       
       expect(generators).toHaveLength(50);
       expect(endTime - startTime).toBeLessThan(5000); // Should complete within 5 seconds

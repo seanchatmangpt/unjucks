@@ -90,7 +90,7 @@ export class ComplianceFramework extends EventEmitter {
       this.emit('compliance:initialized', {
         frameworks: Array.from(this.frameworks.keys()),
         checksConfigured: this.complianceChecks.size,
-        timestamp: new Date()
+        timestamp: this.getDeterministicDate()
       });
       
       return {
@@ -166,7 +166,7 @@ export class ComplianceFramework extends EventEmitter {
           userId: securityContext.user?.id,
           violations: complianceResult.violations,
           frameworks: complianceResult.frameworks.filter(f => !f.compliant),
-          timestamp: new Date(),
+          timestamp: this.getDeterministicDate(),
           severity: this._calculateViolationSeverity(complianceResult.violations)
         };
         
@@ -244,7 +244,7 @@ export class ComplianceFramework extends EventEmitter {
       
       const assessment = {
         framework: frameworkName,
-        startTime: new Date(),
+        startTime: this.getDeterministicDate(),
         endTime: null,
         score: 0,
         requirementsMet: 0,
@@ -290,7 +290,7 @@ export class ComplianceFramework extends EventEmitter {
       
       // Calculate overall score
       assessment.score = this._calculateComplianceScore(assessment, framework);
-      assessment.endTime = new Date();
+      assessment.endTime = this.getDeterministicDate();
       
       // Store assessment
       this.assessments.set(frameworkName, assessment);
@@ -323,10 +323,10 @@ export class ComplianceFramework extends EventEmitter {
       this.logger.info('Generating compliance report');
       
       const report = {
-        generatedAt: new Date(),
+        generatedAt: this.getDeterministicDate(),
         timeframe: options.timeframe || { 
-          start: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // 30 days ago
-          end: new Date() 
+          start: new Date(this.getDeterministicTimestamp() - 30 * 24 * 60 * 60 * 1000), // 30 days ago
+          end: this.getDeterministicDate() 
         },
         frameworks: {},
         summary: {
@@ -623,7 +623,7 @@ export class ComplianceFramework extends EventEmitter {
     if (data && data.personalData) {
       const maxRetention = check.parameters?.maxRetentionDays || 2190; // 6 years
       const dataAge = data.createdAt ? 
-        (Date.now() - new Date(data.createdAt).getTime()) / (1000 * 60 * 60 * 24) : 0;
+        (this.getDeterministicTimestamp() - new Date(data.createdAt).getTime()) / (1000 * 60 * 60 * 24) : 0;
       
       if (dataAge > maxRetention) {
         return {
@@ -1027,7 +1027,7 @@ export class ComplianceFramework extends EventEmitter {
   }
 
   _isRecentViolation(violation, days) {
-    const cutoff = Date.now() - (days * 24 * 60 * 60 * 1000);
+    const cutoff = this.getDeterministicTimestamp() - (days * 24 * 60 * 60 * 1000);
     return new Date(violation.timestamp).getTime() > cutoff;
   }
 
@@ -1112,7 +1112,7 @@ export class ComplianceFramework extends EventEmitter {
   }
 
   _generateViolationId() {
-    return `violation_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    return `violation_${this.getDeterministicTimestamp()}_${Math.random().toString(36).substr(2, 9)}`;
   }
 }
 

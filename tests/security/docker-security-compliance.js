@@ -413,7 +413,7 @@ CMD ["node", "src/cli/index.js"]
 
       try {
         const { stdout } = await execAsync(
-          `docker run --rm node:18-alpine node -e "console.log(JSON.stringify({level: 'info', message: 'test', timestamp: new Date().toISOString()}))"`
+          `docker run --rm node:18-alpine node -e "console.log(JSON.stringify({level: 'info', message: 'test', timestamp: this.getDeterministicDate().toISOString()}))"`
         );
         
         const logLine = JSON.parse(stdout.trim());

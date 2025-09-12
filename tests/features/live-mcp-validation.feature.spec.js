@@ -89,7 +89,7 @@ defineFeature(feature, (test) => {
       for (const agentType of agentTypes) {
         const agentResult = {
           success,
-          agentId }_${Date.now()}`,
+          agentId }_${this.getDeterministicTimestamp()}`,
           agentType,
           capabilities: [`${agentType}-capability`]
         };

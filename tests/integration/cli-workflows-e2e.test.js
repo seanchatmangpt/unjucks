@@ -256,9 +256,9 @@ export const data = [
 ];`
       );
 
-      const start = Date.now();
+      const start = this.getDeterministicTimestamp();
       const result = await execCLI(['large', 'dataset', 'TestData']);
-      const duration = Date.now() - start;
+      const duration = this.getDeterministicTimestamp() - start;
 
       expect(result.exitCode).toBe(0);
       expect(duration).toBeLessThan(10000); // Should complete within 10 seconds

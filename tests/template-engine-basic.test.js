@@ -16,7 +16,7 @@ describe('KGEN Template Engine', () => {
 
   beforeEach(async () => {
     // Create temporary directories for testing
-    tempDir = join(process.cwd(), 'temp-test-' + Date.now());
+    tempDir = join(process.cwd(), 'temp-test-' + this.getDeterministicTimestamp());
     templatesDir = join(tempDir, 'templates');
     outputDir = join(tempDir, 'output');
     

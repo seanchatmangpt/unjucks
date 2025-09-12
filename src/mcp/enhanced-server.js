@@ -208,7 +208,7 @@ export class EnhancedUnjucksMCPServer {
       if (!line) return;
 
       messageCount++;
-      const requestId = `req_${messageCount}_${Date.now()}`;
+      const requestId = `req_${messageCount}_${this.getDeterministicTimestamp()}`;
 
       try {
         const message = JSON.parse(line);

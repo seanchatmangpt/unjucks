@@ -95,14 +95,14 @@ export class IntegrityVerifier extends EventEmitter {
    * @returns {Promise<object>} Integrity proof
    */
   async generateIntegrityProof(artifact, metadata = {}) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       this.logger.info('Generating integrity proof for artifact');
       
       const proof = {
         id: randomBytes(16).toString('hex'),
-        timestamp: new Date(),
+        timestamp: this.getDeterministicDate(),
         algorithm: this.config.hashAlgorithm,
         metadata: {
           ...metadata,
@@ -139,12 +139,12 @@ export class IntegrityVerifier extends EventEmitter {
       this.integrityRecords.set(proof.id, {
         proof,
         artifact: serializedArtifact,
-        createdAt: Date.now()
+        createdAt: this.getDeterministicTimestamp()
       });
       
       // Update metrics
       this.metrics.artifactsProtected++;
-      const verificationTime = Date.now() - startTime;
+      const verificationTime = this.getDeterministicTimestamp() - startTime;
       this._updateMetrics(verificationTime);
       
       this.emit('integrity-proof-generated', {
@@ -170,7 +170,7 @@ export class IntegrityVerifier extends EventEmitter {
    * @returns {Promise<object>} Verification result
    */
   async verifyIntegrity(artifact, proof) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       this.logger.info(`Verifying integrity: ${proof.id}`);
@@ -180,7 +180,7 @@ export class IntegrityVerifier extends EventEmitter {
         proofId: proof.id,
         violations: [],
         metadata: {
-          verifiedAt: new Date(),
+          verifiedAt: this.getDeterministicDate(),
           algorithm: proof.algorithm,
           verificationTime: 0
         }
@@ -249,7 +249,7 @@ export class IntegrityVerifier extends EventEmitter {
         this.metrics.integrityViolations++;
       }
       
-      const verificationTime = Date.now() - startTime;
+      const verificationTime = this.getDeterministicTimestamp() - startTime;
       verificationResult.metadata.verificationTime = verificationTime;
       this._updateMetrics(verificationTime);
       
@@ -281,8 +281,8 @@ export class IntegrityVerifier extends EventEmitter {
         proofId: proof.id,
         violations: [`Verification error: ${error.message}`],
         metadata: {
-          verifiedAt: new Date(),
-          verificationTime: Date.now() - startTime,
+          verifiedAt: this.getDeterministicDate(),
+          verificationTime: this.getDeterministicTimestamp() - startTime,
           error: error.message
         }
       };
@@ -324,7 +324,7 @@ export class IntegrityVerifier extends EventEmitter {
       
       const checkpoint = {
         id: randomBytes(16).toString('hex'),
-        timestamp: new Date(),
+        timestamp: this.getDeterministicDate(),
         artifactCount: artifacts.length,
         metadata,
         proofs: []
@@ -436,7 +436,7 @@ export class IntegrityVerifier extends EventEmitter {
       ...this.metrics,
       activeRecords: this.integrityRecords.size,
       cacheSize: this.verificationCache.size,
-      uptime: Date.now() - (this.startTime || Date.now())
+      uptime: this.getDeterministicTimestamp() - (this.startTime || this.getDeterministicTimestamp())
     };
   }
 
@@ -455,7 +455,7 @@ export class IntegrityVerifier extends EventEmitter {
         }));
       
       const exportData = {
-        exportedAt: new Date(),
+        exportedAt: this.getDeterministicDate(),
         recordCount: records.length,
         records: options.includeArtifacts ? records : records.map(r => ({ ...r, artifact: undefined }))
       };
@@ -629,7 +629,7 @@ export class IntegrityVerifier extends EventEmitter {
       source: metadata.source || 'unknown',
       generator: metadata.generator || 'kgen',
       version: metadata.version || '1.0.0',
-      timestamp: new Date(),
+      timestamp: this.getDeterministicDate(),
       dependencies: metadata.dependencies || [],
       processingSteps: metadata.processingSteps || [],
       environment: {
@@ -700,7 +700,7 @@ export class IntegrityVerifier extends EventEmitter {
 
   _verifyTimestamp(timestamp) {
     const violations = [];
-    const now = Date.now();
+    const now = this.getDeterministicTimestamp();
     const timestampMs = new Date(timestamp).getTime();
     
     // Check if timestamp is in the future
@@ -734,7 +734,7 @@ export class IntegrityVerifier extends EventEmitter {
   }
 
   _cleanupExpiredRecords() {
-    const now = Date.now();
+    const now = this.getDeterministicTimestamp();
     const maxAge = this.config.retentionDays * 24 * 60 * 60 * 1000;
     const expired = [];
     

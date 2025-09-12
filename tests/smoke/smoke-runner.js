@@ -16,7 +16,7 @@ const __dirname = path.dirname(__filename);
 
 class ComprehensiveSmokeRunner {
   constructor() {
-    this.startTime = Date.now();
+    this.startTime = this.getDeterministicTimestamp();
     this.results = {
       critical: null,
       journeys: null,
@@ -26,7 +26,7 @@ class ComprehensiveSmokeRunner {
   }
 
   log(message, type = 'info') {
-    const timestamp = Date.now() - this.startTime;
+    const timestamp = this.getDeterministicTimestamp() - this.startTime;
     const colors = {
       info: 'blue',
       success: 'green',
@@ -55,7 +55,7 @@ class ComprehensiveSmokeRunner {
     this.log('Testing system for production readiness...', 'info');
     console.log();
 
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     let allPassed = true;
 
     try {
@@ -103,7 +103,7 @@ class ComprehensiveSmokeRunner {
         allPassed = false;
       }
 
-      const totalDuration = Date.now() - startTime;
+      const totalDuration = this.getDeterministicTimestamp() - startTime;
       this.results.overall = allPassed;
 
       // Final summary
@@ -188,8 +188,8 @@ class ComprehensiveSmokeRunner {
   // Generate diagnostic report
   generateDiagnosticReport() {
     const report = {
-      timestamp: new Date().toISOString(),
-      duration: Date.now() - this.startTime,
+      timestamp: this.getDeterministicDate().toISOString(),
+      duration: this.getDeterministicTimestamp() - this.startTime,
       results: this.results,
       system: {
         nodeVersion: process.version,

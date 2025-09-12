@@ -150,7 +150,7 @@ class ComplianceFramework {
    */
   async performHealthCheck() {
     const healthCheck = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       overallHealth: 'healthy',
       modules: {},
       issues: [],
@@ -174,7 +174,7 @@ class ComplianceFramework {
         healthCheck.modules[moduleName] = {
           status: 'error',
           error: error.message,
-          lastChecked: new Date().toISOString()
+          lastChecked: this.getDeterministicDate().toISOString()
         };
         healthCheck.overallHealth = 'unhealthy';
         healthCheck.issues.push({
@@ -207,7 +207,7 @@ class ComplianceFramework {
   async checkModuleHealth(moduleName, module) {
     const health = {
       status: 'healthy',
-      lastChecked: new Date().toISOString(),
+      lastChecked: this.getDeterministicDate().toISOString(),
       metrics: {}
     };
 
@@ -461,7 +461,7 @@ class ComplianceFramework {
    */
   getComplianceMetrics() {
     const metrics = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       organization: this.config.organizationName,
       modules: {}
     };
@@ -541,7 +541,7 @@ class ComplianceFramework {
    */
   logEvent(eventType, data) {
     const logEntry = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       eventType,
       data,
       organization: this.config.organizationName,

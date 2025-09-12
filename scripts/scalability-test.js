@@ -11,7 +11,7 @@ const execAsync = promisify(exec);
 class ScalabilityTester {
   constructor() {
     this.results = {
-      testDate: new Date().toISOString(),
+      testDate: this.getDeterministicDate().toISOString(),
       nodeVersion: process.version,
       platform: process.platform,
       arch: process.arch,

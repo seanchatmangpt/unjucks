@@ -603,7 +603,7 @@ List: {{ list | join(', ') }}
 
 describe('KGEN CLI Performance', () => {
   it('should complete simple generation within reasonable time', async () => {
-    const start = Date.now();
+    const start = this.getDeterministicTimestamp();
     
     const cwd = TEST_DIR;
     await fs.mkdir(cwd, { recursive: true });
@@ -621,7 +621,7 @@ describe('KGEN CLI Performance', () => {
         { cwd, timeout: 10000 }
       );
       
-      const duration = Date.now() - start;
+      const duration = this.getDeterministicTimestamp() - start;
       
       // Should complete within 10 seconds
       expect(duration).toBeLessThan(10000);

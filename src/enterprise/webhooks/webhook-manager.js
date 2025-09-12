@@ -118,7 +118,7 @@ export class WebhookManager extends EventEmitter {
             events: webhookData.events || [],
             secret: webhookData.secret || this.generateSecret(),
             active: webhookData.active !== false,
-            createdAt: new Date().toISOString(),
+            createdAt: this.getDeterministicDate().toISOString(),
             headers: webhookData.headers || {},
             retryPolicy: webhookData.retryPolicy || this.config.delivery,
             metadata: webhookData.metadata || {}
@@ -157,7 +157,7 @@ export class WebhookManager extends EventEmitter {
         const updatedWebhook = {
             ...webhook,
             ...updates,
-            updatedAt: new Date().toISOString()
+            updatedAt: this.getDeterministicDate().toISOString()
         };
 
         await this.storeWebhook(updatedWebhook);
@@ -194,7 +194,7 @@ export class WebhookManager extends EventEmitter {
             try {
                 const enrichedPayload = {
                     event,
-                    timestamp: new Date().toISOString(),
+                    timestamp: this.getDeterministicDate().toISOString(),
                     data: payload,
                     webhook: {
                         id: webhook.id,
@@ -229,7 +229,7 @@ export class WebhookManager extends EventEmitter {
     }
 
     async deliverWebhook(webhook, event, payload) {
-        const startTime = Date.now();
+        const startTime = this.getDeterministicTimestamp();
         const deliveryId = payload.webhook?.deliveryId || this.generateId();
 
         try {
@@ -259,7 +259,7 @@ export class WebhookManager extends EventEmitter {
                 maxRedirects: 3
             });
 
-            const responseTime = Date.now() - startTime;
+            const responseTime = this.getDeterministicTimestamp() - startTime;
 
             // Update statistics
             await this.updateDeliveryStats(webhook.id, true, responseTime);
@@ -272,7 +272,7 @@ export class WebhookManager extends EventEmitter {
                 status: 'success',
                 statusCode: response.status,
                 responseTime,
-                deliveredAt: new Date().toISOString(),
+                deliveredAt: this.getDeterministicDate().toISOString(),
                 response: {
                     headers: response.headers,
                     statusText: response.statusText
@@ -287,7 +287,7 @@ export class WebhookManager extends EventEmitter {
             };
 
         } catch (error) {
-            const responseTime = Date.now() - startTime;
+            const responseTime = this.getDeterministicTimestamp() - startTime;
             
             // Update statistics
             await this.updateDeliveryStats(webhook.id, false, responseTime);
@@ -301,7 +301,7 @@ export class WebhookManager extends EventEmitter {
                 statusCode: error.response?.status || 0,
                 responseTime,
                 error: error.message,
-                deliveredAt: new Date().toISOString(),
+                deliveredAt: this.getDeterministicDate().toISOString(),
                 response: error.response ? {
                     headers: error.response.headers,
                     data: error.response.data,
@@ -321,7 +321,7 @@ export class WebhookManager extends EventEmitter {
 
         const testPayload = {
             event,
-            timestamp: new Date().toISOString(),
+            timestamp: this.getDeterministicDate().toISOString(),
             data: {
                 message: 'This is a test webhook delivery',
                 webhook: {
@@ -497,7 +497,7 @@ export class WebhookManager extends EventEmitter {
             ((stats.averageResponseTime * (stats.totalDeliveries - 1)) + responseTime) 
             / stats.totalDeliveries;
         
-        stats.lastDelivery = new Date().toISOString();
+        stats.lastDelivery = this.getDeterministicDate().toISOString();
         
         this.deliveryStats.set(webhookId, stats);
 
@@ -576,7 +576,7 @@ export class WebhookEventEmitter {
             graphId: job.graphId,
             status: job.status,
             error: error.message,
-            failedAt: new Date().toISOString()
+            failedAt: this.getDeterministicDate().toISOString()
         });
     }
 

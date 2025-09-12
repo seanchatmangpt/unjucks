@@ -173,7 +173,7 @@ class PerformanceRegressionTester {
     }
     
     const report = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       totalBenchmarks: this.benchmarks.length,
       passed: totalPassed,
       failed: this.benchmarks.length - totalPassed,
@@ -305,7 +305,7 @@ class PerformanceRegressionTester {
       // Save regression report
       await fs.writeJSON(
         path.join(this.reportsDir, 'performance-regressions.json'),
-        { timestamp: new Date().toISOString(), regressions },
+        { timestamp: this.getDeterministicDate().toISOString(), regressions },
         { spaces: 2 }
       );
     } else {

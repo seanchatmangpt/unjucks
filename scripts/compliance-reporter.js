@@ -24,7 +24,7 @@ class ComplianceReporter {
     this.report = {
       metadata: {
         reportId: crypto.randomUUID(),
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         auditPeriod: this.options.auditPeriod,
         frameworks: this.options.frameworks,
         version: '1.0.0'
@@ -50,7 +50,7 @@ class ComplianceReporter {
     await fs.mkdir(this.options.outputDir, { recursive: true });
     
     // Create timestamped subdirectory
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const timestamp = this.getDeterministicDate().toISOString().replace(/[:.]/g, '-');
     this.reportPath = path.join(this.options.outputDir, `compliance-${timestamp}`);
     await fs.mkdir(this.reportPath, { recursive: true });
     
@@ -74,7 +74,7 @@ class ComplianceReporter {
         this.report.compliance[framework] = {
           status: 'error',
           error: error.message,
-          timestamp: new Date().toISOString()
+          timestamp: this.getDeterministicDate().toISOString()
         };
       }
     }
@@ -86,7 +86,7 @@ class ComplianceReporter {
     const gdpr = {
       framework: 'GDPR',
       version: '2018/679/EU',
-      assessmentDate: new Date().toISOString(),
+      assessmentDate: this.getDeterministicDate().toISOString(),
       overallStatus: 'compliant',
       score: 0,
       maxScore: 100,
@@ -159,7 +159,7 @@ class ComplianceReporter {
     const sox = {
       framework: 'SOX',
       sections: ['302', '404', '906'],
-      assessmentDate: new Date().toISOString(),
+      assessmentDate: this.getDeterministicDate().toISOString(),
       overallStatus: 'compliant',
       score: 0,
       maxScore: 100,
@@ -227,7 +227,7 @@ class ComplianceReporter {
     const hipaa = {
       framework: 'HIPAA',
       version: '1996',
-      assessmentDate: new Date().toISOString(),
+      assessmentDate: this.getDeterministicDate().toISOString(),
       overallStatus: 'compliant',
       score: 0,
       maxScore: 100,
@@ -280,7 +280,7 @@ class ComplianceReporter {
     const iso27001 = {
       framework: 'ISO 27001',
       version: '2022',
-      assessmentDate: new Date().toISOString(),
+      assessmentDate: this.getDeterministicDate().toISOString(),
       overallStatus: 'compliant',
       score: 0,
       maxScore: 100,
@@ -366,7 +366,7 @@ class ComplianceReporter {
     const pciDss = {
       framework: 'PCI DSS',
       version: '4.0',
-      assessmentDate: new Date().toISOString(),
+      assessmentDate: this.getDeterministicDate().toISOString(),
       overallStatus: 'compliant',
       score: 0,
       maxScore: 100,
@@ -435,7 +435,7 @@ class ComplianceReporter {
     this.report.riskAssessment = {
       overallRiskScore,
       riskLevel: this.getRiskLevel(overallRiskScore),
-      assessmentDate: new Date().toISOString(),
+      assessmentDate: this.getDeterministicDate().toISOString(),
       risks,
       riskMatrix: this.generateRiskMatrix(risks),
       mitigation: this.generateMitigationStrategies(risks)
@@ -691,7 +691,7 @@ class ComplianceReporter {
         framework.toUpperCase(),
         data.score || 0,
         data.overallStatus || 'Unknown',
-        new Date(data.assessmentDate || Date.now()).toLocaleDateString(),
+        new Date(data.assessmentDate || this.getDeterministicTimestamp()).toLocaleDateString(),
         this.report.riskAssessment?.riskLevel || 'Unknown',
         data.risks?.filter(r => r.severity === 'critical').length || 0,
         data.recommendations?.length || 0
@@ -787,7 +787,7 @@ class ComplianceReporter {
   }
 
   calculateNextReviewDate() {
-    const now = new Date();
+    const now = this.getDeterministicDate();
     const nextReview = new Date(now);
     
     // Quarterly reviews for most frameworks
@@ -846,7 +846,7 @@ class AuditTrail {
       period: options.period,
       events: [
         {
-          timestamp: new Date().toISOString(),
+          timestamp: this.getDeterministicDate().toISOString(),
           eventType: 'data_access',
           userId: options.anonymize ? 'user_001' : 'john.doe@company.com',
           action: 'view_customer_data',

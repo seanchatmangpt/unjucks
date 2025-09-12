@@ -153,7 +153,7 @@ export class SparkGraphProcessor extends EventEmitter {
     }
     
     const jobId = crypto.randomUUID();
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       if (this.debug) {
@@ -183,7 +183,7 @@ export class SparkGraphProcessor extends EventEmitter {
       const result = await jobTemplate(graphData, options);
       
       // Update job info
-      const processingTime = Date.now() - startTime;
+      const processingTime = this.getDeterministicTimestamp() - startTime;
       jobInfo.status = 'completed';
       jobInfo.processingTime = processingTime;
       jobInfo.result = result;
@@ -217,7 +217,7 @@ export class SparkGraphProcessor extends EventEmitter {
       };
       
     } catch (error) {
-      const processingTime = Date.now() - startTime;
+      const processingTime = this.getDeterministicTimestamp() - startTime;
       
       // Update job info for failure
       const jobInfo = this.activeJobs.get(jobId);
@@ -259,7 +259,7 @@ export class SparkGraphProcessor extends EventEmitter {
         predicate: this.normalizeURI(triple.predicate),
         object: this.normalizeValue(triple.object),
         parsed: true,
-        timestamp: Date.now()
+        timestamp: this.getDeterministicTimestamp()
       };
     });
     
@@ -659,7 +659,7 @@ export class SparkGraphProcessor extends EventEmitter {
    * Monitor running jobs
    */
   monitorJobs() {
-    const now = Date.now();
+    const now = this.getDeterministicTimestamp();
     
     for (const [jobId, jobInfo] of this.activeJobs) {
       if (jobInfo.status === 'running') {
@@ -703,7 +703,7 @@ export class SparkGraphProcessor extends EventEmitter {
     }
     
     jobInfo.status = 'cancelled';
-    jobInfo.cancelledAt = Date.now();
+    jobInfo.cancelledAt = this.getDeterministicTimestamp();
     
     this.statistics.activeTasks--;
     

@@ -15,7 +15,11 @@
     "./graph": "./src/graph/index.js",
     "./compiler": "./src/compiler/index.js",
     "./provenance": "./src/provenance/index.js",
-    "./types": "./src/types/index.js"
+    "./types": "./src/types/index.js",
+    "./cache": "./src/cache/index.js",
+    "./validation": "./src/validation/index.js",
+    "./config": "./src/config/index.js",
+    "./utils": "./src/utils/index.js"
   },
   "scripts": {
     "build": "tsc --project tsconfig.json",

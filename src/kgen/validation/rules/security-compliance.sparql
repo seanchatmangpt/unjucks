@@ -1,0 +1,51 @@
+# @title: Security Compliance Rule
+# @description: Ensures artifacts meet security compliance standards
+# @priority: critical
+# @category: security
+# @tags: compliance, security, production
+# @author: KGEN Dark-Matter Integration
+# @version: 1.0.0
+# @expectation: no-results
+# @created: 2024-09-12
+
+PREFIX kgen: <https://kgen.io/ontology#>
+PREFIX gov: <https://kgen.io/governance#>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX dcterms: <http://purl.org/dc/terms/>
+
+SELECT ?artifact ?violation ?severity ?message
+WHERE {
+  # Find artifacts with security violations
+  ?artifact a kgen:Artifact .
+  
+  {
+    # Missing security attestation
+    FILTER NOT EXISTS { ?artifact gov:hasSecurityAttestation ?attestation }
+    BIND("Missing security attestation" AS ?violation)
+    BIND("CRITICAL" AS ?severity)
+    BIND("Artifact must have security attestation before deployment" AS ?message)
+  }
+  UNION
+  {
+    # Missing cryptographic signature for production
+    ?artifact gov:targetEnvironment "PRODUCTION" .
+    FILTER NOT EXISTS { ?artifact gov:hasSignature ?signature }
+    BIND("Missing cryptographic signature" AS ?violation)
+    BIND("CRITICAL" AS ?severity)  
+    BIND("Production artifacts must be cryptographically signed" AS ?message)
+  }
+  UNION
+  {
+    # Hardcoded secrets detected
+    ?artifact kgen:hasContent ?content .
+    FILTER(
+      CONTAINS(LCASE(?content), "password=") ||
+      CONTAINS(LCASE(?content), "api_key=") ||
+      CONTAINS(LCASE(?content), "secret=") ||
+      REGEX(?content, "(pk_|sk_)[a-zA-Z0-9_]{20,}")
+    )
+    BIND("Hardcoded secrets detected" AS ?violation)
+    BIND("CRITICAL" AS ?severity)
+    BIND("Remove hardcoded secrets and use secure configuration" AS ?message)
+  }
+}

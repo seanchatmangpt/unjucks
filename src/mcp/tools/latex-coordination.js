@@ -172,7 +172,7 @@ export class LaTeXSwarmCoordinator extends EventEmitter {
    * Orchestrate LaTeX document generation with swarm coordination
    */
   async orchestrateDocumentGeneration(params) {
-    const taskId = `latex-doc-gen-${Date.now()}`;
+    const taskId = `latex-doc-gen-${this.getDeterministicTimestamp()}`;
     
     try {
       this.activeTasks.set(taskId, {
@@ -247,7 +247,7 @@ export class LaTeXSwarmCoordinator extends EventEmitter {
       // Finalize task
       const task = this.activeTasks.get(taskId);
       task.status = 'completed';
-      task.completedAt = new Date().toISOString();
+      task.completedAt = this.getDeterministicDate().toISOString();
 
       this.emit('document-generation-completed', {
         taskId,
@@ -279,7 +279,7 @@ export class LaTeXSwarmCoordinator extends EventEmitter {
    * Orchestrate content enhancement with AI assistance
    */
   async orchestrateContentEnhancement(params) {
-    const taskId = `latex-enhance-${Date.now()}`;
+    const taskId = `latex-enhance-${this.getDeterministicTimestamp()}`;
 
     try {
       this.activeTasks.set(taskId, {
@@ -329,7 +329,7 @@ export class LaTeXSwarmCoordinator extends EventEmitter {
 
       const task = this.activeTasks.get(taskId);
       task.status = 'completed';
-      task.completedAt = new Date().toISOString();
+      task.completedAt = this.getDeterministicDate().toISOString();
 
       return {
         success: true,
@@ -351,7 +351,7 @@ export class LaTeXSwarmCoordinator extends EventEmitter {
    * Troubleshoot compilation issues with swarm intelligence
    */
   async troubleshootCompilation(params) {
-    const taskId = `latex-debug-${Date.now()}`;
+    const taskId = `latex-debug-${this.getDeterministicTimestamp()}`;
 
     try {
       // Compiler analysis
@@ -401,10 +401,10 @@ export class LaTeXSwarmCoordinator extends EventEmitter {
     }
 
     const task = {
-      id: `${agentId}-${Date.now()}`,
+      id: `${agentId}-${this.getDeterministicTimestamp()}`,
       agentId,
       params: taskParams,
-      assignedAt: new Date().toISOString(),
+      assignedAt: this.getDeterministicDate().toISOString(),
       status: 'assigned'
     };
 
@@ -417,7 +417,7 @@ export class LaTeXSwarmCoordinator extends EventEmitter {
   async executeAgentTask(task) {
     try {
       task.status = 'executing';
-      task.startedAt = new Date().toISOString();
+      task.startedAt = this.getDeterministicDate().toISOString();
 
       // Route through semantic coordinator for enhanced intelligence
       const semanticTask = {
@@ -431,14 +431,14 @@ export class LaTeXSwarmCoordinator extends EventEmitter {
       const result = await this.semanticCoordinator.routeTaskToAgent(semanticTask);
       
       task.status = 'completed';
-      task.completedAt = new Date().toISOString();
+      task.completedAt = this.getDeterministicDate().toISOString();
       task.result = result;
 
       // Store in shared memory for other agents
       await this.semanticCoordinator.storeMemory(`task-${task.id}`, {
         task,
         result,
-        timestamp: new Date().toISOString()
+        timestamp: this.getDeterministicDate().toISOString()
       });
 
       return result;
@@ -463,7 +463,7 @@ export class LaTeXSwarmCoordinator extends EventEmitter {
         taskId,
         phase,
         result,
-        timestamp: new Date().toISOString()
+        timestamp: this.getDeterministicDate().toISOString()
       });
     }
   }

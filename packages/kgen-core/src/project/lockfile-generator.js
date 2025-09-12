@@ -46,7 +46,7 @@ export class LockfileGenerator {
       const lockfile = {
         // Lockfile metadata
         lockfileVersion: this.lockfileVersion,
-        generatedAt: new Date().toISOString(),
+        generatedAt: this.getDeterministicDate().toISOString(),
         generatedBy: {
           tool: 'kgen',
           version: projectContext.engineVersion || '1.0.0',
@@ -179,7 +179,7 @@ export class LockfileGenerator {
       const updatedLockfile = { ...lockfile };
 
       // Update version and timestamp
-      updatedLockfile.updatedAt = new Date().toISOString();
+      updatedLockfile.updatedAt = this.getDeterministicDate().toISOString();
       updatedLockfile.previousHash = lockfile.lockfileHash;
 
       // Apply template updates
@@ -314,7 +314,7 @@ export class LockfileGenerator {
             name: template.name,
             description: template.description,
             author: template.author,
-            lastModified: template.lastModified || new Date().toISOString()
+            lastModified: template.lastModified || this.getDeterministicDate().toISOString()
           }
         };
       }
@@ -418,7 +418,7 @@ export class LockfileGenerator {
           url: resource.url,
           version: resource.version,
           hash: resource.hash,
-          lastChecked: new Date().toISOString(),
+          lastChecked: this.getDeterministicDate().toISOString(),
           metadata: resource.metadata || {}
         };
       }

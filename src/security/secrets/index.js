@@ -101,7 +101,7 @@ class EnterpriseSecretService {
       await this.ensureRequiredSecrets();
 
       this.isInitialized = true;
-      this.healthStatus.lastHealthCheck = new Date().toISOString();
+      this.healthStatus.lastHealthCheck = this.getDeterministicDate().toISOString();
       
       this.logger.success(`Enterprise Secret Management System initialized successfully`);
       this.logger.info(`Compliance Score: ${auditResults.overallScore}%`);
@@ -156,7 +156,7 @@ class EnterpriseSecretService {
         await this.secretManager.storeSecret({
           ...secretConfig,
           value: secretValue,
-          lastRotated: new Date().toISOString()
+          lastRotated: this.getDeterministicDate().toISOString()
         });
         
         this.logger.success(`Generated secret: ${secretConfig.id}`);
@@ -309,7 +309,7 @@ class EnterpriseSecretService {
   async getHealthStatus() {
     const status = {
       ...this.healthStatus,
-      lastHealthCheck: new Date().toISOString(),
+      lastHealthCheck: this.getDeterministicDate().toISOString(),
       isInitialized: this.isInitialized,
       environment: this.environment
     };

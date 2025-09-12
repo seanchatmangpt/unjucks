@@ -444,7 +444,7 @@ export class EnhancedMCPRequestHandler {
   async handlePing() {
     return { 
       pong: true,
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       uptime: process.uptime(),
       health: {
         status: 'healthy',
@@ -482,7 +482,7 @@ export class EnhancedMCPRequestHandler {
     return {
       refreshed: true,
       toolCount: getAvailableToolNames().length,
-      timestamp: Date.now()
+      timestamp: this.getDeterministicTimestamp()
     };
   }
 
@@ -583,7 +583,7 @@ export class EnhancedMCPRequestHandler {
 
     this.toolCache.set(cacheKey, {
       result: { ...result },
-      timestamp: Date.now()
+      timestamp: this.getDeterministicTimestamp()
     });
   }
 
@@ -595,7 +595,7 @@ export class EnhancedMCPRequestHandler {
    */
   isCacheExpired(cacheEntry) {
     const maxAge = 5 * 60 * 1000; // 5 minutes
-    return Date.now() - cacheEntry.timestamp > maxAge;
+    return this.getDeterministicTimestamp() - cacheEntry.timestamp > maxAge;
   }
 
   /**
@@ -657,7 +657,7 @@ export class EnhancedMCPRequestHandler {
       stats.totalTime += duration;
       stats.averageTime = stats.totalTime / stats.count;
     }
-    stats.lastUsed = Date.now();
+    stats.lastUsed = this.getDeterministicTimestamp();
 
     this.requestMetrics.toolUsageStats.set(toolName, stats);
   }

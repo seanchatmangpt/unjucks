@@ -637,7 +637,7 @@ export function createValidateTemplatesCommand() {
               errors: results.templates[path].errors.length,
               warnings: results.templates[path].warnings.length
             })),
-            timestamp: new Date().toISOString()
+            timestamp: this.getDeterministicDate().toISOString()
           }, null, 2));
         }
 

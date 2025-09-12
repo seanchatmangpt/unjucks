@@ -12,7 +12,7 @@ import path from 'path';
 export class SemanticWebValidationMaster {
   constructor() {
     this.results = {
-      startTime: new Date(),
+      startTime: this.getDeterministicDate(),
       testSuites: {},
       overallStats: {
         totalTests: 0,
@@ -146,7 +146,7 @@ export class SemanticWebValidationMaster {
 
   generateFinalReport() {
     const { overallStats, baselineComparison, testSuites, recommendations } = this.results;
-    const endTime = new Date();
+    const endTime = this.getDeterministicDate();
     const duration = endTime - this.results.startTime;
 
     return {
@@ -289,7 +289,7 @@ export class SemanticWebValidationMaster {
     const reportPath = path.join(process.cwd(), 'tests/semantic-web-cleanroom/reports');
     await fs.mkdir(reportPath, { recursive: true });
     
-    const filename = `semantic-validation-report-${new Date().toISOString().split('T')[0]}.json`;
+    const filename = `semantic-validation-report-${this.getDeterministicDate().toISOString().split('T')[0]}.json`;
     const filepath = path.join(reportPath, filename);
     
     await fs.writeFile(filepath, JSON.stringify(report, null, 2));

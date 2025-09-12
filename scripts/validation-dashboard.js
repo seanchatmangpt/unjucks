@@ -43,7 +43,7 @@ class ValidationDashboard {
 
     createMockData() {
         return {
-            timestamp: new Date().toISOString(),
+            timestamp: this.getDeterministicDate().toISOString(),
             summary: {
                 totalTests: 25,
                 passedTests: 23,

@@ -2,7 +2,8 @@ import { defineCommand } from "citty";
 import chalk from "chalk";
 import { SimpleFileInjectorOrchestrator } from '../lib/file-injector/simple-file-injector-orchestrator.js';
 import { PerfectTemplateEngine } from '../lib/template-engine-perfect.js';
-import { SecureTemplateEngine } from '../lib/template-engine-secure.js';
+// SecureTemplateEngine is an alias to PerfectTemplateEngine 
+const SecureTemplateEngine = PerfectTemplateEngine;
 import { createSecureNunjucksEnvironment } from '../lib/nunjucks-env.js';
 import { handleEnterpriseError } from '../lib/enterprise-error-handler.js';
 import { TemplateError, FileSystemError, ValidationError } from '../lib/actionable-error.js';
@@ -680,7 +681,7 @@ export const generateCommand = defineCommand({
   },
   async run(context) {
     const { args } = context;
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
 
     try {
       const generator = new Generator();
@@ -874,7 +875,7 @@ export const generateCommand = defineCommand({
       });
 
       // Display results
-      const duration = Date.now() - startTime;
+      const duration = this.getDeterministicTimestamp() - startTime;
 
       if (args.dry) {
         if (!args.quiet) {

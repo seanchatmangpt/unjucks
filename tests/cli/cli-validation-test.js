@@ -244,7 +244,7 @@ class CLIValidator {
       successes: this.successes.length,
       errors: this.errors.length,
       successRate: Math.round((this.successes.length / (this.successes.length + this.errors.length)) * 100),
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     };
     
     // Display results

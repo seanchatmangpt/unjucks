@@ -139,7 +139,7 @@ class SecurityScanner {
       
       return {
         tool: 'npm-audit',
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         vulnerabilities: auditData.vulnerabilities || {},
         metadata: auditData.metadata || {},
         advisories: auditData.advisories || {}
@@ -150,7 +150,7 @@ class SecurityScanner {
         const auditData = JSON.parse(error.stdout);
         return {
           tool: 'npm-audit',
-          timestamp: new Date().toISOString(),
+          timestamp: this.getDeterministicDate().toISOString(),
           vulnerabilities: auditData.vulnerabilities || {},
           metadata: auditData.metadata || {},
           advisories: auditData.advisories || {}
@@ -174,14 +174,14 @@ class SecurityScanner {
 
       return {
         tool: 'snyk',
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         result: JSON.parse(output)
       };
     } catch (error) {
       if (error.stdout) {
         return {
           tool: 'snyk',
-          timestamp: new Date().toISOString(),
+          timestamp: this.getDeterministicDate().toISOString(),
           result: JSON.parse(error.stdout)
         };
       }
@@ -198,14 +198,14 @@ class SecurityScanner {
 
       return {
         tool: 'retire-js',
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         vulnerabilities: JSON.parse(output)
       };
     } catch (error) {
       if (error.stdout) {
         return {
           tool: 'retire-js',
-          timestamp: new Date().toISOString(),
+          timestamp: this.getDeterministicDate().toISOString(),
           vulnerabilities: JSON.parse(error.stdout)
         };
       }
@@ -265,7 +265,7 @@ class SecurityScanner {
 
       return {
         tool: 'eslint-security',
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         issues: securityIssues
       };
     } catch (error) {
@@ -273,7 +273,7 @@ class SecurityScanner {
         const eslintResults = JSON.parse(error.stdout);
         return {
           tool: 'eslint-security',
-          timestamp: new Date().toISOString(),
+          timestamp: this.getDeterministicDate().toISOString(),
           issues: eslintResults
         };
       }
@@ -290,14 +290,14 @@ class SecurityScanner {
 
       return {
         tool: 'semgrep',
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         findings: JSON.parse(output)
       };
     } catch (error) {
       if (error.stdout) {
         return {
           tool: 'semgrep',
-          timestamp: new Date().toISOString(),
+          timestamp: this.getDeterministicDate().toISOString(),
           findings: JSON.parse(error.stdout)
         };
       }
@@ -330,7 +330,7 @@ class SecurityScanner {
 
       return {
         tool: 'trufflehog',
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         secrets: secrets
       };
     } catch (error) {
@@ -348,7 +348,7 @@ class SecurityScanner {
 
         return {
           tool: 'trufflehog',
-          timestamp: new Date().toISOString(),
+          timestamp: this.getDeterministicDate().toISOString(),
           secrets: secrets
         };
       }
@@ -392,7 +392,7 @@ class SecurityScanner {
 
       return {
         tool: 'trivy',
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         results: JSON.parse(output)
       };
     } catch (error) {
@@ -409,14 +409,14 @@ class SecurityScanner {
 
       return {
         tool: 'hadolint',
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         issues: JSON.parse(output)
       };
     } catch (error) {
       if (error.stdout) {
         return {
           tool: 'hadolint',
-          timestamp: new Date().toISOString(),
+          timestamp: this.getDeterministicDate().toISOString(),
           issues: JSON.parse(error.stdout)
         };
       }
@@ -456,14 +456,14 @@ class SecurityScanner {
 
       return {
         tool: 'checkov',
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         results: JSON.parse(output)
       };
     } catch (error) {
       if (error.stdout) {
         return {
           tool: 'checkov',
-          timestamp: new Date().toISOString(),
+          timestamp: this.getDeterministicDate().toISOString(),
           results: JSON.parse(error.stdout)
         };
       }
@@ -486,7 +486,7 @@ class SecurityScanner {
 
       return {
         tool: 'kube-score',
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         results: JSON.parse(output)
       };
     } catch (error) {
@@ -693,7 +693,7 @@ class SecurityScanner {
   async generateJSONReport() {
     const reportPath = path.join(this.config.reporting.outputDir, 'security-report.json');
     const report = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       summary: this.results.summary,
       results: this.results
     };
@@ -779,7 +779,7 @@ class SecurityScanner {
     </div>
     
     <h2>Scan Results</h2>
-    <p>Generated: ${new Date().toISOString()}</p>
+    <p>Generated: ${this.getDeterministicDate().toISOString()}</p>
     <p>For detailed results, see the JSON report.</p>
 </body>
 </html>`;

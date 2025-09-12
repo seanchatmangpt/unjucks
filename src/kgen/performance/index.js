@@ -7,7 +7,7 @@
  */
 
 import { EventEmitter } from 'events';
-import { Logger } from 'consola';
+import { Consola } from 'consola';
 import PerformanceBottleneckAnalyzer from './bottleneck-analyzer.js';
 import TemplateCacheOptimizer from './template-cache-optimizer.js';
 import RDFStreamOptimizer from './rdf-stream-optimizer.js';
@@ -62,7 +62,7 @@ export class KGenPerformanceOptimizer extends EventEmitter {
       ...config
     };
     
-    this.logger = new Logger({ tag: 'kgen-performance' });
+    this.logger = new Consola({ tag: 'kgen-performance' });
     
     // Initialize performance components
     this.components = new Map();
@@ -154,13 +154,13 @@ export class KGenPerformanceOptimizer extends EventEmitter {
    * @returns {Promise<Object>} Optimization results
    */
   async optimizeSystem(options = {}) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       this.logger.info('Starting comprehensive system optimization...');
       
       const optimizationResults = {
-        timestamp: new Date(),
+        timestamp: this.getDeterministicDate(),
         options,
         results: {},
         improvements: {},
@@ -176,7 +176,7 @@ export class KGenPerformanceOptimizer extends EventEmitter {
         this.logger.info('Analyzing performance bottlenecks...');
         const analysisResult = await this.components.get('analyzer').analyzeOperation(
           'system_optimization',
-          { timestamp: Date.now(), type: 'comprehensive' }
+          { timestamp: this.getDeterministicTimestamp(), type: 'comprehensive' }
         );
         optimizationResults.results.bottleneckAnalysis = analysisResult;
       }
@@ -232,7 +232,7 @@ export class KGenPerformanceOptimizer extends EventEmitter {
       
       // Calculate overall improvement
       optimizationResults.overallImprovement = this._calculateOverallImprovement(optimizationResults.improvements);
-      optimizationResults.totalTime = Date.now() - startTime;
+      optimizationResults.totalTime = this.getDeterministicTimestamp() - startTime;
       
       // Generate recommendations
       optimizationResults.recommendations = this._generateOptimizationRecommendations(optimizationResults);
@@ -242,7 +242,7 @@ export class KGenPerformanceOptimizer extends EventEmitter {
       this.optimizationStats.successfulOptimizations++;
       this.optimizationStats.averageImprovement = 
         (this.optimizationStats.averageImprovement + optimizationResults.overallImprovement) / 2;
-      this.optimizationStats.lastOptimization = new Date();
+      this.optimizationStats.lastOptimization = this.getDeterministicDate();
       
       this.logger.success(
         `System optimization completed: ${optimizationResults.overallImprovement}% improvement (${optimizationResults.totalTime}ms)`
@@ -254,7 +254,7 @@ export class KGenPerformanceOptimizer extends EventEmitter {
       
     } catch (error) {
       this.logger.error('System optimization failed:', error);
-      this.emit('optimization:failed', { error, duration: Date.now() - startTime });
+      this.emit('optimization:failed', { error, duration: this.getDeterministicTimestamp() - startTime });
       throw error;
     }
   }
@@ -302,7 +302,7 @@ export class KGenPerformanceOptimizer extends EventEmitter {
       
       const report = {
         metadata: {
-          generatedAt: new Date(),
+          generatedAt: this.getDeterministicDate(),
           suite: 'KGEN Performance Optimization Suite',
           version: '1.0.0',
           optimizationLevel: this.config.optimizationLevel
@@ -622,7 +622,7 @@ export class KGenPerformanceOptimizer extends EventEmitter {
 
   _getNextOptimizationRecommendation() {
     const timeSinceLastOptimization = this.optimizationStats.lastOptimization
-      ? Date.now() - this.optimizationStats.lastOptimization.getTime()
+      ? this.getDeterministicTimestamp() - this.optimizationStats.lastOptimization.getTime()
       : Infinity;
     
     if (timeSinceLastOptimization > 24 * 60 * 60 * 1000) { // 24 hours
@@ -635,7 +635,7 @@ export class KGenPerformanceOptimizer extends EventEmitter {
     
     return {
       recommended: false,
-      nextRecommendedTime: new Date(Date.now() + 24 * 60 * 60 * 1000)
+      nextRecommendedTime: new Date(this.getDeterministicTimestamp() + 24 * 60 * 60 * 1000)
     };
   }
 }

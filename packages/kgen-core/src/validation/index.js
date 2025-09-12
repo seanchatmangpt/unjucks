@@ -1,33 +1,34 @@
 /**
- * KGEN Enhanced Validation Engine
- * Comprehensive SHACL validation, OWL-based validation, drift detection, and state consistency
- * Migrated from src/kgen/validation/ with enhanced capabilities for 100% drift detection
+ * KGEN SHACL-Only Validation Engine (MIGRATED)
+ * 
+ * This module has been migrated to use pure SHACL validation with shacl-engine.
+ * All mixed validation approaches have been replaced with deterministic SHACL-only validation.
+ * 
+ * NEW LOCATION: /src/kgen/validation/shacl-validation-engine.js
+ * NEW GATES: /src/kgen/validation/shacl-gates.js
+ * NEW CLI: /src/kgen/validation/shacl-cli-integration.js
+ * 
+ * This file is maintained for backward compatibility during migration.
  */
 
-import SHACLValidator from 'rdf-validate-shacl';
-import { Parser, Store, DataFactory } from 'n3';
+// Import the new SHACL-only validation engine
+import { 
+  SHACLValidationEngine, 
+  SHACLValidationCodes 
+} from '../../../src/kgen/validation/shacl-validation-engine.js';
+
+import { 
+  SHACLGates, 
+  SHACLGateConfig 
+} from '../../../src/kgen/validation/shacl-gates.js';
+
 import consola from 'consola';
 import { EventEmitter } from 'events';
-import crypto from 'crypto';
 import fs from 'fs-extra';
 import path from 'path';
-import { SemanticValidator } from './semantic-validator.js';
-// Note: Using placeholder for DriftDetectionEngine - would import from TypeScript file in real implementation
-// import { DriftDetectionEngine } from './DriftDetectionEngine.ts';
-class DriftDetectionEngine {
-  constructor(config) { this.config = config; }
-  async initialize() { return { success: true }; }
-  async shutdown() { return { success: true }; }
-}
 
-// Export validation exit codes for CLI integration
-export const ValidationExitCodes = {
-  SUCCESS: 0,
-  WARNINGS: 0,
-  VIOLATIONS: 3,
-  DRIFT_DETECTED: 3,
-  ERRORS: 1
-};
+// Backward compatibility - export the old validation codes as new SHACL codes
+export const ValidationExitCodes = SHACLValidationCodes;
 
 /**
  * Enhanced KGEN Validation Engine with comprehensive drift detection
@@ -205,7 +206,7 @@ class KGenValidationEngine extends EventEmitter {
         this.n3Rules.set(path.basename(file, path.extname(file)), {
           path: fullPath,
           content: ruleContent,
-          loadedAt: new Date().toISOString(),
+          loadedAt: this.getDeterministicDate().toISOString(),
           type: 'n3-rule'
         });
         
@@ -291,7 +292,7 @@ class KGenValidationEngine extends EventEmitter {
             this.customRules.set(rule.id, {
               ...rule,
               source: file,
-              loadedAt: new Date().toISOString()
+              loadedAt: this.getDeterministicDate().toISOString()
             });
             
             consola.success(`✅ Loaded custom rule: ${rule.id} from ${file}`);
@@ -370,7 +371,7 @@ class KGenValidationEngine extends EventEmitter {
    * Validate RDF data against SHACL shapes
    */
   async validateSHACL(dataGraph, shapesGraph, options = {}) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       // Parse data and shapes if they're strings
@@ -397,7 +398,7 @@ class KGenValidationEngine extends EventEmitter {
       const report = validator.validate(parsedData);
       
       // Update statistics
-      const validationTime = Date.now() - startTime;
+      const validationTime = this.getDeterministicTimestamp() - startTime;
       this.updateValidationStats(report.conforms, validationTime);
       
       // Process validation results
@@ -427,7 +428,7 @@ class KGenValidationEngine extends EventEmitter {
       return result;
       
     } catch (error) {
-      const validationTime = Date.now() - startTime;
+      const validationTime = this.getDeterministicTimestamp() - startTime;
       this.updateValidationStats(false, validationTime);
       
       this.emit('validation-error', { error, time: validationTime });
@@ -439,7 +440,7 @@ class KGenValidationEngine extends EventEmitter {
    * Validate using custom rules
    */
   async validateCustom(dataGraph, ruleNames = null, options = {}) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     const results = [];
     
     try {
@@ -459,9 +460,9 @@ class KGenValidationEngine extends EventEmitter {
         if (!rule) continue;
         
         try {
-          const ruleStartTime = Date.now();
+          const ruleStartTime = this.getDeterministicTimestamp();
           const ruleResult = await rule.execute(parsedData, options);
-          const ruleTime = Date.now() - ruleStartTime;
+          const ruleTime = this.getDeterministicTimestamp() - ruleStartTime;
           
           results.push({
             rule: ruleName,
@@ -492,7 +493,7 @@ class KGenValidationEngine extends EventEmitter {
       const totalViolations = results.reduce((sum, result) => sum + (result.violations?.length || 0), 0);
       const totalWarnings = results.reduce((sum, result) => sum + (result.warnings?.length || 0), 0);
       
-      const validationTime = Date.now() - startTime;
+      const validationTime = this.getDeterministicTimestamp() - startTime;
       this.updateValidationStats(overallPassed, validationTime);
       
       const finalResult = {
@@ -509,7 +510,7 @@ class KGenValidationEngine extends EventEmitter {
       return finalResult;
       
     } catch (error) {
-      const validationTime = Date.now() - startTime;
+      const validationTime = this.getDeterministicTimestamp() - startTime;
       this.updateValidationStats(false, validationTime);
       
       throw new Error(`Custom validation failed: ${error.message}`);
@@ -531,7 +532,7 @@ class KGenValidationEngine extends EventEmitter {
       }
     };
     
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       // Run SHACL validation if shapes provided
@@ -552,13 +553,13 @@ class KGenValidationEngine extends EventEmitter {
         passed: shaclPassed && customPassed,
         totalViolations: (results.shacl?.totalViolations || 0) + (results.custom?.totalViolations || 0),
         totalWarnings: (results.custom?.totalWarnings || 0),
-        validationTime: Date.now() - startTime
+        validationTime: this.getDeterministicTimestamp() - startTime
       };
       
       return results;
       
     } catch (error) {
-      results.overall.validationTime = Date.now() - startTime;
+      results.overall.validationTime = this.getDeterministicTimestamp() - startTime;
       results.error = error.message;
       throw error;
     }
@@ -867,7 +868,7 @@ class KGenValidationEngine extends EventEmitter {
       const enrichedRule = {
         ...rule,
         id: name,
-        addedAt: new Date().toISOString(),
+        addedAt: this.getDeterministicDate().toISOString(),
         validated: true,
         category: rule.category || 'custom',
         severity: rule.severity || 'MEDIUM'
@@ -1164,11 +1165,11 @@ class KGenValidationEngine extends EventEmitter {
    */
   async validateWithDriftDetection(options = {}) {
     const validationId = crypto.randomUUID();
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     const results = {
       validationId,
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       exitCode: ValidationExitCodes.SUCCESS,
       success: false,
       summary: {
@@ -1234,7 +1235,7 @@ class KGenValidationEngine extends EventEmitter {
       // Step 5: Calculate exit code and final status
       results.exitCode = this.calculateExitCode(results);
       results.success = results.exitCode === ValidationExitCodes.SUCCESS;
-      results.validationTime = Date.now() - startTime;
+      results.validationTime = this.getDeterministicTimestamp() - startTime;
       
       // Step 6: Generate comprehensive report
       if (this.config.reporting.format) {
@@ -1248,7 +1249,7 @@ class KGenValidationEngine extends EventEmitter {
       consola.success(`✅ Validation completed in ${results.validationTime}ms`);
       
     } catch (error) {
-      results.validationTime = Date.now() - startTime;
+      results.validationTime = this.getDeterministicTimestamp() - startTime;
       results.exitCode = ValidationExitCodes.ERRORS;
       results.error = error.message;
       
@@ -1268,7 +1269,7 @@ class KGenValidationEngine extends EventEmitter {
    * Enhanced drift detection with 100% unauthorized modification detection
    */
   async detectDrift(targetPath, expectedData) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     this.stats.driftDetections++;
     
     try {
@@ -1336,7 +1337,7 @@ class KGenValidationEngine extends EventEmitter {
         },
         metadata: {
           targetPath: fullPath,
-          detectionTime: Date.now() - startTime,
+          detectionTime: this.getDeterministicTimestamp() - startTime,
           tolerance: this.config.driftDetection.tolerance,
           detectionMode: this.config.driftDetection.failMode
         }
@@ -1381,11 +1382,11 @@ class KGenValidationEngine extends EventEmitter {
    */
   async validateWithDetailedErrors(dataGraph, shapesGraph = null, options = {}) {
     const validationId = crypto.randomUUID();
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     const result = {
       validationId,
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       success: false,
       summary: {
         totalViolations: 0,
@@ -1430,12 +1431,12 @@ class KGenValidationEngine extends EventEmitter {
         type: 'validation-error',
         message: error.message,
         stack: error.stack,
-        timestamp: new Date().toISOString()
+        timestamp: this.getDeterministicDate().toISOString()
       });
       
       consola.error(`❌ Validation ${validationId} failed:`, error);
     } finally {
-      result.summary.validationTime = Date.now() - startTime;
+      result.summary.validationTime = this.getDeterministicTimestamp() - startTime;
     }
     
     // Emit comprehensive validation event

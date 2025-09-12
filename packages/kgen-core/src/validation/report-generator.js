@@ -19,7 +19,7 @@ export const ReportGeneratorMethods = {
   async generateReport(results) {
     try {
       const reportId = results.validationId || crypto.randomUUID();
-      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+      const timestamp = this.getDeterministicDate().toISOString().replace(/[:.]/g, '-');
       const reportFileName = `validation-report-${reportId.slice(0, 8)}-${timestamp}`;
       
       const reportPath = path.join(
@@ -31,7 +31,7 @@ export const ReportGeneratorMethods = {
       const report = {
         metadata: {
           reportId,
-          generatedAt: new Date().toISOString(),
+          generatedAt: this.getDeterministicDate().toISOString(),
           engine: 'KGEN Enhanced Validation Engine',
           version: '2.0.0',
           validationId: results.validationId,

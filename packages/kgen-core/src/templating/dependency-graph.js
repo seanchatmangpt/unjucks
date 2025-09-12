@@ -632,7 +632,7 @@ export class TemplateDependencyGraph {
     // Add to change queue
     this.changeQueue.set(templatePath, {
       type: changeType,
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       processed: false
     });
 
@@ -645,7 +645,7 @@ export class TemplateDependencyGraph {
     for (const dependent of dependents) {
       this.changeQueue.set(dependent, {
         type: ChangeType.MODIFIED,
-        timestamp: Date.now(),
+        timestamp: this.getDeterministicTimestamp(),
         processed: false,
         cause: templatePath
       });
@@ -772,7 +772,7 @@ export class TemplateDependencyGraph {
         metadata: this.templateMetadata.get(path)
       })),
       stats: this.getStats(),
-      exportedAt: new Date().toISOString()
+      exportedAt: this.getDeterministicDate().toISOString()
     };
 
     switch (format) {

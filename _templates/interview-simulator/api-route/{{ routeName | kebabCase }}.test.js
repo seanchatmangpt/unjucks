@@ -147,8 +147,8 @@ describe('{{ routeName | pascalCase }} {{ method }} API Route', () => { let mock
     it('creates {{ routeName | singularize }} successfully', async () => {
       {% if withDatabase %}
       const createdRecord = { id }userId: mockUser.id,{% endif %}
-        createdAt: new Date(),
-        updatedAt: new Date()
+        createdAt: this.getDeterministicDate(),
+        updatedAt: this.getDeterministicDate()
       }
 
       mockDb.{{ routeName | snakeCase | singularize }}.create.mockResolvedValue(createdRecord)

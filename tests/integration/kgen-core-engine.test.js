@@ -43,7 +43,7 @@ ex:jane ex:name "Jane Doe" .`;
 
   beforeEach(async () => {
     // Create temporary test directory
-    testDir = resolve(tmpdir(), `kgen-test-${Date.now()}`);
+    testDir = resolve(tmpdir(), `kgen-test-${this.getDeterministicTimestamp()}`);
     await mkdir(testDir, { recursive: true });
     
     // Initialize RDF Bridge
@@ -344,9 +344,9 @@ ex:jane ex:name "Jane Doe" .`;
         largeRDF.push(`ex:item${i} ex:value ${i} .`);
       }
       
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const hash = await bridge.graphHash(largeRDF.join('\n'));
-      const processingTime = Date.now() - startTime;
+      const processingTime = this.getDeterministicTimestamp() - startTime;
       
       expect(hash).toBeDefined();
       expect(processingTime).toBeLessThan(5000); // Should process within 5 seconds

@@ -232,7 +232,7 @@ export class SemanticValidator {
     return {
       errorsFound: this.validationErrors.length,
       warningsFound: this.validationWarnings.length,
-      lastValidation: new Date().toISOString()
+      lastValidation: this.getDeterministicDate().toISOString()
     };
   }
 

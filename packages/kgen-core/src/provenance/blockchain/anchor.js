@@ -78,7 +78,7 @@ export class BlockchainAnchor extends EventEmitter {
       const anchorEntry = {
         id: recordId,
         hash,
-        timestamp: new Date(),
+        timestamp: this.getDeterministicDate(),
         metadata,
         status: 'pending'
       };
@@ -141,7 +141,7 @@ export class BlockchainAnchor extends EventEmitter {
         anchorRecord,
         blockchainVerification,
         merkleVerification,
-        verifiedAt: new Date()
+        verifiedAt: this.getDeterministicDate()
       };
 
       this.emit('verified', result);
@@ -305,14 +305,14 @@ export class BlockchainAnchor extends EventEmitter {
         await new Promise(resolve => setTimeout(resolve, 100));
         return {
           hash: crypto.randomBytes(32).toString('hex'),
-          blockNumber: Date.now(),
+          blockNumber: this.getDeterministicTimestamp(),
           confirmations: 0
         };
       },
       async getTransaction(hash) {
         return {
           hash,
-          blockNumber: Date.now(),
+          blockNumber: this.getDeterministicTimestamp(),
           confirmations: Math.floor(Math.random() * 10)
         };
       },
@@ -461,7 +461,7 @@ export class BlockchainAnchor extends EventEmitter {
     // Send Merkle root to blockchain
     const data = {
       merkleRoot,
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       version: '1.0'
     };
 

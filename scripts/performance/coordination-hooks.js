@@ -21,7 +21,7 @@ class PerformanceCoordinationHooks {
     };
 
     this.hookResults = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       sessionId: this.options.sessionId,
       hooks: {
         preTask: [],
@@ -43,7 +43,7 @@ class PerformanceCoordinationHooks {
     
     const hookResult = {
       type: hookType,
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       params,
       success: false,
       output: null,
@@ -110,7 +110,7 @@ class PerformanceCoordinationHooks {
     const memoryResult = await this.storeCoordinationMemory('task/metadata', {
       taskId: taskId || this.generateTaskId(),
       description,
-      startTime: new Date().toISOString(),
+      startTime: this.getDeterministicDate().toISOString(),
       status: 'started',
       type: 'performance-validation'
     });
@@ -170,7 +170,7 @@ class PerformanceCoordinationHooks {
     // Store final results
     await this.storeCoordinationMemory('task/results', {
       taskId,
-      completion: new Date().toISOString(),
+      completion: this.getDeterministicDate().toISOString(),
       status: 'completed',
       summary,
       metrics: allMetrics
@@ -246,7 +246,7 @@ class PerformanceCoordinationHooks {
   }
 
   generateTaskId() {
-    return `perf-task-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    return `perf-task-${this.getDeterministicTimestamp()}-${Math.random().toString(36).substr(2, 9)}`;
   }
 
   async initializeCoordinationSession() {
@@ -332,7 +332,7 @@ class PerformanceCoordinationHooks {
   async updateCoordinationStatus(status, data) {
     return await this.storeCoordinationMemory('status', {
       status,
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       data
     });
   }
@@ -410,7 +410,7 @@ class PerformanceCoordinationHooks {
       metrics,
       summary,
       file: filePath,
-      analyzedAt: new Date().toISOString()
+      analyzedAt: this.getDeterministicDate().toISOString()
     };
   }
 
@@ -437,7 +437,7 @@ class PerformanceCoordinationHooks {
 
   async generatePerformanceSummary(allMetrics) {
     const summary = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       overallStatus: 'unknown',
       components: {},
       issues: [],
@@ -553,7 +553,7 @@ class PerformanceCoordinationHooks {
   async initializeCoordinationMemory() {
     const memoryStatus = {
       initialized: true,
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       sessionId: this.options.sessionId
     };
     
@@ -568,7 +568,7 @@ class PerformanceCoordinationHooks {
     
     const exportData = {
       sessionId: this.options.sessionId,
-      exportTimestamp: new Date().toISOString(),
+      exportTimestamp: this.getDeterministicDate().toISOString(),
       session: sessionData,
       metrics: allMetrics,
       hooks: this.hookResults.hooks
@@ -612,11 +612,11 @@ class PerformanceCoordinationHooks {
     // Store notification in coordination memory
     const notification = {
       message,
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       sessionId: this.options.sessionId
     };
     
-    await this.storeCoordinationMemory(`notifications/${Date.now()}`, notification);
+    await this.storeCoordinationMemory(`notifications/${this.getDeterministicTimestamp()}`, notification);
     
     return {
       sent: true,

@@ -442,7 +442,7 @@ class APISecurityManager extends EventEmitter {
       
     } catch (error) {
       this.logger.error('Rate limit check error:', error);
-      return { blocked: false, limit: 0, remaining: 0, resetTime: Date.now() };
+      return { blocked: false, limit: 0, remaining: 0, resetTime: this.getDeterministicTimestamp() };
     }
   }
   
@@ -460,8 +460,8 @@ class APISecurityManager extends EventEmitter {
         userId,
         tier,
         metadata,
-        createdAt: new Date(),
-        expiresAt: new Date(Date.now() + (this.config.apiKeys.rotationDays * 24 * 60 * 60 * 1000)),
+        createdAt: this.getDeterministicDate(),
+        expiresAt: new Date(this.getDeterministicTimestamp() + (this.config.apiKeys.rotationDays * 24 * 60 * 60 * 1000)),
         lastUsed: null,
         usageCount: 0,
         active: true
@@ -506,12 +506,12 @@ class APISecurityManager extends EventEmitter {
         return { valid: false, reason: 'Key deactivated' };
       }
       
-      if (Date.now() > keyData.expiresAt.getTime()) {
+      if (this.getDeterministicTimestamp() > keyData.expiresAt.getTime()) {
         return { valid: false, reason: 'Key expired' };
       }
       
       // Update usage stats
-      keyData.lastUsed = new Date();
+      keyData.lastUsed = this.getDeterministicDate();
       keyData.usageCount++;
       
       return {
@@ -540,7 +540,7 @@ class APISecurityManager extends EventEmitter {
       }
       
       keyData.active = false;
-      keyData.revokedAt = new Date();
+      keyData.revokedAt = this.getDeterministicDate();
       
       await this._saveAPIKeys();
       
@@ -613,7 +613,7 @@ class APISecurityManager extends EventEmitter {
       totalKeys: this.apiKeys.size,
       activeKeys: Array.from(this.apiKeys.values()).filter(k => k.active).length,
       expiredKeys: Array.from(this.apiKeys.values()).filter(k => 
-        Date.now() > k.expiresAt.getTime()).length
+        this.getDeterministicTimestamp() > k.expiresAt.getTime()).length
     };
     
     return {
@@ -677,7 +677,7 @@ class APISecurityManager extends EventEmitter {
   }
   
   _checkFixedWindow(key, limits) {
-    const now = Date.now();
+    const now = this.getDeterministicTimestamp();
     const windowStart = Math.floor(now / this.config.rateLimiting.windowMs) * this.config.rateLimiting.windowMs;
     const windowKey = `${key}:${windowStart}`;
     
@@ -710,7 +710,7 @@ class APISecurityManager extends EventEmitter {
   }
   
   _checkSlidingWindow(key, limits) {
-    const now = Date.now();
+    const now = this.getDeterministicTimestamp();
     const window = this.slidingWindows.get(key) || [];
     
     // Remove old requests outside the window
@@ -744,7 +744,7 @@ class APISecurityManager extends EventEmitter {
   }
   
   _checkTokenBucket(key, limits) {
-    const now = Date.now();
+    const now = this.getDeterministicTimestamp();
     const bucket = this.tokenBuckets.get(key) || {
       tokens: limits.burst,
       lastRefill: now
@@ -817,7 +817,7 @@ class APISecurityManager extends EventEmitter {
   }
   
   _checkAutoBlock(clientIP) {
-    const now = Date.now();
+    const now = this.getDeterministicTimestamp();
     const requestHistory = this.suspiciousRequests.get(clientIP) || [];
     
     // Remove old entries
@@ -849,7 +849,7 @@ class APISecurityManager extends EventEmitter {
     };
     
     metrics.requests++;
-    metrics.lastRequest = new Date();
+    metrics.lastRequest = this.getDeterministicDate();
     
     this.keyMetrics.set(apiKey, metrics);
   }
@@ -896,7 +896,7 @@ class APISecurityManager extends EventEmitter {
       const keysData = {
         keys: Object.fromEntries(this.apiKeys.entries()),
         metrics: Object.fromEntries(this.keyMetrics.entries()),
-        lastUpdated: new Date()
+        lastUpdated: this.getDeterministicDate()
       };
       
       await fs.writeFile(keysPath, JSON.stringify(keysData, null, 2));
@@ -979,7 +979,7 @@ class APISecurityManager extends EventEmitter {
   }
   
   _cleanupExpiredEntries() {
-    const now = Date.now();
+    const now = this.getDeterministicTimestamp();
     
     // Clean up sliding windows
     for (const [key, requests] of this.slidingWindows.entries()) {

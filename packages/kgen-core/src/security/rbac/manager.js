@@ -84,7 +84,7 @@ export class RBACManager extends EventEmitter {
       this.emit('rbac:initialized', {
         roles: this.roles.size,
         permissions: this.permissions.size,
-        timestamp: new Date()
+        timestamp: this.getDeterministicDate()
       });
       
       return {
@@ -117,8 +117,8 @@ export class RBACManager extends EventEmitter {
         permissions: roleDefinition.permissions || [],
         constraints: roleDefinition.constraints || {},
         metadata: roleDefinition.metadata || {},
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: this.getDeterministicDate(),
+        updatedAt: this.getDeterministicDate(),
         status: 'active'
       };
       
@@ -167,7 +167,7 @@ export class RBACManager extends EventEmitter {
         action: permissionDefinition.action || 'read',
         conditions: permissionDefinition.conditions || [],
         metadata: permissionDefinition.metadata || {},
-        createdAt: new Date(),
+        createdAt: this.getDeterministicDate(),
         status: 'active'
       };
       
@@ -227,7 +227,7 @@ export class RBACManager extends EventEmitter {
       // Create role assignment
       const assignment = {
         roleId,
-        assignedAt: new Date(),
+        assignedAt: this.getDeterministicDate(),
         assignedBy: options.assignedBy,
         expiresAt: options.expiresAt,
         conditions: options.conditions || [],
@@ -312,14 +312,14 @@ export class RBACManager extends EventEmitter {
         operation,
         resource,
         context,
-        timestamp: new Date()
+        timestamp: this.getDeterministicDate()
       };
       
       // Check cache first
       const cacheKey = this._generateAuthCacheKey(authContext);
       if (this.config.enablePermissionCaching && this.evaluationCache.has(cacheKey)) {
         const cachedResult = this.evaluationCache.get(cacheKey);
-        if (Date.now() - cachedResult.timestamp < this.config.cacheTimeout) {
+        if (this.getDeterministicTimestamp() - cachedResult.timestamp < this.config.cacheTimeout) {
           this.metrics.cacheHits++;
           return cachedResult.result;
         }
@@ -337,7 +337,7 @@ export class RBACManager extends EventEmitter {
       if (this.config.enablePermissionCaching) {
         this.evaluationCache.set(cacheKey, {
           result: authResult,
-          timestamp: Date.now()
+          timestamp: this.getDeterministicTimestamp()
         });
       }
       
@@ -407,13 +407,13 @@ export class RBACManager extends EventEmitter {
       this.emit('high_security:granted', {
         userId: user.id,
         operation,
-        timestamp: new Date()
+        timestamp: this.getDeterministicDate()
       });
       
       return {
         authorized: true,
         securityLevel: 'high',
-        grantedAt: new Date()
+        grantedAt: this.getDeterministicDate()
       };
       
     } catch (error) {
@@ -430,7 +430,7 @@ export class RBACManager extends EventEmitter {
       // Check cache first
       if (this.config.enablePermissionCaching && this.permissionCache.has(userId)) {
         const cached = this.permissionCache.get(userId);
-        if (Date.now() - cached.timestamp < this.config.cacheTimeout) {
+        if (this.getDeterministicTimestamp() - cached.timestamp < this.config.cacheTimeout) {
           return cached.permissions;
         }
       }
@@ -462,7 +462,7 @@ export class RBACManager extends EventEmitter {
       
       // Add temporary permissions
       const tempPermissions = this.temporaryPermissions.get(userId) || [];
-      const validTempPermissions = tempPermissions.filter(tp => tp.expiresAt > new Date());
+      const validTempPermissions = tempPermissions.filter(tp => tp.expiresAt > this.getDeterministicDate());
       for (const tempPerm of validTempPermissions) {
         effectivePermissions.add(tempPerm.permissionId);
       }
@@ -476,7 +476,7 @@ export class RBACManager extends EventEmitter {
       if (this.config.enablePermissionCaching) {
         this.permissionCache.set(userId, {
           permissions,
-          timestamp: Date.now()
+          timestamp: this.getDeterministicTimestamp()
         });
       }
       
@@ -507,8 +507,8 @@ export class RBACManager extends EventEmitter {
       const tempPermission = {
         permissionId,
         userId,
-        grantedAt: new Date(),
-        expiresAt: new Date(Date.now() + duration),
+        grantedAt: this.getDeterministicDate(),
+        expiresAt: new Date(this.getDeterministicTimestamp() + duration),
         grantedBy,
         reason,
         id: this._generateTempPermissionId()
@@ -632,8 +632,8 @@ export class RBACManager extends EventEmitter {
       if (!this.roles.has(roleData.id)) {
         const role = {
           ...roleData,
-          createdAt: new Date(),
-          updatedAt: new Date(),
+          createdAt: this.getDeterministicDate(),
+          updatedAt: this.getDeterministicDate(),
           status: 'active'
         };
         this.roles.set(role.id, role);
@@ -675,7 +675,7 @@ export class RBACManager extends EventEmitter {
           ...permData,
           conditions: [],
           metadata: {},
-          createdAt: new Date(),
+          createdAt: this.getDeterministicDate(),
           status: 'active'
         };
         this.permissions.set(permission.id, permission);
@@ -723,15 +723,15 @@ export class RBACManager extends EventEmitter {
   }
 
   _generateRoleId() {
-    return `role_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    return `role_${this.getDeterministicTimestamp()}_${Math.random().toString(36).substr(2, 9)}`;
   }
 
   _generatePermissionId() {
-    return `perm_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    return `perm_${this.getDeterministicTimestamp()}_${Math.random().toString(36).substr(2, 9)}`;
   }
 
   _generateTempPermissionId() {
-    return `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    return `temp_${this.getDeterministicTimestamp()}_${Math.random().toString(36).substr(2, 9)}`;
   }
 
   _generateAuthCacheKey(authContext) {
@@ -757,7 +757,7 @@ export class RBACManager extends EventEmitter {
 
   _isRoleAssignmentValid(assignment) {
     // Check expiration
-    if (assignment.expiresAt && assignment.expiresAt < new Date()) {
+    if (assignment.expiresAt && assignment.expiresAt < this.getDeterministicDate()) {
       return false;
     }
     
@@ -923,7 +923,7 @@ export class RBACManager extends EventEmitter {
       };
     }
     
-    const isRecent = (Date.now() - new Date(lastAuth).getTime()) < recentThreshold;
+    const isRecent = (this.getDeterministicTimestamp() - new Date(lastAuth).getTime()) < recentThreshold;
     
     return {
       passed: isRecent,
@@ -957,7 +957,7 @@ export class RBACManager extends EventEmitter {
 
   async _checkTimeBasedRestrictions(user, operation) {
     // Check if operation is allowed at current time
-    const now = new Date();
+    const now = this.getDeterministicDate();
     const hour = now.getHours();
     const day = now.getDay();
     
@@ -978,7 +978,7 @@ export class RBACManager extends EventEmitter {
   }
 
   _cleanupExpiredCaches() {
-    const now = Date.now();
+    const now = this.getDeterministicTimestamp();
     
     // Clean permission cache
     for (const [userId, cached] of this.permissionCache.entries()) {
@@ -996,7 +996,7 @@ export class RBACManager extends EventEmitter {
   }
 
   _cleanupExpiredTemporaryPermissions() {
-    const now = new Date();
+    const now = this.getDeterministicDate();
     
     for (const [userId, tempPerms] of this.temporaryPermissions.entries()) {
       const validPerms = tempPerms.filter(tp => tp.expiresAt > now);

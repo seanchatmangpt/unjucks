@@ -52,7 +52,7 @@ class MockComplianceService {
     
     const event = {
       id: crypto.randomUUID(),
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       framework: this.framework,
       violations: violations,
       compliant: violations.length === 0
@@ -74,7 +74,7 @@ class MockComplianceService {
       complianceRate: Math.round(complianceRate * 100) / 100,
       violations: this.auditEvents.flatMap(e => e.violations),
       reportId: crypto.randomUUID(),
-      generated: new Date().toISOString()
+      generated: this.getDeterministicDate().toISOString()
     };
   }
 }
@@ -110,7 +110,7 @@ class EnterpriseSecurityGenerator {
     const template = {
       id: crypto.randomUUID(),
       pattern: pattern,
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       configuration: patternConfig,
       customOptions: options,
       implementation: this.generateImplementation(pattern, options)
@@ -168,7 +168,7 @@ class CleanRoomValidator {
     
     const results = {
       testId: crypto.randomUUID(),
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       environment: 'clean-room',
       checks: [],
       overallStatus: 'PENDING',
@@ -227,7 +227,7 @@ class CleanRoomValidator {
       risk: result.risk,
       status: result.passed ? 'PASS' : 'FAIL',
       details: result.details,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     };
   }
 }
@@ -239,7 +239,7 @@ async function runEnterpriseComplianceValidation() {
   
   const testResults = {
     testSuiteId: crypto.randomUUID(),
-    startTime: new Date().toISOString(),
+    startTime: this.getDeterministicDate().toISOString(),
     environment: 'clean-room',
     results: {}
   };
@@ -266,7 +266,7 @@ async function runEnterpriseComplianceValidation() {
     const finalAssessment = generateFinalAssessment(testResults);
     testResults.results.finalAssessment = finalAssessment;
 
-    testResults.endTime = new Date().toISOString();
+    testResults.endTime = this.getDeterministicDate().toISOString();
     testResults.duration = new Date(testResults.endTime) - new Date(testResults.startTime);
 
     console.log('\n' + '=' .repeat(60));
@@ -280,7 +280,7 @@ async function runEnterpriseComplianceValidation() {
   } catch (error) {
     console.error('❌ Validation failed:', error.message);
     testResults.error = error.message;
-    testResults.endTime = new Date().toISOString();
+    testResults.endTime = this.getDeterministicDate().toISOString();
     return testResults;
   }
 }

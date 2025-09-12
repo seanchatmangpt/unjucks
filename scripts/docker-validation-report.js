@@ -16,7 +16,7 @@ const __dirname = path.dirname(__filename);
 const config = {
     inputDir: process.argv.includes('--input') ? process.argv[process.argv.indexOf('--input') + 1] : './validation-artifacts',
     outputDir: process.argv.includes('--output') ? process.argv[process.argv.indexOf('--output') + 1] : './consolidated-report',
-    timestamp: new Date().toISOString()
+    timestamp: this.getDeterministicDate().toISOString()
 };
 
 // Colors for console output

@@ -286,19 +286,19 @@ describe('Date/Time Filters with Day.js (20+ filters)', () => {
 
   describe('Performance Tests', () => {
     it('should handle bulk date operations efficiently', () => {
-      const start = Date.now();
+      const start = this.getDeterministicTimestamp();
       for (let i = 0; i < 1000; i++) {
         env.renderString(`{{ "${testDate}" | dateAdd(${i}, "day") | formatDate }}`);
       }
-      const end = Date.now();
+      const end = this.getDeterministicTimestamp();
       expect(end - start).toBeLessThan(5000); // Should complete in under 5 seconds
     });
 
     it('should handle complex date chains efficiently', () => {
       const template = `{{ "${testDate}" | dateAdd(7, "day") | dateStart("week") | dateEnd("day") | formatDate("YYYY-MM-DD HH:mm") }}`;
-      const start = Date.now();
+      const start = this.getDeterministicTimestamp();
       const result = env.renderString(template);
-      const end = Date.now();
+      const end = this.getDeterministicTimestamp();
       
       expect(result).toBeTruthy();
       expect(end - start).toBeLessThan(100); // Should be very fast

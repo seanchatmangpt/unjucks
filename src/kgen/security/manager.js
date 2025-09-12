@@ -6,7 +6,7 @@
  */
 
 import { EventEmitter } from 'events';
-import { Logger } from 'consola';
+import { Consola } from 'consola';
 import { createHash, createCipher, createDecipher, randomBytes } from 'crypto';
 import { Store, Parser } from 'n3';
 
@@ -50,7 +50,7 @@ export class SecurityManager extends EventEmitter {
       ...config
     };
     
-    this.logger = new Logger({ tag: 'security-manager' });
+    this.logger = new Consola({ tag: 'security-manager' });
     this.state = 'initialized';
     
     // Security state
@@ -380,7 +380,7 @@ export class SecurityManager extends EventEmitter {
         authTag: authTag.toString('hex'),
         algorithm,
         keyId,
-        timestamp: new Date(),
+        timestamp: this.getDeterministicDate(),
         dataClassification: policy.dataClassification || this.config.defaultClassification
       };
       
@@ -464,7 +464,7 @@ export class SecurityManager extends EventEmitter {
       // Add anonymization metadata
       anonymizedData._anonymization = {
         technique: technique.type,
-        timestamp: new Date(),
+        timestamp: this.getDeterministicDate(),
         originalDataHash: this._hashData(data)
       };
       
@@ -556,7 +556,7 @@ export class SecurityManager extends EventEmitter {
         enforcedPolicies: [],
         metadata: {
           totalPolicies: policies.length,
-          enforcementTime: Date.now()
+          enforcementTime: this.getDeterministicTimestamp()
         }
       };
       
@@ -817,7 +817,7 @@ export class SecurityManager extends EventEmitter {
     if (!failures) return false;
     
     return failures.count >= this.config.maxLoginAttempts &&
-           (Date.now() - failures.lastAttempt) < this.config.lockoutDuration;
+           (this.getDeterministicTimestamp() - failures.lastAttempt) < this.config.lockoutDuration;
   }
 
   async _validateCredentials(credentials) {
@@ -837,7 +837,7 @@ export class SecurityManager extends EventEmitter {
   async _recordFailedLogin(userId) {
     const failures = this.failedLogins.get(userId) || { count: 0, lastAttempt: 0 };
     failures.count++;
-    failures.lastAttempt = Date.now();
+    failures.lastAttempt = this.getDeterministicTimestamp();
     this.failedLogins.set(userId, failures);
   }
 
@@ -847,9 +847,9 @@ export class SecurityManager extends EventEmitter {
       sessionId,
       userId: user.id,
       user,
-      createdAt: new Date(),
-      lastActivity: new Date(),
-      expiresAt: new Date(Date.now() + this.config.sessionTimeout)
+      createdAt: this.getDeterministicDate(),
+      lastActivity: this.getDeterministicDate(),
+      expiresAt: new Date(this.getDeterministicTimestamp() + this.config.sessionTimeout)
     };
     
     this.activeSessions.set(sessionId, session);
@@ -863,7 +863,7 @@ export class SecurityManager extends EventEmitter {
   }
 
   _isSessionExpired(session) {
-    return Date.now() > session.expiresAt.getTime();
+    return this.getDeterministicTimestamp() > session.expiresAt.getTime();
   }
 
   async _getUserPermissions(user) {
@@ -931,7 +931,7 @@ export class SecurityManager extends EventEmitter {
   }
 
   _updateSessionActivity(session) {
-    session.lastActivity = new Date();
+    session.lastActivity = this.getDeterministicDate();
   }
 
   async _getEncryptionKey(keyId) {

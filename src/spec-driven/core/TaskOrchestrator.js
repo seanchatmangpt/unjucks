@@ -44,7 +44,7 @@ export class TaskOrchestrator {
         metadata: {
           name: `${plan.metadata.name}-tasks`,
           description: `Task list generated from ${plan.metadata.name}`,
-          createdAt: new Date().toISOString(),
+          createdAt: this.getDeterministicDate().toISOString(),
           planId: plan.id,
           totalTasks: tasks.length
         },
@@ -68,7 +68,7 @@ export class TaskOrchestrator {
    */
   async executeTasks(taskList, options = {}) {
     const executionId = this.generateExecutionId();
-    const startTime = new Date();
+    const startTime = this.getDeterministicDate();
     
     try {
       const results = {
@@ -121,13 +121,13 @@ export class TaskOrchestrator {
         }
       }
 
-      const endTime = new Date();
+      const endTime = this.getDeterministicDate();
       results.metrics.endTime = endTime;
       results.metrics.duration = endTime.getTime() - startTime.getTime();
 
       return results;
     } catch (error) {
-      const endTime = new Date();
+      const endTime = this.getDeterministicDate();
       return {
         success: false,
         executionId,
@@ -228,14 +228,14 @@ export class TaskOrchestrator {
    * @returns {Promise<Object>} Task execution result
    */
   async executeTask(task, options = {}) {
-    const startTime = new Date();
+    const startTime = this.getDeterministicDate();
     
     try {
       // Simulate task execution (in real implementation, this would
       // call the actual generator system)
       const mockResult = await this.simulateTaskExecution(task, options);
       
-      const endTime = new Date();
+      const endTime = this.getDeterministicDate();
       
       return {
         taskId: task.id,
@@ -247,7 +247,7 @@ export class TaskOrchestrator {
       };
       
     } catch (error) {
-      const endTime = new Date();
+      const endTime = this.getDeterministicDate();
       
       return {
         taskId: task.id,
@@ -288,7 +288,7 @@ export class TaskOrchestrator {
    * @returns {string} Task list ID
    */
   generateTaskListId() {
-    const timestamp = Date.now();
+    const timestamp = this.getDeterministicTimestamp();
     const random = Math.random().toString(36).substr(2, 9);
     return `tasks-${timestamp}-${random}`;
   }
@@ -300,7 +300,7 @@ export class TaskOrchestrator {
    * @returns {string} Task ID
    */
   generateTaskId(taskName) {
-    const timestamp = Date.now();
+    const timestamp = this.getDeterministicTimestamp();
     const cleanName = taskName.replace(/[^a-zA-Z0-9]/g, '-');
     return `task-${cleanName}-${timestamp}`;
   }
@@ -311,7 +311,7 @@ export class TaskOrchestrator {
    * @returns {string} Execution ID
    */
   generateExecutionId() {
-    const timestamp = Date.now();
+    const timestamp = this.getDeterministicTimestamp();
     const random = Math.random().toString(36).substr(2, 9);
     return `exec-${timestamp}-${random}`;
   }

@@ -172,9 +172,9 @@ class EnterpriseRBAC extends EventEmitter {
         organizationalUnit,
         conditions: new Map(),
         metadata,
-        createdAt: new Date(),
+        createdAt: this.getDeterministicDate(),
         createdBy: roleData.createdBy,
-        lastModified: new Date(),
+        lastModified: this.getDeterministicDate(),
         active: true
       };
       
@@ -192,7 +192,7 @@ class EnterpriseRBAC extends EventEmitter {
             this.roleHierarchy.set(`${parentName}->${name}`, {
               parent: parentName,
               child: name,
-              createdAt: new Date()
+              createdAt: this.getDeterministicDate()
             });
           }
         }
@@ -245,7 +245,7 @@ class EnterpriseRBAC extends EventEmitter {
         conditions: new Map(),
         scope,
         metadata,
-        createdAt: new Date(),
+        createdAt: this.getDeterministicDate(),
         createdBy: permissionData.createdBy,
         active: true
       };
@@ -298,7 +298,7 @@ class EnterpriseRBAC extends EventEmitter {
           permissions: new Set(),
           organizationalUnit,
           conditions: new Map(),
-          createdAt: new Date()
+          createdAt: this.getDeterministicDate()
         });
       }
       
@@ -314,7 +314,7 @@ class EnterpriseRBAC extends EventEmitter {
         userId,
         roleName,
         assignedBy,
-        assignedAt: new Date(),
+        assignedAt: this.getDeterministicDate(),
         expiresAt,
         conditions: new Map(),
         organizationalUnit: organizationalUnit || user.organizationalUnit,
@@ -380,7 +380,7 @@ class EnterpriseRBAC extends EventEmitter {
         targetType, // 'user' or 'role'
         permissionName,
         grantedBy,
-        grantedAt: new Date(),
+        grantedAt: this.getDeterministicDate(),
         expiresAt,
         conditions: new Map(),
         scope: scope || permission.scope,
@@ -400,7 +400,7 @@ class EnterpriseRBAC extends EventEmitter {
             roles: new Set(),
             permissions: new Set(),
             conditions: new Map(),
-            createdAt: new Date()
+            createdAt: this.getDeterministicDate()
           });
         }
         
@@ -455,7 +455,7 @@ class EnterpriseRBAC extends EventEmitter {
     try {
       this.metrics.accessChecks++;
       
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
       // Check cache first
       const cacheKey = this._generateCacheKey(userId, permissionName, context);
@@ -463,13 +463,13 @@ class EnterpriseRBAC extends EventEmitter {
         this.metrics.cacheHits++;
         const cached = this.decisionCache.get(cacheKey);
         
-        if (Date.now() < cached.expiresAt) {
+        if (this.getDeterministicTimestamp() < cached.expiresAt) {
           this._recordAccessDecision({
             userId,
             permissionName,
             result: cached.result,
             reason: 'cached',
-            responseTime: Date.now() - startTime,
+            responseTime: this.getDeterministicTimestamp() - startTime,
             context
           });
           
@@ -489,7 +489,7 @@ class EnterpriseRBAC extends EventEmitter {
           permissionName,
           result,
           reason: 'user_not_found',
-          responseTime: Date.now() - startTime,
+          responseTime: this.getDeterministicTimestamp() - startTime,
           context
         });
         return result;
@@ -503,7 +503,7 @@ class EnterpriseRBAC extends EventEmitter {
           permissionName,
           result,
           reason: 'permission_not_found',
-          responseTime: Date.now() - startTime,
+          responseTime: this.getDeterministicTimestamp() - startTime,
           context
         });
         return result;
@@ -588,7 +588,7 @@ class EnterpriseRBAC extends EventEmitter {
       if (this.config.permissionCaching) {
         this.decisionCache.set(cacheKey, {
           result,
-          expiresAt: Date.now() + this.config.cacheTimeout
+          expiresAt: this.getDeterministicTimestamp() + this.config.cacheTimeout
         });
       }
       
@@ -598,7 +598,7 @@ class EnterpriseRBAC extends EventEmitter {
         permissionName,
         result,
         reason: reasons.join(', '),
-        responseTime: Date.now() - startTime,
+        responseTime: this.getDeterministicTimestamp() - startTime,
         context
       });
       
@@ -620,7 +620,7 @@ class EnterpriseRBAC extends EventEmitter {
         permissionName,
         result,
         reason: 'error: ' + error.message,
-        responseTime: Date.now() - startTime,
+        responseTime: this.getDeterministicTimestamp() - startTime,
         context,
         error: true
       });
@@ -691,7 +691,7 @@ class EnterpriseRBAC extends EventEmitter {
         userId,
         roleName,
         revokedBy,
-        revokedAt: new Date(),
+        revokedAt: this.getDeterministicDate(),
         reason,
         action: 'revoke'
       });
@@ -740,7 +740,7 @@ class EnterpriseRBAC extends EventEmitter {
       } = options;
       
       const report = {
-        generatedAt: new Date(),
+        generatedAt: this.getDeterministicDate(),
         period,
         scope: userId ? 'user' : 'system'
       };
@@ -957,7 +957,7 @@ class EnterpriseRBAC extends EventEmitter {
     );
     
     if (relevantGrant) {
-      if (Date.now() > relevantGrant.expiresAt.getTime()) {
+      if (this.getDeterministicTimestamp() > relevantGrant.expiresAt.getTime()) {
         relevantGrant.active = false;
         return { valid: false, reason: 'temporary_grant_expired' };
       }
@@ -996,7 +996,7 @@ class EnterpriseRBAC extends EventEmitter {
       granted,
       reason,
       grantSource,
-      timestamp: new Date(),
+      timestamp: this.getDeterministicDate(),
       context: { ...context },
       decisionId: this._generateDecisionId()
     };
@@ -1022,7 +1022,7 @@ class EnterpriseRBAC extends EventEmitter {
   
   _generateDecisionId() {
     return createHash('sha256')
-      .update(`${Date.now()}:${Math.random()}`)
+      .update(`${this.getDeterministicTimestamp()}:${Math.random()}`)
       .digest('hex').substring(0, 16);
   }
   
@@ -1068,7 +1068,7 @@ class EnterpriseRBAC extends EventEmitter {
   
   _getAccessDecisionsForUser(userId, period) {
     const periodMs = this._parsePeriod(period);
-    const cutoff = Date.now() - periodMs;
+    const cutoff = this.getDeterministicTimestamp() - periodMs;
     
     return this.accessDecisions.filter(decision => 
       decision.userId === userId &&
@@ -1078,7 +1078,7 @@ class EnterpriseRBAC extends EventEmitter {
   
   _getAccessDecisionsForPeriod(period) {
     const periodMs = this._parsePeriod(period);
-    const cutoff = Date.now() - periodMs;
+    const cutoff = this.getDeterministicTimestamp() - periodMs;
     
     return this.accessDecisions.filter(decision => 
       new Date(decision.timestamp).getTime() > cutoff
@@ -1179,7 +1179,7 @@ class EnterpriseRBAC extends EventEmitter {
             conditions: Object.fromEntries(user.conditions)
           }])
         ),
-        lastUpdated: new Date()
+        lastUpdated: this.getDeterministicDate()
       };
       
       await fs.writeFile(configPath, JSON.stringify(config, null, 2));
@@ -1268,7 +1268,7 @@ class EnterpriseRBAC extends EventEmitter {
   _startMaintenanceProcesses() {
     // Clean expired cache entries every 5 minutes
     setInterval(() => {
-      const now = Date.now();
+      const now = this.getDeterministicTimestamp();
       for (const [key, value] of this.decisionCache.entries()) {
         if (now > value.expiresAt) {
           this.decisionCache.delete(key);
@@ -1278,7 +1278,7 @@ class EnterpriseRBAC extends EventEmitter {
     
     // Clean old access decisions every hour
     setInterval(() => {
-      const cutoff = Date.now() - (7 * 24 * 60 * 60 * 1000); // 7 days
+      const cutoff = this.getDeterministicTimestamp() - (7 * 24 * 60 * 60 * 1000); // 7 days
       this.accessDecisions = this.accessDecisions.filter(decision => 
         new Date(decision.timestamp).getTime() > cutoff
       );
@@ -1286,7 +1286,7 @@ class EnterpriseRBAC extends EventEmitter {
     
     // Check for expired temporary grants every minute
     setInterval(() => {
-      const now = Date.now();
+      const now = this.getDeterministicTimestamp();
       for (const [userId, grants] of this.temporaryGrants.entries()) {
         const activeGrants = grants.filter(grant => {
           if (now > grant.expiresAt.getTime()) {

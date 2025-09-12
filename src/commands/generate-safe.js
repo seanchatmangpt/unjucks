@@ -148,7 +148,7 @@ export const generateCommand = defineCommand({
   },
   async run(context) {
     const { args } = context;
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
 
     try {
       const generator = new SafeGenerator();
@@ -328,7 +328,7 @@ export const generateCommand = defineCommand({
       });
 
       // Display results
-      const duration = Date.now() - startTime;
+      const duration = this.getDeterministicTimestamp() - startTime;
 
       if (args.dry) {
         if (!args.quiet) {

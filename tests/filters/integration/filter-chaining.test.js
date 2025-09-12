@@ -214,7 +214,7 @@ describe('Filter Chaining and Integration', () => {
 
   describe('Performance with Complex Chains', () => {
     it('should handle complex chains efficiently', () => {
-      const start = Date.now();
+      const start = this.getDeterministicTimestamp();
       
       for (let i = 0; i < 100; i++) {
         env.renderString(`
@@ -224,7 +224,7 @@ describe('Filter Chaining and Integration', () => {
         `);
       }
       
-      const end = Date.now();
+      const end = this.getDeterministicTimestamp();
       expect(end - start).toBeLessThan(1000); // Should complete in under 1 second
     });
 
@@ -244,9 +244,9 @@ describe('Filter Chaining and Integration', () => {
         {% endfor %}
       `;
       
-      const start = Date.now();
+      const start = this.getDeterministicTimestamp();
       const result = env.renderString(template, largeDataset);
-      const end = Date.now();
+      const end = this.getDeterministicTimestamp();
       
       expect(result).toContain('Item0: Category 0');
       expect(result).toContain('[TAG_0, TYPE_0]');

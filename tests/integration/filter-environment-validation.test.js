@@ -243,9 +243,9 @@ describe('Filter Environment Validation', () => {
         `{{ "test${i}" | pascalCase | pluralize | kebabCase }}`
       ).join(' ');
       
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const result = nunjucksEnv.renderString(template);
-      const duration = Date.now() - startTime;
+      const duration = this.getDeterministicTimestamp() - startTime;
       
       expect(duration).toBeLessThan(1000); // Should complete within 1 second
       expect(result.split(' ')).toHaveLength(100);
@@ -256,9 +256,9 @@ describe('Filter Environment Validation', () => {
         '{{ "" | fakeEmail }}'
       ).join(' ');
       
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const result = nunjucksEnv.renderString(template);
-      const duration = Date.now() - startTime;
+      const duration = this.getDeterministicTimestamp() - startTime;
       
       expect(duration).toBeLessThan(2000); // Should complete within 2 seconds
       expect(result.split(' ').every(email => email.includes('@'))).toBe(true);

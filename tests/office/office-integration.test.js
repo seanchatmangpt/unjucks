@@ -107,7 +107,7 @@ describe('Office Integration Tests', () => {
           {
             id: 'footer_date',
             target: 'footer:default',
-            content: `Generated on ${new Date().toLocaleDateString()}`,
+            content: `Generated on ${this.getDeterministicDate().toLocaleDateString()}`,
             mode: 'replace',
             type: 'text',
             formatting: {
@@ -503,7 +503,7 @@ describe('Office Integration Tests', () => {
           },
           {
             target: 'bookmark:review_date',
-            content: new Date().toLocaleDateString(),
+            content: this.getDeterministicDate().toLocaleDateString(),
             mode: 'replace'
           }
         ]
@@ -611,17 +611,17 @@ describe('Office Integration Tests', () => {
           },
           {
             target: 'bookmark:timestamp',
-            content: new Date().toISOString(),
+            content: this.getDeterministicDate().toISOString(),
             mode: 'replace'
           }
         ]
       }));
 
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const result = await injector.batchInject(largeBatch, {
         concurrency: 5
       });
-      const duration = Date.now() - startTime;
+      const duration = this.getDeterministicTimestamp() - startTime;
 
       assert.strictEqual(result.success.length, 20);
       assert.strictEqual(result.failed.length, 0);

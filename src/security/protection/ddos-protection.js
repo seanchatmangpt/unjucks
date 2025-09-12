@@ -126,7 +126,7 @@ class DDoSProtection {
     const blocked = this.blockedIPs.get(ip)
     if (!blocked) return false
 
-    if (blocked.expiresAt < new Date()) {
+    if (blocked.expiresAt < this.getDeterministicDate()) {
       this.blockedIPs.delete(ip)
       return false
     }
@@ -225,12 +225,12 @@ class DDoSProtection {
    * @returns {Promise<void>}
    */
   async blockIP(ip, reason, duration) {
-    const expiresAt = new Date(Date.now() + duration * 1000)
+    const expiresAt = new Date(this.getDeterministicTimestamp() + duration * 1000)
     
     this.blockedIPs.set(ip, {
       ip,
       reason,
-      blockedAt: new Date(),
+      blockedAt: this.getDeterministicDate(),
       expiresAt,
       violations: (this.blockedIPs.get(ip)?.violations || 0) + 1
     })
@@ -311,7 +311,7 @@ class DDoSProtection {
     const activity = this.getSuspiciousActivity(ip)
     
     // Check for rapid requests
-    const now = Date.now()
+    const now = this.getDeterministicTimestamp()
     if (activity.lastRequestTime && (now - activity.lastRequestTime) < 100) {
       activity.rapidRequests++
       if (activity.rapidRequests > 10) {
@@ -442,7 +442,7 @@ class DDoSProtection {
     const counter = this.requestCounts.get(ip) || this.createRequestCounter()
     
     counter.totalRequests++
-    counter.lastRequestTime = new Date()
+    counter.lastRequestTime = this.getDeterministicDate()
     
     // Update endpoint specific counters
     const endpoint = request.path
@@ -459,7 +459,7 @@ class DDoSProtection {
   createRequestCounter() {
     return {
       totalRequests: 0,
-      lastRequestTime: new Date(),
+      lastRequestTime: this.getDeterministicDate(),
       endpointCounts: new Map(),
       violations: 0
     }
@@ -480,7 +480,7 @@ class DDoSProtection {
    * @private
    */
   cleanupExpiredEntries() {
-    const now = new Date()
+    const now = this.getDeterministicDate()
 
     // Clean expired blocked IPs
     for (const [ip, blocked] of this.blockedIPs.entries()) {
@@ -490,7 +490,7 @@ class DDoSProtection {
     }
 
     // Clean old request counters (older than 1 hour)
-    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000)
+    const oneHourAgo = new Date(this.getDeterministicTimestamp() - 60 * 60 * 1000)
     for (const [ip, counter] of this.requestCounts.entries()) {
       if (counter.lastRequestTime < oneHourAgo) {
         this.requestCounts.delete(ip)
@@ -506,7 +506,7 @@ class DDoSProtection {
 
     // Clean old suspicious activity trackers
     for (const [ip, activity] of this.suspiciousPatterns.entries()) {
-      if (Date.now() - activity.lastRequestTime > 60 * 60 * 1000) {
+      if (this.getDeterministicTimestamp() - activity.lastRequestTime > 60 * 60 * 1000) {
         this.suspiciousPatterns.delete(ip)
       }
     }
@@ -620,7 +620,7 @@ class RateLimiter {
    * @returns {boolean}
    */
   checkMinuteLimit() {
-    const now = Date.now()
+    const now = this.getDeterministicTimestamp()
     const oneMinuteAgo = now - 60 * 1000
 
     // Remove old requests
@@ -641,7 +641,7 @@ class RateLimiter {
    * @returns {boolean}
    */
   checkHourLimit() {
-    const now = Date.now()
+    const now = this.getDeterministicTimestamp()
     const oneHourAgo = now - 60 * 60 * 1000
 
     // Remove old requests
@@ -662,7 +662,7 @@ class RateLimiter {
    * @returns {boolean}
    */
   isExpired() {
-    const now = Date.now()
+    const now = this.getDeterministicTimestamp()
     const oneHourAgo = now - 60 * 60 * 1000
     
     return this.minuteRequests.length === 0 && 

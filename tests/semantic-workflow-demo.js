@@ -257,13 +257,13 @@ try {
   // Load same data multiple times to test caching
   const source = { type: 'inline', content: testTurtleData };
   
-  const start1 = Date.now();
+  const start1 = this.getDeterministicTimestamp();
   await loader.loadFromSource(source);
-  const time1 = Date.now() - start1;
+  const time1 = this.getDeterministicTimestamp() - start1;
   
-  const start2 = Date.now();
+  const start2 = this.getDeterministicTimestamp();
   await loader.loadFromSource(source); // Should hit cache
-  const time2 = Date.now() - start2;
+  const time2 = this.getDeterministicTimestamp() - start2;
   
   console.log('✅ Cache system working');
   console.log(`✅ First load: ${time1}ms, Cached load: ${time2}ms`);

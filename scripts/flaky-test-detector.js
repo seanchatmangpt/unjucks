@@ -45,7 +45,7 @@ class FlakyTestDetector {
     console.log(`\n🔄 Run ${runNumber}/${this.runs}`);
     
     return new Promise((resolve) => {
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
       const testProcess = spawn('npx', [
         'vitest', 'run',
@@ -76,13 +76,13 @@ class FlakyTestDetector {
       });
 
       testProcess.on('close', (code) => {
-        const duration = Date.now() - startTime;
+        const duration = this.getDeterministicTimestamp() - startTime;
         const result = {
           run: runNumber,
           exitCode: code,
           duration,
           success: code === 0,
-          timestamp: new Date().toISOString(),
+          timestamp: this.getDeterministicDate().toISOString(),
           stdout: stdout.slice(-1000), // Keep last 1000 chars
           stderr: stderr.slice(-1000)
         };
@@ -109,10 +109,10 @@ class FlakyTestDetector {
         resolve({
           run: runNumber,
           exitCode: -1,
-          duration: Date.now() - startTime,
+          duration: this.getDeterministicTimestamp() - startTime,
           success: false,
           error: error.message,
-          timestamp: new Date().toISOString()
+          timestamp: this.getDeterministicDate().toISOString()
         });
       });
 
@@ -125,7 +125,7 @@ class FlakyTestDetector {
           duration: 300000,
           success: false,
           error: 'Timeout',
-          timestamp: new Date().toISOString()
+          timestamp: this.getDeterministicDate().toISOString()
         });
       }, 300000);
     });
@@ -220,7 +220,7 @@ class FlakyTestDetector {
     console.log('\n📊 Generating flaky test report...');
     
     const report = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       configuration: {
         runs: this.runs,
         suite: this.suite,

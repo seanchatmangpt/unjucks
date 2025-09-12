@@ -95,7 +95,7 @@ const authenticate = (req, res, next) => {
 app.get('/health', (req, res) => {
   res.json({
     status: 'healthy',
-    timestamp: new Date().toISOString(),
+    timestamp: this.getDeterministicDate().toISOString(),
     version: '1.0.0',
     services: {
       api: 'running',
@@ -136,7 +136,7 @@ app.get('/api/v1/stats', authenticate, async (req, res) => {
         totalSubjects: parseInt(result.totalSubjects.value),
         totalPredicates: parseInt(result.totalPredicates.value),
         totalObjects: parseInt(result.totalObjects.value),
-        lastUpdated: new Date().toISOString()
+        lastUpdated: this.getDeterministicDate().toISOString()
       };
       
       cache.set(cacheKey, stats);
@@ -174,7 +174,7 @@ app.post('/api/v1/query', authenticate, async (req, res) => {
       });
     }
 
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     let results;
     if (query.trim().toUpperCase().startsWith('SELECT') || query.trim().toUpperCase().startsWith('ASK')) {
@@ -188,7 +188,7 @@ app.post('/api/v1/query', authenticate, async (req, res) => {
       });
     }
 
-    const executionTime = Date.now() - startTime;
+    const executionTime = this.getDeterministicTimestamp() - startTime;
     
     logger.info('Query executed', {
       executionTime,
@@ -202,7 +202,7 @@ app.post('/api/v1/query', authenticate, async (req, res) => {
         executionTime,
         resultCount: Array.isArray(results) ? results.length : 0,
         format,
-        timestamp: new Date().toISOString()
+        timestamp: this.getDeterministicDate().toISOString()
       }
     });
     

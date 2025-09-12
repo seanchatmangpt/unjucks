@@ -18,7 +18,7 @@ const rootDir = join(__dirname, '..');
 class PerformanceBenchmarker {
   constructor() {
     this.results = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       summary: {
         totalTests: 0,
         passed: 0,

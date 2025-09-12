@@ -105,7 +105,7 @@ export class BaseConnector extends EventEmitter {
     }
 
     async checkRateLimit() {
-        const now = Date.now();
+        const now = this.getDeterministicTimestamp();
         const windowStart = now - this.config.rateLimit.window;
         
         // Clean old requests

@@ -11,7 +11,7 @@ const crypto = require('crypto');
 class BaselIIIComplianceTestRunner {
   constructor() {
     this.testResults = [];
-    this.startTime = Date.now();
+    this.startTime = this.getDeterministicTimestamp();
   }
 
   /**
@@ -884,7 +884,7 @@ class BaselIIIComplianceTestRunner {
   }
 
   generateTestReport() {
-    const endTime = Date.now();
+    const endTime = this.getDeterministicTimestamp();
     const duration = endTime - this.startTime;
     const passedTests = this.testResults.filter(test => test.passed).length;
     const totalTests = this.testResults.length;
@@ -897,7 +897,7 @@ class BaselIIIComplianceTestRunner {
         failedTests: totalTests - passedTests,
         successRate: `${((passedTests / totalTests) * 100).toFixed(1)}%`,
         duration: `${duration}ms`,
-        timestamp: new Date().toISOString()
+        timestamp: this.getDeterministicDate().toISOString()
       },
       results: this.testResults,
       compliance: {

@@ -163,7 +163,7 @@ describe('Utility Filters (10+ filters)', () => {
       expect(now).toMatch(/^\d{4}-\d{2}-\d{2}$/);
       
       // Should be current date
-      const currentYear = new Date().getFullYear();
+      const currentYear = this.getDeterministicDate().getFullYear();
       expect(now.startsWith(currentYear.toString())).toBe(true);
     });
 
@@ -304,15 +304,15 @@ describe('Utility Filters (10+ filters)', () => {
         }))
       };
       
-      const start = Date.now();
+      const start = this.getDeterministicTimestamp();
       env.renderString(`{{ data | dump }}`, { data: largeObject });
-      const end = Date.now();
+      const end = this.getDeterministicTimestamp();
       
       expect(end - start).toBeLessThan(100); // Should be fast
     });
 
     it('should handle bulk utility operations efficiently', () => {
-      const start = Date.now();
+      const start = this.getDeterministicTimestamp();
       
       for (let i = 0; i < 200; i++) {
         env.renderString(`
@@ -325,7 +325,7 @@ describe('Utility Filters (10+ filters)', () => {
         });
       }
       
-      const end = Date.now();
+      const end = this.getDeterministicTimestamp();
       expect(end - start).toBeLessThan(1000);
     });
   });

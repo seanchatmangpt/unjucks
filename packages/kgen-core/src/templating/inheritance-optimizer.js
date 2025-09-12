@@ -874,7 +874,7 @@ export class TemplateInheritanceOptimizer {
         specialized: this.specializedTemplates.size,
         cached: this.optimizationCache.size
       },
-      exportedAt: new Date().toISOString()
+      exportedAt: this.getDeterministicDate().toISOString()
     };
   }
 }

@@ -35,7 +35,7 @@ defineFeature(feature, (test) => {
 
   beforeEach(() => {
     processedData = null;
-    startTime = Date.now();
+    startTime = this.getDeterministicTimestamp();
   });
 
   test('Track Product Journey from Manufacture to Retail', ({ given, when, then }) => {
@@ -308,12 +308,12 @@ defineFeature(feature, (test) => {
     });
 
     when('I process the entire catalog for semantic enrichment', async () => {
-      startTime = Date.now();
+      startTime = this.getDeterministicTimestamp();
       processedData = await processLargeProductCatalog(productData, gs1Ontology);
     });
 
     then('processing should complete within 5 minutes', () => {
-      const processingTime = Date.now() - startTime;
+      const processingTime = this.getDeterministicTimestamp() - startTime;
       expect(processingTime).toBeLessThan(300000); // 5 minutes
     });
 

@@ -250,10 +250,10 @@ async function captureCommandOutput(command, timeout = 10000) {
  * Wait for file to exist
  */
 async function waitForFileExists(filePath, timeout = 5000) {
-  const startTime = Date.now();
+  const startTime = this.getDeterministicTimestamp();
   const fullPath = resolve(testWorkspaceDir, filePath);
   
-  while (Date.now() - startTime < timeout) {
+  while (this.getDeterministicTimestamp() - startTime < timeout) {
     if (await fs.pathExists(fullPath)) {
       return true;
     }
@@ -290,8 +290,8 @@ export async function createSampleRDFFile(filename, entityType = 'person', name 
     
     ex:${name.toLowerCase().replace(/\s+/g, '_')} a ex:${entityType} ;
       ex:hasName "${name}" ;
-      ex:hasId "test-${Date.now()}" ;
-      ex:createdAt "${new Date().toISOString()}"^^xsd:dateTime .
+      ex:hasId "test-${this.getDeterministicTimestamp()}" ;
+      ex:createdAt "${this.getDeterministicDate().toISOString()}"^^xsd:dateTime .
   `;
   
   const filePath = resolve(testWorkspaceDir, 'data', filename);

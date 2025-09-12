@@ -248,7 +248,7 @@ class ComplianceRiskAssessor {
     this.riskCategories.set(categoryId, {
       id: categoryId,
       ...categoryDetails,
-      createdAt: new Date().toISOString(),
+      createdAt: this.getDeterministicDate().toISOString(),
       lastAssessed: null
     });
   }
@@ -260,7 +260,7 @@ class ComplianceRiskAssessor {
     this.riskFactors.set(factorId, {
       id: factorId,
       ...factorDetails,
-      createdAt: new Date().toISOString(),
+      createdAt: this.getDeterministicDate().toISOString(),
       lastAssessed: null
     });
   }
@@ -273,7 +273,7 @@ class ComplianceRiskAssessor {
     const assessment = {
       id: assessmentId,
       scope: assessmentScope,
-      startDate: new Date().toISOString(),
+      startDate: this.getDeterministicDate().toISOString(),
       assessor: 'system',
       methodology: 'quantitative_qualitative_hybrid',
       categories: {},
@@ -299,7 +299,7 @@ class ComplianceRiskAssessor {
     assessment.recommendations = this.generateRecommendations(assessment);
     assessment.mitigationPriorities = this.prioritizeMitigations(assessment);
 
-    assessment.endDate = new Date().toISOString();
+    assessment.endDate = this.getDeterministicDate().toISOString();
     assessment.duration = new Date(assessment.endDate) - new Date(assessment.startDate);
 
     // Store assessment
@@ -381,7 +381,7 @@ class ComplianceRiskAssessor {
       controlEffectiveness,
       indicatorValues,
       riskTrend: this.calculateRiskTrend(factor.id, currentRiskScore),
-      lastAssessed: new Date().toISOString()
+      lastAssessed: this.getDeterministicDate().toISOString()
     };
   }
 
@@ -774,7 +774,7 @@ class ComplianceRiskAssessor {
           currentRiskScore: factorAssessment.adjustedRiskScore,
           riskLevel: this.determineRiskLevel(factorAssessment.adjustedRiskScore),
           trend: factorAssessment.riskTrend,
-          lastUpdated: new Date().toISOString()
+          lastUpdated: this.getDeterministicDate().toISOString()
         });
       }
     }
@@ -784,7 +784,7 @@ class ComplianceRiskAssessor {
    * Generate assessment ID
    */
   generateAssessmentId() {
-    return `assess_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`;
+    return `assess_${this.getDeterministicTimestamp()}_${Math.random().toString(36).substr(2, 6)}`;
   }
 
   /**
@@ -887,7 +887,7 @@ class ComplianceRiskAssessor {
    * Get next quarterly date
    */
   getNextQuarterlyDate() {
-    const now = new Date();
+    const now = this.getDeterministicDate();
     const quarter = Math.floor(now.getMonth() / 3);
     const nextQuarter = new Date(now.getFullYear(), (quarter + 1) * 3, 1);
     return nextQuarter.toISOString().split('T')[0];
@@ -897,7 +897,7 @@ class ComplianceRiskAssessor {
    * Get next monthly date
    */
   getNextMonthlyDate() {
-    const now = new Date();
+    const now = this.getDeterministicDate();
     const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
     return nextMonth.toISOString().split('T')[0];
   }
@@ -907,7 +907,7 @@ class ComplianceRiskAssessor {
    */
   logEvent(eventType, data) {
     const logEntry = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       eventType,
       data,
       organization: this.config.organizationName

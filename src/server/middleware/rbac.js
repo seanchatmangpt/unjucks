@@ -144,7 +144,7 @@ class RBACEngine {
           
           case 'time_restriction':
             if (value.start && value.end) {
-              const now = new Date();
+              const now = this.getDeterministicDate();
               const start = new Date(value.start);
               const end = new Date(value.end);
               if (now < start || now > end) {

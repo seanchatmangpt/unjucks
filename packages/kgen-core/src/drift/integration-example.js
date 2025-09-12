@@ -342,17 +342,17 @@ async function performanceMonitoring() {
   try {
     await detector.initialize();
 
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     const results = await detector.detectArtifactDrift({
       targetPath: './large-project'
     });
 
-    const totalTime = Date.now() - startTime;
+    const totalTime = this.getDeterministicTimestamp() - startTime;
     const stats = detector.getStats();
 
     const performanceReport = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       totalProcessingTime: totalTime,
       filesProcessed: stats.filesProcessed,
       averageTimePerFile: stats.averageProcessingTime,

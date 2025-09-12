@@ -25,7 +25,7 @@ describe('KGEN LaTeX Integration', () => {
 
   beforeEach(async () => {
     // Create temporary directory for tests
-    tempDir = join(tmpdir(), `kgen-latex-test-${Date.now()}`);
+    tempDir = join(tmpdir(), `kgen-latex-test-${this.getDeterministicTimestamp()}`);
     await fs.mkdir(tempDir, { recursive: true });
     
     // Initialize components
@@ -663,10 +663,10 @@ describe('KGEN LaTeX Performance', () => {
       \\end{document}
     `;
 
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     const parser = new LaTeXParser(largeLatex);
     const result = parser.parse();
-    const endTime = Date.now();
+    const endTime = this.getDeterministicTimestamp();
 
     expect(result.type).toBe('document');
     expect(endTime - startTime).toBeLessThan(5000); // Should complete within 5 seconds
@@ -682,11 +682,11 @@ describe('KGEN LaTeX Performance', () => {
       \\end{document}
     `);
 
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     const results = await Promise.all(
       testCases.map(latex => validator.validate(latex))
     );
-    const endTime = Date.now();
+    const endTime = this.getDeterministicTimestamp();
 
     expect(results.length).toBe(10);
     expect(results.every(result => result.valid)).toBe(true);

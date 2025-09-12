@@ -417,7 +417,7 @@ describe('Template Injection Security Tests', () => {
       const context = {
         text: 'hello world',
         number: 3.14159,
-        date: new Date(),
+        date: this.getDeterministicDate(),
         items: ['a', 'b', 'c'],
         data: { key: 'value' }
       };
@@ -477,7 +477,7 @@ describe('Template Injection Security Tests', () => {
 
   describe('Performance and DoS Protection', () => {
     it('should handle template validation efficiently', () => {
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
       // Test 1000 template validations
       for (let i = 0; i < 1000; i++) {
@@ -488,7 +488,7 @@ describe('Template Injection Security Tests', () => {
         }
       }
       
-      const endTime = Date.now();
+      const endTime = this.getDeterministicTimestamp();
       const duration = endTime - startTime;
       
       // Should complete within reasonable time (< 1 second for 1000 templates)

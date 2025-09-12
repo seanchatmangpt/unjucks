@@ -32,7 +32,7 @@ class WeeklyReportGenerator {
   }
 
   async collectWeeklyData() {
-    const now = new Date();
+    const now = this.getDeterministicDate();
     const weekStart = startOfWeek(now, { weekStartsOn: 1 }); // Monday
     const weekEnd = endOfWeek(now, { weekStartsOn: 1 }); // Sunday
     
@@ -95,7 +95,7 @@ class WeeklyReportGenerator {
 
   generateReport(weekData) {
     const report = {
-      generated_at: new Date().toISOString(),
+      generated_at: this.getDeterministicDate().toISOString(),
       report_type: 'weekly',
       period: weekData.period,
       summary: this.generateSummary(weekData.daily_data),
@@ -412,7 +412,7 @@ class WeeklyReportGenerator {
   }
 
   async saveReport(report) {
-    const timestamp = format(new Date(), 'yyyy-MM-dd');
+    const timestamp = format(this.getDeterministicDate(), 'yyyy-MM-dd');
     const reportPath = path.join(this.weeklyDir, `weekly-report-${timestamp}.json`);
     
     await fs.writeJSON(reportPath, report, { spaces: 2 });
@@ -426,7 +426,7 @@ class WeeklyReportGenerator {
 
   async generateMarkdownReport(report) {
     const markdown = this.generateMarkdownContent(report);
-    const timestamp = format(new Date(), 'yyyy-MM-dd');
+    const timestamp = format(this.getDeterministicDate(), 'yyyy-MM-dd');
     const markdownPath = path.join(this.weeklyDir, `weekly-report-${timestamp}.md`);
     
     await fs.writeFile(markdownPath, markdown);

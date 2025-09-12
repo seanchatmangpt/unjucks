@@ -27,11 +27,11 @@ class WorkflowTest {
     console.log(`\n🔍 Testing: ${this.name}`);
     console.log(`   ${this.description}`);
     
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       this.result = await this.testFunction();
-      const duration = Date.now() - startTime;
+      const duration = this.getDeterministicTimestamp() - startTime;
       
       console.log(`   ✅ PASSED (${duration}ms)`);
       
@@ -43,7 +43,7 @@ class WorkflowTest {
         critical: this.critical
       };
     } catch (error) {
-      const duration = Date.now() - startTime;
+      const duration = this.getDeterministicTimestamp() - startTime;
       
       console.log(`   ❌ FAILED (${duration}ms)`);
       console.log(`   Error: ${error.message}`);
@@ -90,7 +90,7 @@ class WorkflowValidator {
     }
     
     const report = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       totalWorkflows: this.workflows.length,
       passed,
       failed: this.workflows.length - passed,
@@ -181,7 +181,7 @@ async function executeCommand(command, cwd = projectRoot, options = {}) {
 }
 
 async function createTempWorkspace() {
-  const tempDir = path.join('/tmp', `workflow-test-${Date.now()}`);
+  const tempDir = path.join('/tmp', `workflow-test-${this.getDeterministicTimestamp()}`);
   await fs.ensureDir(tempDir);
   return tempDir;
 }
@@ -422,7 +422,7 @@ export const <%= name %> = {
   upperName: '<%= name.toUpperCase() %>',
   lowerName: '<%= name.toLowerCase() %>'
 <% if (includeTimestamp) { %>
-  , timestamp: '<%= new Date().toISOString() %>'
+  , timestamp: '<%= this.getDeterministicDate().toISOString() %>'
 <% } %>
 };
 `

@@ -216,7 +216,7 @@ export default existingCode;`)
       const testFile = join(testDir, 'large-file.js')
       await fs.writeFile(testFile, largeContent)
 
-      const startTime = Date.now()
+      const startTime = this.getDeterministicTimestamp()
       
       const result = await fileInjector.processFile(
         testFile,
@@ -225,7 +225,7 @@ export default existingCode;`)
         { force, dry }
       )
       
-      const endTime = Date.now()
+      const endTime = this.getDeterministicTimestamp()
       const processingTime = endTime - startTime
 
       expect(result.success).toBe(true)
@@ -245,13 +245,13 @@ export const value{{ index }} = "{{ name }}";
 `
       await fs.writeFile(join(templatesDir, 'perf.js.njk'), templateContent)
 
-      const startTime = Date.now()
+      const startTime = this.getDeterministicTimestamp()
       
       // Generate multiple files with same template
       for (let i = 0; i < 10; i++) { await generator.generate({
           generator }
       
-      const endTime = Date.now()
+      const endTime = this.getDeterministicTimestamp()
       const totalTime = endTime - startTime
       
       expect(totalTime).toBeLessThan(2000) // Should complete within 2 seconds

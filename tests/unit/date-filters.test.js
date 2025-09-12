@@ -50,13 +50,13 @@ describe('Date/Time Filters (Day.js)', () => {
 
   describe('relative time filters', () => {
     it('should return relative time with dateFrom', () => {
-      const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+      const yesterday = new Date(this.getDeterministicTimestamp() - 24 * 60 * 60 * 1000).toISOString();
       const template = env.renderString(`{{ "${yesterday}" | dateFrom }}`);
       expect(template).toContain('a day ago');
     });
 
     it('should work with dateFrom without suffix', () => {
-      const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+      const yesterday = new Date(this.getDeterministicTimestamp() - 24 * 60 * 60 * 1000).toISOString();
       const template = env.renderString(`{{ "${yesterday}" | dateFrom(true) }}`);
       expect(template).toContain('a day');
       expect(template).not.toContain('ago');
@@ -77,7 +77,7 @@ describe('Date/Time Filters (Day.js)', () => {
 
   describe('date comparison filters', () => {
     it('should check if date is today', () => {
-      const today = new Date().toISOString();
+      const today = this.getDeterministicDate().toISOString();
       const template = env.renderString(`{{ "${today}" | isToday }}`);
       expect(template).toBe('true');
     });
@@ -118,13 +118,13 @@ describe('Date/Time Filters (Day.js)', () => {
   describe('global date functions', () => {
     it('should provide now() function', () => {
       const template = env.renderString('{{ now() | formatDate("YYYY-MM-DD") }}');
-      const today = new Date().toISOString().slice(0, 10);
+      const today = this.getDeterministicDate().toISOString().slice(0, 10);
       expect(template).toBe(today);
     });
 
     it('should provide today() function', () => {
       const template = env.renderString('{{ today() | formatDate("YYYY-MM-DD") }}');
-      const today = new Date().toISOString().slice(0, 10);
+      const today = this.getDeterministicDate().toISOString().slice(0, 10);
       expect(template).toBe(today);
     });
 
@@ -147,7 +147,7 @@ describe('Date/Time Filters (Day.js)', () => {
 
     it('should work for future dates', () => {
       const template = env.renderString('created: {{ now() | dateAdd(1, "day") | formatDate("YYYY-MM-DD") }}');
-      const tomorrow = new Date();
+      const tomorrow = this.getDeterministicDate();
       tomorrow.setDate(tomorrow.getDate() + 1);
       const expectedDate = tomorrow.toISOString().slice(0, 10);
       expect(template).toBe(`created: ${expectedDate}`);

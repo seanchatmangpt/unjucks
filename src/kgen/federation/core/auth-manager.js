@@ -135,7 +135,7 @@ export class FederatedAuthManager extends EventEmitter {
         ...validatedConfig,
         id: providerId,
         state: providerState,
-        registeredAt: new Date().toISOString(),
+        registeredAt: this.getDeterministicDate().toISOString(),
         status: 'active',
         statistics: {
           authRequests: 0,
@@ -152,7 +152,7 @@ export class FederatedAuthManager extends EventEmitter {
       return {
         success: true,
         providerId,
-        timestamp: new Date().toISOString()
+        timestamp: this.getDeterministicDate().toISOString()
       };
       
     } catch (error) {
@@ -208,8 +208,8 @@ export class FederatedAuthManager extends EventEmitter {
           type: authType,
           credentials: authResult,
           endpointConfig,
-          authenticatedAt: new Date().toISOString(),
-          lastUsed: new Date().toISOString()
+          authenticatedAt: this.getDeterministicDate().toISOString(),
+          lastUsed: this.getDeterministicDate().toISOString()
         });
         
         this.state.statistics.successfulAuths++;
@@ -273,7 +273,7 @@ export class FederatedAuthManager extends EventEmitter {
       }
       
       // Check expiration
-      if (tokenInfo.expiresAt && Date.now() > tokenInfo.expiresAt) {
+      if (tokenInfo.expiresAt && this.getDeterministicTimestamp() > tokenInfo.expiresAt) {
         return {
           valid: false,
           error: 'Token has expired',
@@ -356,7 +356,7 @@ export class FederatedAuthManager extends EventEmitter {
         
         // Update stored credentials
         endpointAuth.credentials = refreshResult;
-        endpointAuth.lastUsed = new Date().toISOString();
+        endpointAuth.lastUsed = this.getDeterministicDate().toISOString();
         
         this.emit('tokenRefreshed', { endpointUrl, refreshResult });
         
@@ -396,8 +396,8 @@ export class FederatedAuthManager extends EventEmitter {
         userContext,
         requestContext,
         federatedToken,
-        createdAt: new Date().toISOString(),
-        expiresAt: new Date(Date.now() + this.config.tokenCacheTTL).toISOString(),
+        createdAt: this.getDeterministicDate().toISOString(),
+        expiresAt: new Date(this.getDeterministicTimestamp() + this.config.tokenCacheTTL).toISOString(),
         endpoints: new Map(),
         permissions: this.calculateUserPermissions(userContext),
         trustLevel: this.calculateTrustLevel(userContext, requestContext)
@@ -495,7 +495,7 @@ export class FederatedAuthManager extends EventEmitter {
       const tokenData = await response.json();
       
       const expiresAt = tokenData.expires_in ? 
-        new Date(Date.now() + (tokenData.expires_in * 1000)).toISOString() : null;
+        new Date(this.getDeterministicTimestamp() + (tokenData.expires_in * 1000)).toISOString() : null;
       
       return {
         success: true,
@@ -537,8 +537,8 @@ export class FederatedAuthManager extends EventEmitter {
         sub: endpointConfig.subject || 'federation',
         aud: endpointConfig.audience || endpointConfig.url,
         iss: endpointConfig.issuer || 'kgen-federation',
-        exp: Math.floor(Date.now() / 1000) + (endpointConfig.expiresIn || 3600),
-        iat: Math.floor(Date.now() / 1000),
+        exp: Math.floor(this.getDeterministicTimestamp() / 1000) + (endpointConfig.expiresIn || 3600),
+        iat: Math.floor(this.getDeterministicTimestamp() / 1000),
         jti: authId,
         ...endpointConfig.customClaims
       };
@@ -623,7 +623,7 @@ export class FederatedAuthManager extends EventEmitter {
     const cacheKey = this.generateCacheKey(endpointConfig);
     const cached = this.state.tokenCache.get(cacheKey);
     
-    if (cached && cached.expiresAt && Date.now() < new Date(cached.expiresAt).getTime()) {
+    if (cached && cached.expiresAt && this.getDeterministicTimestamp() < new Date(cached.expiresAt).getTime()) {
       return cached;
     }
     
@@ -636,7 +636,7 @@ export class FederatedAuthManager extends EventEmitter {
       token: authResult.token,
       type: authResult.type,
       expiresAt: authResult.expiresAt,
-      cachedAt: new Date().toISOString(),
+      cachedAt: this.getDeterministicDate().toISOString(),
       ...authResult
     };
     
@@ -645,7 +645,7 @@ export class FederatedAuthManager extends EventEmitter {
     // Schedule cleanup
     if (authResult.expiresAt) {
       const expiryTime = new Date(authResult.expiresAt).getTime();
-      const cleanupTime = expiryTime - Date.now();
+      const cleanupTime = expiryTime - this.getDeterministicTimestamp();
       
       if (cleanupTime > 0) {
         setTimeout(() => {
@@ -674,7 +674,7 @@ export class FederatedAuthManager extends EventEmitter {
     const expiryTime = new Date(cachedAuth.expiresAt).getTime();
     const bufferTime = this.config.tokenRefreshBuffer;
     
-    return Date.now() < (expiryTime - bufferTime);
+    return this.getDeterministicTimestamp() < (expiryTime - bufferTime);
   }
   
   async extractTokenInfo(token) {
@@ -755,8 +755,8 @@ export class FederatedAuthManager extends EventEmitter {
       sub: userContext.userId || 'anonymous',
       aud: 'kgen-federation',
       iss: 'kgen-auth-manager',
-      exp: Math.floor(Date.now() / 1000) + (this.config.tokenCacheTTL / 1000),
-      iat: Math.floor(Date.now() / 1000),
+      exp: Math.floor(this.getDeterministicTimestamp() / 1000) + (this.config.tokenCacheTTL / 1000),
+      iat: Math.floor(this.getDeterministicTimestamp() / 1000),
       federation: true,
       context: {
         user: userContext,
@@ -831,7 +831,7 @@ export class FederatedAuthManager extends EventEmitter {
   async initializeProvider(config) {
     return {
       initialized: true,
-      initTime: new Date().toISOString()
+      initTime: this.getDeterministicDate().toISOString()
     };
   }
   
@@ -846,7 +846,7 @@ export class FederatedAuthManager extends EventEmitter {
   }
   
   cleanupExpiredTokens() {
-    const now = Date.now();
+    const now = this.getDeterministicTimestamp();
     let cleaned = 0;
     
     for (const [key, cached] of this.state.tokenCache.entries()) {

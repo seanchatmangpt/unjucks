@@ -151,7 +151,7 @@ export class EventStreamingManager extends EventEmitter {
    * Create standardized federation event
    */
   _createFederationEvent(eventType, data, options = {}) {
-    const timestamp = new Date().toISOString();
+    const timestamp = this.getDeterministicDate().toISOString();
     const eventId = createHash('sha256')
       .update(`${eventType}-${timestamp}-${Math.random()}`)
       .digest('hex')
@@ -343,7 +343,7 @@ export class EventStreamingManager extends EventEmitter {
     }
     
     const subscriptionId = createHash('sha256')
-      .update(`${eventTypes.join(',')}-${Date.now()}`)
+      .update(`${eventTypes.join(',')}-${this.getDeterministicTimestamp()}`)
       .digest('hex')
       .substring(0, 16);
     
@@ -394,7 +394,7 @@ export class EventStreamingManager extends EventEmitter {
       handler: options.handler,
       filters: options.filters || [],
       ordering: options.ordering || false,
-      createdAt: new Date().toISOString()
+      createdAt: this.getDeterministicDate().toISOString()
     };
     
     this.eventStreams.set(id, stream);

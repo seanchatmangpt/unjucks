@@ -121,7 +121,7 @@ fi`);
     });
     
     it('should implement exponential backoff', async () => {
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
       await runErrorHandler({
         command: 'exit 1',
@@ -131,7 +131,7 @@ fi`);
         errorClassification: 'warning'
       });
       
-      const endTime = Date.now();
+      const endTime = this.getDeterministicTimestamp();
       const duration = endTime - startTime;
       
       // With exponential backoff: 1s + 2s + 4s = 7s minimum
@@ -168,7 +168,7 @@ fi`);
 
   describe('Timeout Handling', () => {
     it('should timeout long-running commands', async () => {
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
       const result = await runErrorHandler({
         command: 'sleep 10',
@@ -178,7 +178,7 @@ fi`);
         errorClassification: 'warning'
       });
       
-      const endTime = Date.now();
+      const endTime = this.getDeterministicTimestamp();
       const duration = endTime - startTime;
       
       // Should timeout in approximately 6 seconds

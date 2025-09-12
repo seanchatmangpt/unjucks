@@ -42,7 +42,7 @@ describe('Memory Usage Tracking', () => {
         id: i,
         content: `Template content ${i}`.repeat(100),
         metadata: {
-          created: Date.now(),
+          created: this.getDeterministicTimestamp(),
           size: Math.random() * 1000
         }
       });
@@ -112,7 +112,7 @@ describe('Memory Usage Tracking', () => {
       const template = {
         id: i,
         content: `Large template content ${i}`.repeat(500),
-        processed: new Date(),
+        processed: this.getDeterministicDate(),
         cache: new Map()
       };
       
@@ -171,7 +171,7 @@ describe('Memory Usage Tracking', () => {
           taskId: taskIndex,
           operationId: i,
           data: `Task ${taskIndex} operation ${i}`.repeat(50),
-          timestamp: Date.now()
+          timestamp: this.getDeterministicTimestamp()
         });
       }
       
@@ -220,7 +220,7 @@ describe('Memory Usage Tracking', () => {
     
     // Save memory report
     await fs.ensureDir('reports/performance');
-    const reportPath = `reports/performance/memory-report-${Date.now()}.json`;
+    const reportPath = `reports/performance/memory-report-${this.getDeterministicTimestamp()}.json`;
     await fs.writeJson(reportPath, report, { spaces: 2 });
     
     console.log(`Memory report saved to: ${reportPath}`);

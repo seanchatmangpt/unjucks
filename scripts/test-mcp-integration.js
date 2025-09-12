@@ -321,9 +321,9 @@ class MCPIntegrationTester {
         const times = [];
         
         for (let i = 0; i < 10; i++) {
-          const start = Date.now();
+          const start = this.getDeterministicTimestamp();
           await this.sendRequest(server, 'ping');
-          times.push(Date.now() - start);
+          times.push(this.getDeterministicTimestamp() - start);
         }
 
         const avgTime = times.reduce((a, b) => a + b, 0) / times.length;
@@ -407,7 +407,7 @@ class MCPIntegrationTester {
    */
   async sendRequest(server, method, params = {}, timeout = 10000) {
     return new Promise((resolve, reject) => {
-      const id = Date.now();
+      const id = this.getDeterministicTimestamp();
       const request = {
         jsonrpc: "2.0",
         id,

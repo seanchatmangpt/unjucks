@@ -48,8 +48,8 @@ export class DeadlockDetector extends EventEmitter {
       id: resourceId,
       type: metadata.type || 'unknown',
       priority: metadata.priority || 0,
-      createdAt: Date.now(),
-      lastAccessed: Date.now(),
+      createdAt: this.getDeterministicTimestamp(),
+      lastAccessed: this.getDeterministicTimestamp(),
       metadata
     });
 
@@ -64,7 +64,7 @@ export class DeadlockDetector extends EventEmitter {
       id: processId,
       type: metadata.type || 'unknown',
       priority: metadata.priority || 0,
-      startTime: Date.now(),
+      startTime: this.getDeterministicTimestamp(),
       resources: new Set(),
       waitingFor: new Set(),
       metadata
@@ -109,7 +109,7 @@ export class DeadlockDetector extends EventEmitter {
     // Acquire the resource
     this.resourceOwnership.set(resourceId, processId);
     process.resources.add(resourceId);
-    resource.lastAccessed = Date.now();
+    resource.lastAccessed = this.getDeterministicTimestamp();
     
     // Remove from wait-for graph if waiting
     this._removeWaitFor(processId, resourceId);
@@ -146,7 +146,7 @@ export class DeadlockDetector extends EventEmitter {
     if (this.isDetecting) return [];
     this.isDetecting = true;
 
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     const deadlocks = [];
 
     try {
@@ -167,7 +167,7 @@ export class DeadlockDetector extends EventEmitter {
       const validatedDeadlocks = await this._validateDeadlocks(uniqueDeadlocks);
 
       // Update metrics
-      const detectionTime = Date.now() - startTime;
+      const detectionTime = this.getDeterministicTimestamp() - startTime;
       this._updateDetectionMetrics(detectionTime, validatedDeadlocks.length);
 
       // Emit events for detected deadlocks
@@ -196,7 +196,7 @@ export class DeadlockDetector extends EventEmitter {
     }
 
     this.resolutionAttempts.set(deadlockId, attemptCount);
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
 
     try {
       let resolved = false;
@@ -220,7 +220,7 @@ export class DeadlockDetector extends EventEmitter {
           break;
       }
 
-      const resolutionTime = Date.now() - startTime;
+      const resolutionTime = this.getDeterministicTimestamp() - startTime;
 
       if (resolved) {
         this.emit('deadlockResolved', { deadlock, strategy, resolutionTime });
@@ -323,7 +323,7 @@ export class DeadlockDetector extends EventEmitter {
    */
   _detectTimeoutBasedDeadlocks() {
     const deadlocks = [];
-    const currentTime = Date.now();
+    const currentTime = this.getDeterministicTimestamp();
     const timeout = this.config.waitForGraphTimeout;
 
     for (const [processId, waitingFor] of this.waitForGraph) {
@@ -334,7 +334,7 @@ export class DeadlockDetector extends EventEmitter {
       if (waitTime > timeout && waitingFor.size > 0) {
         // Long wait detected - potential deadlock
         deadlocks.push({
-          id: `timeout_${processId}_${Date.now()}`,
+          id: `timeout_${processId}_${this.getDeterministicTimestamp()}`,
           type: 'timeout_based',
           processes: [processId],
           resources: Array.from(waitingFor),
@@ -429,7 +429,7 @@ export class DeadlockDetector extends EventEmitter {
     
     const process = this.processes.get(processId);
     if (process) {
-      process.waitStartTime = Date.now();
+      process.waitStartTime = this.getDeterministicTimestamp();
       process.waitingFor.add(resourceId);
     }
   }
@@ -467,11 +467,11 @@ export class DeadlockDetector extends EventEmitter {
 
   _createDeadlockFromCycle(cycle, type) {
     return {
-      id: `${type}_${cycle.join('_')}_${Date.now()}`,
+      id: `${type}_${cycle.join('_')}_${this.getDeterministicTimestamp()}`,
       type,
       processes: cycle,
       resources: this._getResourcesInvolvedInCycle(cycle),
-      detectedAt: Date.now(),
+      detectedAt: this.getDeterministicTimestamp(),
       cycle
     };
   }

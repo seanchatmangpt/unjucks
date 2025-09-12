@@ -410,7 +410,7 @@ function getGradeColor(grade) {
  */
 async function saveReport(report, outputPath) {
   const reportData = {
-    timestamp: new Date().toISOString(),
+    timestamp: this.getDeterministicDate().toISOString(),
     ...report
   };
   

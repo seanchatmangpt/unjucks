@@ -7,7 +7,7 @@
  */
 
 import { EventEmitter } from 'events';
-import { Logger } from 'consola';
+import { Consola } from 'consola';
 import crypto from 'crypto';
 
 export class ReasoningWorkflowOrchestrator extends EventEmitter {
@@ -43,7 +43,7 @@ export class ReasoningWorkflowOrchestrator extends EventEmitter {
       ...config
     };
     
-    this.logger = new Logger({ tag: 'workflow-orchestrator' });
+    this.logger = new Consola({ tag: 'workflow-orchestrator' });
     this.state = 'initialized';
     
     // Workflow management
@@ -152,7 +152,7 @@ export class ReasoningWorkflowOrchestrator extends EventEmitter {
         dependencyGraph,
         executionPlan,
         status: 'registered',
-        createdAt: new Date(),
+        createdAt: this.getDeterministicDate(),
         metadata: {
           taskCount: processedWorkflow.tasks.length,
           estimatedDuration: executionPlan.estimatedDuration,
@@ -186,7 +186,7 @@ export class ReasoningWorkflowOrchestrator extends EventEmitter {
    */
   async executeWorkflow(workflowId, executionContext = {}) {
     const executionId = this._generateExecutionId();
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       this.logger.info(`Starting workflow execution ${executionId} for workflow ${workflowId}`);
@@ -219,7 +219,7 @@ export class ReasoningWorkflowOrchestrator extends EventEmitter {
       const analysisResult = await this._analyzeExecution(executionInstance, executionResult);
       
       // Update performance metrics
-      const executionTime = Date.now() - startTime;
+      const executionTime = this.getDeterministicTimestamp() - startTime;
       this._updateExecutionMetrics(executionId, executionTime, true);
       
       // Learn from execution patterns
@@ -254,7 +254,7 @@ export class ReasoningWorkflowOrchestrator extends EventEmitter {
       };
       
     } catch (error) {
-      const executionTime = Date.now() - startTime;
+      const executionTime = this.getDeterministicTimestamp() - startTime;
       this._updateExecutionMetrics(executionId, executionTime, false);
       
       this.activeWorkflows.delete(executionId);
@@ -662,11 +662,11 @@ export class ReasoningWorkflowOrchestrator extends EventEmitter {
   }
 
   _generateWorkflowId() {
-    return `workflow_${Date.now()}_${crypto.randomBytes(4).toString('hex')}`;
+    return `workflow_${this.getDeterministicTimestamp()}_${crypto.randomBytes(4).toString('hex')}`;
   }
 
   _generateExecutionId() {
-    return `exec_${Date.now()}_${crypto.randomBytes(4).toString('hex')}`;
+    return `exec_${this.getDeterministicTimestamp()}_${crypto.randomBytes(4).toString('hex')}`;
   }
 
   // Additional methods for workflow validation, execution, optimization,

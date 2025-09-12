@@ -120,7 +120,7 @@ export class CanonicalTurtleSerializer extends EventEmitter {
    * @returns {Promise<Object>} Serialization result with metadata
    */
   async serializeCanonical(quads, options = {}) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       this.logger.info('Starting canonical turtle serialization...');
@@ -130,7 +130,7 @@ export class CanonicalTurtleSerializer extends EventEmitter {
         ...this.config,
         ...options,
         serializationId: crypto.randomUUID(),
-        timestamp: new Date(),
+        timestamp: this.getDeterministicDate(),
         inputTriples: Array.isArray(quads) ? quads.length : quads.size
       };
       
@@ -166,7 +166,7 @@ export class CanonicalTurtleSerializer extends EventEmitter {
         statistics: {
           inputTriples: tripleArray.length,
           outputBytes: Buffer.byteLength(turtleContent, 'utf8'),
-          serializationTime: Date.now() - startTime,
+          serializationTime: this.getDeterministicTimestamp() - startTime,
           prefixCount: Object.keys(optimizedPrefixes).length,
           integrityHash
         }
@@ -286,7 +286,7 @@ export class CanonicalTurtleSerializer extends EventEmitter {
         hash1: canonical1.statistics.integrityHash,
         hash2: canonical2.statistics.integrityHash,
         metadata: {
-          comparedAt: new Date(),
+          comparedAt: this.getDeterministicDate(),
           triples1: store1.size,
           triples2: store2.size
         }
@@ -630,7 +630,7 @@ export class CanonicalTurtleSerializer extends EventEmitter {
   }
 
   async _updateStatistics(startTime, tripleCount) {
-    const serializationTime = Date.now() - startTime;
+    const serializationTime = this.getDeterministicTimestamp() - startTime;
     
     this.statistics.totalSerializations++;
     this.statistics.totalTriples += tripleCount;
@@ -648,7 +648,7 @@ export class CanonicalTurtleSerializer extends EventEmitter {
     
     this.serializationCache.set(serializationId, {
       ...result,
-      cachedAt: new Date()
+      cachedAt: this.getDeterministicDate()
     });
   }
 

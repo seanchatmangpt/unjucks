@@ -11,7 +11,7 @@ const crypto = require('crypto');
 class SOXComplianceTestRunner {
   constructor() {
     this.testResults = [];
-    this.startTime = Date.now();
+    this.startTime = this.getDeterministicTimestamp();
   }
 
   /**
@@ -178,12 +178,12 @@ class SOXComplianceTestRunner {
       };
 
       const mockAuditEvent = {
-        auditId: 'SOX_PAYMENT_' + Date.now(),
+        auditId: 'SOX_PAYMENT_' + this.getDeterministicTimestamp(),
         operation: 'PAYMENT_PROCESSING',
         user: { id: 'user123' },
         amount: 1000,
         currency: 'USD',
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         soxControls: ['SECTION_302', 'SECTION_404'],
         complianceFramework: 'SOX',
         immutable: true,
@@ -331,7 +331,7 @@ class SOXComplianceTestRunner {
       };
 
       const mockTransaction = {
-        transactionId: 'TXN_' + Date.now(),
+        transactionId: 'TXN_' + this.getDeterministicTimestamp(),
         amount: 2500.00,
         currency: 'USD',
         accountingPeriod: '2024-Q1',
@@ -340,8 +340,8 @@ class SOXComplianceTestRunner {
           { account: '2001', credit: 2500.00 }
         ],
         soxControlsApplied: ['302', '404'],
-        auditTrail: 'SOX_PAYMENT_' + Date.now(),
-        timestamp: new Date().toISOString()
+        auditTrail: 'SOX_PAYMENT_' + this.getDeterministicTimestamp(),
+        timestamp: this.getDeterministicDate().toISOString()
       };
 
       const recordingResult = await mockFinancialReporting.recordTransaction(mockTransaction);
@@ -393,7 +393,7 @@ class SOXComplianceTestRunner {
 
       const errorResult = await errorHandling.handleSOXComplianceError(
         mockSOXError,
-        'SOX_PAYMENT_' + Date.now(),
+        'SOX_PAYMENT_' + this.getDeterministicTimestamp(),
         { amount: 1000 },
         { user: { id: 'user123' } }
       );
@@ -437,7 +437,7 @@ class SOXComplianceTestRunner {
       };
 
       const complianceReport = {
-        reportId: 'SOX_REPORT_' + Date.now(),
+        reportId: 'SOX_REPORT_' + this.getDeterministicTimestamp(),
         framework: 'SOX',
         period: 'Q1 2024',
         complianceStatus: complianceMetrics.complianceRate >= 95 ? 'COMPLIANT' : 'NON_COMPLIANT',
@@ -468,7 +468,7 @@ class SOXComplianceTestRunner {
   }
 
   generateTestReport() {
-    const endTime = Date.now();
+    const endTime = this.getDeterministicTimestamp();
     const duration = endTime - this.startTime;
     const passedTests = this.testResults.filter(test => test.passed).length;
     const totalTests = this.testResults.length;
@@ -481,7 +481,7 @@ class SOXComplianceTestRunner {
         failedTests: totalTests - passedTests,
         successRate: `${((passedTests / totalTests) * 100).toFixed(1)}%`,
         duration: `${duration}ms`,
-        timestamp: new Date().toISOString()
+        timestamp: this.getDeterministicDate().toISOString()
       },
       results: this.testResults,
       compliance: {

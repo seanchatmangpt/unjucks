@@ -114,7 +114,7 @@ export class ThreatDetector extends EventEmitter {
    * @returns {Promise<object>} Threat analysis result
    */
   async analyzeThreats(input, context = {}) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       const analysisResult = {
@@ -124,7 +124,7 @@ export class ThreatDetector extends EventEmitter {
         recommendations: [],
         metadata: {
           analysisType: 'comprehensive',
-          timestamp: new Date(),
+          timestamp: this.getDeterministicDate(),
           context,
           analysisTime: 0
         }
@@ -132,7 +132,7 @@ export class ThreatDetector extends EventEmitter {
       
       // Input validation
       if (!input) {
-        analysisResult.metadata.analysisTime = Date.now() - startTime;
+        analysisResult.metadata.analysisTime = this.getDeterministicTimestamp() - startTime;
         return analysisResult;
       }
       
@@ -141,7 +141,7 @@ export class ThreatDetector extends EventEmitter {
       
       // Check threat cache
       const cachedResult = this.threatCache.get(inputHash);
-      if (cachedResult && (Date.now() - cachedResult.timestamp) < 60000) { // 1 minute cache
+      if (cachedResult && (this.getDeterministicTimestamp() - cachedResult.timestamp) < 60000) { // 1 minute cache
         return { ...cachedResult.result, fromCache: true };
       }
       
@@ -179,7 +179,7 @@ export class ThreatDetector extends EventEmitter {
       this.metrics.patternsMatched += analysisResult.threats.filter(t => t.source === 'pattern').length;
       this.metrics.behavioralAnomalies += analysisResult.threats.filter(t => t.source === 'behavioral').length;
       
-      const analysisTime = Date.now() - startTime;
+      const analysisTime = this.getDeterministicTimestamp() - startTime;
       this._updateDetectionMetrics(analysisTime);
       
       analysisResult.metadata.analysisTime = analysisTime;
@@ -187,7 +187,7 @@ export class ThreatDetector extends EventEmitter {
       // Cache result
       this.threatCache.set(inputHash, {
         result: analysisResult,
-        timestamp: Date.now()
+        timestamp: this.getDeterministicTimestamp()
       });
       
       // Emit events for high-risk threats
@@ -226,9 +226,9 @@ export class ThreatDetector extends EventEmitter {
         recommendations: ['Manual review required'],
         metadata: {
           analysisType: 'error',
-          timestamp: new Date(),
+          timestamp: this.getDeterministicDate(),
           context,
-          analysisTime: Date.now() - startTime,
+          analysisTime: this.getDeterministicTimestamp() - startTime,
           error: error.message
         }
       };
@@ -399,7 +399,7 @@ export class ThreatDetector extends EventEmitter {
       }
       
       this.emit('threat-intelligence-updated', {
-        timestamp: new Date(),
+        timestamp: this.getDeterministicDate(),
         feedsUpdated: Object.keys(feeds)
       });
       
@@ -590,7 +590,7 @@ export class ThreatDetector extends EventEmitter {
               matches: matches.slice(0, 3) // Limit to first 3 matches
             },
             riskScore: this._getPatternRiskScore(category),
-            timestamp: new Date()
+            timestamp: this.getDeterministicDate()
           });
         }
       }
@@ -610,7 +610,7 @@ export class ThreatDetector extends EventEmitter {
       const behaviorResult = await this.monitorBehavior(context.userId, {
         inputSize: input.length,
         inputType: context.inputType || 'unknown',
-        timestamp: Date.now(),
+        timestamp: this.getDeterministicTimestamp(),
         context
       });
       
@@ -625,7 +625,7 @@ export class ThreatDetector extends EventEmitter {
             score: behaviorResult.anomalyScore
           },
           riskScore: Math.min(behaviorResult.anomalyScore * 10, 100),
-          timestamp: new Date()
+          timestamp: this.getDeterministicDate()
         });
       }
     } catch (error) {
@@ -649,7 +649,7 @@ export class ThreatDetector extends EventEmitter {
           source: 'content-analysis',
           evidence: { entropy },
           riskScore: Math.min((entropy - 7.5) * 20, 30),
-          timestamp: new Date()
+          timestamp: this.getDeterministicDate()
         });
       }
       
@@ -662,7 +662,7 @@ export class ThreatDetector extends EventEmitter {
           source: 'content-analysis',
           evidence: { size: input.length },
           riskScore: 40,
-          timestamp: new Date()
+          timestamp: this.getDeterministicDate()
         });
       }
       
@@ -676,7 +676,7 @@ export class ThreatDetector extends EventEmitter {
           source: 'content-analysis',
           evidence: { suspiciousChars, percentage: (suspiciousChars / input.length) * 100 },
           riskScore: 35,
-          timestamp: new Date()
+          timestamp: this.getDeterministicDate()
         });
       }
       
@@ -811,8 +811,8 @@ export class ThreatDetector extends EventEmitter {
         avgRequestFrequency: 0,
         commonInputTypes: new Map(),
         activityPattern: new Map(),
-        firstSeen: Date.now(),
-        lastUpdated: Date.now(),
+        firstSeen: this.getDeterministicTimestamp(),
+        lastUpdated: this.getDeterministicTimestamp(),
         sampleCount: 0
       });
     }
@@ -824,7 +824,7 @@ export class ThreatDetector extends EventEmitter {
     const activities = this.suspiciousActivities.get(userId) || [];
     activities.push({
       ...activity,
-      timestamp: Date.now()
+      timestamp: this.getDeterministicTimestamp()
     });
     
     // Keep only last 100 activities
@@ -872,7 +872,7 @@ export class ThreatDetector extends EventEmitter {
     const currentCount = baseline.commonInputTypes.get(inputType) || 0;
     baseline.commonInputTypes.set(inputType, currentCount + 1);
     
-    baseline.lastUpdated = Date.now();
+    baseline.lastUpdated = this.getDeterministicTimestamp();
   }
 
   _updateDetectionMetrics(detectionTime) {
@@ -884,7 +884,7 @@ export class ThreatDetector extends EventEmitter {
   }
 
   _cleanupThreatCache() {
-    const now = Date.now();
+    const now = this.getDeterministicTimestamp();
     const expired = [];
     
     for (const [key, entry] of this.threatCache.entries()) {
@@ -906,7 +906,7 @@ export class ThreatDetector extends EventEmitter {
   }
 
   _cleanupSuspiciousActivities() {
-    const now = Date.now();
+    const now = this.getDeterministicTimestamp();
     const dayMs = 24 * 60 * 60 * 1000;
     
     for (const [userId, activities] of this.suspiciousActivities.entries()) {

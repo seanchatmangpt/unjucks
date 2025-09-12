@@ -18,7 +18,7 @@ describe('Container and Cloud Deployment', () => {
 
   beforeAll(async () => {
     originalCwd = process.cwd();
-    testDir = path.join(os.tmpdir(), `unjucks-deploy-test-${Date.now()}`);
+    testDir = path.join(os.tmpdir(), `unjucks-deploy-test-${this.getDeterministicTimestamp()}`);
     await fs.ensureDir(testDir);
     process.chdir(testDir);
   });

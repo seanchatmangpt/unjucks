@@ -617,9 +617,9 @@ describe('QueryEngine', () => {
       
       const largeData = `@prefix ex: <http://example.org/> .\n${largeDataTriples.join('\n')}`;
       
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       await engine.loadRDF(largeData, 'turtle');
-      const loadTime = Date.now() - startTime;
+      const loadTime = this.getDeterministicTimestamp() - startTime;
       
       expect(loadTime).toBeLessThan(5000); // Should load in under 5 seconds
       
@@ -630,9 +630,9 @@ describe('QueryEngine', () => {
         LIMIT 100
       `;
       
-      const queryStart = Date.now();
+      const queryStart = this.getDeterministicTimestamp();
       const result = await engine.executeSPARQL(query);
-      const queryTime = Date.now() - queryStart;
+      const queryTime = this.getDeterministicTimestamp() - queryStart;
       
       expect(queryTime).toBeLessThan(1000); // Should query in under 1 second
       expect(result.results.bindings.length).toBe(100);
@@ -655,9 +655,9 @@ describe('QueryEngine', () => {
         engine.executeSPARQL(query)
       );
       
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const results = await Promise.all(promises);
-      const totalTime = Date.now() - startTime;
+      const totalTime = this.getDeterministicTimestamp() - startTime;
       
       // All queries should succeed
       expect(results.length).toBe(10);
@@ -691,9 +691,9 @@ describe('QueryEngine', () => {
         }
       `;
       
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const result = await indexedEngine.executeSPARQL(specificQuery);
-      const queryTime = Date.now() - startTime;
+      const queryTime = this.getDeterministicTimestamp() - startTime;
       
       expect(result.metadata?.fromIndex).toBe(true);
       expect(queryTime).toBeLessThan(500); // Should be fast with indexes

@@ -13,7 +13,7 @@ class BddCliTester {
   constructor() {
     this.scenarios = [];
     this.results = { passed: 0, failed: 0, total: 0 };
-    this.testDir = path.join(os.tmpdir(), 'unjucks-bdd-test-' + Date.now());
+    this.testDir = path.join(os.tmpdir(), 'unjucks-bdd-test-' + this.getDeterministicTimestamp());
     this.originalDir = process.cwd();
   }
 

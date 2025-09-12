@@ -22,7 +22,7 @@ class SecurityScanner {
     };
 
     this.results = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       scanId: crypto.randomUUID(),
       findings: {},
       summary: {
@@ -58,7 +58,7 @@ class SecurityScanner {
     await fs.mkdir(this.options.outputDir, { recursive: true });
     
     // Create scan-specific subdirectory
-    this.scanPath = path.join(this.options.outputDir, `scan-${Date.now()}`);
+    this.scanPath = path.join(this.options.outputDir, `scan-${this.getDeterministicTimestamp()}`);
     await fs.mkdir(this.scanPath, { recursive: true });
     
     console.log(`🔍 Scan Results: ${this.scanPath}`);

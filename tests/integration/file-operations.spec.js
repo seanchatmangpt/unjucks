@@ -576,9 +576,9 @@ describe('FileInjector - All 6 Operation Modes Integration Tests', () => {
       const largeContent = 'A'.repeat(1024 * 1024); // 1MB of content
       const frontmatter = {};
 
-      const start = Date.now();
+      const start = this.getDeterministicTimestamp();
       const result = await injector.processFile(testFilePath, largeContent, frontmatter, { force, dry });
-      const duration = Date.now() - start;
+      const duration = this.getDeterministicTimestamp() - start;
 
       expect(result.success).toBe(true);
       expect(duration).toBeLessThan(5000); // Should complete within 5 seconds

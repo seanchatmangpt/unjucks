@@ -49,7 +49,7 @@ export const workflowCommand = defineCommand({
         console.log(chalk.cyan(`Template: ${args.template}`));
         
         try {
-          const workflowId = `workflow-${args.name.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}`;
+          const workflowId = `workflow-${args.name.toLowerCase().replace(/\s+/g, '-')}-${this.getDeterministicTimestamp()}`;
           const triggers = args.triggers ? args.triggers.split(',').map(t => t.trim()) : ['manual'];
           const agents = args.agents.split(',').map(a => a.trim());
           
@@ -58,7 +58,7 @@ export const workflowCommand = defineCommand({
             id: workflowId,
             name: args.name,
             template: args.template,
-            created: new Date().toISOString(),
+            created: this.getDeterministicDate().toISOString(),
             status: "draft",
             triggers,
             parallel: args.parallel,
@@ -144,8 +144,8 @@ export const workflowCommand = defineCommand({
           console.log(chalk.cyan(`Steps: ${workflow.steps.length}`));
           console.log(chalk.cyan(`Parallel: ${workflow.parallel}`));
           
-          const executionId = `exec-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`;
-          const startTime = Date.now();
+          const executionId = `exec-${this.getDeterministicTimestamp()}-${Math.random().toString(36).substr(2, 6)}`;
+          const startTime = this.getDeterministicTimestamp();
           
           console.log(chalk.yellow(`🎬 Starting execution (${executionId})...`));
           
@@ -153,7 +153,7 @@ export const workflowCommand = defineCommand({
           
           for (let i = 0; i < workflow.steps.length; i++) {
             const step = workflow.steps[i];
-            const stepStart = Date.now();
+            const stepStart = this.getDeterministicTimestamp();
             
             console.log(chalk.blue(`⏳ Step ${i + 1}: ${step.name}...`));
             
@@ -167,9 +167,9 @@ export const workflowCommand = defineCommand({
               stepName: step.name,
               agent: step.agent,
               success,
-              duration: Date.now() - stepStart,
+              duration: this.getDeterministicTimestamp() - stepStart,
               output: success ? `Step completed: ${step.description}` : "Step failed",
-              timestamp: new Date().toISOString()
+              timestamp: this.getDeterministicDate().toISOString()
             };
             
             stepResults.push(result);
@@ -178,7 +178,7 @@ export const workflowCommand = defineCommand({
             console.log(`${status} ${step.name} (${Math.round(result.duration)}ms)`);
           }
           
-          const totalTime = Date.now() - startTime;
+          const totalTime = this.getDeterministicTimestamp() - startTime;
           const successfulSteps = stepResults.filter(r => r.success).length;
           
           console.log(chalk.cyan(`\n📊 Execution Summary:`));

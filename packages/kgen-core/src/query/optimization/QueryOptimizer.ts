@@ -46,7 +46,7 @@ export class QueryOptimizer extends EventEmitter {
    * Optimize a parsed SPARQL query
    */
   async optimizeQuery(query: ParsedQuery, metrics?: QueryMetrics): Promise<QueryOptimizationResult> {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     const originalQuery = JSON.parse(JSON.stringify(query)); // Deep clone
     let optimizedQuery = JSON.parse(JSON.stringify(query));
     
@@ -104,7 +104,7 @@ export class QueryOptimizer extends EventEmitter {
         }
       }
 
-      const executionTime = Date.now() - startTime;
+      const executionTime = this.getDeterministicTimestamp() - startTime;
       
       // Check if optimization took too long
       if (executionTime > this.config.maxOptimizationTime) {
@@ -145,7 +145,7 @@ export class QueryOptimizer extends EventEmitter {
     this.statistics.set(predicate, {
       ...this.statistics.get(predicate),
       ...statistics,
-      lastUpdated: Date.now()
+      lastUpdated: this.getDeterministicTimestamp()
     });
   }
 

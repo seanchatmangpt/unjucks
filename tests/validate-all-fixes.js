@@ -15,7 +15,7 @@ const projectRoot = path.resolve(__dirname, '..');
 
 class ComprehensiveFixValidator {
   constructor() {
-    this.startTime = Date.now();
+    this.startTime = this.getDeterministicTimestamp();
     this.results = {
       testSuites: {},
       vulnerabilities: {},
@@ -35,7 +35,7 @@ class ComprehensiveFixValidator {
   }
 
   log(message, type = 'info') {
-    const timestamp = new Date().toISOString();
+    const timestamp = this.getDeterministicDate().toISOString();
     const icons = { info: '📋', success: '✅', error: '❌', warning: '⚠️', progress: '🔄' };
     console.log(`${icons[type]} [${timestamp}] ${message}`);
   }
@@ -62,14 +62,14 @@ class ComprehensiveFixValidator {
 
   async runTestSuite(suiteName, command, options = {}) {
     this.log(`Running ${suiteName} test suite...`, 'progress');
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     const result = await this.executeCommand(command, { 
       silent: true,
       ...options 
     });
     
-    const duration = Date.now() - startTime;
+    const duration = this.getDeterministicTimestamp() - startTime;
     const suiteResult = {
       name: suiteName,
       success: result.success,
@@ -404,10 +404,10 @@ class ComprehensiveFixValidator {
   }
 
   generateReport() {
-    const duration = Date.now() - this.startTime;
+    const duration = this.getDeterministicTimestamp() - this.startTime;
     
     const report = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       duration: duration,
       environment: {
         node_version: process.version,

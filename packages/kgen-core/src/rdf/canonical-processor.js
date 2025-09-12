@@ -100,7 +100,7 @@ export class CanonicalRDFProcessor extends EventEmitter {
    * Parse RDF with proper semantic processing
    */
   async parseRDF(data, format = 'turtle', options = {}) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       const parser = new Parser({ 
@@ -143,7 +143,7 @@ export class CanonicalRDFProcessor extends EventEmitter {
               }
             }
             
-            const parseTime = Date.now() - startTime;
+            const parseTime = this.getDeterministicTimestamp() - startTime;
             
             resolve({
               quads,
@@ -168,7 +168,7 @@ export class CanonicalRDFProcessor extends EventEmitter {
    * Replaces the naive content hashing in bin/kgen.mjs
    */
   async generateCanonicalHash(quads = null, options = {}) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     this.metrics.hashesGenerated++;
     
     try {
@@ -183,8 +183,8 @@ export class CanonicalRDFProcessor extends EventEmitter {
           metadata: {
             algorithm: this.config.hashAlgorithm,
             form: this.config.canonicalForm,
-            timestamp: new Date().toISOString(),
-            processingTime: Date.now() - startTime
+            timestamp: this.getDeterministicDate().toISOString(),
+            processingTime: this.getDeterministicTimestamp() - startTime
           }
         };
       }
@@ -213,8 +213,8 @@ export class CanonicalRDFProcessor extends EventEmitter {
         metadata: {
           algorithm: this.config.hashAlgorithm,
           form: this.config.canonicalForm,
-          timestamp: new Date().toISOString(),
-          processingTime: Date.now() - startTime,
+          timestamp: this.getDeterministicDate().toISOString(),
+          processingTime: this.getDeterministicTimestamp() - startTime,
           sortedTriples: canonical.sortedCount,
           normalizedBlanks: canonical.normalizedBlanks
         }
@@ -228,7 +228,7 @@ export class CanonicalRDFProcessor extends EventEmitter {
       this.emit('hash-generated', {
         hash,
         count: targetQuads.length,
-        processingTime: Date.now() - startTime
+        processingTime: this.getDeterministicTimestamp() - startTime
       });
       
       return result;
@@ -462,7 +462,7 @@ export class CanonicalRDFProcessor extends EventEmitter {
    * Replaces naive line-by-line diff in bin/kgen.mjs
    */
   async compareGraphs(graph1Quads, graph2Quads, options = {}) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     this.metrics.comparisons++;
     
     try {
@@ -481,7 +481,7 @@ export class CanonicalRDFProcessor extends EventEmitter {
           summary: {
             totalTriples1: graph1Quads.length,
             totalTriples2: graph2Quads.length,
-            processingTime: Date.now() - startTime
+            processingTime: this.getDeterministicTimestamp() - startTime
           }
         };
       }
@@ -532,7 +532,7 @@ export class CanonicalRDFProcessor extends EventEmitter {
           addedCount: added.length,
           removedCount: removed.length,
           commonCount: common.length,
-          processingTime: Date.now() - startTime
+          processingTime: this.getDeterministicTimestamp() - startTime
         }
       };
       

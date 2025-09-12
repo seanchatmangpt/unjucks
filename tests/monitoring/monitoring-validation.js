@@ -42,7 +42,7 @@ class BasicHealthCheck {
       status: this.status === 'healthy' ? 200 : 503,
       body: {
         status: this.status,
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         uptime: process.uptime()
       }
     };
@@ -57,11 +57,11 @@ class BasicMetricsCollector {
 
   recordMetric(name, value, labels = {}) {
     const key = `${name}_${JSON.stringify(labels)}`;
-    this.metrics.set(key, { name, value, labels, timestamp: Date.now() });
+    this.metrics.set(key, { name, value, labels, timestamp: this.getDeterministicTimestamp() });
   }
 
   recordHTTPRequest(method, path, statusCode, duration) {
-    this.httpRequests.push({ method, path, statusCode, duration, timestamp: Date.now() });
+    this.httpRequests.push({ method, path, statusCode, duration, timestamp: this.getDeterministicTimestamp() });
     this.recordMetric('http_requests_total', this.httpRequests.length, { method, status: statusCode });
     this.recordMetric('http_request_duration_ms', duration, { method, path });
   }
@@ -107,7 +107,7 @@ class StructuredLogger {
 
   log(level, message, data = {}) {
     const entry = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       level,
       message,
       correlationId: this.correlationId,
@@ -140,10 +140,10 @@ class BasicAlertManager extends EventEmitter {
       try {
         if (rule.condition(metrics)) {
           const alert = {
-            id: `alert_${Date.now()}`,
+            id: `alert_${this.getDeterministicTimestamp()}`,
             rule: name,
             severity: rule.severity,
-            timestamp: new Date().toISOString(),
+            timestamp: this.getDeterministicDate().toISOString(),
             status: 'active'
           };
           this.alerts.push(alert);
@@ -173,7 +173,7 @@ class WorkingMonitoringServer {
     this.logger = new StructuredLogger();
     this.alerts = new BasicAlertManager();
     this.server = null;
-    this.startTime = Date.now();
+    this.startTime = this.getDeterministicTimestamp();
 
     this.setupHealthChecks();
     this.setupAlertRules();
@@ -237,8 +237,8 @@ class WorkingMonitoringServer {
   }
 
   async handleRequest(req, res) {
-    const startTime = Date.now();
-    const correlationId = req.headers['x-correlation-id'] || `req_${Date.now()}`;
+    const startTime = this.getDeterministicTimestamp();
+    const correlationId = req.headers['x-correlation-id'] || `req_${this.getDeterministicTimestamp()}`;
     
     this.logger.setCorrelationContext(correlationId);
     
@@ -265,7 +265,7 @@ class WorkingMonitoringServer {
 
         case '/status':
           response = {
-            uptime: Date.now() - this.startTime,
+            uptime: this.getDeterministicTimestamp() - this.startTime,
             status: 'running',
             version: '1.0.0',
             correlationId
@@ -290,7 +290,7 @@ class WorkingMonitoringServer {
           response = { error: 'Not Found', path: pathname };
       }
 
-      const duration = Date.now() - startTime;
+      const duration = this.getDeterministicTimestamp() - startTime;
       this.metrics.recordHTTPRequest(req.method, pathname, statusCode, duration);
       
       // Check for alerts after each request
@@ -308,7 +308,7 @@ class WorkingMonitoringServer {
       });
 
     } catch (error) {
-      const duration = Date.now() - startTime;
+      const duration = this.getDeterministicTimestamp() - startTime;
       this.metrics.recordHTTPRequest(req.method, req.url, 500, duration);
       
       this.logger.error('Request failed', {
@@ -341,7 +341,7 @@ class WorkingMonitoringServer {
  */
 async function runValidationTests() {
   const results = {
-    timestamp: new Date().toISOString(),
+    timestamp: this.getDeterministicDate().toISOString(),
     tests: {},
     summary: { passed: 0, failed: 0, total: 0 }
   };
@@ -406,7 +406,7 @@ async function runValidationTests() {
     // Test 4: Structured Logging with Correlation IDs
     console.log('Test 4: Structured Logging');
     try {
-      const correlationId = `test_${Date.now()}`;
+      const correlationId = `test_${this.getDeterministicTimestamp()}`;
       const response = await fetch('http://localhost:3001/status', {
         headers: { 'X-Correlation-ID': correlationId }
       });

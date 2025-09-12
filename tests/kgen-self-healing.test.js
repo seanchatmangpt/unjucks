@@ -189,7 +189,7 @@ describe('KGEN Self-Healing System', () => {
     it('should transition to half-open after recovery timeout', async () => {
       // Force circuit to open state
       circuitBreaker.state = 'OPEN';
-      circuitBreaker.lastFailureTime = Date.now() - 2000; // 2 seconds ago
+      circuitBreaker.lastFailureTime = this.getDeterministicTimestamp() - 2000; // 2 seconds ago
       
       const operation = vi.fn().mockResolvedValue('success');
       
@@ -703,7 +703,7 @@ describe('KGEN Self-Healing Performance Tests', () => {
     
     const testOperation = vi.fn().mockResolvedValue('success');
     
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     // Execute operations with self-healing
     for (let i = 0; i < iterations; i++) {
@@ -714,7 +714,7 @@ describe('KGEN Self-Healing Performance Tests', () => {
     
     await Promise.all(operations);
     
-    const endTime = Date.now();
+    const endTime = this.getDeterministicTimestamp();
     const totalTime = endTime - startTime;
     const averageTime = totalTime / iterations;
     
@@ -729,7 +729,7 @@ describe('KGEN Self-Healing Performance Tests', () => {
     
     const testOperation = vi.fn().mockResolvedValue('success');
     
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     // Execute concurrent operations
     for (let i = 0; i < concurrentOperations; i++) {
@@ -740,7 +740,7 @@ describe('KGEN Self-Healing Performance Tests', () => {
     
     const results = await Promise.all(operations);
     
-    const endTime = Date.now();
+    const endTime = this.getDeterministicTimestamp();
     const totalTime = endTime - startTime;
     
     // All operations should succeed

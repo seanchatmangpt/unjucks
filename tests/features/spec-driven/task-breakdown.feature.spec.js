@@ -48,7 +48,7 @@ class TaskBreakdownEngine {
       task.specificationId = specification.id;
       task.acceptanceCriteria = this.generateTaskAcceptanceCriteria(task);
       task.status = 'pending';
-      task.createdAt = new Date().toISOString();
+      task.createdAt = this.getDeterministicDate().toISOString();
     });
 
     return this.validateAndOptimizeTasks(tasks);
@@ -213,7 +213,7 @@ class TaskBreakdownEngine {
         bestMatch.currentLoad += task.estimatedHours || 8; // default estimate
         
         task.assignedTo = bestMatch.member.id;
-        task.assignedAt = new Date().toISOString();
+        task.assignedAt = this.getDeterministicDate().toISOString();
       } else {
         task.assignmentIssue = 'No suitable team member found';
       }
@@ -736,7 +736,7 @@ class TaskBreakdownEngine {
     }
 
     const mergedTask = {
-      id: `merged-${Date.now()}`,
+      id: `merged-${this.getDeterministicTimestamp()}`,
       name: `${tasksToMerge[0].name} (merged)`,
       description: `Merged task: ${tasksToMerge.map(t => t.name).join(', ')}`,
       category: tasksToMerge[0].category,

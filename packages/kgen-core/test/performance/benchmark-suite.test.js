@@ -77,7 +77,7 @@ describe('KGEN Performance Benchmarking Suite', () => {
 
     it('should achieve high cache hit rate with repeated content', async () => {
       const testData = generateTestContent(1000);
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
 
       // First round - populate cache
       const firstRoundPromises = testData.map(async (content, index) => {
@@ -93,7 +93,7 @@ describe('KGEN Performance Benchmarking Suite', () => {
       });
       await Promise.all(secondRoundPromises);
 
-      const totalTime = Date.now() - startTime;
+      const totalTime = this.getDeterministicTimestamp() - startTime;
       const stats = cache.getStats();
 
       console.log(`Cache Performance:`, {
@@ -118,11 +118,11 @@ describe('KGEN Performance Benchmarking Suite', () => {
 
     it('should efficiently handle large content volumes', async () => {
       const largeTestData = generateTestContent(10000);
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
 
       // Store large volume
       const storePromises = largeTestData.map(async (content, index) => {
-        return await cache.store(content, { index, generated_at: Date.now() });
+        return await cache.store(content, { index, generated_at: this.getDeterministicTimestamp() });
       });
       await Promise.all(storePromises);
 
@@ -133,7 +133,7 @@ describe('KGEN Performance Benchmarking Suite', () => {
       });
       await Promise.all(retrievePromises);
 
-      const totalTime = Date.now() - startTime;
+      const totalTime = this.getDeterministicTimestamp() - startTime;
       const stats = cache.getStats();
 
       console.log(`Large Volume Cache Performance:`, {
@@ -164,24 +164,24 @@ describe('KGEN Performance Benchmarking Suite', () => {
       const testInputs = generateTestInputs(1000);
 
       // First generation (full)
-      const firstGenStart = Date.now();
+      const firstGenStart = this.getDeterministicTimestamp();
       const changeAnalysis1 = await incrementalGen.analyzeChanges(testInputs);
       await incrementalGen.generateIncremental(
         mockGenerator,
         testInputs,
         changeAnalysis1
       );
-      const firstGenTime = Date.now() - firstGenStart;
+      const firstGenTime = this.getDeterministicTimestamp() - firstGenStart;
 
       // Second generation (should be mostly incremental)
-      const secondGenStart = Date.now();
+      const secondGenStart = this.getDeterministicTimestamp();
       const changeAnalysis2 = await incrementalGen.analyzeChanges(testInputs);
       await incrementalGen.generateIncremental(
         mockGenerator,
         testInputs,
         changeAnalysis2
       );
-      const secondGenTime = Date.now() - secondGenStart;
+      const secondGenTime = this.getDeterministicTimestamp() - secondGenStart;
 
       const improvementRatio = (firstGenTime - secondGenTime) / firstGenTime;
       const stats = incrementalGen.getStatistics();
@@ -237,7 +237,7 @@ describe('KGEN Performance Benchmarking Suite', () => {
 
     it('should efficiently process large knowledge graphs (1M+ triples)', async () => {
       const largeGraph = generateLargeKnowledgeGraph(1000000); // 1M triples
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
 
       // Add triples to optimizer
       await graphOptimizer.addTriples(largeGraph);
@@ -248,7 +248,7 @@ describe('KGEN Performance Benchmarking Suite', () => {
       // Execute test queries
       const queryResults = await executeTestQueries(graphOptimizer, 100);
 
-      const totalTime = Date.now() - startTime;
+      const totalTime = this.getDeterministicTimestamp() - startTime;
       const stats = graphOptimizer.getStatistics();
 
       console.log(`Large Graph Processing Performance:`, {
@@ -270,17 +270,17 @@ describe('KGEN Performance Benchmarking Suite', () => {
       await graphOptimizer.addTriples(testGraph);
 
       // Test queries without optimization
-      const unoptimizedStart = Date.now();
+      const unoptimizedStart = this.getDeterministicTimestamp();
       const unoptimizedResults = await executeDirectQueries(testGraph, 50);
-      const unoptimizedTime = Date.now() - unoptimizedStart;
+      const unoptimizedTime = this.getDeterministicTimestamp() - unoptimizedStart;
 
       // Optimize graph
       await graphOptimizer.optimize();
 
       // Test same queries with optimization
-      const optimizedStart = Date.now();
+      const optimizedStart = this.getDeterministicTimestamp();
       const optimizedResults = await executeTestQueries(graphOptimizer, 50);
-      const optimizedTime = Date.now() - optimizedStart;
+      const optimizedTime = this.getDeterministicTimestamp() - optimizedStart;
 
       const speedup = unoptimizedTime / optimizedTime;
 
@@ -312,14 +312,14 @@ describe('KGEN Performance Benchmarking Suite', () => {
       const renderTasks = generateRenderTasks(100);
 
       // Serial rendering (simulated)
-      const serialStart = Date.now();
+      const serialStart = this.getDeterministicTimestamp();
       const serialResults = await simulateSerialRendering(renderTasks);
-      const serialTime = Date.now() - serialStart;
+      const serialTime = this.getDeterministicTimestamp() - serialStart;
 
       // Parallel rendering
-      const parallelStart = Date.now();
+      const parallelStart = this.getDeterministicTimestamp();
       const parallelResults = await parallelRenderer.renderParallel(renderTasks);
-      const parallelTime = Date.now() - parallelStart;
+      const parallelTime = this.getDeterministicTimestamp() - parallelStart;
 
       const speedup = serialTime / parallelTime;
       const stats = parallelRenderer.getStatistics();
@@ -380,7 +380,7 @@ describe('KGEN Performance Benchmarking Suite', () => {
         peakMemoryUsage = Math.max(peakMemoryUsage, currentMemory);
       }, 100);
 
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       let processedTriples = 0;
 
       await streaming.streamRDF(
@@ -393,7 +393,7 @@ describe('KGEN Performance Benchmarking Suite', () => {
       );
 
       clearInterval(memoryMonitor);
-      const processingTime = Date.now() - startTime;
+      const processingTime = this.getDeterministicTimestamp() - startTime;
       const memoryIncrease = peakMemoryUsage - initialMemory;
       const stats = streaming.getStatistics();
 
@@ -418,7 +418,7 @@ describe('KGEN Performance Benchmarking Suite', () => {
         generateLargeTestFile(path.join(testDataDir, 'test3.ttl'), 50000)
       ]);
 
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const initialMemory = process.memoryUsage().heapUsed;
 
       const streamingPromises = testFiles.map(async (file, index) => {
@@ -433,7 +433,7 @@ describe('KGEN Performance Benchmarking Suite', () => {
       });
 
       const results = await Promise.all(streamingPromises);
-      const totalTime = Date.now() - startTime;
+      const totalTime = this.getDeterministicTimestamp() - startTime;
       const finalMemory = process.memoryUsage().heapUsed;
       const memoryIncrease = finalMemory - initialMemory;
 
@@ -455,17 +455,17 @@ describe('KGEN Performance Benchmarking Suite', () => {
       const largeInputSet = generateComplexInputSet(1000);
       
       // Test without optimizations (simulated)
-      const unoptimizedStart = Date.now();
+      const unoptimizedStart = this.getDeterministicTimestamp();
       const unoptimizedResults = await simulateUnoptimizedGeneration(largeInputSet);
-      const unoptimizedTime = Date.now() - unoptimizedStart;
+      const unoptimizedTime = this.getDeterministicTimestamp() - unoptimizedStart;
 
       // Test with full optimizations
-      const optimizedStart = Date.now();
+      const optimizedStart = this.getDeterministicTimestamp();
       const optimizedResults = await optimizedKGEN.generate(largeInputSet, {
         template: 'test-template',
         enableAllOptimizations: true
       });
-      const optimizedTime = Date.now() - optimizedStart;
+      const optimizedTime = this.getDeterministicTimestamp() - optimizedStart;
 
       const overallSpeedup = unoptimizedTime / optimizedTime;
       const performanceStats = optimizedKGEN.getPerformanceStatistics();
@@ -488,7 +488,7 @@ describe('KGEN Performance Benchmarking Suite', () => {
       const loadTestInputs = generateComplexInputSet(2000);
       const concurrentRequests = 5;
 
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
       // Execute multiple concurrent generation requests
       const loadTestPromises = Array(concurrentRequests).fill().map(async (_, index) => {
@@ -504,7 +504,7 @@ describe('KGEN Performance Benchmarking Suite', () => {
       });
 
       const results = await Promise.all(loadTestPromises);
-      const totalTime = Date.now() - startTime;
+      const totalTime = this.getDeterministicTimestamp() - startTime;
       const finalStats = optimizedKGEN.getPerformanceStatistics();
 
       console.log(`Load Test Performance:`, {
@@ -530,7 +530,7 @@ function generateTestContent(count) {
     id: `content-${i}`,
     data: `Test content ${i}`,
     value: Math.random() * 1000,
-    timestamp: new Date().toISOString()
+    timestamp: this.getDeterministicDate().toISOString()
   }));
 }
 
@@ -662,7 +662,7 @@ async function mockGenerator(key, input, context) {
     key,
     content: `Generated content for ${key}`,
     metadata: {
-      generated_at: Date.now(),
+      generated_at: this.getDeterministicTimestamp(),
       input_type: input.type || 'unknown'
     }
   };
@@ -713,7 +713,7 @@ async function simulateSerialRendering(tasks) {
     });
   }
   
-  return { results, total_time: Date.now() };
+  return { results, total_time: this.getDeterministicTimestamp() };
 }
 
 async function simulateUnoptimizedGeneration(inputs) {
@@ -725,7 +725,7 @@ async function simulateUnoptimizedGeneration(inputs) {
     
     results[key] = {
       content: `Unoptimized result for ${key}`,
-      metadata: { generated_at: Date.now() }
+      metadata: { generated_at: this.getDeterministicTimestamp() }
     };
   }
   

@@ -136,8 +136,8 @@ export class TemplateRenderer {
       arr.sort((a, b) => (a[key] > b[key] ? 1 : -1)));
 
     // Date utilities
-    env.addFilter('now', () => new Date().toISOString());
-    env.addFilter('timestamp', () => Date.now());
+    env.addFilter('now', () => this.getDeterministicDate().toISOString());
+    env.addFilter('timestamp', () => this.getDeterministicTimestamp());
 
     // Conditional rendering
     env.addGlobal('when', (condition, value) => condition ? value : '');

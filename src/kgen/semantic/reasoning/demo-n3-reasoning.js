@@ -79,7 +79,7 @@ async function demonstrateN3Reasoning() {
     
     // 4. Perform reasoning
     console.log('4️⃣ Performing semantic reasoning...');
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     const reasoningResult = await engine.performReasoning(testGraph, [], {
       operationId: 'demo-reasoning',
@@ -87,7 +87,7 @@ async function demonstrateN3Reasoning() {
       validateResults: true
     });
     
-    const reasoningTime = Date.now() - startTime;
+    const reasoningTime = this.getDeterministicTimestamp() - startTime;
     
     console.log('✅ Reasoning completed');
     console.log(`   - Operation ID: ${reasoningResult.operationId}`);

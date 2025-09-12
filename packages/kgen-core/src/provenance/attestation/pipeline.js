@@ -388,8 +388,8 @@ export class AttestationPipeline {
     return {
       ...context,
       operationId: context.operationId || uuidv4(),
-      startTime: context.startTime || new Date(),
-      endTime: context.endTime || new Date(),
+      startTime: context.startTime || this.getDeterministicDate(),
+      endTime: context.endTime || this.getDeterministicDate(),
       agent: context.agent || {
         id: 'kgen-system',
         type: 'software',
@@ -464,7 +464,7 @@ export class AttestationPipeline {
       })),
       batchContext: {
         operationId: context.operationId,
-        generatedAt: new Date().toISOString(),
+        generatedAt: this.getDeterministicDate().toISOString(),
         agent: context.agent
       },
       signature: null // Would be signed if crypto manager available

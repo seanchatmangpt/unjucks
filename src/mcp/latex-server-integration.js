@@ -313,7 +313,7 @@ export class LaTeXMCPIntegration {
         citationSources: ['arxiv', 'semantic-scholar', 'crossref', 'pubmed'],
         ontologySupport: ['dublin_core', 'schema_org', 'fhir', 'fibo']
       },
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     };
 
     // Store in swarm memory

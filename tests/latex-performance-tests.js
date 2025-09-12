@@ -24,7 +24,7 @@ describe('LaTeX Performance Optimizations', () => {
 
   beforeEach(async () => {
     // Create temporary test directory
-    tempDir = path.join(process.cwd(), 'temp', `test-${Date.now()}`);
+    tempDir = path.join(process.cwd(), 'temp', `test-${this.getDeterministicTimestamp()}`);
     await fs.mkdir(tempDir, { recursive: true });
     
     // Initialize optimized compiler
@@ -216,7 +216,7 @@ This document tests performance monitoring capabilities.
       await fs.writeFile(testFile, content);
 
       // Start profiling
-      const sessionId = 'test-session-' + Date.now();
+      const sessionId = 'test-session-' + this.getDeterministicTimestamp();
       const profile = monitor.startProfile(sessionId, { 
         testFile, 
         optimization: 'enabled' 

@@ -7,7 +7,7 @@
  */
 
 import { EventEmitter } from 'events';
-import { Logger } from 'consola';
+import { Consola } from 'consola';
 import { UnjucksTemplateBridge } from './unjucks-template-bridge.js';
 import { EnhancedArtifactGenerator } from './enhanced-artifact-generator.js';
 import { VariableResolutionSystem } from './variable-resolution-system.js';
@@ -51,7 +51,7 @@ export class KGenIntegrationSystem extends EventEmitter {
       ...config
     };
     
-    this.logger = new Logger({ tag: 'kgen-integration-system' });
+    this.logger = new Consola({ tag: 'kgen-integration-system' });
     this.state = 'initialized';
     
     // Initialize error handler
@@ -149,7 +149,7 @@ export class KGenIntegrationSystem extends EventEmitter {
       // Create comprehensive resource catalog
       const resourceCatalog = {
         operationId,
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         generators: generators.map(g => ({
           ...g,
           templates: templatesMap.get(g.name) || []
@@ -362,7 +362,7 @@ export class KGenIntegrationSystem extends EventEmitter {
       // Create comprehensive validation report
       const validationReport = {
         operationId,
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         overall: {
           valid: validationResults.every(r => r.valid),
           totalItems: validationResults.length,
@@ -521,13 +521,13 @@ export class KGenIntegrationSystem extends EventEmitter {
   }
 
   _generateOperationId() {
-    return `kis_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    return `kis_${this.getDeterministicTimestamp()}_${Math.random().toString(36).substr(2, 9)}`;
   }
 
   _trackOperationStart(operationId, type) {
     this.activeOperations.set(operationId, {
       type,
-      startTime: Date.now(),
+      startTime: this.getDeterministicTimestamp(),
       status: 'running'
     });
     
@@ -538,7 +538,7 @@ export class KGenIntegrationSystem extends EventEmitter {
   _trackOperationComplete(operationId, status, errorMessage = null) {
     const operation = this.activeOperations.get(operationId);
     if (operation) {
-      const duration = Date.now() - operation.startTime;
+      const duration = this.getDeterministicTimestamp() - operation.startTime;
       
       // Update metrics
       if (status === 'success') {
@@ -558,7 +558,7 @@ export class KGenIntegrationSystem extends EventEmitter {
         status,
         duration,
         errorMessage,
-        timestamp: new Date().toISOString()
+        timestamp: this.getDeterministicDate().toISOString()
       });
       
       // Remove from active operations
@@ -752,9 +752,9 @@ export class KGenIntegrationSystem extends EventEmitter {
   }
 
   async _waitForActiveOperations(timeout = 30000) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
-    while (this.activeOperations.size > 0 && (Date.now() - startTime) < timeout) {
+    while (this.activeOperations.size > 0 && (this.getDeterministicTimestamp() - startTime) < timeout) {
       await new Promise(resolve => setTimeout(resolve, 100));
     }
     

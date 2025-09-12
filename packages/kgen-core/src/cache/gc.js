@@ -91,7 +91,7 @@ export class GarbageCollector {
           hash: entry.hash,
           key: entry.key,
           size: entry.metadata?.size || 0,
-          age: Date.now() - (entry.metadata?.createdAt || 0),
+          age: this.getDeterministicTimestamp() - (entry.metadata?.createdAt || 0),
           reason: entry.removeReason
         })
       } catch (error) {
@@ -108,7 +108,7 @@ export class GarbageCollector {
         hash: e.hash,
         key: e.key,
         size: e.metadata?.size || 0,
-        age: Date.now() - (e.metadata?.createdAt || 0)
+        age: this.getDeterministicTimestamp() - (e.metadata?.createdAt || 0)
       }))
 
     results.after = await this.storage.stats()
@@ -122,7 +122,7 @@ export class GarbageCollector {
   async applyLRU(entries, config) {
     const maxSize = CacheManager.parseSize(config.maxSize)
     const maxAge = CacheManager.parseAge(config.maxAge)
-    const now = Date.now()
+    const now = this.getDeterministicTimestamp()
     
     const toRemove = []
     let totalSize = 0
@@ -169,7 +169,7 @@ export class GarbageCollector {
   async applyFIFO(entries, config) {
     const maxSize = CacheManager.parseSize(config.maxSize)
     const maxAge = CacheManager.parseAge(config.maxAge)
-    const now = Date.now()
+    const now = this.getDeterministicTimestamp()
     
     const toRemove = []
     
@@ -211,7 +211,7 @@ export class GarbageCollector {
   async applySizeBased(entries, config) {
     const maxSize = CacheManager.parseSize(config.maxSize)
     const maxAge = CacheManager.parseAge(config.maxAge)
-    const now = Date.now()
+    const now = this.getDeterministicTimestamp()
     
     const toRemove = []
     
@@ -252,7 +252,7 @@ export class GarbageCollector {
    */
   async applyAgeBased(entries, config) {
     const maxAge = CacheManager.parseAge(config.maxAge)
-    const now = Date.now()
+    const now = this.getDeterministicTimestamp()
     
     const toRemove = []
     
@@ -273,7 +273,7 @@ export class GarbageCollector {
   async applyHybrid(entries, config) {
     const maxSize = CacheManager.parseSize(config.maxSize)
     const maxAge = CacheManager.parseAge(config.maxAge)
-    const now = Date.now()
+    const now = this.getDeterministicTimestamp()
     
     const toRemove = []
     
@@ -366,7 +366,7 @@ export class GarbageCollector {
       hash: entry.hash,
       key: entry.key,
       size: entry.metadata?.size || 0,
-      age: Date.now() - (entry.metadata?.createdAt || 0),
+      age: this.getDeterministicTimestamp() - (entry.metadata?.createdAt || 0),
       reason: entry.removeReason
     }))
 

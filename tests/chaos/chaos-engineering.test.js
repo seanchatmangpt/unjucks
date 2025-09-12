@@ -308,11 +308,11 @@ describe('Chaos Engineering Tests', () => {
     it('should handle high CPU load scenarios', async () => {
       // Simulate CPU-intensive operation
       const cpuIntensiveWork = () => {
-        const start = Date.now();
+        const start = this.getDeterministicTimestamp();
         let counter = 0;
         
         // Burn CPU for a short time
-        while (Date.now() - start < 100) {
+        while (this.getDeterministicTimestamp() - start < 100) {
           counter += Math.random() * Math.random();
         }
         
@@ -352,12 +352,12 @@ describe('Chaos Engineering Tests', () => {
       const options = GeneratorFactory.createGenerateOptions();
 
       // Should timeout or limit execution time
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
       try {
         await generator.generate(options);
       } catch (error) {
-        const endTime = Date.now();
+        const endTime = this.getDeterministicTimestamp();
         const duration = endTime - startTime;
         
         // Should not run for more than reasonable time (e.g., 10 seconds)
@@ -482,10 +482,10 @@ describe('Chaos Engineering Tests', () => {
       const locks = new Map();
 
       const acquireLock = async (resource, timeout = 1000) => {
-        const startTime = Date.now();
+        const startTime = this.getDeterministicTimestamp();
         
         while (locks.get(resource)) {
-          if (Date.now() - startTime > timeout) {
+          if (this.getDeterministicTimestamp() - startTime > timeout) {
             throw new Error(`Deadlock detected in chaos test`);
           }
           await new Promise(resolve => setTimeout(resolve, 10));
@@ -729,7 +729,7 @@ class CircuitBreaker {
       this.failureCount++;
       if (this.failureCount >= 5) {
         this.state = 'open';
-        this.lastFailureTime = Date.now();
+        this.lastFailureTime = this.getDeterministicTimestamp();
       }
       throw error;
     }

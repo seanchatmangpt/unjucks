@@ -161,7 +161,7 @@ export class GDPRValidator {
    * @param {ValidationError[]} violations - Violations array to populate
    */
   validateDataRetention(data, violations) {
-    const currentDate = new Date();
+    const currentDate = this.getDeterministicDate();
     
     for (const [subjectUri, resource] of Object.entries(data.subjects)) {
       if (this.containsPersonalData(resource)) {

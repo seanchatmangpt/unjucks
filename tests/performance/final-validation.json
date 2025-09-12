@@ -1,0 +1,71 @@
+{
+  "timestamp": "2025-09-12T19:10:28.178Z",
+  "system": {
+    "platform": "darwin",
+    "arch": "arm64",
+    "cpus": 16,
+    "memory": 48,
+    "nodeVersion": "v22.12.0"
+  },
+  "tests": {
+    "coldStart": {
+      "iterations": 3,
+      "times": [
+        450.4184170000001,
+        460.95833300000004,
+        461.9046249999999
+      ],
+      "p95": 461.9046249999999,
+      "target": 2000,
+      "passing": true,
+      "improvement": 1538.095375
+    },
+    "basicOps": {
+      "operations": 15,
+      "avgDuration": 0.15923886666664658,
+      "successRate": 1,
+      "target": 50,
+      "passing": true
+    },
+    "hashPerformance": {
+      "iterations": 15,
+      "times": [
+        0.0011660000000119908,
+        0.0012089999997897394,
+        0.001334000000042579,
+        0.0015000000000782165,
+        0.0015840000000935106,
+        0.0016669999999976426,
+        0.0019589999999425345,
+        0.002167000000099506,
+        0.0027079999999841675,
+        0.0060829999999896245
+      ],
+      "p95": 0.009041000000024724,
+      "target": 30,
+      "passing": true
+    }
+  },
+  "compliance": {
+    "coldStart": {
+      "target": 2000,
+      "actual": 461.9046249999999,
+      "passing": true
+    },
+    "basicOps": {
+      "target": 50,
+      "actual": 0.15923886666664658,
+      "passing": true
+    },
+    "hashPerformance": {
+      "target": 30,
+      "actual": 0.009041000000024724,
+      "passing": true
+    },
+    "overallScore": 100,
+    "passing": 3,
+    "total": 3,
+    "allPassing": true
+  },
+  "success": true
+}

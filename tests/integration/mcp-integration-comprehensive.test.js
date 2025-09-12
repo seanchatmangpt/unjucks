@@ -663,13 +663,13 @@ describe('MCP Integration - Performance and Scalability', () => {
   });
 
   it('should handle rapid successive requests', async () => {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     const requests = Array.from({ length: 50 }, () => 
       client.sendRequest('ping')
     );
 
     const results = await Promise.all(requests);
-    const duration = Date.now() - startTime;
+    const duration = this.getDeterministicTimestamp() - startTime;
 
     expect(results).toHaveLength(50);
     expect(duration).toBeLessThan(10000); // Should complete within 10 seconds
@@ -685,12 +685,12 @@ describe('MCP Integration - Performance and Scalability', () => {
     const times = [];
 
     for (let i = 0; i < iterations; i++) {
-      const start = Date.now();
+      const start = this.getDeterministicTimestamp();
       await client.sendRequest('tools/call', {
         name: 'unjucks_list',
         arguments: {}
       });
-      times.push(Date.now() - start);
+      times.push(this.getDeterministicTimestamp() - start);
     }
 
     const averageTime = times.reduce((a, b) => a + b, 0) / times.length;

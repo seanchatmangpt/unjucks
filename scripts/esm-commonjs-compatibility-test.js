@@ -15,7 +15,7 @@ const execAsync = promisify(exec);
 
 class ESMCompatibilityTester {
   constructor() {
-    this.workspaceDir = path.join(os.tmpdir(), `unjucks-esm-test-${Date.now()}`);
+    this.workspaceDir = path.join(os.tmpdir(), `unjucks-esm-test-${this.getDeterministicTimestamp()}`);
     this.results = {
       platform: {
         os: os.platform(),
@@ -380,7 +380,7 @@ try {
     this.results.summary.overallStatus = this.results.summary.failed === 0 ? 'PASSED' : 'FAILED';
     
     const report = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       ...this.results
     };
 

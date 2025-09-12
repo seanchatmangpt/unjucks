@@ -378,8 +378,8 @@ class ExcelProcessor {
       worksheetCount: workbook.worksheets.length,
       namedRangeCount: workbook.namedRanges?.length || 0,
       chartCount: workbook.charts?.length || 0,
-      created: new Date(),
-      modified: new Date()
+      created: this.getDeterministicDate(),
+      modified: this.getDeterministicDate()
     };
   }
 
@@ -410,7 +410,7 @@ class ExcelProcessor {
       target,
       cellsAffected,
       mode,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     };
   }
 

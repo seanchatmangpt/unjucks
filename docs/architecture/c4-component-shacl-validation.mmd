@@ -1,0 +1,147 @@
+```mermaid
+C4Component
+    title Component Diagram for SHACL Validation Pipeline
+    
+    Container_Boundary(cli, "KGEN CLI") {
+        Component(validateCmd, "Validate Command", "Citty Command", "CLI interface for SHACL validation")
+        Component(graphCmd, "Graph Command", "Command", "Graph validation operations")
+        Component(kgenEngine, "KGenCLIEngine", "Core Engine", "Main orchestrator for validation")
+    }
+    
+    Container_Boundary(shacl, "SHACL Validation Engine") {
+        Component(shaclEngine, "SHACL Engine", "shacl-engine", "Core SHACL constraint validation")
+        Component(shapeLoader, "Shape Loader", "Loader", "Loads SHACL shape definitions")
+        Component(constraintProcessor, "Constraint Processor", "Processor", "Processes SHACL constraints")
+        Component(validationExecutor, "Validation Executor", "Executor", "Executes validation rules")
+    }
+    
+    Container_Boundary(shapes, "Shape Management") {
+        Component(shapeRegistry, "Shape Registry", "Registry", "Manages available SHACL shapes")
+        Component(shapeResolver, "Shape Resolver", "Resolver", "Resolves shape references")
+        Component(shapeValidator, "Shape Validator", "Validator", "Validates shape definitions")
+        Component(shapeCatalog, "Shape Catalog", "Catalog", "Catalogs shape libraries")
+    }
+    
+    Container_Boundary(constraints, "Constraint Types") {
+        Component(nodeConstraints, "Node Constraints", "Constraints", "Node shape constraints")
+        Component(propertyConstraints, "Property Constraints", "Constraints", "Property shape constraints")
+        Component(pathConstraints, "Path Constraints", "Constraints", "Property path constraints")
+        Component(logicalConstraints, "Logical Constraints", "Constraints", "AND, OR, NOT constraints")
+    }
+    
+    Container_Boundary(validation, "Validation Processing") {
+        Component(targetProcessor, "Target Processor", "Processor", "Processes shape targets")
+        Component(focusNodeResolver, "Focus Node Resolver", "Resolver", "Resolves focus nodes")
+        Component(valueNodeProcessor, "Value Node Processor", "Processor", "Processes value nodes")
+        Component(pathTraverser, "Path Traverser", "Traverser", "Traverses property paths")
+    }
+    
+    Container_Boundary(reporting, "Validation Reporting") {
+        Component(reportGenerator, "Report Generator", "Generator", "Generates validation reports")
+        Component(violationCollector, "Violation Collector", "Collector", "Collects constraint violations")
+        Component(severityAnalyzer, "Severity Analyzer", "Analyzer", "Analyzes violation severity")
+        Component(remedyGenerator, "Remedy Generator", "Generator", "Generates remediation suggestions")
+    }
+    
+    Container_Boundary(rdf, "RDF Graph Processing") {
+        Component(graphLoader, "Graph Loader", "Loader", "Loads RDF graphs for validation")
+        Component(tripleProcessor, "Triple Processor", "Processor", "Processes RDF triples")
+        Component(sparqlEngine, "SPARQL Engine", "Engine", "Executes SPARQL queries")
+        Component(inferenceEngine, "Inference Engine", "Engine", "Applies RDF inference rules")
+    }
+    
+    Container_Boundary(caching, "Validation Caching") {
+        Component(shapeCache, "Shape Cache", "Cache", "Caches compiled shapes")
+        Component(validationCache, "Validation Cache", "Cache", "Caches validation results")
+        Component(queryCache, "Query Cache", "Cache", "Caches SPARQL queries")
+        Component(resultCache, "Result Cache", "Cache", "Caches intermediate results")
+    }
+    
+    Container_Boundary(optimization, "Performance Optimization") {
+        Component(indexBuilder, "Index Builder", "Builder", "Builds validation indexes")
+        Component(queryOptimizer, "Query Optimizer", "Optimizer", "Optimizes SPARQL queries")
+        Component(batchProcessor, "Batch Processor", "Processor", "Batches validation operations")
+        Component(parallelValidator, "Parallel Validator", "Validator", "Parallel validation execution")
+    }
+    
+    Container_Boundary(integration, "External Integration") {
+        Component(ontologyLoader, "Ontology Loader", "Loader", "Loads external ontologies")
+        Component(vocabResolver, "Vocabulary Resolver", "Resolver", "Resolves vocabulary terms")
+        Component(schemaRegistry, "Schema Registry", "Registry", "Integrates with schema registries")
+        Component(standardsChecker, "Standards Checker", "Checker", "Checks compliance with standards")
+    }
+    
+    Container_Boundary(output, "Output Management") {
+        Component(jsonFormatter, "JSON Formatter", "Formatter", "Formats results as JSON")
+        Component(turtleFormatter, "Turtle Formatter", "Formatter", "Formats results as Turtle")
+        Component(htmlReporter, "HTML Reporter", "Reporter", "Generates HTML reports")
+        Component(csvExporter, "CSV Exporter", "Exporter", "Exports results as CSV")
+    }
+    
+    Container_Boundary(storage, "Persistent Storage") {
+        Component(shapeStore, "Shape Store", "Storage", "Stores SHACL shapes")
+        Component(reportStore, "Report Store", "Storage", "Stores validation reports")
+        Component(cacheStore, "Cache Store", "Storage", "Persistent cache storage")
+        Component(auditLog, "Audit Log", "Log", "Logs validation operations")
+    }
+    
+    Rel(validateCmd, kgenEngine, "delegates to")
+    Rel(graphCmd, shaclEngine, "validates with")
+    Rel(kgenEngine, shaclEngine, "uses for validation")
+    
+    Rel(shaclEngine, shapeLoader, "loads shapes with")
+    Rel(shaclEngine, constraintProcessor, "processes constraints with")
+    Rel(shaclEngine, validationExecutor, "executes validation with")
+    
+    Rel(shapeLoader, shapeRegistry, "loads shapes from")
+    Rel(shapeRegistry, shapeResolver, "resolves references with")
+    Rel(shapeResolver, shapeValidator, "validates shapes with")
+    Rel(shapeValidator, shapeCatalog, "catalogs shapes in")
+    
+    Rel(constraintProcessor, nodeConstraints, "processes node constraints")
+    Rel(constraintProcessor, propertyConstraints, "processes property constraints")
+    Rel(constraintProcessor, pathConstraints, "processes path constraints")
+    Rel(constraintProcessor, logicalConstraints, "processes logical constraints")
+    
+    Rel(validationExecutor, targetProcessor, "processes targets with")
+    Rel(targetProcessor, focusNodeResolver, "resolves focus nodes with")
+    Rel(focusNodeResolver, valueNodeProcessor, "processes value nodes with")
+    Rel(valueNodeProcessor, pathTraverser, "traverses paths with")
+    
+    Rel(validationExecutor, reportGenerator, "generates reports with")
+    Rel(reportGenerator, violationCollector, "collects violations with")
+    Rel(violationCollector, severityAnalyzer, "analyzes severity with")
+    Rel(severityAnalyzer, remedyGenerator, "generates remedies with")
+    
+    Rel(shaclEngine, graphLoader, "loads graphs with")
+    Rel(graphLoader, tripleProcessor, "processes triples with")
+    Rel(tripleProcessor, sparqlEngine, "queries with")
+    Rel(sparqlEngine, inferenceEngine, "applies inference with")
+    
+    Rel(shapeLoader, shapeCache, "caches shapes in")
+    Rel(validationExecutor, validationCache, "caches results in")
+    Rel(sparqlEngine, queryCache, "caches queries in")
+    Rel(tripleProcessor, resultCache, "caches results in")
+    
+    Rel(validationExecutor, indexBuilder, "builds indexes with")
+    Rel(sparqlEngine, queryOptimizer, "optimizes queries with")
+    Rel(validationExecutor, batchProcessor, "batches operations with")
+    Rel(batchProcessor, parallelValidator, "executes in parallel")
+    
+    Rel(shapeLoader, ontologyLoader, "loads ontologies with")
+    Rel(shapeResolver, vocabResolver, "resolves vocabulary with")
+    Rel(shapeCatalog, schemaRegistry, "integrates with registries")
+    Rel(validationExecutor, standardsChecker, "checks standards with")
+    
+    Rel(reportGenerator, jsonFormatter, "formats as JSON")
+    Rel(reportGenerator, turtleFormatter, "formats as Turtle")
+    Rel(reportGenerator, htmlReporter, "generates HTML reports")
+    Rel(reportGenerator, csvExporter, "exports as CSV")
+    
+    Rel(shapeRegistry, shapeStore, "stores shapes in")
+    Rel(reportGenerator, reportStore, "stores reports in")
+    Rel(shapeCache, cacheStore, "persists cache to")
+    Rel(validationExecutor, auditLog, "logs operations to")
+    
+    UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="3")
+```

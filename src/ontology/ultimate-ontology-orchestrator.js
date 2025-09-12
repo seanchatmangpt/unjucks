@@ -85,7 +85,7 @@ export class UltimateOntologyOrchestrator extends EventEmitter {
    */
   async processOntologyUltimate(ontologyInput, processingRequest) {
     const workflowId = this.generateWorkflowId();
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       // Phase 1: Intelligent workflow planning
@@ -112,7 +112,7 @@ export class UltimateOntologyOrchestrator extends EventEmitter {
       const finalResult = {
         workflowId,
         success: true,
-        processingTime: Date.now() - startTime,
+        processingTime: this.getDeterministicTimestamp() - startTime,
         workflow,
         results: validatedResults,
         metadata: {
@@ -226,11 +226,11 @@ export class UltimateOntologyOrchestrator extends EventEmitter {
    * Execute individual operation with full context awareness
    */
   async executeOperation(input, operation, previousResults) {
-    const operationId = `${operation.type}_${Date.now()}`;
+    const operationId = `${operation.type}_${this.getDeterministicTimestamp()}`;
     
     this.activeOperations.set(operationId, {
       operation,
-      startTime: Date.now(),
+      startTime: this.getDeterministicTimestamp(),
       status: 'running'
     });
     
@@ -581,7 +581,7 @@ export class UltimateOntologyOrchestrator extends EventEmitter {
    */
   getSystemAnalytics(timeframe = '24h') {
     return {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       systemState: this.systemState,
       operationStatistics: this.calculateOperationStatistics(timeframe),
       performanceMetrics: this.calculatePerformanceMetrics(timeframe),
@@ -597,7 +597,7 @@ export class UltimateOntologyOrchestrator extends EventEmitter {
   // Utility and helper methods
 
   generateWorkflowId() {
-    return `workflow_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    return `workflow_${this.getDeterministicTimestamp()}_${Math.random().toString(36).substr(2, 9)}`;
   }
 
   extractStore(input) {

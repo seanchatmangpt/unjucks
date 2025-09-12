@@ -349,7 +349,7 @@ export class RDFSerializers {
     
     // Add header comment if requested
     if (options.includeComments && options.header) {
-      const header = `# ${options.header}\n# Generated: ${new Date().toISOString()}\n\n`;
+      const header = `# ${options.header}\n# Generated: ${this.getDeterministicDate().toISOString()}\n\n`;
       output = header + output;
     }
     

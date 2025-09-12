@@ -11,7 +11,7 @@ import os from 'os';
 
 describe('RDF/Turtle Integration Validation', () => {
   let tempDir => {
-    tempDir = path.join(os.tmpdir(), `rdf-validation-${Date.now()}`);
+    tempDir = path.join(os.tmpdir(), `rdf-validation-${this.getDeterministicTimestamp()}`);
     await fs.ensureDir(tempDir);
     fixturesDir = path.resolve(__dirname, 'fixtures/turtle');
   });

@@ -1,0 +1,151 @@
+```mermaid
+C4Component
+  title C4 Component Diagram: Supply Chain Security & SBOM Generation
+  
+  Container_Boundary(sbom, "SBOM Generation Engine") {
+    Component(sbomGenerator, "SBOM Generator", "CycloneDX, SPDX", "Generates Software Bill of Materials")
+    Component(dependencyScanner, "Dependency Scanner", "Package Analysis", "Scans and analyzes all dependencies")
+    Component(vulnerabilityScanner, "Vulnerability Scanner", "CVE Database", "Scans for known vulnerabilities")
+    Component(licenseAnalyzer, "License Analyzer", "SPDX License List", "Analyzes and validates licenses")
+  }
+  
+  Container_Boundary(attestation, "Attestation Framework") {
+    Component(attestationGenerator, "Attestation Generator", "SLSA, in-toto", "Generates supply chain attestations")
+    Component(provenanceTracker, "Provenance Tracker", "SLSA Provenance", "Tracks artifact provenance")
+    Component(integrityVerifier, "Integrity Verifier", "Cryptographic", "Verifies artifact integrity")
+    Component(signatureManager, "Signature Manager", "Cosign, Sigstore", "Manages cryptographic signatures")
+  }
+  
+  Container_Boundary(scanning, "Security Scanning") {
+    Component(staticAnalyzer, "Static Analyzer", "CodeQL, Semgrep", "Static code analysis for vulnerabilities")
+    Component(secretScanner, "Secret Scanner", "TruffleHog, GitLeaks", "Scans for embedded secrets")
+    Component(malwareScanner, "Malware Scanner", "ClamAV, VirusTotal", "Scans for malicious code")
+    Component(complianceChecker, "Compliance Checker", "Policy Engine", "Checks security compliance")
+  }
+  
+  Container_Boundary(supply_chain, "Supply Chain Analysis") {
+    Component(dependencyGraph, "Dependency Graph", "Graph Database", "Maintains comprehensive dependency graph")
+    Component(riskAnalyzer, "Risk Analyzer", "Risk Assessment", "Analyzes supply chain risks")
+    Component(policyEngine, "Policy Engine", "OPA, Cedar", "Enforces supply chain policies")
+    Component(threatIntelligence, "Threat Intelligence", "CTI Integration", "Integrates threat intelligence feeds")
+  }
+  
+  Container_Boundary(verification, "Verification Pipeline") {
+    Component(artifactVerifier, "Artifact Verifier", "Hash Verification", "Verifies artifact authenticity")
+    Component(buildVerifier, "Build Verifier", "Reproducible Builds", "Verifies build reproducibility")
+    Component(sourceVerifier, "Source Verifier", "Source Integrity", "Verifies source code integrity")
+    Component(distributionVerifier, "Distribution Verifier", "Distribution Security", "Verifies secure distribution")
+  }
+  
+  Container_Boundary(reporting, "Security Reporting") {
+    Component(riskReporter, "Risk Reporter", "Risk Dashboards", "Generates risk assessment reports")
+    Component(complianceReporter, "Compliance Reporter", "Compliance Reports", "Generates compliance reports")
+    Component(vulnerabilityReporter, "Vulnerability Reporter", "Vuln Reports", "Generates vulnerability reports")
+    Component(alertManager, "Alert Manager", "Security Alerts", "Manages security alerts")
+  }
+  
+  SystemDb_Ext(vulnDatabase, "Vulnerability Database", "CVE, NVD, OSV")
+  SystemDb_Ext(licenseDatabase, "License Database", "SPDX License List")
+  SystemDb_Ext(threatFeed, "Threat Intelligence", "STIX/TAXII feeds")
+  System_Ext(packageRegistries, "Package Registries", "npm, PyPI, Maven")
+  System_Ext(sigstoreInfra, "Sigstore Infrastructure", "Cosign, Rekor, Fulcio")
+  System_Ext(complianceFrameworks, "Compliance Frameworks", "SOC2, FedRAMP, NIST")
+  
+  ' SBOM Generation Flow
+  Rel(sbomGenerator, dependencyScanner, "Dependency data")
+  Rel(dependencyScanner, packageRegistries, "Package metadata")
+  Rel(sbomGenerator, vulnerabilityScanner, "Vulnerability data")
+  Rel(vulnerabilityScanner, vulnDatabase, "CVE queries")
+  Rel(sbomGenerator, licenseAnalyzer, "License data")
+  Rel(licenseAnalyzer, licenseDatabase, "License validation")
+  
+  ' Attestation Generation
+  Rel(attestationGenerator, provenanceTracker, "Provenance data")
+  Rel(attestationGenerator, integrityVerifier, "Integrity verification")
+  Rel(attestationGenerator, signatureManager, "Cryptographic signing")
+  Rel(signatureManager, sigstoreInfra, "Signature infrastructure")
+  
+  ' Security Scanning
+  Rel(staticAnalyzer, secretScanner, "Scan coordination")
+  Rel(secretScanner, malwareScanner, "Security pipeline")
+  Rel(malwareScanner, complianceChecker, "Compliance validation")
+  Rel(complianceChecker, complianceFrameworks, "Compliance standards")
+  
+  ' Supply Chain Analysis
+  Rel(dependencyScanner, dependencyGraph, "Dependency mapping")
+  Rel(dependencyGraph, riskAnalyzer, "Risk assessment data")
+  Rel(riskAnalyzer, policyEngine, "Policy evaluation")
+  Rel(threatIntelligence, threatFeed, "Threat data")
+  Rel(threatIntelligence, riskAnalyzer, "Threat context")
+  
+  ' Verification Pipeline
+  Rel(artifactVerifier, buildVerifier, "Build artifacts")
+  Rel(buildVerifier, sourceVerifier, "Source verification")
+  Rel(sourceVerifier, distributionVerifier, "Distribution pipeline")
+  Rel(integrityVerifier, artifactVerifier, "Integrity checks")
+  
+  ' Reporting Integration
+  Rel(riskAnalyzer, riskReporter, "Risk data")
+  Rel(complianceChecker, complianceReporter, "Compliance data")
+  Rel(vulnerabilityScanner, vulnerabilityReporter, "Vulnerability data")
+  Rel(riskReporter, alertManager, "Security alerts")
+  
+  ' Cross-component Integration
+  Rel(sbomGenerator, attestationGenerator, "SBOM attestation")
+  Rel(dependencyGraph, vulnerabilityScanner, "Transitive vulnerabilities")
+  Rel(policyEngine, alertManager, "Policy violations")
+  
+  UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="1")
+```
+
+## Supply Chain Security & SBOM Generation
+
+Comprehensive supply chain security with industry-standard SBOM generation:
+
+### SBOM Standards Compliance
+- **CycloneDX** - Industry-standard SBOM format
+- **SPDX** - Software Package Data Exchange format
+- **SLSA** - Supply-chain Levels for Software Artifacts
+- **in-toto** - Framework for securing software supply chains
+
+### Advanced Dependency Analysis
+- **Transitive Dependencies** - Complete dependency graph analysis
+- **Version Pinning** - Secure version management
+- **License Compatibility** - Automated license conflict detection
+- **Vulnerability Propagation** - Transitive vulnerability analysis
+
+### Attestation Framework
+- **Cryptographic Attestations** - Tamper-evident artifact attestations
+- **Provenance Tracking** - Complete build provenance chain
+- **Multi-signature Support** - Threshold signature requirements
+- **Timestamping** - RFC 3161 trusted timestamping
+
+### Security Scanning Pipeline
+- **Static Analysis** - CodeQL, Semgrep integration
+- **Secret Detection** - TruffleHog, GitLeaks scanning
+- **Malware Detection** - ClamAV, VirusTotal integration
+- **Policy Enforcement** - OPA, Cedar policy engines
+
+### Risk Assessment
+- **CVSS Scoring** - Common Vulnerability Scoring System
+- **EPSS Integration** - Exploit Prediction Scoring System
+- **Threat Intelligence** - STIX/TAXII threat feed integration
+- **Risk Modeling** - Quantitative risk assessment
+
+### Verification Pipeline
+- **Reproducible Builds** - Bit-for-bit build reproduction
+- **Source Integrity** - Git commit signature verification
+- **Distribution Security** - Secure artifact distribution
+- **Runtime Verification** - Runtime integrity monitoring
+
+### Compliance Integration
+- **SOC 2 Type II** - Security controls compliance
+- **FedRAMP** - Federal Risk and Authorization Management
+- **NIST Framework** - Cybersecurity framework compliance
+- **ISO 27001** - Information security management
+
+### Advanced Features
+- **Zero-Trust Architecture** - Never trust, always verify
+- **Continuous Monitoring** - Real-time security monitoring
+- **Automated Remediation** - Automated vulnerability patching
+- **Supply Chain Transparency** - Complete visibility into dependencies

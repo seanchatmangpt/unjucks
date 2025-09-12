@@ -204,7 +204,7 @@ export class MLQueryEngine extends ProvenanceQueries {
    * @param {Object} options - Query options with ML parameters
    */
   async executeMLEnhancedQuery(input, options = {}) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     this.executionMetrics.totalQueries++;
     
     try {
@@ -320,7 +320,7 @@ export class MLQueryEngine extends ProvenanceQueries {
       }
 
       // Step 13: Update learning systems
-      const executionTime = Date.now() - startTime;
+      const executionTime = this.getDeterministicTimestamp() - startTime;
       await this._updateLearning(query, results, executionTime, performancePrediction);
 
       // Step 14: Enhanced result packaging
@@ -399,7 +399,7 @@ export class MLQueryEngine extends ProvenanceQueries {
   async analyzeQueryPerformance(query, options = {}) {
     const analysis = {
       query,
-      analyzedAt: new Date(),
+      analyzedAt: this.getDeterministicDate(),
       optimizations: [],
       predictions: {},
       recommendations: []
@@ -449,7 +449,7 @@ export class MLQueryEngine extends ProvenanceQueries {
     this.userFeedback.push({
       queryId,
       feedback,
-      timestamp: new Date()
+      timestamp: this.getDeterministicDate()
     });
 
     // Update ML models with feedback
@@ -503,7 +503,7 @@ export class MLQueryEngine extends ProvenanceQueries {
     return {
       patterns,
       templates: validatedTemplates,
-      generatedAt: new Date()
+      generatedAt: this.getDeterministicDate()
     };
   }
 
@@ -554,7 +554,7 @@ export class MLQueryEngine extends ProvenanceQueries {
         performancePrediction: options.performancePrediction,
         executionTime: options.executionTime,
         mlOptimizations: options.mlOptimizations,
-        generatedAt: new Date()
+        generatedAt: this.getDeterministicDate()
       }
     };
   }
@@ -566,7 +566,7 @@ export class MLQueryEngine extends ProvenanceQueries {
       executionTime,
       resultCount: results.results?.bindings?.length || 0,
       prediction: prediction?.estimatedTime,
-      timestamp: new Date()
+      timestamp: this.getDeterministicDate()
     });
 
     // Update workload learner

@@ -115,8 +115,8 @@ async function runBasicDemo() {
 
     // Step 5: Generate audit trail
     logger.info('📈 Step 5: Generating audit trail...');
-    const startDate = new Date(Date.now() - 24 * 60 * 60 * 1000); // 24 hours ago
-    const endDate = new Date();
+    const startDate = new Date(this.getDeterministicTimestamp() - 24 * 60 * 60 * 1000); // 24 hours ago
+    const endDate = this.getDeterministicDate();
     
     const auditTrail = await tracker.generateAuditTrail(startDate, endDate);
     logger.success('Audit trail generated:', {

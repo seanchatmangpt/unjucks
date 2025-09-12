@@ -43,7 +43,7 @@ export class BaseOfficeProcessor extends EventEmitter {
     this.options = options;
     
     /** @type {Logger} */
-    this.logger = new Logger(this.constructor.name, options.debug);
+    this.logger = new Consola(this.constructor.name, options.debug);
     
     /** @type {VariableExtractor} */
     this.variableExtractor = new VariableExtractor(options.syntax);
@@ -59,7 +59,7 @@ export class BaseOfficeProcessor extends EventEmitter {
     
     /** @type {ProcessingStats} */
     this.processingStats = {
-      startTime: new Date(),
+      startTime: this.getDeterministicDate(),
       variablesProcessed: 0,
       injectionsPerformed: 0,
       errors: 0,
@@ -386,7 +386,7 @@ export class BaseOfficeProcessor extends EventEmitter {
    */
   resetStats() {
     this.processingStats = {
-      startTime: new Date(),
+      startTime: this.getDeterministicDate(),
       variablesProcessed: 0,
       injectionsPerformed: 0,
       errors: 0,
@@ -398,7 +398,7 @@ export class BaseOfficeProcessor extends EventEmitter {
    * Finalizes processing statistics
    */
   finalizeStats() {
-    this.processingStats.endTime = new Date();
+    this.processingStats.endTime = this.getDeterministicDate();
     this.processingStats.duration = this.processingStats.endTime.getTime() - this.processingStats.startTime.getTime();
     
     if (typeof process !== 'undefined' && process.memoryUsage) {

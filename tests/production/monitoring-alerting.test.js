@@ -90,11 +90,11 @@ describe('Production Monitoring and Alerting Infrastructure', () => {
       console.log('Testing performance metrics collection...');
       
       const collectionDuration = 5000; // 5 seconds
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
       // Start collecting metrics
       const metricsInterval = setInterval(() => {
-        const currentTime = Date.now();
+        const currentTime = this.getDeterministicTimestamp();
         const memoryUsage = process.memoryUsage();
         
         // Simulate operations and collect metrics
@@ -177,7 +177,7 @@ describe('Production Monitoring and Alerting Infrastructure', () => {
         const userId = `user${Math.floor(i / 10)}`; // 10 operations per user
         businessMetrics.uniqueUsers.add(userId);
         
-        const operationStart = Date.now();
+        const operationStart = this.getDeterministicTimestamp();
         
         try {
           // Simulate different business operations
@@ -206,7 +206,7 @@ describe('Production Monitoring and Alerting Infrastructure', () => {
           businessMetrics.failedOperations++;
         }
         
-        const operationTime = Date.now() - operationStart;
+        const operationTime = this.getDeterministicTimestamp() - operationStart;
         businessMetrics.avgProcessingTime.push(operationTime);
       }
       
@@ -389,9 +389,9 @@ describe('Production Monitoring and Alerting Infrastructure', () => {
       
       for (const alertTest of alertTests) {
         try {
-          const startTime = Date.now();
+          const startTime = this.getDeterministicTimestamp();
           const result = await alertTest.trigger();
-          const endTime = Date.now();
+          const endTime = this.getDeterministicTimestamp();
           const duration = endTime - startTime;
           
           // Check thresholds and generate alerts
@@ -402,7 +402,7 @@ describe('Production Monitoring and Alerting Infrastructure', () => {
               level: MONITORING_CONFIG.ALERT_LEVELS.WARNING,
               type: alertTest.expectedAlert,
               message: `${alertTest.name}: ${result.responseTime}ms response time`,
-              timestamp: Date.now(),
+              timestamp: this.getDeterministicTimestamp(),
               testName: alertTest.name
             });
             alertGenerated = true;
@@ -413,7 +413,7 @@ describe('Production Monitoring and Alerting Infrastructure', () => {
               level: MONITORING_CONFIG.ALERT_LEVELS.CRITICAL,
               type: alertTest.expectedAlert,
               message: `${alertTest.name}: ${result.errorRate}% error rate`,
-              timestamp: Date.now(),
+              timestamp: this.getDeterministicTimestamp(),
               testName: alertTest.name
             });
             alertGenerated = true;
@@ -426,7 +426,7 @@ describe('Production Monitoring and Alerting Infrastructure', () => {
                 level: MONITORING_CONFIG.ALERT_LEVELS.WARNING,
                 type: alertTest.expectedAlert,
                 message: `${alertTest.name}: ${memoryMB.toFixed(2)}MB memory usage`,
-                timestamp: Date.now(),
+                timestamp: this.getDeterministicTimestamp(),
                 testName: alertTest.name
               });
               alertGenerated = true;
@@ -443,7 +443,7 @@ describe('Production Monitoring and Alerting Infrastructure', () => {
             level: MONITORING_CONFIG.ALERT_LEVELS.CRITICAL,
             type: 'TEST_FAILURE',
             message: `${alertTest.name}: ${testError.message}`,
-            timestamp: Date.now(),
+            timestamp: this.getDeterministicTimestamp(),
             testName: alertTest.name
           });
           alertsTriggered++;
@@ -483,9 +483,9 @@ describe('Production Monitoring and Alerting Infrastructure', () => {
           shouldEscalate: false,
           trigger: () => {
             // Simulate slightly slow operation
-            const start = Date.now();
+            const start = this.getDeterministicTimestamp();
             const result = rdfFilters.rdfQuery('?s rdf:type foaf:Person');
-            return { duration: Date.now() - start, result };
+            return { duration: this.getDeterministicTimestamp() - start, result };
           }
         },
         {
@@ -527,7 +527,7 @@ describe('Production Monitoring and Alerting Infrastructure', () => {
             level: escalationTest.severity,
             type: 'ESCALATION_TEST',
             message: `${escalationTest.condition} - ${JSON.stringify(result).substring(0, 100)}`,
-            timestamp: Date.now(),
+            timestamp: this.getDeterministicTimestamp(),
             shouldEscalate: escalationTest.shouldEscalate
           };
           
@@ -544,7 +544,7 @@ describe('Production Monitoring and Alerting Infrastructure', () => {
             level: escalationTest.severity,
             type: 'ESCALATION_EMERGENCY',
             message: `${escalationTest.condition} - ${escalationError.message}`,
-            timestamp: Date.now(),
+            timestamp: this.getDeterministicTimestamp(),
             shouldEscalate: true,
             error: escalationError.message
           };
@@ -623,8 +623,8 @@ describe('Production Monitoring and Alerting Infrastructure', () => {
       for (const routingTest of alertRoutingTests) {
         const alert = {
           ...routingTest.alert,
-          timestamp: Date.now(),
-          id: `alert_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`
+          timestamp: this.getDeterministicTimestamp(),
+          id: `alert_${this.getDeterministicTimestamp()}_${Math.random().toString(36).substring(2, 9)}`
         };
         
         // Simulate notification routing
@@ -639,7 +639,7 @@ describe('Production Monitoring and Alerting Infrastructure', () => {
                 ...alert,
                 notificationChannel: channel,
                 notificationStatus: 'SENT',
-                notificationTime: Date.now()
+                notificationTime: this.getDeterministicTimestamp()
               });
             } else {
               notificationChannels[channel].failed++;
@@ -648,7 +648,7 @@ describe('Production Monitoring and Alerting Infrastructure', () => {
                 ...alert,
                 notificationChannel: channel,
                 notificationStatus: 'FAILED',
-                notificationTime: Date.now(),
+                notificationTime: this.getDeterministicTimestamp(),
                 error: 'Simulated notification failure'
               });
             }
@@ -739,7 +739,7 @@ describe('Production Monitoring and Alerting Infrastructure', () => {
             component: component.name,
             status: healthResult.status,
             responseTime: actualResponseTime,
-            timestamp: Date.now(),
+            timestamp: this.getDeterministicTimestamp(),
             details: healthResult
           };
           
@@ -755,7 +755,7 @@ describe('Production Monitoring and Alerting Infrastructure', () => {
                 MONITORING_CONFIG.ALERT_LEVELS.CRITICAL,
               type: 'COMPONENT_HEALTH',
               message: `Component ${component.name} is ${healthResult.status}`,
-              timestamp: Date.now(),
+              timestamp: this.getDeterministicTimestamp(),
               component: component.name,
               healthDetails: healthResult
             });
@@ -766,14 +766,14 @@ describe('Production Monitoring and Alerting Infrastructure', () => {
             component: component.name,
             status: 'unhealthy',
             error: healthError.message,
-            timestamp: Date.now()
+            timestamp: this.getDeterministicTimestamp()
           });
           
           monitoringResults.alerts.push({
             level: MONITORING_CONFIG.ALERT_LEVELS.CRITICAL,
             type: 'COMPONENT_FAILURE',
             message: `Component ${component.name} health check failed: ${healthError.message}`,
-            timestamp: Date.now(),
+            timestamp: this.getDeterministicTimestamp(),
             component: component.name
           });
         }
@@ -800,7 +800,7 @@ describe('Production Monitoring and Alerting Infrastructure', () => {
       
       const testDuration = 3000; // 3 seconds
       const checkInterval = 100; // 100ms
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
       const slaInterval = setInterval(() => {
         slaMetrics.availability.checks++;
@@ -835,7 +835,7 @@ describe('Production Monitoring and Alerting Infrastructure', () => {
       clearInterval(slaInterval);
       
       // Calculate SLA metrics
-      const totalTime = Date.now() - startTime;
+      const totalTime = this.getDeterministicTimestamp() - startTime;
       slaMetrics.throughput.duration = totalTime;
       slaMetrics.throughput.rps = (slaMetrics.throughput.requests * 1000) / totalTime;
       
@@ -1007,7 +1007,7 @@ async function setupMonitoringTestData(store) {
 
 // Helper function to generate comprehensive monitoring report
 function generateMonitoringReport(results) {
-  const now = Date.now();
+  const now = this.getDeterministicTimestamp();
   const periodStart = results.metrics.length > 0 ? Math.min(...results.metrics.map(m => m.timestamp)) : now;
   const periodEnd = now;
   
@@ -1030,7 +1030,7 @@ function generateMonitoringReport(results) {
   }
   
   return {
-    timestamp: new Date().toISOString(),
+    timestamp: this.getDeterministicDate().toISOString(),
     periodStart,
     periodEnd,
     overallHealth,

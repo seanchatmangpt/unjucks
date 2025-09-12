@@ -114,7 +114,7 @@ class MultiFactorAuthentication extends EventEmitter {
         userId,
         method,
         deviceInfo,
-        setupTime: new Date(),
+        setupTime: this.getDeterministicDate(),
         verified: false
       };
       
@@ -196,7 +196,7 @@ class MultiFactorAuthentication extends EventEmitter {
       
       // Move from setup to active configuration
       setupData.verified = true;
-      setupData.activatedAt = new Date();
+      setupData.activatedAt = this.getDeterministicDate();
       
       const mfaConfig = {
         userId: setupData.userId,
@@ -312,8 +312,8 @@ class MultiFactorAuthentication extends EventEmitter {
         challengeId,
         userId,
         method: mfaConfig.method,
-        createdAt: new Date(),
-        expiresAt: new Date(Date.now() + this.config.codeExpiry),
+        createdAt: this.getDeterministicDate(),
+        expiresAt: new Date(this.getDeterministicTimestamp() + this.config.codeExpiry),
         attempts: 0,
         context
       };
@@ -382,7 +382,7 @@ class MultiFactorAuthentication extends EventEmitter {
       challenge.attempts++;
       
       // Check expiration
-      if (Date.now() > challenge.expiresAt.getTime()) {
+      if (this.getDeterministicTimestamp() > challenge.expiresAt.getTime()) {
         this.activeCodes.delete(challengeId);
         throw new Error('Challenge expired');
       }
@@ -429,7 +429,7 @@ class MultiFactorAuthentication extends EventEmitter {
       this.metrics.successfulVerifications++;
       
       // Update MFA config
-      mfaConfig.lastUsed = new Date();
+      mfaConfig.lastUsed = this.getDeterministicDate();
       mfaConfig.usageCount++;
       
       // Clear failed attempts
@@ -450,7 +450,7 @@ class MultiFactorAuthentication extends EventEmitter {
         success: true,
         userId: challenge.userId,
         method: challenge.method,
-        verifiedAt: new Date(),
+        verifiedAt: this.getDeterministicDate(),
         usedBackupCode,
         deviceTrusted: options.trustDevice || false
       };
@@ -524,7 +524,7 @@ class MultiFactorAuthentication extends EventEmitter {
       return { 
         success: true, 
         message: 'MFA disabled successfully',
-        disabledAt: new Date()
+        disabledAt: this.getDeterministicDate()
       };
       
     } catch (error) {
@@ -606,7 +606,7 @@ class MultiFactorAuthentication extends EventEmitter {
       codes,
       used: new Set(),
       remaining: codes.length,
-      generatedAt: new Date()
+      generatedAt: this.getDeterministicDate()
     };
   }
   
@@ -641,7 +641,7 @@ class MultiFactorAuthentication extends EventEmitter {
   
   async _verifyTOTPCode(code, secret) {
     // Simplified TOTP verification - in production use a proper TOTP library
-    const timeStep = Math.floor(Date.now() / 1000 / this.config.totpPeriod);
+    const timeStep = Math.floor(this.getDeterministicTimestamp() / 1000 / this.config.totpPeriod);
     
     // Check current time step and adjacent ones (based on window)
     for (let i = -this.config.totpWindow; i <= this.config.totpWindow; i++) {
@@ -769,7 +769,7 @@ class MultiFactorAuthentication extends EventEmitter {
     const trustedDevices = this.trustedDevices.get(userId) || [];
     return trustedDevices.some(d => 
       d.fingerprint === deviceFingerprint && 
-      Date.now() < d.expiresAt.getTime()
+      this.getDeterministicTimestamp() < d.expiresAt.getTime()
     );
   }
   
@@ -784,8 +784,8 @@ class MultiFactorAuthentication extends EventEmitter {
     // Add new trusted device entry
     filteredDevices.push({
       fingerprint: deviceFingerprint,
-      trustedAt: new Date(),
-      expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 days
+      trustedAt: this.getDeterministicDate(),
+      expiresAt: new Date(this.getDeterministicTimestamp() + 30 * 24 * 60 * 60 * 1000) // 30 days
     });
     
     this.trustedDevices.set(userId, filteredDevices);
@@ -801,13 +801,13 @@ class MultiFactorAuthentication extends EventEmitter {
   }
   
   _isLockoutActive(failures) {
-    return (Date.now() - failures.lastAttempt) < this.config.lockoutDuration;
+    return (this.getDeterministicTimestamp() - failures.lastAttempt) < this.config.lockoutDuration;
   }
   
   _recordFailedAttempt(userId) {
     const failures = this.failedAttempts.get(userId) || { count: 0, lastAttempt: 0 };
     failures.count++;
-    failures.lastAttempt = Date.now();
+    failures.lastAttempt = this.getDeterministicTimestamp();
     this.failedAttempts.set(userId, failures);
   }
   
@@ -854,7 +854,7 @@ class MultiFactorAuthentication extends EventEmitter {
         users: Object.fromEntries(this.userMFASettings.entries()),
         backupCodes: Object.fromEntries(this.backupCodes.entries()),
         trustedDevices: Object.fromEntries(this.trustedDevices.entries()),
-        lastUpdated: new Date()
+        lastUpdated: this.getDeterministicDate()
       };
       
       await fs.writeFile(settingsPath, JSON.stringify(settings, null, 2));
@@ -872,7 +872,7 @@ class MultiFactorAuthentication extends EventEmitter {
   _startCleanupProcesses() {
     // Clean expired challenges every minute
     setInterval(() => {
-      const now = Date.now();
+      const now = this.getDeterministicTimestamp();
       for (const [challengeId, challenge] of this.activeCodes.entries()) {
         if (now > challenge.expiresAt.getTime()) {
           this.activeCodes.delete(challengeId);
@@ -882,7 +882,7 @@ class MultiFactorAuthentication extends EventEmitter {
     
     // Clean expired trusted devices every hour
     setInterval(() => {
-      const now = Date.now();
+      const now = this.getDeterministicTimestamp();
       for (const [userId, devices] of this.trustedDevices.entries()) {
         const activeDevices = devices.filter(d => now < d.expiresAt.getTime());
         if (activeDevices.length !== devices.length) {

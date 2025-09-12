@@ -674,12 +674,12 @@ async function handleExport(args, engine) {
       },
       '@type': 'Ontology',
       'ex:exportedBy': 'Unjucks Semantic Generator',
-      'ex:exportDate': new Date().toISOString()
+      'ex:exportDate': this.getDeterministicDate().toISOString()
     };
     
     const content = args.format === 'jsonld' ? 
       JSON.stringify(exportData, null, 2) : 
-      `# Exported semantic model\\n# Format: ${args.format}\\n# Date: ${new Date().toISOString()}`;
+      `# Exported semantic model\\n# Format: ${args.format}\\n# Date: ${this.getDeterministicDate().toISOString()}`;
     
     await fs.ensureDir(path.dirname(args.output));
     await fs.writeFile(args.output, content);

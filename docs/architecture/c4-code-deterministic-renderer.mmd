@@ -1,0 +1,89 @@
+```mermaid
+C4Component
+    title Code Diagram - Deterministic Rendering System
+    
+    Container_Boundary(renderer, "Deterministic Rendering Core") {
+        Component(renderEngine, "DeterministicRenderEngine", "Main Engine", "Orchestrates deterministic template rendering")
+        Component(contextNormalizer, "ContextNormalizer", "Normalizer", "Normalizes template context for consistency")
+        Component(variableResolver, "VariableResolver", "Resolver", "Resolves variables in deterministic order")
+        Component(orderingEngine, "OrderingEngine", "Sorter", "Ensures consistent key/array ordering")
+    }
+    
+    Container_Boundary(templating, "Template Processing") {
+        Component(templateLoader, "TemplateLoader", "Loader", "Loads and caches templates")
+        Component(nunjucksEngine, "NunjucksEngine", "Template Engine", "Enhanced Nunjucks with deterministic features")
+        Component(filterRegistry, "FilterRegistry", "Registry", "Manages deterministic template filters")
+        Component(macroProcessor, "MacroProcessor", "Processor", "Processes template macros deterministically")
+    }
+    
+    Container_Boundary(context, "Context Management") {
+        Component(contextBuilder, "ContextBuilder", "Builder", "Builds template context from RDF")
+        Component(variableExtractor, "VariableExtractor", "Extractor", "Extracts variables from templates")
+        Component(scopeManager, "ScopeManager", "Manager", "Manages variable scoping")
+        Component(dependencyResolver, "DependencyResolver", "Resolver", "Resolves variable dependencies")
+    }
+    
+    Container_Boundary(caching, "Content-Addressed Caching") {
+        Component(casManager, "CASManager", "Manager", "Manages content-addressed storage")
+        Component(renderCache, "RenderCache", "Cache", "Caches rendered templates by content hash")
+        Component(contextCache, "ContextCache", "Cache", "Caches normalized contexts")
+        Component(invalidationEngine, "InvalidationEngine", "Engine", "Handles cache invalidation")
+    }
+    
+    Container_Boundary(normalization, "Content Normalization") {
+        Component(whitespaceNormalizer, "WhitespaceNormalizer", "Normalizer", "Normalizes whitespace consistently")
+        Component(encodingNormalizer, "EncodingNormalizer", "Normalizer", "Normalizes character encodings")
+        Component(lineEndingNormalizer, "LineEndingNormalizer", "Normalizer", "Normalizes line endings")
+        Component(unicodeNormalizer, "UnicodeNormalizer", "Normalizer", "Normalizes Unicode representations")
+    }
+    
+    Container_Boundary(validation, "Determinism Validation") {
+        Component(deterministicValidator, "DeterministicValidator", "Validator", "Validates rendering determinism")
+        Component(reproducibilityTester, "ReproducibilityTester", "Tester", "Tests output reproducibility")
+        Component(hashConsistencyChecker, "HashConsistencyChecker", "Checker", "Checks hash consistency")
+        Component(deterministicProfiler, "DeterministicProfiler", "Profiler", "Profiles deterministic performance")
+    }
+    
+    Container_Boundary(output, "Output Generation") {
+        Component(fileWriter, "FileWriter", "Writer", "Writes files with consistent metadata")
+        Component(permissionSetter, "PermissionSetter", "Setter", "Sets consistent file permissions")
+        Component(timestampManager, "TimestampManager", "Manager", "Manages deterministic timestamps")
+        Component(checksumGenerator, "ChecksumGenerator", "Generator", "Generates content checksums")
+    }
+    
+    Rel(renderEngine, contextNormalizer, "normalizes context with")
+    Rel(renderEngine, variableResolver, "resolves variables with")
+    Rel(renderEngine, orderingEngine, "orders content with")
+    Rel(renderEngine, templateLoader, "loads templates with")
+    
+    Rel(templateLoader, nunjucksEngine, "renders with")
+    Rel(nunjucksEngine, filterRegistry, "uses filters from")
+    Rel(nunjucksEngine, macroProcessor, "processes macros with")
+    
+    Rel(contextNormalizer, contextBuilder, "builds context with")
+    Rel(variableResolver, variableExtractor, "extracts variables with")
+    Rel(variableResolver, scopeManager, "manages scope with")
+    Rel(variableResolver, dependencyResolver, "resolves dependencies with")
+    
+    Rel(renderEngine, casManager, "uses CAS with")
+    Rel(casManager, renderCache, "caches renders in")
+    Rel(casManager, contextCache, "caches contexts in")
+    Rel(casManager, invalidationEngine, "invalidates with")
+    
+    Rel(contextNormalizer, whitespaceNormalizer, "normalizes whitespace with")
+    Rel(contextNormalizer, encodingNormalizer, "normalizes encoding with")
+    Rel(contextNormalizer, lineEndingNormalizer, "normalizes line endings with")
+    Rel(contextNormalizer, unicodeNormalizer, "normalizes unicode with")
+    
+    Rel(renderEngine, deterministicValidator, "validates with")
+    Rel(deterministicValidator, reproducibilityTester, "tests reproducibility with")
+    Rel(deterministicValidator, hashConsistencyChecker, "checks consistency with")
+    Rel(deterministicValidator, deterministicProfiler, "profiles with")
+    
+    Rel(renderEngine, fileWriter, "writes files with")
+    Rel(fileWriter, permissionSetter, "sets permissions with")
+    Rel(fileWriter, timestampManager, "manages timestamps with")
+    Rel(fileWriter, checksumGenerator, "generates checksums with")
+    
+    UpdateLayoutConfig($c4ShapeInRow="4", $c4BoundaryInRow="2")
+```

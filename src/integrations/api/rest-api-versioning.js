@@ -115,7 +115,7 @@ export class RestApiVersioning {
     
     if (deprecation) {
       const daysUntilRemoval = Math.ceil(
-        (deprecation.removalDate - new Date()) / (1000 * 60 * 60 * 24)
+        (deprecation.removalDate - this.getDeterministicDate()) / (1000 * 60 * 60 * 24)
       );
       
       res.set('Deprecation', deprecation.deprecationDate.toISOString());
@@ -251,9 +251,9 @@ export class RestApiVersioning {
 
   // Deprecation management
   deprecateVersion(version, removalDate = null) {
-    const deprecationDate = new Date();
+    const deprecationDate = this.getDeterministicDate();
     const removal = removalDate || new Date(
-      Date.now() + (this.config.deprecationWarningPeriod * 24 * 60 * 60 * 1000)
+      this.getDeterministicTimestamp() + (this.config.deprecationWarningPeriod * 24 * 60 * 60 * 1000)
     );
     
     this.deprecatedVersions.set(version, {

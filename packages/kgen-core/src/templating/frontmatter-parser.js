@@ -551,7 +551,7 @@ export class FrontmatterParser {
     if (!enhanced._generated) {
       enhanced._generated = {
         kgenVersion: process.env.npm_package_version || '1.0.0',
-        timestamp: new Date().toISOString()
+        timestamp: this.getDeterministicDate().toISOString()
       };
     }
     
@@ -575,7 +575,7 @@ export class FrontmatterParser {
       author: frontmatter.author,
       license: frontmatter.license,
       templatePath,
-      extractedAt: new Date().toISOString()
+      extractedAt: this.getDeterministicDate().toISOString()
     };
     
     // Extract KGEN-specific metadata
@@ -615,7 +615,7 @@ export class FrontmatterParser {
       templatePath,
       templateHash,
       frontmatterHash: createHash('sha256').update(JSON.stringify(frontmatter, null, 2)).digest('hex'),
-      parsedAt: new Date().toISOString(),
+      parsedAt: this.getDeterministicDate().toISOString(),
       parserVersion: '2.0.0-enhanced',
       deterministic: frontmatter.deterministic,
       contentAddressed: frontmatter.contentAddressed,

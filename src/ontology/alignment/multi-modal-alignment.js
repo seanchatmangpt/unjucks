@@ -48,7 +48,7 @@ export class MultiModalAlignmentEngine {
       return this.alignmentCache.get(alignmentId);
     }
     
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     // Extract alignment features from both ontologies
     const sourceFeatures = await this.extractAlignmentFeatures(sourceOntology);
@@ -97,7 +97,7 @@ export class MultiModalAlignmentEngine {
       confidence: this.calculateOverallConfidence(adaptedAlignment),
       uncertainty: this.calculateOverallUncertainty(adaptedAlignment),
       metadata: {
-        processingTime: Date.now() - startTime,
+        processingTime: this.getDeterministicTimestamp() - startTime,
         modalityWeights: {
           textual: this.options.textualWeight,
           structural: this.options.structuralWeight,

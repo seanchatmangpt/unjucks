@@ -1,0 +1,127 @@
+```mermaid
+C4Component
+  title C4 Component Diagram: Frontmatter Template Control Plane
+  
+  Container_Boundary(controlPlane, "Template Control Plane") {
+    Component(frontmatterParser, "Frontmatter Parser", "gray-matter, yaml", "Parses YAML/TOML/JSON frontmatter")
+    Component(directiveEngine, "Directive Engine", "AST Processing", "Processes template directives")
+    Component(conditionalProcessor, "Conditional Processor", "Logic Engine", "Handles conditional generation")
+    Component(templateOrchestrator, "Template Orchestrator", "Execution Engine", "Orchestrates multi-template generation")
+  }
+  
+  Container_Boundary(directives, "Template Directives") {
+    Component(toDirective, "to: Directive", "Path Resolution", "Dynamic output path generation")
+    Component(injectDirective, "inject: Directive", "Code Injection", "Idempotent code injection")
+    Component(skipIfDirective, "skipIf: Directive", "Condition Evaluation", "Conditional template skipping")
+    Component(dependsOnDirective, "dependsOn: Directive", "Dependency Resolution", "Template dependency management")
+    Component(chmodDirective, "chmod: Directive", "Permission Management", "File permission setting")
+    Component(beforeDirective, "before/after: Directive", "Lifecycle Hooks", "Template lifecycle management")
+  }
+  
+  Container_Boundary(injection, "Code Injection Engine") {
+    Component(injectionParser, "Injection Parser", "AST Analysis", "Parses target code for injection points")
+    Component(markerDetector, "Marker Detector", "Pattern Matching", "Detects injection markers and boundaries")
+    Component(contentMerger, "Content Merger", "AST Transformation", "Merges new content with existing code")
+    Component(conflictResolver, "Conflict Resolver", "3-Way Merge", "Resolves injection conflicts")
+  }
+  
+  Container_Boundary(lifecycle, "Template Lifecycle") {
+    Component(dependencyResolver, "Dependency Resolver", "DAG Processing", "Resolves template dependencies")
+    Component(executionPlanner, "Execution Planner", "Topological Sort", "Plans template execution order")
+    Component(stateManager, "State Manager", "State Persistence", "Manages template generation state")
+    Component(rollbackManager, "Rollback Manager", "Transaction Log", "Handles generation rollbacks")
+  }
+  
+  Container_Boundary(validation, "Validation Engine") {
+    Component(schemaValidator, "Schema Validator", "JSON Schema, SHACL", "Validates frontmatter schemas")
+    Component(constraintChecker, "Constraint Checker", "Logic Validation", "Checks template constraints")
+    Component(syntaxValidator, "Syntax Validator", "Language Parsers", "Validates generated code syntax")
+    Component(semanticValidator, "Semantic Validator", "Type Checking", "Validates semantic correctness")
+  }
+  
+  SystemDb_Ext(templateStore, "Template Store", "File system with templates")
+  SystemDb_Ext(stateStore, "State Store", "Persistent state storage")
+  System_Ext(codeAnalyzer, "Code Analyzer", "Language-specific analyzers")
+  
+  ' Frontmatter Processing
+  Rel(frontmatterParser, directiveEngine, "Parsed directives", "AST")
+  Rel(directiveEngine, toDirective, "to: processing")
+  Rel(directiveEngine, injectDirective, "inject: processing")
+  Rel(directiveEngine, skipIfDirective, "skipIf: processing")
+  Rel(directiveEngine, dependsOnDirective, "dependsOn: processing")
+  Rel(directiveEngine, chmodDirective, "chmod: processing")
+  Rel(directiveEngine, beforeDirective, "lifecycle: processing")
+  
+  ' Conditional Processing
+  Rel(conditionalProcessor, skipIfDirective, "Condition evaluation")
+  Rel(conditionalProcessor, templateOrchestrator, "Execution decisions")
+  
+  ' Injection Engine
+  Rel(injectDirective, injectionParser, "Target analysis")
+  Rel(injectionParser, markerDetector, "Marker detection")
+  Rel(markerDetector, contentMerger, "Injection points")
+  Rel(contentMerger, conflictResolver, "Merge conflicts")
+  Rel(injectionParser, codeAnalyzer, "Code analysis")
+  
+  ' Lifecycle Management
+  Rel(dependsOnDirective, dependencyResolver, "Dependencies")
+  Rel(dependencyResolver, executionPlanner, "Dependency graph")
+  Rel(executionPlanner, templateOrchestrator, "Execution plan")
+  Rel(templateOrchestrator, stateManager, "State updates")
+  Rel(stateManager, stateStore, "Persistence")
+  Rel(templateOrchestrator, rollbackManager, "Transaction log")
+  
+  ' Validation Pipeline
+  Rel(frontmatterParser, schemaValidator, "Schema validation")
+  Rel(directiveEngine, constraintChecker, "Constraint validation")
+  Rel(templateOrchestrator, syntaxValidator, "Syntax validation")
+  Rel(syntaxValidator, semanticValidator, "Semantic validation")
+  
+  ' External Dependencies
+  Rel(templateOrchestrator, templateStore, "Template loading")
+  Rel(syntaxValidator, codeAnalyzer, "Language analysis")
+  
+  UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="1")
+```
+
+## Frontmatter Control Plane Features
+
+Advanced template control through rich frontmatter directives:
+
+### Core Directives
+- **to:** - Dynamic output path with variable interpolation
+- **inject:** - Idempotent code injection with conflict resolution
+- **skipIf:** - Conditional generation with complex expressions
+- **dependsOn:** - Template dependency declaration and resolution
+- **chmod:** - File permission management
+- **before/after:** - Lifecycle hooks for pre/post processing
+
+### Advanced Injection
+- **Marker-Based** - Uses comment markers for injection boundaries
+- **AST-Aware** - Language-specific AST manipulation
+- **Conflict Resolution** - 3-way merge for conflicting injections
+- **Idempotent** - Safe re-execution without duplication
+
+### Dependency Management
+- **DAG Resolution** - Directed acyclic graph dependency resolution
+- **Topological Sorting** - Optimal execution order planning
+- **Circular Detection** - Prevents infinite dependency loops
+- **Conditional Dependencies** - Context-dependent dependency activation
+
+### State Management
+- **Generation State** - Tracks template generation progress
+- **Rollback Support** - Transaction-based generation with rollback
+- **State Persistence** - Durable state across generation sessions
+- **Change Detection** - Incremental regeneration based on changes
+
+### Validation Pipeline
+- **Schema Validation** - JSON Schema and SHACL validation
+- **Constraint Checking** - Business rule validation
+- **Syntax Validation** - Generated code syntax verification
+- **Semantic Validation** - Type checking and semantic correctness
+
+### Template Orchestration
+- **Multi-Template** - Coordinated generation across templates
+- **Conditional Execution** - Context-aware template selection
+- **Parallel Execution** - Concurrent template processing
+- **Error Recovery** - Graceful handling of generation failures

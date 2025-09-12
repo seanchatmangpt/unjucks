@@ -9,14 +9,14 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 console.log('=== ADVANCED TEMPLATE GENERATION EDGE CASE TESTS ===');
-console.log('Started at:', new Date().toISOString());
+console.log('Started at:', this.getDeterministicDate().toISOString());
 
 const testResults = {
   totalTests: 0,
   passedTests: 0,
   failedTests: 0,
   results: [],
-  startTime: new Date(),
+  startTime: this.getDeterministicDate(),
 };
 
 function runTest(testName, command, description, expectedBehavior = 'success') {
@@ -145,7 +145,7 @@ runTest(
 console.log('\n⚡ RUNNING PERFORMANCE TESTS...');
 
 // Test 9: Bulk generation
-const startBulk = Date.now();
+const startBulk = this.getDeterministicTimestamp();
 for (let i = 1; i <= 10; i++) {
   runTest(
     `Bulk Generation ${i}`,
@@ -153,7 +153,7 @@ for (let i = 1; i <= 10; i++) {
     `Bulk generation test ${i}/10`
   );
 }
-const bulkDuration = Date.now() - startBulk;
+const bulkDuration = this.getDeterministicTimestamp() - startBulk;
 console.log(`\n📊 Bulk Generation Performance: ${bulkDuration}ms for 10 components`);
 
 // Template Variation Tests
@@ -170,7 +170,7 @@ for (const type of templateTypes) {
 }
 
 // Generate final report
-const endTime = new Date();
+const endTime = this.getDeterministicDate();
 const duration = endTime - testResults.startTime;
 
 const report = {

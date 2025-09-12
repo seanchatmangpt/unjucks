@@ -78,7 +78,7 @@ export class ArtifactExplainer {
         
         // Explanation metadata
         explanation: {
-          generatedAt: new Date().toISOString(),
+          generatedAt: this.getDeterministicDate().toISOString(),
           format: options.format || this.config.explanationFormat,
           depth: options.depth || this.config.maxTraversalDepth,
           completeness: 'full'

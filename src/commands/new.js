@@ -325,7 +325,7 @@ export const newCommand = defineCommand({
         console.log(chalk.yellow("🔍 Dry run mode - no files will be created"));
       }
       
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       let result;
       
       if (isProjectType) {
@@ -346,7 +346,7 @@ export const newCommand = defineCommand({
         });
       }
       
-      const endTime = Date.now();
+      const endTime = this.getDeterministicTimestamp();
       
       console.log();
       console.log(chalk.green(`✅ Successfully created ${result.type}: ${result.name}`));

@@ -690,7 +690,7 @@ Unicode: αβγδε ∀∃∈∉ ℝℤℕ
       test: testName,
       failed,
       details,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     });
   }
 

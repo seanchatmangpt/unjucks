@@ -188,7 +188,7 @@ console.log(JSON.stringify({
   execPath: process.execPath
 }));`;
 
-        const tempFile = `/tmp/test-shebang-${Date.now()}.js`;
+        const tempFile = `/tmp/test-shebang-${this.getDeterministicTimestamp()}.js`;
         require('fs').writeFileSync(tempFile, testScript);
         execSync(`chmod +x ${tempFile}`);
         

@@ -109,7 +109,7 @@ export class KgenSparqlEngine extends EventEmitter {
    */
   async executeQuery(query, options = {}) {
     const queryId = this._generateQueryId();
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       console.log(`[SPARQL Engine] Executing query ${queryId}`);
@@ -148,7 +148,7 @@ export class KgenSparqlEngine extends EventEmitter {
       }
       
       // Add metadata
-      const executionTime = Date.now() - startTime;
+      const executionTime = this.getDeterministicTimestamp() - startTime;
       results.metadata = {
         queryId,
         executionTime,
@@ -175,7 +175,7 @@ export class KgenSparqlEngine extends EventEmitter {
       return results;
       
     } catch (error) {
-      const executionTime = Date.now() - startTime;
+      const executionTime = this.getDeterministicTimestamp() - startTime;
       this._updateMetrics({ queryId, query }, executionTime, false);
       this.activeQueries.delete(queryId);
       
@@ -516,7 +516,7 @@ export class KgenSparqlEngine extends EventEmitter {
     context.statistics = {
       entityCount: context.entities.length,
       resultCount: results.results.bindings.length,
-      executionTime: Date.now()
+      executionTime: this.getDeterministicTimestamp()
     };
     
     return context;
@@ -779,14 +779,14 @@ export class KgenSparqlEngine extends EventEmitter {
   }
 
   _generateQueryId() {
-    return `sparql_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    return `sparql_${this.getDeterministicTimestamp()}_${Math.random().toString(36).substr(2, 9)}`;
   }
 
   _getCachedResult(query) {
     const cacheKey = require('crypto').createHash('md5').update(query).digest('hex');
     const cached = this.queryCache.get(cacheKey);
     
-    if (cached && (Date.now() - cached.timestamp) < this.config.cacheTTL) {
+    if (cached && (this.getDeterministicTimestamp() - cached.timestamp) < this.config.cacheTTL) {
       return cached.result;
     }
     
@@ -802,7 +802,7 @@ export class KgenSparqlEngine extends EventEmitter {
     const cacheKey = require('crypto').createHash('md5').update(query).digest('hex');
     this.queryCache.set(cacheKey, {
       result,
-      timestamp: Date.now()
+      timestamp: this.getDeterministicTimestamp()
     });
     
     // Prevent memory leaks
@@ -827,7 +827,7 @@ export class KgenSparqlEngine extends EventEmitter {
     this.queryStats.set(context.queryId, {
       executionTime,
       success,
-      timestamp: Date.now()
+      timestamp: this.getDeterministicTimestamp()
     });
     
     // Limit stats size

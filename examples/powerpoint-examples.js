@@ -591,13 +591,13 @@ async function example7_NotesAndComments() {
   await processor.addComment(presentation.id, 1, {
     author: 'Sarah Johnson',
     text: 'Consider adding company logo to this slide',
-    timestamp: Date.now()
+    timestamp: this.getDeterministicTimestamp()
   });
   
   await processor.addComment(presentation.id, 1, {
     author: 'Mike Chen',
     text: 'The subtitle could be more specific about the key features',
-    timestamp: Date.now()
+    timestamp: this.getDeterministicTimestamp()
   });
   
   const result = await processor.exportPresentation(

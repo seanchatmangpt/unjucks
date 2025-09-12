@@ -523,7 +523,7 @@ export class APIContractValidator {
     };
 
     // Save report
-    const reportPath = path.join(this.options.contractsDir, `contract-validation-report-${Date.now()}.json`);
+    const reportPath = path.join(this.options.contractsDir, `contract-validation-report-${this.getDeterministicTimestamp()}.json`);
     await fs.ensureDir(path.dirname(reportPath));
     await fs.writeJSON(reportPath, report, { spaces: 2 });
 

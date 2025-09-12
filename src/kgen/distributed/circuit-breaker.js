@@ -62,12 +62,12 @@ export class CircuitBreaker extends EventEmitter {
    * Execute a function with circuit breaker protection
    */
   async execute(fn, ...args) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     this.statistics.totalExecutions++;
     
     // Check if circuit is open
     if (this.state === 'OPEN') {
-      if (Date.now() < this.nextAttempt) {
+      if (this.getDeterministicTimestamp() < this.nextAttempt) {
         this.statistics.totalCircuitOpenRejections++;
         const error = new Error('Circuit breaker is OPEN');
         error.code = 'CIRCUIT_OPEN';
@@ -83,7 +83,7 @@ export class CircuitBreaker extends EventEmitter {
       const result = await this.executeWithTimeout(fn, args);
       
       // Record success
-      const responseTime = Date.now() - startTime;
+      const responseTime = this.getDeterministicTimestamp() - startTime;
       this.recordSuccess(responseTime);
       
       // Handle state transitions on success
@@ -98,7 +98,7 @@ export class CircuitBreaker extends EventEmitter {
       
     } catch (error) {
       // Record failure
-      const responseTime = Date.now() - startTime;
+      const responseTime = this.getDeterministicTimestamp() - startTime;
       this.recordFailure(error, responseTime);
       
       // Handle state transitions on failure
@@ -148,7 +148,7 @@ export class CircuitBreaker extends EventEmitter {
     
     // Add to recent requests
     this.requests.push({
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       success: true,
       responseTime
     });
@@ -167,7 +167,7 @@ export class CircuitBreaker extends EventEmitter {
     this.totalRequests++;
     this.totalFailures++;
     this.failureCount++;
-    this.lastFailureTime = Date.now();
+    this.lastFailureTime = this.getDeterministicTimestamp();
     this.statistics.totalFailures++;
     
     if (error.code === 'TIMEOUT') {
@@ -176,7 +176,7 @@ export class CircuitBreaker extends EventEmitter {
     
     // Add to recent requests
     this.requests.push({
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       success: false,
       error: error.message,
       errorCode: error.code,
@@ -237,7 +237,7 @@ export class CircuitBreaker extends EventEmitter {
     // State-specific actions
     switch (newState) {
       case 'OPEN':
-        this.nextAttempt = Date.now() + this.config.resetTimeout;
+        this.nextAttempt = this.getDeterministicTimestamp() + this.config.resetTimeout;
         this.emit('circuit:opened', { 
           failureCount: this.failureCount,
           lastFailure: this.lastFailureTime
@@ -266,7 +266,7 @@ export class CircuitBreaker extends EventEmitter {
    * Get requests from recent monitoring period
    */
   getRecentRequests() {
-    const cutoffTime = Date.now() - this.config.monitoringPeriod;
+    const cutoffTime = this.getDeterministicTimestamp() - this.config.monitoringPeriod;
     return this.requests.filter(req => req.timestamp > cutoffTime);
   }
   
@@ -274,7 +274,7 @@ export class CircuitBreaker extends EventEmitter {
    * Clean up old request records
    */
   cleanupOldRequests() {
-    const cutoffTime = Date.now() - (this.config.monitoringPeriod * 2); // Keep 2x monitoring period
+    const cutoffTime = this.getDeterministicTimestamp() - (this.config.monitoringPeriod * 2); // Keep 2x monitoring period
     this.requests = this.requests.filter(req => req.timestamp > cutoffTime);
   }
   
@@ -287,7 +287,7 @@ export class CircuitBreaker extends EventEmitter {
       this.cleanupOldRequests();
       
       // If circuit is open, check if it's time to try half-open
-      if (this.state === 'OPEN' && Date.now() >= this.nextAttempt) {
+      if (this.state === 'OPEN' && this.getDeterministicTimestamp() >= this.nextAttempt) {
         this.transitionTo('HALF_OPEN');
       }
     }, 30000); // Every 30 seconds
@@ -317,7 +317,7 @@ export class CircuitBreaker extends EventEmitter {
       recentSuccesses,
       currentFailureRate: currentFailureRate.toFixed(2),
       isCircuitOpen: this.state === 'OPEN',
-      timeUntilRetry: this.state === 'OPEN' ? Math.max(0, this.nextAttempt - Date.now()) : 0
+      timeUntilRetry: this.state === 'OPEN' ? Math.max(0, this.nextAttempt - this.getDeterministicTimestamp()) : 0
     };
   }
   
@@ -332,7 +332,7 @@ export class CircuitBreaker extends EventEmitter {
    * Check if circuit is available for requests
    */
   isAvailable() {
-    if (this.state === 'OPEN' && Date.now() < this.nextAttempt) {
+    if (this.state === 'OPEN' && this.getDeterministicTimestamp() < this.nextAttempt) {
       return false;
     }
     return true;

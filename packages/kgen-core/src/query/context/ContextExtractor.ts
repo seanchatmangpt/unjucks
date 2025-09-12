@@ -75,7 +75,7 @@ export class ContextExtractor extends EventEmitter {
     focusEntities?: string[],
     extractionOptions?: Partial<ContextExtractionOptions>
   ): Promise<ContextExtractionResult> {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     const opts = { ...this.options, ...extractionOptions };
 
     try {
@@ -110,7 +110,7 @@ export class ContextExtractor extends EventEmitter {
         provenance
       };
 
-      const executionTime = Date.now() - startTime;
+      const executionTime = this.getDeterministicTimestamp() - startTime;
       
       this.emit('extraction:completed', {
         result,
@@ -557,7 +557,7 @@ export class ContextExtractor extends EventEmitter {
           entity: quad.subject.value,
           activity: '',
           agent: '',
-          timestamp: new Date(),
+          timestamp: this.getDeterministicDate(),
           derivation: [],
           influence: []
         };
@@ -761,7 +761,7 @@ export class ContextExtractor extends EventEmitter {
       try {
         context.timestamp = new Date(timestampQuads[0].object.value);
       } catch {
-        context.timestamp = new Date();
+        context.timestamp = this.getDeterministicDate();
       }
     }
   }

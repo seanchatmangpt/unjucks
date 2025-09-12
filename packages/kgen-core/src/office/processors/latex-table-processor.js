@@ -399,7 +399,7 @@ export class LaTeXTableProcessor extends BaseOfficeProcessor {
     return {
       title: parseResult.metadata?.title || 'LaTeX Table Document',
       author: parseResult.metadata?.author || 'Table Generator',
-      date: new Date().toISOString(),
+      date: this.getDeterministicDate().toISOString(),
       documentClass: parseResult.metadata?.documentClass || 'article',
       tableCount: tableData.rowCount || 0,
       columnCount: tableData.columnCount || 0,

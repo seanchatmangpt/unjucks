@@ -290,7 +290,7 @@ export class AdvancedBTreeIndex extends EventEmitter {
     const performanceStats = {
       averageInsertTime: (this.stats.insertTime || 0) / Math.max(1, this.stats.inserts),
       averageLookupTime: (this.stats.lookupTime || 0) / Math.max(1, this.stats.lookups),
-      throughput: this.stats.lookups / Math.max(1, (Date.now() - (this.initTime || Date.now())) / 1000)
+      throughput: this.stats.lookups / Math.max(1, (this.getDeterministicTimestamp() - (this.initTime || this.getDeterministicTimestamp())) / 1000)
     };
     
     return {
@@ -338,7 +338,7 @@ export class AdvancedBTreeIndex extends EventEmitter {
     this.height = 1;
     this.nodeCount = 1;
     this.keyCount = 0;
-    this.initTime = Date.now();
+    this.initTime = this.getDeterministicTimestamp();
   }
 
   async _loadIndex(indexData) {
@@ -352,7 +352,7 @@ export class AdvancedBTreeIndex extends EventEmitter {
       this.root = await this._loadNode(indexData.rootId);
     }
     
-    this.initTime = indexData.initTime || Date.now();
+    this.initTime = indexData.initTime || this.getDeterministicTimestamp();
   }
 
   async _insertInternal(key, value) {
@@ -776,7 +776,7 @@ export class AdvancedBTreeIndex extends EventEmitter {
       nodeIdCounter: this.nodeIdCounter,
       rootId: this.root?.id,
       initTime: this.initTime,
-      lastSaved: Date.now()
+      lastSaved: this.getDeterministicTimestamp()
     };
     
     const indexPath = path.join(this.config.storageDir, 'index.json');
@@ -816,7 +816,7 @@ export class AdvancedBTreeIndex extends EventEmitter {
       subject: triple.subject,
       predicate: triple.predicate,
       object: triple.object,
-      timestamp: Date.now()
+      timestamp: this.getDeterministicTimestamp()
     };
   }
 

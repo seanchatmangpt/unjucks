@@ -19,7 +19,7 @@ export class FileTestHelper {
    */
   async createTempFile(content, extension = '.js', basePath = null) {
     const tempDir = basePath || tmpdir();
-    const filename = `test-${Date.now()}-${Math.random().toString(36).substring(2)}${extension}`;
+    const filename = `test-${this.getDeterministicTimestamp()}-${Math.random().toString(36).substring(2)}${extension}`;
     const filePath = path.join(tempDir, filename);
     
     await fs.ensureDir(path.dirname(filePath));
@@ -33,7 +33,7 @@ export class FileTestHelper {
    * Create a temporary directory
    */
   async createTempDir() {
-    const tempDir = path.join(tmpdir(), `unjucks-file-test-${Date.now()}-${Math.random().toString(36).substring(2)}`);
+    const tempDir = path.join(tmpdir(), `unjucks-file-test-${this.getDeterministicTimestamp()}-${Math.random().toString(36).substring(2)}`);
     await fs.ensureDir(tempDir);
     this.tempDirs.push(tempDir);
     return tempDir;

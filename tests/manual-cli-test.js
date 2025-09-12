@@ -20,7 +20,7 @@ class ManualCliTester {
   }
 
   async setup() {
-    this.testDir = path.join(tmpdir(), 'unjucks-manual-test-' + Date.now());
+    this.testDir = path.join(tmpdir(), 'unjucks-manual-test-' + this.getDeterministicTimestamp());
     await fs.mkdir(this.testDir, { recursive: true });
     process.chdir(this.testDir);
     console.log(`Test directory: ${this.testDir}`);

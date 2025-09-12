@@ -45,7 +45,7 @@ describe('Production Scalability Stress Tests', () => {
     
     // Generate stress test metrics file
     const report = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       config: STRESS_CONFIG,
       results: stressResults,
       summary: {
@@ -113,7 +113,7 @@ describe('Production Scalability Stress Tests', () => {
       const rdfFilters = new RDFFilters({ store });
       
       const testDuration = 10000; // 10 seconds
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       let queryCount = 0;
       let errors = 0;
       
@@ -123,7 +123,7 @@ describe('Production Scalability Stress Tests', () => {
         stressResults.memoryPeaks.push(memoryMB);
       }, 1000);
       
-      while (Date.now() - startTime < testDuration) {
+      while (this.getDeterministicTimestamp() - startTime < testDuration) {
         try {
           // Rotate through different query types
           const queryType = queryCount % 4;
@@ -149,14 +149,14 @@ describe('Production Scalability Stress Tests', () => {
           stressResults.errors.push({
             error: error.message,
             queryCount,
-            timestamp: Date.now()
+            timestamp: this.getDeterministicTimestamp()
           });
         }
       }
       
       clearInterval(memoryCheckInterval);
       
-      const actualDuration = Date.now() - startTime;
+      const actualDuration = this.getDeterministicTimestamp() - startTime;
       const throughput = (queryCount * 1000) / actualDuration; // queries per second
       const errorRate = (errors / queryCount) * 100;
       

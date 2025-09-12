@@ -84,12 +84,12 @@ async function executeArtifactExplain(artifactPath, options) {
     };
     
     // Generate explanation
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     logger.start('Analyzing artifact...');
     
     const explanation = await explainer.explainArtifact(resolvedPath, explainOptions);
     
-    const analysisTime = Date.now() - startTime;
+    const analysisTime = this.getDeterministicTimestamp() - startTime;
     logger.success(`Analysis complete in ${analysisTime}ms`);
     
     // Format and output results

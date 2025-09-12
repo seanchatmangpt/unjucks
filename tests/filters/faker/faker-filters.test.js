@@ -298,7 +298,7 @@ describe('Faker.js Integration Filters (15+ filters)', () => {
 
   describe('Performance Tests', () => {
     it('should generate fake data efficiently', () => {
-      const start = Date.now();
+      const start = this.getDeterministicTimestamp();
       
       for (let i = 0; i < 100; i++) {
         env.renderString(`
@@ -306,7 +306,7 @@ describe('Faker.js Integration Filters (15+ filters)', () => {
         `);
       }
       
-      const end = Date.now();
+      const end = this.getDeterministicTimestamp();
       expect(end - start).toBeLessThan(2000); // Should complete in under 2 seconds
     });
 
@@ -319,13 +319,13 @@ describe('Faker.js Integration Filters (15+ filters)', () => {
         "phone": "phone"
       }`;
       
-      const start = Date.now();
+      const start = this.getDeterministicTimestamp();
       
       for (let i = 0; i < 50; i++) {
         env.renderString(`{{ ${schema} | fakeSchema }}`);
       }
       
-      const end = Date.now();
+      const end = this.getDeterministicTimestamp();
       expect(end - start).toBeLessThan(1000);
     });
   });

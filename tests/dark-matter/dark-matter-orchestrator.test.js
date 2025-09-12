@@ -102,7 +102,7 @@ describe('Dark Matter: Orchestration and Analysis', () => {
               result,
               executionTime: categoryEndTime - categoryStartTime,
               memoryDelta: categoryAfterMemory - categoryBeforeMemory,
-              timestamp: new Date().toISOString()
+              timestamp: this.getDeterministicDate().toISOString()
             };
           } catch (error) {
             const categoryEndTime = performance.now();
@@ -113,7 +113,7 @@ describe('Dark Matter: Orchestration and Analysis', () => {
               error: error.message,
               stack: error.stack,
               executionTime: categoryEndTime - categoryStartTime,
-              timestamp: new Date().toISOString()
+              timestamp: this.getDeterministicDate().toISOString()
             };
           }
         })
@@ -374,7 +374,7 @@ describe('Dark Matter: Orchestration and Analysis', () => {
   async function generateFailurePatternAnalysis() {
     return {
       methodology: '80/20 Pareto Analysis',
-      analysisDate: new Date().toISOString(),
+      analysisDate: this.getDeterministicDate().toISOString(),
       dataPoints: 12847,
       confidenceLevel: 0.95,
       criticalThreshold: 0.2,
@@ -499,7 +499,7 @@ ${measures.performanceOptimization.map(m => `- ${m}`).join('\n')}
 ## Conclusion
 The Dark Matter validation suite successfully identified and tested the critical edge cases that cause the majority of production failures. Implementation of the recommended preventive measures will significantly improve system reliability and achieve enterprise-grade 99.9%+ uptime requirements.
 
-**Generated**: ${new Date().toISOString()}
+**Generated**: ${this.getDeterministicDate().toISOString()}
 **Confidence Level**: 95%
 **Data Points Analyzed**: 12,847
 `;

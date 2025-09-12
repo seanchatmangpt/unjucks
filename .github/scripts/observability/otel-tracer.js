@@ -193,7 +193,7 @@ class DistributedTracer {
     const span = this.tracer.startSpan(`stage.${stageName}`, {
       attributes: {
         'stage.name': stageName,
-        'stage.start_time': new Date().toISOString()
+        'stage.start_time': this.getDeterministicDate().toISOString()
       }
     });
 
@@ -211,7 +211,7 @@ class DistributedTracer {
       
     } finally {
       span.setAttributes({
-        'stage.end_time': new Date().toISOString()
+        'stage.end_time': this.getDeterministicDate().toISOString()
       });
       span.end();
     }
@@ -343,7 +343,7 @@ class DistributedTracer {
       sessionId: this.sessionId,
       traceId: this.traceId,
       operation: this.operation,
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       service: this.serviceName,
       version: this.serviceVersion,
       resource_attributes: {

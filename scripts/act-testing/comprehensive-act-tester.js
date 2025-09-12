@@ -47,7 +47,7 @@ class ComprehensiveActTester {
       }
     };
     
-    this.startTime = Date.now();
+    this.startTime = this.getDeterministicTimestamp();
   }
 
   async runComprehensiveTesting() {
@@ -234,8 +234,8 @@ class ComprehensiveActTester {
     
     const report = {
       metadata: {
-        timestamp: new Date().toISOString(),
-        duration: Date.now() - this.startTime,
+        timestamp: this.getDeterministicDate().toISOString(),
+        duration: this.getDeterministicTimestamp() - this.startTime,
         testSuite: this.options.testSuite,
         options: this.options
       },
@@ -436,7 +436,7 @@ ${phase.actions.map(action => `- ${action}`).join('\n')}
 4. **Integrate**: Add act testing to development workflow
 5. **Monitor**: Set up regular compatibility checks
 
-Generated on ${new Date().toLocaleString()}
+Generated on ${this.getDeterministicDate().toLocaleString()}
 `;
   }
 
@@ -472,7 +472,7 @@ Generated on ${new Date().toLocaleString()}
     <div class="container">
         <div class="header">
             <h1>🎯 Act Compatibility Dashboard</h1>
-            <p class="timestamp">Generated: ${new Date().toLocaleString()}</p>
+            <p class="timestamp">Generated: ${this.getDeterministicDate().toLocaleString()}</p>
             <p>Test Suite: <strong>${report.metadata.testSuite}</strong> | Duration: <strong>${Math.round(report.metadata.duration / 1000)}s</strong></p>
         </div>
 
@@ -551,7 +551,7 @@ Generated on ${new Date().toLocaleString()}
   }
 
   printFinalSummary() {
-    const duration = Math.round((Date.now() - this.startTime) / 1000);
+    const duration = Math.round((this.getDeterministicTimestamp() - this.startTime) / 1000);
     const passRate = Math.round((this.results.summary.passed / this.results.summary.totalTests) * 100);
     
     console.log('\n' + '='.repeat(60));

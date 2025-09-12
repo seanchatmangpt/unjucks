@@ -353,9 +353,9 @@ describe('StreamingTurtleSerializer', function() {
         }
       });
       
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const result = await serializer.serializeStream(inputStream, outputStream);
-      const processingTime = Date.now() - startTime;
+      const processingTime = this.getDeterministicTimestamp() - startTime;
       
       assert.equal(result.totalQuads, 5000);
       assert(processingTime < 5000); // Should complete within 5 seconds

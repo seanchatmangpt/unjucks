@@ -14,11 +14,12 @@ import artifactCommands from './commands/artifact/index.js';
 import graphCommands from './commands/graph/index.js';
 import projectCommands from './commands/project/index.js';
 import cacheCommands from './commands/cache/index.js';
-import templatesCommands from './commands/templates/index.js';
+import templatesCommands from './commands/templates.js';
 import rulesCommands from './commands/rules/index.js';
 import metricsCommands from './commands/metrics/index.js';
 import validateCommands from './commands/validate/index.js';
 import driftCommands from './commands/drift/index.js';
+import lintCommand from './commands/lint.js';
 
 export const main = defineCommand({
   meta: {
@@ -53,7 +54,8 @@ export const main = defineCommand({
     rules: rulesCommands,
     metrics: metricsCommands,
     validate: validateCommands,
-    drift: driftCommands
+    drift: driftCommands,
+    lint: lintCommand
   },
   async run({ args }) {
     // Global help output in JSON format
@@ -86,8 +88,8 @@ export const main = defineCommand({
           },
           {
             name: 'templates',
-            description: 'Manage Nunjucks templates',
-            verbs: ['ls', 'show']
+            description: 'Comprehensive template management system',
+            verbs: ['ls', 'show', 'validate']
           },
           {
             name: 'rules',
@@ -108,7 +110,7 @@ export const main = defineCommand({
           'kgen project lock --output project.lock'
         ]
       },
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     };
 
     console.log(JSON.stringify(result, null, 2));

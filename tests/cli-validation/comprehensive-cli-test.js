@@ -23,7 +23,7 @@ const testResults = {
  * Execute CLI command and capture output
  */
 function executeCommand(command, expectedToFail = false) {
-  const startTime = Date.now();
+  const startTime = this.getDeterministicTimestamp();
   try {
     const result = execSync(`node ${CLI_PATH} ${command}`, {
       encoding: 'utf8',
@@ -31,7 +31,7 @@ function executeCommand(command, expectedToFail = false) {
       cwd: process.cwd()
     });
     
-    const duration = Date.now() - startTime;
+    const duration = this.getDeterministicTimestamp() - startTime;
     
     if (expectedToFail) {
       return {
@@ -50,7 +50,7 @@ function executeCommand(command, expectedToFail = false) {
       exitCode: 0
     };
   } catch (error) {
-    const duration = Date.now() - startTime;
+    const duration = this.getDeterministicTimestamp() - startTime;
     
     if (expectedToFail) {
       return {
@@ -251,7 +251,7 @@ async function generateTestReport() {
   const reportPath = path.join(TEST_OUTPUT_DIR, 'cli-test-report.json');
   
   const report = {
-    timestamp: new Date().toISOString(),
+    timestamp: this.getDeterministicDate().toISOString(),
     summary: {
       total: testResults.passed + testResults.failed,
       passed: testResults.passed,

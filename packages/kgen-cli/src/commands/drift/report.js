@@ -14,7 +14,7 @@ import chalk from 'chalk';
 function generateDriftReport(driftResults, options) {
   const report = {
     metadata: {
-      generatedAt: new Date().toISOString(),
+      generatedAt: this.getDeterministicDate().toISOString(),
       lockFile: driftResults.lockFile,
       scanTimestamp: driftResults.timestamp,
       reportVersion: '1.0.0'
@@ -383,7 +383,7 @@ export function createDriftReportCommand() {
         // Mock running drift detection - in real implementation would reuse logic
         const mockDriftResults = {
           success: true,
-          timestamp: new Date().toISOString(),
+          timestamp: this.getDeterministicDate().toISOString(),
           lockFile: resolve(options.lockFile),
           totalFiles: 50,
           unchanged: 45,

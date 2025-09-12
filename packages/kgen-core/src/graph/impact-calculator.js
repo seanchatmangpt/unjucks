@@ -47,7 +47,7 @@ export class ImpactCalculator {
     try {
       this.logger.debug('Calculating comprehensive change impact');
       
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const analysisOptions = { ...this.config, ...options };
       
       // Parse TTL contents
@@ -88,7 +88,7 @@ export class ImpactCalculator {
         changes, blastRadiusAnalysis, semanticImpact, analysisOptions
       );
       
-      const processingTime = Date.now() - startTime;
+      const processingTime = this.getDeterministicTimestamp() - startTime;
       
       const impactAnalysis = {
         summary: {
@@ -112,7 +112,7 @@ export class ImpactCalculator {
           originalTriples: originalQuads.length,
           modifiedTriples: modifiedQuads.length,
           analysisOptions,
-          calculatedAt: new Date().toISOString()
+          calculatedAt: this.getDeterministicDate().toISOString()
         }
       };
       
@@ -294,7 +294,7 @@ export class ImpactCalculator {
         mitigationStrategies: this._generateMitigationStrategies(impactAnalysis),
         validationChecklist: this._generateValidationChecklist(impactAnalysis),
         metadata: {
-          reportGenerated: new Date().toISOString(),
+          reportGenerated: this.getDeterministicDate().toISOString(),
           analysisDate: impactAnalysis.metadata.calculatedAt,
           reportOptions: options
         }

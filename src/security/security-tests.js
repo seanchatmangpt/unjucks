@@ -36,7 +36,7 @@ export class SecurityTestFramework {
     console.log('🔒 Starting comprehensive security test suite...');
     
     const testResults = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       summary: {
         totalTests: 0,
         passed: 0,

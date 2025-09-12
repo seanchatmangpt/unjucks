@@ -36,7 +36,7 @@ export class HashCalculator {
     try {
       this.logger.debug('Calculating canonical hash for TTL content');
       
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const hashOptions = { ...this.config, ...options };
       
       // Parse TTL content
@@ -55,7 +55,7 @@ export class HashCalculator {
       // Calculate hash
       const hash = this._calculateHash(canonicalString, hashOptions);
       
-      const processingTime = Date.now() - startTime;
+      const processingTime = this.getDeterministicTimestamp() - startTime;
       
       const result = {
         hash,
@@ -90,7 +90,7 @@ export class HashCalculator {
     try {
       this.logger.debug('Calculating canonical hash for store');
       
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const hashOptions = { ...this.config, ...options };
       
       // Get all quads from store
@@ -103,7 +103,7 @@ export class HashCalculator {
       const canonicalString = this._generateCanonicalString(sortedQuads, hashOptions);
       const hash = this._calculateHash(canonicalString, hashOptions);
       
-      const processingTime = Date.now() - startTime;
+      const processingTime = this.getDeterministicTimestamp() - startTime;
       
       return {
         hash,
@@ -223,7 +223,7 @@ export class HashCalculator {
         expectedHash,
         actualHash: hashResult.hash,
         metadata: hashResult.metadata,
-        validatedAt: new Date().toISOString()
+        validatedAt: this.getDeterministicDate().toISOString()
       };
       
       this.logger.info(`Hash validation: ${isValid ? 'VALID' : 'INVALID'}`);

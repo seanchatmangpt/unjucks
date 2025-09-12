@@ -127,7 +127,7 @@ export class ETLPipeline extends EventEmitter {
                 processedRecords: 0,
                 successfulRecords: 0,
                 failedRecords: 0,
-                startTime: new Date(),
+                startTime: this.getDeterministicDate(),
                 endTime: null,
                 errors: []
             };
@@ -150,7 +150,7 @@ export class ETLPipeline extends EventEmitter {
             this.emit('stage:completed', { stage: ETL_STAGES.LOAD, result: loadResult });
 
             // Update final metrics
-            this.metrics.endTime = new Date();
+            this.metrics.endTime = this.getDeterministicDate();
             this.status = 'completed';
 
             const executionResult = {
@@ -165,11 +165,11 @@ export class ETLPipeline extends EventEmitter {
 
         } catch (error) {
             this.status = 'error';
-            this.metrics.endTime = new Date();
+            this.metrics.endTime = this.getDeterministicDate();
             this.metrics.errors.push({
                 stage: 'execution',
                 error: error.message,
-                timestamp: new Date()
+                timestamp: this.getDeterministicDate()
             });
 
             const executionResult = {
@@ -239,7 +239,7 @@ export class ETLPipeline extends EventEmitter {
                     stage: ETL_STAGES.TRANSFORM,
                     transformation: transformation.type,
                     error: error.message,
-                    timestamp: new Date()
+                    timestamp: this.getDeterministicDate()
                 });
 
                 if (this.config.errorStrategy === 'stop') {
@@ -282,12 +282,12 @@ export class ETLPipeline extends EventEmitter {
             stage,
             progress,
             details,
-            timestamp: new Date()
+            timestamp: this.getDeterministicDate()
         });
     }
 
     generateId() {
-        return `etl_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        return `etl_${this.getDeterministicTimestamp()}_${Math.random().toString(36).substr(2, 9)}`;
     }
 
     toJSON() {
@@ -1122,7 +1122,7 @@ export class ETLPipelineManager extends EventEmitter {
             throw new Error(`Pipeline ${pipelineId} not found`);
         }
 
-        const executionId = `exec_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        const executionId = `exec_${this.getDeterministicTimestamp()}_${Math.random().toString(36).substr(2, 9)}`;
         
         try {
             const result = await pipeline.execute(options);
@@ -1132,7 +1132,7 @@ export class ETLPipelineManager extends EventEmitter {
                 pipelineId,
                 executionId,
                 result,
-                timestamp: new Date()
+                timestamp: this.getDeterministicDate()
             });
             
             return { executionId, ...result };
@@ -1143,7 +1143,7 @@ export class ETLPipelineManager extends EventEmitter {
                 pipelineId,
                 executionId,
                 error: error.message,
-                timestamp: new Date(),
+                timestamp: this.getDeterministicDate(),
                 status: 'failed'
             });
             

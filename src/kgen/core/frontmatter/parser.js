@@ -9,7 +9,7 @@
 
 import yaml from 'yaml';
 import { EventEmitter } from 'events';
-import { Logger } from 'consola';
+import { Consola } from 'consola';
 
 export class FrontmatterParser extends EventEmitter {
   constructor(options = {}) {
@@ -27,7 +27,7 @@ export class FrontmatterParser extends EventEmitter {
       ...options
     };
     
-    this.logger = new Logger({ tag: 'kgen-frontmatter-parser' });
+    this.logger = new Consola({ tag: 'kgen-frontmatter-parser' });
     this.parseCache = new Map();
     this.validationCache = new Map();
   }
@@ -70,7 +70,7 @@ export class FrontmatterParser extends EventEmitter {
         return result;
       }
       
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
       // Enhanced frontmatter regex that handles edge cases
       const frontmatterRegex = /^---\s*\r?\n([\s\S]*?)\r?\n---\s*(?:\r?\n|$)([\s\S]*)$/;
@@ -82,7 +82,7 @@ export class FrontmatterParser extends EventEmitter {
           content: templateContent,
           hasValidFrontmatter: false,
           parseMetadata: {
-            parseTime: Date.now() - startTime,
+            parseTime: this.getDeterministicTimestamp() - startTime,
             cacheHit: false,
             errors: [],
             warnings: ['No frontmatter delimiter found']
@@ -111,7 +111,7 @@ export class FrontmatterParser extends EventEmitter {
           content: templateContent,
           hasValidFrontmatter: false,
           parseMetadata: {
-            parseTime: Date.now() - startTime,
+            parseTime: this.getDeterministicTimestamp() - startTime,
             cacheHit: false,
             errors: yamlParseResult.errors,
             warnings: []
@@ -148,7 +148,7 @@ export class FrontmatterParser extends EventEmitter {
         validationResult,
         variableExtraction,
         parseMetadata: {
-          parseTime: Date.now() - startTime,
+          parseTime: this.getDeterministicTimestamp() - startTime,
           cacheHit: false,
           errors: validationResult.errors || [],
           warnings: validationResult.warnings || [],
@@ -167,7 +167,7 @@ export class FrontmatterParser extends EventEmitter {
         this.emit('frontmatter:parsed', {
           cacheKey,
           result,
-          timestamp: new Date()
+          timestamp: this.getDeterministicDate()
         });
       }
       
@@ -179,7 +179,7 @@ export class FrontmatterParser extends EventEmitter {
         content: templateContent,
         hasValidFrontmatter: false,
         parseMetadata: {
-          parseTime: Date.now() - (Date.now() - 1),
+          parseTime: this.getDeterministicTimestamp() - (this.getDeterministicTimestamp() - 1),
           cacheHit: false,
           errors: [`Parse error: ${error.message}`],
           warnings: []

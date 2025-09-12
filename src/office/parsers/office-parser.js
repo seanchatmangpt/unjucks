@@ -459,8 +459,8 @@ export class OfficeParser {
             author: '',
             subject: '',
             creator: '',
-            created: new Date(),
-            modified: new Date(),
+            created: this.getDeterministicDate(),
+            modified: this.getDeterministicDate(),
             description: '',
             keywords: [],
             customProperties: {}
@@ -482,8 +482,8 @@ export class OfficeParser {
             author: '',
             subject: '',
             creator: '',
-            created: new Date(),
-            modified: new Date(),
+            created: this.getDeterministicDate(),
+            modified: this.getDeterministicDate(),
             description: '',
             keywords: [],
             customProperties: {}

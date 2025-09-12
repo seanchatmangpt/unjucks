@@ -395,7 +395,7 @@ export class TemplateOptimizationEngine extends EventEmitter {
       await this.initialize();
     }
 
-    const jobId = `${templatePath}-${Date.now()}`;
+    const jobId = `${templatePath}-${this.getDeterministicTimestamp()}`;
     const startTime = performance.now();
 
     this.activeJobs.set(jobId, {
@@ -593,14 +593,14 @@ export class TemplateOptimizationEngine extends EventEmitter {
     }
     
     this.metrics.optimizationBreakdown.get(templatePath).push({
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       optimizationTime,
       optimizations: result.metadata.optimizations
     });
 
     // Update performance trend
     this.metrics.performanceTrend.push({
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       averageTime: this.metrics.averageOptimizationTime,
       templatesProcessed: this.metrics.templatesProcessed
     });
@@ -743,7 +743,7 @@ export class TemplateOptimizationEngine extends EventEmitter {
       engine: {
         mode: this.options.mode,
         tier: this.options.tier,
-        uptime: this.isRunning ? Date.now() - this.startTime : 0,
+        uptime: this.isRunning ? this.getDeterministicTimestamp() - this.startTime : 0,
         isRunning: this.isRunning
       },
       metrics: this.getMetrics(),
@@ -758,7 +758,7 @@ export class TemplateOptimizationEngine extends EventEmitter {
         loaded: true,
         status: 'active'
       })),
-      exportedAt: new Date().toISOString()
+      exportedAt: this.getDeterministicDate().toISOString()
     };
   }
 

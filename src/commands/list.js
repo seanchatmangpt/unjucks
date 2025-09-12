@@ -314,7 +314,7 @@ export const listCommand = defineCommand({
   },
   async run(context) {
     const { args } = context;
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
 
     try {
       // Validate command arguments
@@ -389,8 +389,8 @@ export const listCommand = defineCommand({
               created: t.created,
               modified: t.modified,
             })),
-            created: new Date().toISOString(),
-            modified: new Date().toISOString(),
+            created: this.getDeterministicDate().toISOString(),
+            modified: this.getDeterministicDate().toISOString(),
           },
         ];
       } else {
@@ -404,7 +404,7 @@ export const listCommand = defineCommand({
             success: true,
             message: "No generators found",
             data: [],
-            duration: Date.now() - startTime,
+            duration: this.getDeterministicTimestamp() - startTime,
           };
         }
 
@@ -504,7 +504,7 @@ export const listCommand = defineCommand({
       // Output results in requested format
       await outputResults(filteredData, args);
 
-      const duration = Date.now() - startTime;
+      const duration = this.getDeterministicTimestamp() - startTime;
 
       if (!args.quiet && args.verbose) {
         console.log(

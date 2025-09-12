@@ -45,13 +45,13 @@ export class SpecDrivenTestUtils {
   // Mock data generators
   generateSpecification(overrides = {}) {
     const baseSpec = {
-      id: `spec-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      id: `spec-${this.getDeterministicTimestamp()}-${Math.random().toString(36).substr(2, 9)}`,
       name: 'TestSpecification',
       description: 'A test specification for BDD testing',
       type: 'feature',
       priority: 'medium',
       complexity: 'medium',
-      createdAt: new Date().toISOString(),
+      createdAt: this.getDeterministicDate().toISOString(),
       version: 1,
       acceptance: [
         'System should handle user input correctly',
@@ -67,7 +67,7 @@ export class SpecDrivenTestUtils {
 
   generatePlan(specification, overrides = {}) {
     const basePlan = {
-      id: `plan-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      id: `plan-${this.getDeterministicTimestamp()}-${Math.random().toString(36).substr(2, 9)}`,
       specificationId: specification.id,
       name: `Development Plan for ${specification.name}`,
       phases: [
@@ -78,7 +78,7 @@ export class SpecDrivenTestUtils {
         { name: 'deployment', estimatedDays: 2, dependencies: ['testing'] }
       ],
       totalEstimatedDays: 22,
-      createdAt: new Date().toISOString(),
+      createdAt: this.getDeterministicDate().toISOString(),
       status: 'draft',
       ...overrides
     };
@@ -122,10 +122,10 @@ export class SpecDrivenTestUtils {
 
   generateWorkflow(requirement, overrides = {}) {
     const baseWorkflow = {
-      id: `workflow-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      id: `workflow-${this.getDeterministicTimestamp()}-${Math.random().toString(36).substr(2, 9)}`,
       requirement,
       status: 'running',
-      startTime: new Date().toISOString(),
+      startTime: this.getDeterministicDate().toISOString(),
       phases: [],
       currentPhase: 0,
       deliverables: {},

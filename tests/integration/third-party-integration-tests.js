@@ -51,7 +51,7 @@ class MockHttpClient extends EventEmitter {
       method,
       url,
       options,
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       id: faker.string.uuid()
     };
 
@@ -247,7 +247,7 @@ class WebhookServer extends EventEmitter {
       id: faker.string.uuid(),
       payload,
       headers,
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       processed: false
     };
 
@@ -325,7 +325,7 @@ class IntegrationManager {
     const breaker = this.circuitBreakers.get(serviceName);
     if (breaker) {
       breaker.state = 'open';
-      breaker.lastFailure = Date.now();
+      breaker.lastFailure = this.getDeterministicTimestamp();
     }
   }
 
@@ -397,7 +397,7 @@ describe('Third-Party Integration Tests', () => {
         title: 'Test Issue',
         state: 'open',
         user: { login: 'test' },
-        created_at: new Date().toISOString()
+        created_at: this.getDeterministicDate().toISOString()
       });
 
       mockHttpClient.mockResponse('https://api.github.com/repos/test/repo/pulls?state=open', [
@@ -468,10 +468,10 @@ describe('Third-Party Integration Tests', () => {
     it('should handle network timeouts', async () => {
       mockHttpClient.mockDelay('https://api.github.com/repos/test/repo', 10000); // 10 second delay
       
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       try {
         await githubClient.getRepository('test', 'repo');
-        const endTime = Date.now();
+        const endTime = this.getDeterministicTimestamp();
         expect(endTime - startTime).toBeGreaterThan(5000); // Should have waited
       } catch (error) {
         // Timeout is also acceptable
@@ -689,9 +689,9 @@ describe('Third-Party Integration Tests', () => {
     it('should handle high latency conditions', async () => {
       mockHttpClient.setNetworkConditions({ latency: 2000 }); // 2 second latency
       
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       await githubClient.getRepository('test', 'repo');
-      const endTime = Date.now();
+      const endTime = this.getDeterministicTimestamp();
       
       expect(endTime - startTime).toBeGreaterThan(1500); // Should take at least 1.5 seconds
     });
@@ -815,7 +815,7 @@ describe('Third-Party Integration Tests', () => {
       const rateLimitTest = {
         requestsPerMinute: 60,
         currentRequests: 0,
-        windowStart: Date.now()
+        windowStart: this.getDeterministicTimestamp()
       };
       
       expect(rateLimitTest.requestsPerMinute).toBe(60);
@@ -824,9 +824,9 @@ describe('Third-Party Integration Tests', () => {
     it('should measure response times', async () => {
       mockHttpClient.mockDelay('https://api.github.com/repos/test/repo', 100);
       
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       await githubClient.getRepository('test', 'repo');
-      const endTime = Date.now();
+      const endTime = this.getDeterministicTimestamp();
       
       const responseTime = endTime - startTime;
       expect(responseTime).toBeGreaterThan(90); // Should include the 100ms delay

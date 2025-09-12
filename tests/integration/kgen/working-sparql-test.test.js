@@ -34,7 +34,7 @@ describe('Working SPARQL CLI Integration', () => {
   `;
 
   beforeEach(async () => {
-    testDir = path.join(process.cwd(), 'test-temp', `working-${Date.now()}`);
+    testDir = path.join(process.cwd(), 'test-temp', `working-${this.getDeterministicTimestamp()}`);
     await mkdir(testDir, { recursive: true });
 
     adapter = new WorkingSparqlCliAdapter({

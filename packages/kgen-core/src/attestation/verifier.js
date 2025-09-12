@@ -343,8 +343,8 @@ export class AttestationVerifier {
 
   _validateAttestationStructure(attestation) {
     try {
-      // Required fields validation
-      const requiredFields = ['id', 'version', 'timestamp', 'artifact', 'provenance', 'integrity'];
+      // Required fields validation - match actual attestation structure
+      const requiredFields = ['attestationId', 'version', 'timestamps', 'artifact', 'provenance', 'integrity'];
       const missingFields = requiredFields.filter(field => !attestation[field]);
       
       if (missingFields.length > 0) {
@@ -366,9 +366,9 @@ export class AttestationVerifier {
         };
       }
       
-      // Integrity structure validation
+      // Integrity structure validation - match actual structure
       const integrity = attestation.integrity;
-      const requiredIntegrityFields = ['hashAlgorithm', 'verificationChain', 'chainIndex'];
+      const requiredIntegrityFields = ['algorithm', 'artifactHash'];
       const missingIntegrityFields = requiredIntegrityFields.filter(field => integrity[field] === undefined);
       
       if (missingIntegrityFields.length > 0) {

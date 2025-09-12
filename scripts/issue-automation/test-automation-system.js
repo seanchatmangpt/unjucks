@@ -555,7 +555,7 @@ class AutomationSystemTester {
       test: testName,
       passed: passed,
       details: details,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     });
     
     const status = passed ? '✅' : '❌';
@@ -570,7 +570,7 @@ class AutomationSystemTester {
       component: component,
       error: error.message,
       stack: error.stack,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     });
   }
 
@@ -590,7 +590,7 @@ class AutomationSystemTester {
       test_details: this.results.test_details,
       errors: this.results.errors,
       recommendations: this.generateRecommendations(),
-      generated_at: new Date().toISOString()
+      generated_at: this.getDeterministicDate().toISOString()
     };
     
     // Save JSON report

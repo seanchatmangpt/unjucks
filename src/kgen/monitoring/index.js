@@ -366,7 +366,7 @@ export class MonitoringSystem extends EventEmitter {
       return {
         status: 'healthy',
         uptime: Math.round(uptime),
-        startTime: new Date(Date.now() - uptime * 1000).toISOString()
+        startTime: new Date(this.getDeterministicTimestamp() - uptime * 1000).toISOString()
       };
     });
   }
@@ -509,7 +509,7 @@ export class MonitoringSystem extends EventEmitter {
    */
   httpMiddleware() {
     return (req, res, next) => {
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const timer = this.startTimer('http_request_duration');
       
       // Track request
@@ -574,7 +574,7 @@ export class MonitoringSystem extends EventEmitter {
     
     return {
       status: overallHealth,
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       checks: healthChecks,
       system: systemStatus
     };

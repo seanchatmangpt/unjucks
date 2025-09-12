@@ -240,7 +240,7 @@ This is the footer generated at {{ generatedDate | date('HH:mm:ss') }}
         fileExt: 'md',
         title: 'Integration Test',
         author: 'Test Suite',
-        generatedDate: new Date().toISOString(),
+        generatedDate: this.getDeterministicDate().toISOString(),
         items: [
           { name: 'Feature A', value: 'Working' },
           { name: 'Feature B', value: 'Validated' }
@@ -389,11 +389,11 @@ to: "{{ outputPath }}/large.txt"
       
       fs.writeFileSync(path.join(templateDir, 'large.njk'), largeContent);
       
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const outputDir = path.join(tempDir, 'large-output');
       
       const generateResult = execSync(`node ${TEMP_DIR}/src/cli/index.js generate large --output-path ${outputDir}`, { encoding: 'utf8' });
-      const endTime = Date.now();
+      const endTime = this.getDeterministicTimestamp();
       
       expect(generateResult).toContain('Generated');
       expect(endTime - startTime).toBeLessThan(10000); // Should complete within 10 seconds

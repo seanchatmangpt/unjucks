@@ -72,7 +72,7 @@ export class EnhancedMockFramework extends EventEmitter {
       const callInfo = {
         methodName,
         args,
-        timestamp: Date.now(),
+        timestamp: this.getDeterministicTimestamp(),
         sequence: ++this.globalSequenceNumber,
         mockName: mock._mockName
       };
@@ -385,7 +385,7 @@ export class EnhancedMockFramework extends EventEmitter {
   startRecording(name = 'default') {
     this.recordings.set(name, {
       calls: [],
-      startTime: Date.now()
+      startTime: this.getDeterministicTimestamp()
     });
   }
 
@@ -398,7 +398,7 @@ export class EnhancedMockFramework extends EventEmitter {
       throw new Error(`Recording not found: ${name}`);
     }
 
-    const endTime = Date.now();
+    const endTime = this.getDeterministicTimestamp();
     const relevantCalls = this.callSequence.filter(call => 
       call.timestamp >= recording.startTime && call.timestamp <= endTime
     );

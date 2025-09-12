@@ -92,7 +92,7 @@ export class CompressionOptimizedSerializer extends EventEmitter {
    * Serialize with maximum compression optimization
    */
   async serializeOptimized(quads, options = {}) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       this.logger.info('Starting compression optimized serialization...');
@@ -119,7 +119,7 @@ export class CompressionOptimizedSerializer extends EventEmitter {
       const statistics = await this._calculateCompressionStatistics(
         canonical.turtle,
         compressed,
-        Date.now() - startTime
+        this.getDeterministicTimestamp() - startTime
       );
       
       const result = {
@@ -138,7 +138,7 @@ export class CompressionOptimizedSerializer extends EventEmitter {
           ...canonical.metadata,
           compressionApplied: true,
           optimizationLevel: this._getOptimizationLevel(),
-          processingTime: Date.now() - startTime
+          processingTime: this.getDeterministicTimestamp() - startTime
         }
       };
       
@@ -179,7 +179,7 @@ export class CompressionOptimizedSerializer extends EventEmitter {
         turtle: fullyDecompressed,
         metadata: {
           decompressionMethod: this.config.compressionMethod,
-          timestamp: new Date()
+          timestamp: this.getDeterministicDate()
         }
       };
       

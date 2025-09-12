@@ -127,7 +127,7 @@ export class SecurityManager extends EventEmitter {
       this.logger.success('Security manager initialized successfully');
       
       this.emit('security:initialized', {
-        timestamp: new Date(),
+        timestamp: this.getDeterministicDate(),
         config: this._getSafeConfig()
       });
       
@@ -243,7 +243,7 @@ export class SecurityManager extends EventEmitter {
         operation,
         session,
         clientInfo: context.clientInfo || {},
-        timestamp: new Date()
+        timestamp: this.getDeterministicDate()
       };
       
       // Role-based authorization
@@ -311,7 +311,7 @@ export class SecurityManager extends EventEmitter {
    */
   generateToken(payload, options = {}) {
     try {
-      const now = Math.floor(Date.now() / 1000);
+      const now = Math.floor(this.getDeterministicTimestamp() / 1000);
       
       const tokenPayload = {
         ...payload,
@@ -334,9 +334,9 @@ export class SecurityManager extends EventEmitter {
         tokenId: tokenPayload.jti,
         sessionId: payload.sessionId,
         userId: payload.userId || payload.sub,
-        createdAt: new Date(),
-        expiresAt: new Date(Date.now() + this._parseTimeToMs(tokenOptions.expiresIn)),
-        lastUsed: new Date()
+        createdAt: this.getDeterministicDate(),
+        expiresAt: new Date(this.getDeterministicTimestamp() + this._parseTimeToMs(tokenOptions.expiresIn)),
+        lastUsed: this.getDeterministicDate()
       });
       
       return token;
@@ -376,7 +376,7 @@ export class SecurityManager extends EventEmitter {
       }
       
       // Update last used
-      session.lastUsed = new Date();
+      session.lastUsed = this.getDeterministicDate();
       
       return decoded;
       
@@ -398,7 +398,7 @@ export class SecurityManager extends EventEmitter {
       this._recordSecurityEvent('token_revoked', {
         tokenId: token.substring(0, 10) + '...',
         reason,
-        timestamp: new Date()
+        timestamp: this.getDeterministicDate()
       });
       
       this.logger.info(`Token revoked: ${reason}`);
@@ -428,7 +428,7 @@ export class SecurityManager extends EventEmitter {
         await this._recordSecurityEvent('session_terminated', {
           sessionId,
           reason,
-          timestamp: new Date()
+          timestamp: this.getDeterministicDate()
         });
       }
       
@@ -543,7 +543,7 @@ export class SecurityManager extends EventEmitter {
     if (!attempts) return false;
     
     return attempts.count >= this.config.passwordPolicy.lockoutThreshold &&
-           (Date.now() - attempts.lastAttempt) < this.config.passwordPolicy.lockoutDuration;
+           (this.getDeterministicTimestamp() - attempts.lastAttempt) < this.config.passwordPolicy.lockoutDuration;
   }
 
   _isSuspiciousActivity(userId, clientInfo) {
@@ -554,7 +554,7 @@ export class SecurityManager extends EventEmitter {
     if (clientInfo.ip && userActivity.length > 0) {
       const lastActivity = userActivity[userActivity.length - 1];
       if (lastActivity.ip !== clientInfo.ip && 
-          (Date.now() - lastActivity.timestamp) < 60000) { // 1 minute
+          (this.getDeterministicTimestamp() - lastActivity.timestamp) < 60000) { // 1 minute
         return true;
       }
     }
@@ -563,7 +563,7 @@ export class SecurityManager extends EventEmitter {
     if (clientInfo.userAgent && userActivity.length > 0) {
       const lastActivity = userActivity[userActivity.length - 1];
       if (lastActivity.userAgent !== clientInfo.userAgent &&
-          (Date.now() - lastActivity.timestamp) < 300000) { // 5 minutes
+          (this.getDeterministicTimestamp() - lastActivity.timestamp) < 300000) { // 5 minutes
         return true;
       }
     }
@@ -626,7 +626,7 @@ export class SecurityManager extends EventEmitter {
       // Store device fingerprint
       knownDevices.push({
         fingerprint: clientInfo.deviceFingerprint,
-        firstSeen: new Date(),
+        firstSeen: this.getDeterministicDate(),
         ip: clientInfo.ip,
         userAgent: clientInfo.userAgent
       });
@@ -653,9 +653,9 @@ export class SecurityManager extends EventEmitter {
       sessionId,
       userId: user.id,
       user: { ...user, password: undefined }, // Don't store password in session
-      createdAt: new Date(),
-      lastActivity: new Date(),
-      expiresAt: new Date(Date.now() + this.config.session.timeout),
+      createdAt: this.getDeterministicDate(),
+      lastActivity: this.getDeterministicDate(),
+      expiresAt: new Date(this.getDeterministicTimestamp() + this.config.session.timeout),
       clientInfo,
       securityLevel: user.clearanceLevel || 'INTERNAL'
     };
@@ -680,13 +680,13 @@ export class SecurityManager extends EventEmitter {
   }
 
   _isSessionExpired(session) {
-    return Date.now() > session.expiresAt.getTime();
+    return this.getDeterministicTimestamp() > session.expiresAt.getTime();
   }
 
   _shouldRotateSession(session) {
     // Rotate session every hour
     const rotationInterval = 60 * 60 * 1000; // 1 hour
-    return (Date.now() - session.createdAt.getTime()) > rotationInterval;
+    return (this.getDeterministicTimestamp() - session.createdAt.getTime()) > rotationInterval;
   }
 
   async _rotateSession(session) {
@@ -731,7 +731,7 @@ export class SecurityManager extends EventEmitter {
     const { user, operation } = authContext;
     
     // Check if operation is allowed at current time
-    const now = new Date();
+    const now = this.getDeterministicDate();
     const hour = now.getHours();
     
     // Example: Restrict sensitive operations during non-business hours
@@ -758,15 +758,15 @@ export class SecurityManager extends EventEmitter {
   }
 
   _updateSessionActivity(session) {
-    session.lastActivity = new Date();
+    session.lastActivity = this.getDeterministicDate();
   }
 
   async _recordFailedAttempt(userId, clientInfo) {
     const attempts = this.failedAttempts.get(userId) || { count: 0, attempts: [] };
     attempts.count++;
-    attempts.lastAttempt = Date.now();
+    attempts.lastAttempt = this.getDeterministicTimestamp();
     attempts.attempts.push({
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       ip: clientInfo.ip,
       userAgent: clientInfo.userAgent
     });
@@ -783,7 +783,7 @@ export class SecurityManager extends EventEmitter {
   async _recordSecurityEvent(eventType, eventData) {
     const event = {
       type: eventType,
-      timestamp: new Date(),
+      timestamp: this.getDeterministicDate(),
       data: eventData
     };
     
@@ -798,7 +798,7 @@ export class SecurityManager extends EventEmitter {
   }
 
   _cleanupExpiredSessions() {
-    const now = Date.now();
+    const now = this.getDeterministicTimestamp();
     let cleaned = 0;
     
     for (const [sessionId, session] of this.sessions.entries()) {
@@ -828,7 +828,7 @@ export class SecurityManager extends EventEmitter {
 
   _cleanupSecurityEvents() {
     // Keep only events from last 24 hours
-    const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000;
+    const oneDayAgo = this.getDeterministicTimestamp() - 24 * 60 * 60 * 1000;
     this.securityEvents = this.securityEvents.filter(
       event => event.timestamp.getTime() > oneDayAgo
     );
@@ -837,7 +837,7 @@ export class SecurityManager extends EventEmitter {
   _monitorSecurityMetrics() {
     // Check for security anomalies
     const recentEvents = this.securityEvents.filter(
-      event => event.timestamp.getTime() > Date.now() - 300000 // Last 5 minutes
+      event => event.timestamp.getTime() > this.getDeterministicTimestamp() - 300000 // Last 5 minutes
     );
     
     const failedAuths = recentEvents.filter(event => event.type === 'auth_failed').length;
@@ -846,7 +846,7 @@ export class SecurityManager extends EventEmitter {
       this.emit('security:threat_detected', {
         type: 'high_failure_rate',
         count: failedAuths,
-        timestamp: new Date()
+        timestamp: this.getDeterministicDate()
       });
     }
   }

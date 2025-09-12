@@ -877,7 +877,7 @@ defineFeature(feature, (test) => {
     });
 
     when('I perform write and modification operations', async () => {
-      startTime = Date.now();
+      startTime = this.getDeterministicTimestamp();
       
       // Write large file
       const largeFilePath = path.join(tempDir, 'large.ts');
@@ -887,7 +887,7 @@ defineFeature(feature, (test) => {
       await injector.processFile(largeFilePath, '\\n// appended', { append }, { force, dry });
       await injector.processFile(largeFilePath, '// prepended\\n', { prepend }, { force, dry });
       
-      duration = Date.now() - startTime;
+      duration = this.getDeterministicTimestamp() - startTime;
     });
 
     then('the operations should complete efficiently', () => {

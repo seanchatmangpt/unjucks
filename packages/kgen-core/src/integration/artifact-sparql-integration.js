@@ -73,7 +73,7 @@ export class ArtifactSparqlIntegration {
       if (this.options.enableCaching) {
         this.variableCache.set(cacheKey, {
           data: transformedVariables,
-          timestamp: Date.now()
+          timestamp: this.getDeterministicTimestamp()
         });
       }
       
@@ -119,7 +119,7 @@ export class ArtifactSparqlIntegration {
         if (this.options.enableCaching) {
           this.contextCache.set(cacheKey, {
             data: enrichedContext,
-            timestamp: Date.now()
+            timestamp: this.getDeterministicTimestamp()
           });
         }
       }
@@ -323,7 +323,7 @@ export class ArtifactSparqlIntegration {
     const cached = this.variableCache.get(cacheKey) || this.contextCache.get(cacheKey);
     if (!cached) return false;
     
-    return (Date.now() - cached.timestamp) < this.options.maxCacheAge;
+    return (this.getDeterministicTimestamp() - cached.timestamp) < this.options.maxCacheAge;
   }
 
   _mergeVariables(extractedVariables, baseContext) {
@@ -454,7 +454,7 @@ export class ArtifactSparqlIntegration {
   async _extractArtifactMetadata(artifactType, specification, options) {
     return {
       artifactType,
-      createdAt: new Date().toISOString(),
+      createdAt: this.getDeterministicDate().toISOString(),
       specification,
       generator: 'kgen-sparql-integration',
       version: '1.0.0'

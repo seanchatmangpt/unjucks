@@ -261,9 +261,9 @@ describe('JSON Entity Corruption Critical Tests', () => {
         }))
       };
       
-      const start = Date.now();
+      const start = this.getDeterministicTimestamp();
       const result = env.renderString(`{{ data | dump }}`, { data: largeObj });
-      const end = Date.now();
+      const end = this.getDeterministicTimestamp();
       
       // Should complete quickly (under 100ms for 100 records)
       expect(end - start).toBeLessThan(100);

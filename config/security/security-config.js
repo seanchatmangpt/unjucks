@@ -173,7 +173,7 @@ class SecurityConfig {
       await this.vaultManager.initialize();
       this.securityPosture.components.vault = { 
         status: 'active',
-        lastCheck: new Date().toISOString()
+        lastCheck: this.getDeterministicDate().toISOString()
       };
     } catch (error) {
       console.warn('Vault initialization failed, continuing without secrets management:', error.message);
@@ -195,7 +195,7 @@ class SecurityConfig {
       await this.rateLimiting.initialize();
       this.securityPosture.components.rateLimit = { 
         status: 'active',
-        lastCheck: new Date().toISOString()
+        lastCheck: this.getDeterministicDate().toISOString()
       };
     } catch (error) {
       console.warn('Rate limiting initialization failed:', error.message);
@@ -213,7 +213,7 @@ class SecurityConfig {
         status: 'active',
         csp: true,
         hsts: true,
-        lastCheck: new Date().toISOString()
+        lastCheck: this.getDeterministicDate().toISOString()
       };
     } catch (error) {
       console.error('Security headers initialization failed:', error);
@@ -242,7 +242,7 @@ class SecurityConfig {
           'logging_monitoring',
           'ssrf'
         ],
-        lastCheck: new Date().toISOString()
+        lastCheck: this.getDeterministicDate().toISOString()
       };
     } catch (error) {
       console.error('OWASP protection initialization failed:', error);
@@ -270,7 +270,7 @@ class SecurityConfig {
       this.securityPosture.components.scanner = { 
         status: 'active',
         scheduled: this.config.scanner.scheduling.enabled,
-        lastCheck: new Date().toISOString()
+        lastCheck: this.getDeterministicDate().toISOString()
       };
     } catch (error) {
       console.warn('Security scanner initialization failed:', error.message);
@@ -294,7 +294,7 @@ class SecurityConfig {
       this.securityPosture.components.monitoring = { 
         status: 'active',
         siem: this.config.monitoring.siem.enabled,
-        lastCheck: new Date().toISOString()
+        lastCheck: this.getDeterministicDate().toISOString()
       };
     } catch (error) {
       console.warn('Security monitoring initialization failed:', error.message);
@@ -343,7 +343,7 @@ class SecurityConfig {
       // Compliance check
       const compliance = await this.checkCompliance();
       
-      this.securityPosture.lastAssessment = new Date().toISOString();
+      this.securityPosture.lastAssessment = this.getDeterministicDate().toISOString();
       this.securityPosture.compliance = compliance;
       
       console.log('Security assessment completed');
@@ -362,7 +362,7 @@ class SecurityConfig {
   updateSecurityPosture(scanResults) {
     if (scanResults.results.summary) {
       this.securityPosture.vulnerabilities = scanResults.results.summary;
-      this.securityPosture.lastScan = new Date().toISOString();
+      this.securityPosture.lastScan = this.getDeterministicDate().toISOString();
     }
   }
 
@@ -440,7 +440,7 @@ class SecurityConfig {
   async logSecurityEvent(event) {
     // Implementation would log to SIEM, file, or monitoring service
     console.log('Security event logged:', {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       ...event
     });
   }
@@ -448,7 +448,7 @@ class SecurityConfig {
   async sendSecurityAlert(event) {
     // Implementation would send alerts via configured channels
     const alert = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       environment: this.environment,
       event
     };
@@ -485,7 +485,7 @@ class SecurityConfig {
     try {
       // This would integrate with memory storage system
       const memoryData = {
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         environment: this.environment,
         posture: this.securityPosture,
         components: {
@@ -514,7 +514,7 @@ class SecurityConfig {
       initialized: this.isInitialized,
       environment: this.environment,
       posture: this.securityPosture,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     };
   }
 

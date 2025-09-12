@@ -69,7 +69,7 @@ class SecretManager {
     await this.auditLog('SYSTEM_INIT', {
       environment: this.environment,
       storePath: this.storePath,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     });
   }
 
@@ -138,8 +138,8 @@ class SecretManager {
     const secretRecord = {
       ...validated,
       value: encryptedValue,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      createdAt: this.getDeterministicDate().toISOString(),
+      updatedAt: this.getDeterministicDate().toISOString()
     };
     
     const secretPath = path.join(this.storePath, this.environment, `${validated.id}.json`);
@@ -232,7 +232,7 @@ class SecretManager {
     const updatedSecret = {
       ...existingSecret,
       value: newValue,
-      lastRotated: new Date().toISOString(),
+      lastRotated: this.getDeterministicDate().toISOString(),
       expiresAt: dayjs().add(existingSecret.rotationInterval, 'days').toISOString()
     };
     
@@ -313,7 +313,7 @@ class SecretManager {
    */
   async auditLog(action, details = {}) {
     const logEntry = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       action,
       environment: this.environment,
       details,
@@ -344,7 +344,7 @@ class SecretManager {
     };
     
     const report = {
-      generatedAt: new Date().toISOString(),
+      generatedAt: this.getDeterministicDate().toISOString(),
       environment: this.environment,
       totalSecrets: secrets.length,
       secretsNeedingRotation: rotationNeeded.length,

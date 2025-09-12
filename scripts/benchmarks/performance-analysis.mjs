@@ -392,7 +392,7 @@ User: {{ user.name }}
     const optimizationPlan = this.generateOptimizationPlan(bottlenecks);
     
     const report = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       environment: {
         nodeVersion: process.version,
         platform: os.platform(),

@@ -145,7 +145,7 @@ class GDPRComplianceChecker {
                 ],
                 riskLevel: 'medium',
                 privacyImpactAssessment: false,
-                lastReviewed: new Date().toISOString()
+                lastReviewed: this.getDeterministicDate().toISOString()
             }
         ];
     }
@@ -189,7 +189,7 @@ class GDPRComplianceChecker {
     }
     runGDPRComplianceCheck() {
         console.log('🔍 Starting GDPR compliance check...');
-        const startTime = new Date();
+        const startTime = this.getDeterministicDate();
         this.violations = [];
         // Check data processing activities
         this.checkDataProcessingCompliance();
@@ -218,10 +218,10 @@ class GDPRComplianceChecker {
         // Create compliance report
         const report = {
             reportId: this.generateReportId(),
-            generatedAt: new Date().toISOString(),
+            generatedAt: this.getDeterministicDate().toISOString(),
             period: {
-                startDate: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString(),
-                endDate: new Date().toISOString()
+                startDate: new Date(this.getDeterministicTimestamp() - 90 * 24 * 60 * 60 * 1000).toISOString(),
+                endDate: this.getDeterministicDate().toISOString()
             },
             dataProcessingActivities: {
                 total: this.processingActivities.length,
@@ -242,7 +242,7 @@ class GDPRComplianceChecker {
         };
         // Save report
         this.saveGDPRReport(report);
-        const duration = Date.now() - startTime.getTime();
+        const duration = this.getDeterministicTimestamp() - startTime.getTime();
         console.log(`✅ GDPR compliance check completed in ${duration}ms`);
         console.log(`📊 Results: ${this.violations.length} violations found`);
         return report;
@@ -258,7 +258,7 @@ class GDPRComplianceChecker {
                     article: 'Article 6',
                     severity: 'critical',
                     description: `Processing activity "${activity.name}" lacks legal basis`,
-                    detectedAt: new Date().toISOString(),
+                    detectedAt: this.getDeterministicDate().toISOString(),
                     affectedSubjects: 1000, // Estimated
                     dataCategories: activity.categories,
                     potentialFine: {
@@ -283,7 +283,7 @@ class GDPRComplianceChecker {
                     article: 'Article 5(1)(b)',
                     severity: 'high',
                     description: `Processing activity "${activity.name}" lacks clearly defined purposes`,
-                    detectedAt: new Date().toISOString(),
+                    detectedAt: this.getDeterministicDate().toISOString(),
                     affectedSubjects: 500,
                     dataCategories: activity.categories,
                     potentialFine: {
@@ -308,7 +308,7 @@ class GDPRComplianceChecker {
                     article: 'Article 5(1)(e)',
                     severity: 'medium',
                     description: `Processing activity "${activity.name}" lacks defined retention periods`,
-                    detectedAt: new Date().toISOString(),
+                    detectedAt: this.getDeterministicDate().toISOString(),
                     affectedSubjects: 300,
                     dataCategories: activity.categories,
                     potentialFine: {
@@ -333,7 +333,7 @@ class GDPRComplianceChecker {
                     article: 'Article 32',
                     severity: 'high',
                     description: `Processing activity "${activity.name}" has insufficient security measures`,
-                    detectedAt: new Date().toISOString(),
+                    detectedAt: this.getDeterministicDate().toISOString(),
                     affectedSubjects: 1000,
                     dataCategories: activity.categories,
                     potentialFine: {
@@ -354,7 +354,7 @@ class GDPRComplianceChecker {
     }
     checkConsentCompliance() {
         console.log('🔍 Checking consent compliance...');
-        const now = new Date();
+        const now = this.getDeterministicDate();
         for (const consent of this.consentRecords) {
             // Check if consent is still valid (not expired or withdrawn)
             if (consent.status === 'expired' || consent.status === 'withdrawn') {
@@ -368,7 +368,7 @@ class GDPRComplianceChecker {
                     article: 'Article 7',
                     severity: 'high',
                     description: `Invalid consent record ${consent.id} - does not meet GDPR requirements`,
-                    detectedAt: new Date().toISOString(),
+                    detectedAt: this.getDeterministicDate().toISOString(),
                     affectedSubjects: 1,
                     dataCategories: ['personal_data'],
                     potentialFine: {
@@ -395,7 +395,7 @@ class GDPRComplianceChecker {
                     article: 'Article 7',
                     severity: 'medium',
                     description: `Consent record ${consent.id} is over 2 years old and should be refreshed`,
-                    detectedAt: new Date().toISOString(),
+                    detectedAt: this.getDeterministicDate().toISOString(),
                     affectedSubjects: 1,
                     dataCategories: ['personal_data'],
                     potentialFine: {
@@ -416,7 +416,7 @@ class GDPRComplianceChecker {
     }
     checkDataSubjectRights() {
         console.log('🔍 Checking data subject rights compliance...');
-        const now = new Date();
+        const now = this.getDeterministicDate();
         for (const request of this.dataSubjectRequests) {
             const dueDate = new Date(request.dueDate);
             const isOverdue = now > dueDate && request.status !== 'completed';
@@ -427,7 +427,7 @@ class GDPRComplianceChecker {
                     article: 'Articles 15-22',
                     severity: 'high',
                     description: `Data subject request ${request.id} is overdue`,
-                    detectedAt: new Date().toISOString(),
+                    detectedAt: this.getDeterministicDate().toISOString(),
                     affectedSubjects: 1,
                     dataCategories: ['personal_data'],
                     potentialFine: {
@@ -454,7 +454,7 @@ class GDPRComplianceChecker {
                     article: 'Article 12',
                     severity: 'medium',
                     description: `Data subject request ${request.id} has been pending for over 30 days`,
-                    detectedAt: new Date().toISOString(),
+                    detectedAt: this.getDeterministicDate().toISOString(),
                     affectedSubjects: 1,
                     dataCategories: ['personal_data'],
                     potentialFine: {
@@ -483,7 +483,7 @@ class GDPRComplianceChecker {
                     article: 'Article 5(1)(e)',
                     severity: 'medium',
                     description: `Personal data element "${element.name}" lacks automated retention management`,
-                    detectedAt: new Date().toISOString(),
+                    detectedAt: this.getDeterministicDate().toISOString(),
                     affectedSubjects: 1000,
                     dataCategories: [element.category],
                     potentialFine: {
@@ -523,7 +523,7 @@ class GDPRComplianceChecker {
                 article: 'Article 32',
                 severity: 'critical',
                 description: `Missing security measures: ${missingMeasures.join(', ')}`,
-                detectedAt: new Date().toISOString(),
+                detectedAt: this.getDeterministicDate().toISOString(),
                 affectedSubjects: 5000,
                 dataCategories: ['all_personal_data'],
                 potentialFine: {
@@ -560,7 +560,7 @@ class GDPRComplianceChecker {
                 }
             }
             const lastReviewDate = new Date(lastReviewed);
-            const now = new Date();
+            const now = this.getDeterministicDate();
             const monthsSinceReview = (now.getTime() - lastReviewDate.getTime()) / (1000 * 60 * 60 * 24 * 30);
             const upToDate = monthsSinceReview < 12; // Should be reviewed annually
             if (!upToDate) {
@@ -570,7 +570,7 @@ class GDPRComplianceChecker {
                     article: 'Articles 13-14',
                     severity: 'medium',
                     description: 'Privacy notices have not been reviewed in over 12 months',
-                    detectedAt: new Date().toISOString(),
+                    detectedAt: this.getDeterministicDate().toISOString(),
                     affectedSubjects: 10000,
                     dataCategories: ['all_personal_data'],
                     potentialFine: {
@@ -603,7 +603,7 @@ class GDPRComplianceChecker {
         }
     }
     generateDataSubjectRightsStats() {
-        const now = new Date();
+        const now = this.getDeterministicDate();
         const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
         const recentRequests = this.dataSubjectRequests.filter(req => new Date(req.requestDate) > thirtyDaysAgo);
         const completedOnTime = recentRequests.filter(req => req.status === 'completed' &&
@@ -681,7 +681,7 @@ class GDPRComplianceChecker {
         const highRiskActivities = this.processingActivities.filter(a => a.riskLevel === 'high' || a.riskLevel === 'critical');
         for (const activity of highRiskActivities) {
             const piaReport = this.generatePIAReport(activity);
-            const reportPath = (0, path_1.join)(this.config.outputDir, 'pia-reports', `pia-${activity.id}-${Date.now()}.md`);
+            const reportPath = (0, path_1.join)(this.config.outputDir, 'pia-reports', `pia-${activity.id}-${this.getDeterministicTimestamp()}.md`);
             (0, fs_1.writeFileSync)(reportPath, piaReport, 'utf-8');
             console.log(`📝 Generated PIA report: ${reportPath}`);
         }
@@ -689,7 +689,7 @@ class GDPRComplianceChecker {
     generatePIAReport(activity) {
         let content = `# Privacy Impact Assessment\n\n`;
         content += `**Processing Activity:** ${activity.name}\n`;
-        content += `**Assessment Date:** ${new Date().toLocaleDateString()}\n`;
+        content += `**Assessment Date:** ${this.getDeterministicDate().toLocaleDateString()}\n`;
         content += `**Risk Level:** ${activity.riskLevel.toUpperCase()}\n\n`;
         content += `## Processing Description\n\n`;
         content += `${activity.name} involves processing personal data for the following purposes:\n\n`;
@@ -743,7 +743,7 @@ class GDPRComplianceChecker {
         console.log('🗺️  Generating data flow maps...');
         const dataMapPath = (0, path_1.join)(this.config.outputDir, 'data-maps', 'data-flow-map.md');
         let content = `# Personal Data Flow Map\n\n`;
-        content += `**Generated:** ${new Date().toLocaleDateString()}\n\n`;
+        content += `**Generated:** ${this.getDeterministicDate().toLocaleDateString()}\n\n`;
         content += `## Data Elements\n\n`;
         content += `| Element | Category | Legal Basis | Sources | Recipients | Retention |\n`;
         content += `|---------|----------|-------------|---------|------------|----------|\n`;
@@ -780,13 +780,13 @@ class GDPRComplianceChecker {
         console.log(`📝 Generated data map: ${dataMapPath}`);
     }
     generateReportId() {
-        const now = new Date();
+        const now = this.getDeterministicDate();
         const dateStr = now.toISOString().slice(0, 10).replace(/-/g, '');
         const timeStr = now.toTimeString().slice(0, 8).replace(/:/g, '');
         return `GDPR-${dateStr}-${timeStr}`;
     }
     generateViolationId() {
-        return `GDPR-V-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
+        return `GDPR-V-${this.getDeterministicTimestamp()}-${Math.random().toString(36).substr(2, 5)}`;
     }
     saveGDPRReport(report) {
         const reportPath = (0, path_1.join)(this.config.outputDir, `gdpr-compliance-report-${report.reportId}.json`);

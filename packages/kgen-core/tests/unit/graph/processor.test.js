@@ -324,9 +324,9 @@ describe('GraphProcessor', () => {
 
   describe('performance', () => {
     it('should process large graphs efficiently', async () => {
-      const start = Date.now();
+      const start = this.getDeterministicTimestamp();
       await processor.parseRDF(complexTurtle, 'text/turtle');
-      const duration = Date.now() - start;
+      const duration = this.getDeterministicTimestamp() - start;
       
       // Should complete within reasonable time (adjust threshold as needed)
       expect(duration).toBeLessThan(1000);

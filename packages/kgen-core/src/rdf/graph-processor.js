@@ -43,7 +43,7 @@ export class GraphProcessor extends EventEmitter {
    * @returns {Promise<object>} Parsed result with quads and metadata
    */
   async parseRDF(data, format = 'turtle', options = {}) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     return new Promise((resolve, reject) => {
       const quads = [];
@@ -64,7 +64,7 @@ export class GraphProcessor extends EventEmitter {
           this.metrics.triplesProcessed++;
         } else {
           // Parsing complete
-          const parseTime = Date.now() - startTime;
+          const parseTime = this.getDeterministicTimestamp() - startTime;
           
           resolve({
             quads,
@@ -299,7 +299,7 @@ export class GraphProcessor extends EventEmitter {
    * @returns {object} Comprehensive diff result with change analysis
    */
   diff(other, options = {}) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     // Convert to canonical N-Triples for consistent comparison
     const thisTriples = new Set(this._toCanonicalNTriples(this.store.getQuads()));
@@ -320,9 +320,9 @@ export class GraphProcessor extends EventEmitter {
       ((added.length + removed.length) / totalOriginal) * 100 : 0;
     
     const diff = {
-      id: `diff_${Date.now()}`,
-      timestamp: new Date().toISOString(),
-      calculationTime: Date.now() - startTime,
+      id: `diff_${this.getDeterministicTimestamp()}`,
+      timestamp: this.getDeterministicDate().toISOString(),
+      calculationTime: this.getDeterministicTimestamp() - startTime,
       
       // Basic statistics
       changes: {

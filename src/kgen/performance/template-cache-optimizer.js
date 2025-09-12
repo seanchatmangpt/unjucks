@@ -6,7 +6,7 @@
  */
 
 import { EventEmitter } from 'events';
-import { Logger } from 'consola';
+import { Consola } from 'consola';
 import { promises as fs } from 'fs';
 import path from 'path';
 import crypto from 'crypto';
@@ -45,7 +45,7 @@ export class TemplateCacheOptimizer extends EventEmitter {
       ...config
     };
     
-    this.logger = new Logger({ tag: 'template-cache-optimizer' });
+    this.logger = new Consola({ tag: 'template-cache-optimizer' });
     
     // Cache storage
     this.compiledTemplates = new Map();
@@ -118,7 +118,7 @@ export class TemplateCacheOptimizer extends EventEmitter {
    * @returns {Promise<Object>} Compiled template
    */
   async compileTemplate(templatePath, context = {}, options = {}) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     const templateId = this._generateTemplateId(templatePath, context);
     
     try {
@@ -153,8 +153,8 @@ export class TemplateCacheOptimizer extends EventEmitter {
       compiledTemplate.metadata = {
         templateId,
         templatePath,
-        compilationTime: Date.now() - startTime,
-        timestamp: new Date(),
+        compilationTime: this.getDeterministicTimestamp() - startTime,
+        timestamp: this.getDeterministicDate(),
         analysis: templateAnalysis,
         cacheKey: templateId
       };
@@ -198,7 +198,7 @@ export class TemplateCacheOptimizer extends EventEmitter {
    * @returns {Promise<Map>} Map of compiled templates
    */
   async batchCompileTemplates(templatePaths, sharedContext = {}, options = {}) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       this.logger.info(`Batch compiling ${templatePaths.length} templates...`);
@@ -229,7 +229,7 @@ export class TemplateCacheOptimizer extends EventEmitter {
         await Promise.all(batchPromises);
       }
       
-      const totalTime = Date.now() - startTime;
+      const totalTime = this.getDeterministicTimestamp() - startTime;
       const successful = Array.from(results.values()).filter(r => !r.error).length;
       
       this.logger.success(`Batch compilation completed: ${successful}/${templatePaths.length} successful (${totalTime}ms)`);
@@ -440,7 +440,7 @@ export class TemplateCacheOptimizer extends EventEmitter {
     const metadata = this.templateMetadata.get(templateId);
     if (!metadata) return null;
     
-    const age = Date.now() - metadata.timestamp;
+    const age = this.getDeterministicTimestamp() - metadata.timestamp;
     if (age > this.config.cacheTTL) {
       // Remove expired entry
       this.compiledTemplates.delete(templateId);
@@ -449,7 +449,7 @@ export class TemplateCacheOptimizer extends EventEmitter {
     }
     
     // Update access time for LRU
-    metadata.lastAccessed = new Date();
+    metadata.lastAccessed = this.getDeterministicDate();
     this.templateMetadata.set(templateId, metadata);
     
     return cached;
@@ -466,8 +466,8 @@ export class TemplateCacheOptimizer extends EventEmitter {
     this.templateMetadata.set(templateId, {
       templateId,
       templatePath: compiledTemplate.metadata.templatePath,
-      timestamp: Date.now(),
-      lastAccessed: new Date(),
+      timestamp: this.getDeterministicTimestamp(),
+      lastAccessed: this.getDeterministicDate(),
       size: JSON.stringify(compiledTemplate).length,
       accessCount: 0
     });
@@ -595,7 +595,7 @@ export class TemplateCacheOptimizer extends EventEmitter {
         return ctx[variable.trim()] || match;
       }),
       compiled: true,
-      compiledAt: new Date()
+      compiledAt: this.getDeterministicDate()
     };
   }
 
@@ -630,7 +630,7 @@ export class TemplateCacheOptimizer extends EventEmitter {
       const cache = {
         templates: Object.fromEntries(this.compiledTemplates),
         metadata: Object.fromEntries(this.templateMetadata),
-        savedAt: new Date().toISOString()
+        savedAt: this.getDeterministicDate().toISOString()
       };
       
       const cacheFile = path.join(this.config.cacheDirectory, 'templates.cache');
@@ -682,7 +682,7 @@ parentPort.on('message', async (data) => {
         return ctx[variable.trim()] || match;
       }),
       compiled: true,
-      compiledAt: new Date()
+      compiledAt: this.getDeterministicDate()
     };
     
     parentPort.postMessage({ taskId, compiled });
@@ -733,7 +733,7 @@ parentPort.on('message', async (data) => {
 
   _removeExpiredTemplates() {
     let removed = 0;
-    const now = Date.now();
+    const now = this.getDeterministicTimestamp();
     
     for (const [templateId, metadata] of this.templateMetadata) {
       if (now - metadata.timestamp > this.config.cacheTTL) {

@@ -78,7 +78,7 @@ export class SPARQLFederationEngine extends EventEmitter {
    */
   async execute(queryConfig, executionPlan, provenanceContext) {
     const queryId = crypto.randomUUID();
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       console.log(`🔄 Executing federated SPARQL query: ${queryId}`);
@@ -116,12 +116,12 @@ export class SPARQLFederationEngine extends EventEmitter {
       const processedResults = await this.postProcessResults(results, federationAnalysis);
       
       // Update statistics
-      this.updateStatistics(queryId, 'success', Date.now() - startTime, federationAnalysis);
+      this.updateStatistics(queryId, 'success', this.getDeterministicTimestamp() - startTime, federationAnalysis);
       
       // Clean up
       this.state.activeQueries.delete(queryId);
       
-      console.log(`✅ SPARQL query completed: ${queryId} (${Date.now() - startTime}ms)`);
+      console.log(`✅ SPARQL query completed: ${queryId} (${this.getDeterministicTimestamp() - startTime}ms)`);
       
       return {
         success: true,
@@ -133,7 +133,7 @@ export class SPARQLFederationEngine extends EventEmitter {
           servicesUsed: federationAnalysis.services.length,
           bindingsCount: processedResults.bindings.length,
           variables: processedResults.variables,
-          executionTime: Date.now() - startTime,
+          executionTime: this.getDeterministicTimestamp() - startTime,
           optimizations: optimizedQuery._optimizations || []
         },
         provenance: await this.buildQueryProvenance(queryId, queryConfig, executionPlan, provenanceContext)
@@ -142,7 +142,7 @@ export class SPARQLFederationEngine extends EventEmitter {
     } catch (error) {
       console.error(`❌ SPARQL query failed (${queryId}):`, error);
       
-      this.updateStatistics(queryId, 'failure', Date.now() - startTime);
+      this.updateStatistics(queryId, 'failure', this.getDeterministicTimestamp() - startTime);
       this.state.activeQueries.delete(queryId);
       
       throw new Error(`SPARQL query execution failed: ${error.message}`);
@@ -229,7 +229,7 @@ export class SPARQLFederationEngine extends EventEmitter {
     
     console.log(`📊 Executing on endpoint: ${endpointId} (${endpoint.url})`);
     
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       const response = await fetch(endpoint.url, {
@@ -250,7 +250,7 @@ export class SPARQLFederationEngine extends EventEmitter {
       const jsonResult = await response.json();
       
       // Record execution metrics
-      const executionTime = Date.now() - startTime;
+      const executionTime = this.getDeterministicTimestamp() - startTime;
       
       if (provenanceContext) {
         await provenanceContext.recordEndpointExecution(endpointId, queryString, executionTime, jsonResult);
@@ -268,7 +268,7 @@ export class SPARQLFederationEngine extends EventEmitter {
       };
       
     } catch (error) {
-      const executionTime = Date.now() - startTime;
+      const executionTime = this.getDeterministicTimestamp() - startTime;
       
       if (provenanceContext) {
         await provenanceContext.recordEndpointError(endpointId, queryString, executionTime, error);
@@ -654,7 +654,7 @@ export class SPARQLFederationEngine extends EventEmitter {
         strategy: executionPlan.strategy,
         parallel: executionPlan.parallel
       },
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     };
   }
   

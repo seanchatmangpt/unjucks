@@ -374,7 +374,7 @@ Total: {{ items.length }} items
         data.push({
           id: j,
           data: new Array(100).fill(Math.random()),
-          timestamp: new Date()
+          timestamp: this.getDeterministicDate()
         });
       }
       
@@ -462,7 +462,7 @@ Total: {{ items.length }} items
       
       result.benchmarkName = name;
       result.totalBenchmarkTime = totalTime;
-      result.timestamp = new Date().toISOString();
+      result.timestamp = this.getDeterministicDate().toISOString();
       
       this.results.push(result);
       
@@ -473,7 +473,7 @@ Total: {{ items.length }} items
       this.results.push({
         benchmarkName: name,
         error: error.message,
-        timestamp: new Date().toISOString()
+        timestamp: this.getDeterministicDate().toISOString()
       });
     }
   }
@@ -507,7 +507,7 @@ Total: {{ items.length }} items
     this.memoryTrackingInterval = setInterval(() => {
       const usage = process.memoryUsage();
       this.memorySnapshots.push({
-        timestamp: Date.now(),
+        timestamp: this.getDeterministicTimestamp(),
         heapUsed: usage.heapUsed / 1024 / 1024, // MB
         heapTotal: usage.heapTotal / 1024 / 1024, // MB
         external: usage.external / 1024 / 1024, // MB
@@ -532,7 +532,7 @@ Total: {{ items.length }} items
   generatePerformanceReport() {
     const report = {
       metadata: {
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         nodeVersion: process.version,
         platform: process.platform,
         arch: process.arch,
@@ -693,7 +693,7 @@ Total: {{ items.length }} items
    * Save performance report
    */
   async saveReport(report) {
-    const reportPath = `/Users/sac/unjucks/tests/performance-report-${Date.now()}.json`;
+    const reportPath = `/Users/sac/unjucks/tests/performance-report-${this.getDeterministicTimestamp()}.json`;
     
     try {
       await fs.writeFile(reportPath, JSON.stringify(report, null, 2));

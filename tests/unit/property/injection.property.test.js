@@ -10,7 +10,7 @@ describe("File Injection Property Tests", () => {
   const numRuns = 20;
 
   beforeEach(async () => {
-    tmpDir = path.join(process.cwd(), "test-bzyH4B", `injection-prop-${Date.now()}`);
+    tmpDir = path.join(process.cwd(), "test-bzyH4B", `injection-prop-${this.getDeterministicTimestamp()}`);
     await fs.ensureDir(tmpDir);
     fileInjector = new FileInjector();
     frontmatterParser = new FrontmatterParser();

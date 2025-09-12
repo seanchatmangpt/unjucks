@@ -5,13 +5,13 @@
  * and other advanced query engine capabilities.
  */
 
-import { Logger } from 'consola';
+import { Consola } from 'consola';
 import { Parser as N3Parser } from 'n3';
 
 export class EnhancedQueryMethods {
   constructor(queryEngine) {
     this.queryEngine = queryEngine;
-    this.logger = new Logger({ tag: 'enhanced-query' });
+    this.logger = new Consola({ tag: 'enhanced-query' });
   }
 
   /**
@@ -269,7 +269,7 @@ export class EnhancedQueryMethods {
     try {
       const data = {
         metadata: {
-          exportDate: new Date().toISOString(),
+          exportDate: this.getDeterministicDate().toISOString(),
           tripleCount: this.queryEngine.queryStore.size,
           format: format
         },

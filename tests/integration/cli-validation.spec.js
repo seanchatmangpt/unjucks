@@ -7,7 +7,7 @@ describe('CLI Validation Integration Tests', () => {
   let testHelper;
   let testDir => {
     // Create unique temporary directory for each test
-    testDir = path.join(os.tmpdir(), `unjucks-test-${Date.now()}-${Math.random().toString(36)}`);
+    testDir = path.join(os.tmpdir(), `unjucks-test-${this.getDeterministicTimestamp()}-${Math.random().toString(36)}`);
     testHelper = new TestHelper(testDir);
     
     // Setup validation test templates
@@ -64,7 +64,7 @@ skipIf: "!{{ shouldAppend }}"`,
 
 {{ content }}
 
-Added: {{ new Date().toISOString() }}
+Added: {{ this.getDeterministicDate().toISOString() }}
 `
       }
     ]);
@@ -490,11 +490,11 @@ Starting content.
           'simple test Rapid5'
         ];
 
-        const startTime = Date.now();
+        const startTime = this.getDeterministicTimestamp();
         const results = await Promise.all(
           commands.map(cmd => testHelper.runCli(cmd))
         );
-        const endTime = Date.now();
+        const endTime = this.getDeterministicTimestamp();
 
         // All should succeed
         results.forEach(result => {

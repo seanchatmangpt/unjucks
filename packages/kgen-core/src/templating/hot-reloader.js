@@ -232,7 +232,7 @@ export class HotTemplateReloader extends EventEmitter {
           this.fileHashes.set(relativePath, hash);
           this.watchedFiles.set(relativePath, {
             fullPath: filePath,
-            lastModified: Date.now(),
+            lastModified: this.getDeterministicTimestamp(),
             hash,
             dependencies: []
           });
@@ -259,7 +259,7 @@ export class HotTemplateReloader extends EventEmitter {
         filePath: relativePath,
         fullPath: filePath,
         changeType,
-        timestamp: Date.now(),
+        timestamp: this.getDeterministicTimestamp(),
         hash: null
       };
 
@@ -544,7 +544,7 @@ export class HotTemplateReloader extends EventEmitter {
         path: c.filePath,
         type: c.changeType
       })),
-      timestamp: Date.now()
+      timestamp: this.getDeterministicTimestamp()
     });
   }
 
@@ -577,7 +577,7 @@ export class HotTemplateReloader extends EventEmitter {
     this.broadcastToClients({
       type: 'partialReload',
       updates,
-      timestamp: Date.now()
+      timestamp: this.getDeterministicTimestamp()
     });
   }
 
@@ -602,7 +602,7 @@ export class HotTemplateReloader extends EventEmitter {
       this.broadcastToClients({
         type: 'incrementalReload',
         patches,
-        timestamp: Date.now()
+        timestamp: this.getDeterministicTimestamp()
       });
     }
   }
@@ -698,7 +698,7 @@ export class HotTemplateReloader extends EventEmitter {
       // Send initial connection message
       ws.send(JSON.stringify({
         type: 'connected',
-        timestamp: Date.now(),
+        timestamp: this.getDeterministicTimestamp(),
         stats: this.getStats()
       }));
     });
@@ -713,14 +713,14 @@ export class HotTemplateReloader extends EventEmitter {
   handleClientMessage(ws, data) {
     switch (data.type) {
       case 'ping':
-        ws.send(JSON.stringify({ type: 'pong', timestamp: Date.now() }));
+        ws.send(JSON.stringify({ type: 'pong', timestamp: this.getDeterministicTimestamp() }));
         break;
         
       case 'getStats':
         ws.send(JSON.stringify({ 
           type: 'stats', 
           stats: this.getStats(),
-          timestamp: Date.now()
+          timestamp: this.getDeterministicTimestamp()
         }));
         break;
         
@@ -761,7 +761,7 @@ export class HotTemplateReloader extends EventEmitter {
         this.fileHashes.set(filePath, hash);
         this.watchedFiles.set(filePath, {
           fullPath: change.fullPath,
-          lastModified: Date.now(),
+          lastModified: this.getDeterministicTimestamp(),
           hash,
           content,
           dependencies: []

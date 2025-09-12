@@ -192,7 +192,7 @@ export class BatchProcessor extends EventEmitter {
    * @returns Promise resolving to discovery result
    */
   async discoverTemplates(options: TemplateDiscoveryOptions): Promise<TemplateDiscoveryResult> {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     this.logger.info(`Discovering templates in ${options.searchPaths.length} paths`);
     
     const stats: DiscoveryStats = {
@@ -221,7 +221,7 @@ export class BatchProcessor extends EventEmitter {
         await this.validateDiscoveredTemplates(templates, errors);
       }
       
-      stats.duration = Date.now() - startTime;
+      stats.duration = this.getDeterministicTimestamp() - startTime;
       stats.templatesFound = templates.length;
       
       this.logger.info(`Discovery completed: ${templates.length} templates found in ${stats.duration}ms`);
@@ -247,7 +247,7 @@ export class BatchProcessor extends EventEmitter {
    * @returns Queue ID
    */
   createQueue(name: string, concurrency: number = 2, options: ProcessingOptions = {}): string {
-    const queueId = `queue_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const queueId = `queue_${this.getDeterministicTimestamp()}_${Math.random().toString(36).substr(2, 9)}`;
     
     const queue: BatchQueue = {
       id: queueId,
@@ -256,7 +256,7 @@ export class BatchProcessor extends EventEmitter {
       status: 'idle',
       options: { ...this.options, ...options },
       concurrency: Math.min(concurrency, this.maxConcurrency),
-      created: new Date()
+      created: this.getDeterministicDate()
     };
     
     this.queues.set(queueId, queue);
@@ -287,7 +287,7 @@ export class BatchProcessor extends EventEmitter {
       throw new Error(`Queue not found: ${queueId}`);
     }
     
-    const jobId = `job_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const jobId = `job_${this.getDeterministicTimestamp()}_${Math.random().toString(36).substr(2, 9)}`;
     
     const job: BatchJob = {
       id: jobId,
@@ -297,7 +297,7 @@ export class BatchProcessor extends EventEmitter {
       outputPath,
       priority,
       status: 'pending',
-      created: new Date()
+      created: this.getDeterministicDate()
     };
     
     // Insert job in priority order
@@ -325,7 +325,7 @@ export class BatchProcessor extends EventEmitter {
    * @returns Promise resolving to batch result
    */
   async processBatch(config: BatchProcessingConfig): Promise<BatchProcessingResult> {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     this.logger.info(`Starting batch processing of ${config.templates.length} templates`);
     
     try {
@@ -353,7 +353,7 @@ export class BatchProcessor extends EventEmitter {
       // Clean up temporary queue
       this.queues.delete(queueId);
       
-      result.duration = Date.now() - startTime;
+      result.duration = this.getDeterministicTimestamp() - startTime;
       
       this.logger.info(`Batch processing completed in ${result.duration}ms`);
       return result;
@@ -381,7 +381,7 @@ export class BatchProcessor extends EventEmitter {
       throw new Error(`Queue ${queueId} is already processing`);
     }
     
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     queue.status = 'processing';
     
     this.logger.info(`Processing queue ${queueId} with ${queue.jobs.length} jobs`);
@@ -436,7 +436,7 @@ export class BatchProcessor extends EventEmitter {
         results,
         success: stats.failed === 0,
         validation,
-        duration: Date.now() - startTime,
+        duration: this.getDeterministicTimestamp() - startTime,
         outputFiles
       };
       
@@ -748,9 +748,9 @@ export class BatchProcessor extends EventEmitter {
       const job = queue.jobs.shift();
       if (!job) break;
       
-      const jobStartTime = Date.now();
+      const jobStartTime = this.getDeterministicTimestamp();
       job.status = 'processing';
-      job.started = new Date();
+      job.started = this.getDeterministicDate();
       
       this.activeJobs.set(job.id, job);
       this.emit('jobStarted', { jobId: job.id, job });
@@ -771,10 +771,10 @@ export class BatchProcessor extends EventEmitter {
         const result = await processor.process(job.templatePath, job.data, job.outputPath);
         
         job.status = 'completed';
-        job.completed = new Date();
+        job.completed = this.getDeterministicDate();
         job.result = result;
         
-        const duration = Date.now() - jobStartTime;
+        const duration = this.getDeterministicTimestamp() - jobStartTime;
         stats.totalProcessingTime += duration;
         stats.successful++;
         
@@ -799,10 +799,10 @@ export class BatchProcessor extends EventEmitter {
         
       } catch (error) {
         job.status = 'failed';
-        job.completed = new Date();
+        job.completed = this.getDeterministicDate();
         job.error = error as Error;
         
-        const duration = Date.now() - jobStartTime;
+        const duration = this.getDeterministicTimestamp() - jobStartTime;
         stats.totalProcessingTime += duration;
         stats.failed++;
         
@@ -924,7 +924,7 @@ export class BatchProcessor extends EventEmitter {
   private generateOutputPath(templatePath: string, outputDir: string, index: number): string {
     const templateName = path.basename(templatePath, path.extname(templatePath));
     const extension = path.extname(templatePath);
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const timestamp = this.getDeterministicDate().toISOString().replace(/[:.]/g, '-');
     
     return path.join(outputDir, `${templateName}_${timestamp}_${index}${extension}`);
   }

@@ -106,7 +106,7 @@ export class SimpleKGenEngine extends EventEmitter {
         triples: this._deduplicateTriples(triples),
         metadata: {
           sources: sources.length,
-          processedAt: new Date().toISOString(),
+          processedAt: this.getDeterministicDate().toISOString(),
           operationId
         }
       };
@@ -238,7 +238,7 @@ export class SimpleKGenEngine extends EventEmitter {
         endpoints: this._extractEndpoints(knowledgeGraph),
         metadata: {
           templateId: template.id,
-          generatedAt: new Date().toISOString(),
+          generatedAt: this.getDeterministicDate().toISOString(),
           engineVersion: this.version
         },
         ...context
@@ -263,7 +263,7 @@ export class SimpleKGenEngine extends EventEmitter {
         metadata: {
           knowledgeGraphId: knowledgeGraph.id,
           dependencies: this._extractTemplateDependencies(template.template),
-          renderTime: Date.now()
+          renderTime: this.getDeterministicTimestamp()
         }
       };
 
@@ -371,7 +371,7 @@ export class SimpleKGenEngine extends EventEmitter {
         engine: 'kgen',
         version: this.version,
         method: 'deterministic-compilation',
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         reproducible: true
       },
       provenance: {
@@ -420,7 +420,7 @@ export class SimpleKGenEngine extends EventEmitter {
       summary: {
         totalEntities: knowledgeGraph.entities.length,
         totalViolations: violations.length,
-        validationTime: new Date().toISOString()
+        validationTime: this.getDeterministicDate().toISOString()
       }
     };
   }
@@ -505,10 +505,10 @@ export class SimpleKGenEngine extends EventEmitter {
   }
 
   _createOperation(type, context) {
-    const operationId = `op-${this.operationCounter++}-${Date.now()}`;
+    const operationId = `op-${this.operationCounter++}-${this.getDeterministicTimestamp()}`;
     this.activeOperations.set(operationId, {
       type,
-      startTime: Date.now(),
+      startTime: this.getDeterministicTimestamp(),
       context
     });
     return operationId;

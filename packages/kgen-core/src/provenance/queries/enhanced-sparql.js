@@ -201,7 +201,7 @@ export class EnhancedProvenanceQueries {
     Array.from(entities).slice(0, 10).forEach((entity, index) => {
       mockResults.push({
         entity: entity,
-        timestamp: new Date(Date.now() - index * 3600000).toISOString(),
+        timestamp: new Date(this.getDeterministicTimestamp() - index * 3600000).toISOString(),
         type: 'kgen:GeneratedEntity',
         hash: `sha256:${Buffer.from(entity + index).toString('hex')}`,
         activity: `${this.config.namespaces.kgen}activity/generate-${index}`,
@@ -222,7 +222,7 @@ export class EnhancedProvenanceQueries {
       id: uuidv4(),
       ancestor: result.ancestor || result.entity,
       relationship: result.relationship || 'prov:wasDerivedFrom',
-      timestamp: result.timestamp || new Date().toISOString(),
+      timestamp: result.timestamp || this.getDeterministicDate().toISOString(),
       hash: result.hash,
       type: result.type || 'unknown',
       metadata: result.metadata || null,

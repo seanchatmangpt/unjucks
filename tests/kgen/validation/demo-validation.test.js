@@ -58,7 +58,7 @@ class MockKGenValidationEngine {
   }
 
   async validateMockSHACL(dataGraph, shapesGraph) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       // Parse the data to ensure it's valid RDF
@@ -168,7 +168,7 @@ class MockKGenValidationEngine {
         warnings: warnings,
         totalViolations: violations.length,
         totalWarnings: warnings.length,
-        validationTime: Date.now() - startTime,
+        validationTime: this.getDeterministicTimestamp() - startTime,
         statistics: {
           triplesValidated: quads.length,
           shapesChecked: 1,
@@ -248,12 +248,12 @@ class MockKGenValidationEngine {
 
   async validateWithDriftDetection(options = {}) {
     const validationId = 'demo-' + Math.random().toString(36).substr(2, 8);
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
 
     try {
       const results = {
         validationId,
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         validation: null,
         drift: null,
         exitCode: this.config.exitCodes.success,
@@ -288,22 +288,22 @@ class MockKGenValidationEngine {
       // Generate mock report
       const reportPath = await this.generateMockReport(results);
       results.reportPath = reportPath;
-      results.validationTime = Date.now() - startTime;
+      results.validationTime = this.getDeterministicTimestamp() - startTime;
 
       return results;
     } catch (error) {
       return {
         validationId,
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         error: error.message,
         exitCode: this.config.exitCodes.errors,
-        validationTime: Date.now() - startTime
+        validationTime: this.getDeterministicTimestamp() - startTime
       };
     }
   }
 
   async generateMockReport(results) {
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const timestamp = this.getDeterministicDate().toISOString().replace(/[:.]/g, '-');
     const reportFilename = `validation-report-${timestamp}.json`;
     const reportPath = path.join(this.config.reporting.outputPath, reportFilename);
 

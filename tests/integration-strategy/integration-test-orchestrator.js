@@ -302,7 +302,7 @@ export class IntegrationTestOrchestrator {
     const report = {
       executiveSummary: {
         testStrategy: 'Fortune 5 Enterprise Integration Testing',
-        executionDate: new Date().toISOString(),
+        executionDate: this.getDeterministicDate().toISOString(),
         totalDuration: Math.round(this.overallResults.totalDuration),
         totalTests: this.overallResults.totalTests,
         passedTests: this.overallResults.passedTests,
@@ -339,7 +339,7 @@ export class IntegrationTestOrchestrator {
     const complianceReport = {
       complianceAssessment: {
         standard: 'Fortune 5 Enterprise Requirements',
-        assessmentDate: new Date().toISOString(),
+        assessmentDate: this.getDeterministicDate().toISOString(),
         overallCompliance: this.calculateOverallCompliance(),
         requirements: {
           uptime: {

@@ -58,7 +58,7 @@ app.use(requestValidator);
 app.get('/health', (req, res) => {
   res.status(200).json({
     status: 'healthy',
-    timestamp: new Date().toISOString(),
+    timestamp: this.getDeterministicDate().toISOString(),
     version: process.env.npm_package_version || '1.0.0'
   });
 });

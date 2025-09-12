@@ -206,7 +206,7 @@ export class RulePackManager extends EventEmitter {
       this.rulePacks.set(processedRulePack.id, processedRulePack);
       this.rulePackMetadata.set(processedRulePack.id, {
         ...processedRulePack.metadata,
-        loadedAt: new Date().toISOString(),
+        loadedAt: this.getDeterministicDate().toISOString(),
         source
       });
       
@@ -421,7 +421,7 @@ export class RulePackManager extends EventEmitter {
       errors: [],
       warnings: [],
       metadata: {
-        validatedAt: new Date().toISOString(),
+        validatedAt: this.getDeterministicDate().toISOString(),
         validator: 'rule-pack-manager',
         source
       }
@@ -765,7 +765,7 @@ export class RulePackManager extends EventEmitter {
         ...rulePack.metadata,
         source,
         filePath,
-        loadedAt: new Date().toISOString(),
+        loadedAt: this.getDeterministicDate().toISOString(),
         hash: this._calculateRulePackHash(rulePack)
       },
       rules: []
@@ -795,7 +795,7 @@ export class RulePackManager extends EventEmitter {
       compiledAt: null,
       metadata: {
         ...rule.metadata,
-        processedAt: new Date().toISOString(),
+        processedAt: this.getDeterministicDate().toISOString(),
         hash: this._calculateRuleHash(rule)
       }
     };
@@ -804,7 +804,7 @@ export class RulePackManager extends EventEmitter {
     if (this.config.enableRuleOptimization) {
       try {
         processed.compiled = await this._compileRule(rule);
-        processed.compiledAt = new Date().toISOString();
+        processed.compiledAt = this.getDeterministicDate().toISOString();
       } catch (error) {
         this.logger.debug(`Failed to compile rule ${rule.id}:`, error.message);
       }

@@ -27,9 +27,9 @@ class CLIVerificationTest {
     console.log(`\n🧪 Running: ${testName}`);
     
     try {
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       await testFunction();
-      const duration = Date.now() - startTime;
+      const duration = this.getDeterministicTimestamp() - startTime;
       
       console.log(`✅ PASSED: ${testName} (${duration}ms)`);
       this.passedTests++;
@@ -223,7 +223,7 @@ class CLIVerificationTest {
     console.log('🚀 Starting CLI Verification Tests');
     console.log('==================================');
     
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     await this.runTest('CLI Executable Exists', () => this.testExecutableExists());
     await this.runTest('Node.js Version Compatibility', () => this.testNodeCompatibility());
@@ -236,7 +236,7 @@ class CLIVerificationTest {
     await this.runTest('Template Directory Access', () => this.testTemplateDirectoryAccess());
     await this.runTest('Generate Command Syntax', () => this.testGenerateCommandSyntax());
     
-    const duration = Date.now() - startTime;
+    const duration = this.getDeterministicTimestamp() - startTime;
     
     console.log('\n📊 CLI Verification Summary');
     console.log('============================');

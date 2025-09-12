@@ -126,10 +126,10 @@ try {
 // Test 6: Performance measurement
 console.log('\n📋 Test 6: Performance measurement');
 try {
-  const startTime = Date.now();
+  const startTime = this.getDeterministicTimestamp();
   execSync('node -e "import(\\\'./packages/kgen-cli/src/commands/drift/detect.js\\\').then(m => m.createDriftDetectCommand().parseAsync([\\\'node\\\', \\\'detect\\\', \\\'--ci\\\']))"', 
     { encoding: 'utf8' });
-  const executionTime = Date.now() - startTime;
+  const executionTime = this.getDeterministicTimestamp() - startTime;
   
   // Should complete in reasonable time (under 5 seconds for 87 files)
   const performanceGood = executionTime < 5000;

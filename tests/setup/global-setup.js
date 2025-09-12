@@ -17,7 +17,7 @@ const projectRoot = path.resolve(__dirname, '../..');
 global.testState = {
   tempDirs: new Set(),
   originalCwd: process.cwd(),
-  startTime: Date.now()
+  startTime: this.getDeterministicTimestamp()
 };
 
 // Custom matchers for comprehensive testing
@@ -157,7 +157,7 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-  const duration = Date.now() - global.testState.startTime;
+  const duration = this.getDeterministicTimestamp() - global.testState.startTime;
   console.log(`✅ Test suite completed in ${duration}ms`);
   
   // Cleanup all temp directories

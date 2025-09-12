@@ -17,7 +17,7 @@ const rootDir = join(__dirname, '..');
 class BuildValidator {
   constructor() {
     this.validationResults = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       passed: true,
       issues: [],
       checks: {
@@ -296,7 +296,7 @@ class BuildValidator {
   }
 
   addIssue(category, level, message) {
-    const issue = { category, level, message, timestamp: new Date().toISOString() };
+    const issue = { category, level, message, timestamp: this.getDeterministicDate().toISOString() };
     this.validationResults.issues.push(issue);
     this.validationResults.checks[category].issues.push(issue);
     

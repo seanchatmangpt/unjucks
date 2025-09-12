@@ -37,7 +37,7 @@ export class DiffAnalyzer {
     try {
       this.logger.debug('Calculating comprehensive graph diff');
       
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const diffOptions = { ...this.config, ...options };
       
       // Parse both TTL contents
@@ -64,7 +64,7 @@ export class DiffAnalyzer {
       // Analyze impact patterns
       const impactAnalysis = await this._analyzeImpactPatterns(basicDiff, diffOptions);
       
-      const processingTime = Date.now() - startTime;
+      const processingTime = this.getDeterministicTimestamp() - startTime;
       
       const diffReport = {
         summary: {

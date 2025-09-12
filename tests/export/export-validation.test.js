@@ -508,9 +508,9 @@ Content with <dangerous> tags.
         quiet: true
       };
 
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const result = await exportCommand.run({ args: perfArgs });
-      const duration = Date.now() - startTime;
+      const duration = this.getDeterministicTimestamp() - startTime;
 
       expect(result.success).toBe(true);
       expect(duration).toBeLessThan(5000); // Should complete within 5 seconds

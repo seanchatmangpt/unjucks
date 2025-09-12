@@ -32,7 +32,7 @@ describe('Export System Stress Tests', () => {
       
       await fs.writeFile(inputFile, hugeMdContent);
       
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const startMemory = process.memoryUsage().heapUsed;
       
       try {
@@ -42,7 +42,7 @@ describe('Export System Stress Tests', () => {
           template: 'minimal'
         });
         
-        const endTime = Date.now();
+        const endTime = this.getDeterministicTimestamp();
         const endMemory = process.memoryUsage().heapUsed;
         const memoryIncrease = endMemory - startMemory;
         const duration = endTime - startTime;
@@ -299,9 +299,9 @@ This is normal markdown content.`;
         );
       }
       
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const results = await Promise.all(promises);
-      const duration = Date.now() - startTime;
+      const duration = this.getDeterministicTimestamp() - startTime;
       
       const successful = results.filter(r => r.success).length;
       const failed = results.filter(r => !r.success).length;
@@ -466,7 +466,7 @@ This is normal markdown content.`;
       }
       
       const pattern = path.join(testDir, 'batch-*.md');
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const startMemory = process.memoryUsage().heapUsed;
       
       const result = await engine.batchExport(pattern, {
@@ -474,7 +474,7 @@ This is normal markdown content.`;
         concurrency: 10
       });
       
-      const endTime = Date.now();
+      const endTime = this.getDeterministicTimestamp();
       const endMemory = process.memoryUsage().heapUsed;
       const memoryIncrease = endMemory - startMemory;
       const duration = endTime - startTime;

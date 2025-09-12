@@ -1,0 +1,76 @@
+# @title: Change Management Rule
+# @description: Enforces change management processes and approvals
+# @priority: critical
+# @category: change-management
+# @tags: approval, workflow, production, change
+# @author: KGEN Dark-Matter Integration
+# @version: 1.0.0
+# @expectation: no-results
+# @created: 2024-09-12
+
+PREFIX gov: <https://kgen.io/governance#>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX dcterms: <http://purl.org/dc/terms/>
+
+SELECT ?changeRequest ?violation ?severity ?message ?approvalStatus
+WHERE {
+  {
+    # Production changes without approval workflow
+    ?changeRequest a gov:ChangeRequest ;
+                   gov:targetEnvironment "PRODUCTION" .
+    
+    FILTER NOT EXISTS { 
+      ?changeRequest gov:hasApprovalWorkflow ?workflow .
+      ?workflow gov:isComplete true .
+    }
+    
+    BIND("Production change without approval" AS ?violation)
+    BIND("CRITICAL" AS ?severity)
+    BIND("Production changes require completed approval workflow" AS ?message)
+    BIND("MISSING" AS ?approvalStatus)
+  }
+  UNION
+  {
+    # High-risk changes without impact assessment
+    ?changeRequest a gov:ChangeRequest ;
+                   gov:riskLevel "HIGH" .
+    
+    FILTER NOT EXISTS { ?changeRequest gov:hasImpactAssessment ?assessment }
+    
+    BIND("High-risk change without impact assessment" AS ?violation)
+    BIND("HIGH" AS ?severity)
+    BIND("High-risk changes require impact assessment" AS ?message)
+    BIND("N/A" AS ?approvalStatus)
+  }
+  UNION
+  {
+    # Changes without proper documentation
+    ?changeRequest a gov:ChangeRequest .
+    
+    FILTER NOT EXISTS { ?changeRequest dcterms:description ?description }
+    
+    BIND("Change without description" AS ?violation)
+    BIND("MEDIUM" AS ?severity)
+    BIND("All change requests must have detailed description" AS ?message)
+    BIND("N/A" AS ?approvalStatus)
+  }
+  UNION
+  {
+    # Emergency changes without post-review
+    ?changeRequest a gov:ChangeRequest ;
+                   gov:changeType "EMERGENCY" ;
+                   gov:status "DEPLOYED" .
+    
+    FILTER NOT EXISTS { ?changeRequest gov:hasPostDeploymentReview ?review }
+    
+    # Only flag if deployed more than 24 hours ago
+    ?changeRequest dcterms:created ?created .
+    BIND(NOW() AS ?now)
+    FILTER(?now - ?created > "P1D"^^xsd:duration)
+    
+    BIND("Emergency change without post-review" AS ?violation)
+    BIND("HIGH" AS ?severity)
+    BIND("Emergency changes require post-deployment review within 24 hours" AS ?message)
+    BIND("OVERDUE" AS ?approvalStatus)
+  }
+}

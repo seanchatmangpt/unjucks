@@ -309,7 +309,7 @@ class LegalFormatter {
     const {
       title = 'LEGAL DOCUMENT',
       parties = [],
-      date = new Date().toISOString().split('T')[0],
+      date = this.getDeterministicDate().toISOString().split('T')[0],
       jurisdiction = this.options.jurisdiction,
       documentType = this.options.documentType,
       confidential = false

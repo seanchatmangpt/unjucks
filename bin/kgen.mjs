@@ -12,20 +12,53 @@ import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
 import { loadConfig } from 'c12';
+import { getDeterministicISOString } from '../src/utils/deterministic-time.js';
 
-// KGEN deterministic rendering system
-import DeterministicArtifactGenerator from '../src/kgen/deterministic/artifact-generator.js';
-import DeterministicRenderingSystem from '../src/kgen/deterministic/index.js';
+// OpenTelemetry instrumentation (lazy loaded for performance)
+let tracingModule = null;
+let instrumentationModule = null;
 
-// Drift detection and impact calculation
-import { DriftDetector } from '../src/kgen/drift/detector.js';
-import { ImpactCalculator } from '../src/kgen/impact/calculator.js';
+// Lazy-loaded modules for performance optimization
+let DeterministicArtifactGenerator = null;
+let DeterministicRenderingSystem = null;
+let DriftDetector = null;
+let ImpactCalculator = null;
+let StandaloneKGenBridge = null;
+let gitCommands = null;
+let policyCommands = null;
+let cacheCommand = null;
 
-// Enhanced RDF processing components  
-import { StandaloneKGenBridge } from '../src/kgen/rdf/standalone-bridge.js';
+// Dynamic import helper
+const lazyImport = async (modulePath) => {
+  try {
+    return await import(modulePath);
+  } catch (error) {
+    if (process.env.NODE_ENV === 'development') {
+      console.warn(`Warning: Could not load module ${modulePath}:`, error.message);
+    }
+    return null;
+  }
+};
 
-// Cache management commands
-import cacheCommand from '../packages/kgen-cli/src/commands/cache/index.js';
+// Lazy load standardized output
+let StandardizedOutput = null;
+const getStandardOutput = async () => {
+  if (!StandardizedOutput) {
+    const module = await lazyImport('../src/kgen/cli/standardized-output.js');
+    StandardizedOutput = module?.createStandardOutput || (() => ({
+      success: (op, res) => ({ success: true, operation: op, result: res, metadata: { timestamp: new Date().toISOString() }}),
+      error: (op, code, msg, det) => ({ success: false, operation: op, error: { code, message: msg, details: det }, metadata: { timestamp: new Date().toISOString() }})
+    }));
+  }
+  return StandardizedOutput();
+};
+
+// Performance optimization imports (lazy loaded to maintain fast startup)
+let performanceOptimizer = null;
+let fastStartupLoader = null;
+
+// Cold start performance tracking
+const coldStartTime = performance.now();
 
 /**
  * KGEN CLI Engine - Connects CLI commands to real KGEN functionality
@@ -40,10 +73,49 @@ class KGenCLIEngine {
     this.impactCalculator = null;
     this.debug = false;
     this.verbose = false;
+    this.tracer = null;
     
     // Initialize enhanced RDF processing bridge
-    this.rdfBridge = new StandaloneKGenBridge();
+    this.rdfBridge = null; // Lazy loaded
     this.semanticProcessingEnabled = false; // Disable until rdfBridge is properly initialized
+    
+    // Initialize tracing on construction
+    this._initializeTracing();
+  }
+
+  /**
+   * Initialize OpenTelemetry tracing (lazy loaded)
+   */
+  async _initializeTracing() {
+    try {
+      if (!tracingModule) {
+        tracingModule = await import('../src/observability/kgen-tracer.js');
+      }
+      if (!instrumentationModule) {
+        instrumentationModule = await import('../src/observability/instrumentation.js');
+      }
+      
+      this.tracer = await tracingModule.initializeTracing({
+        serviceName: 'kgen-cli',
+        serviceVersion: this.version,
+        enableJSONLExport: true,
+        performanceTarget: 5 // 5ms p95 target
+      });
+      
+      // Instrument core methods only if needed
+      if (this.debug) {
+        this.graphHash = instrumentationModule.instrumentGraphHash(this.graphHash.bind(this));
+        this.graphDiff = instrumentationModule.instrumentGraphDiff(this.graphDiff.bind(this));
+        this.graphIndex = instrumentationModule.instrumentGraphIndex(this.graphIndex.bind(this));
+        this.artifactGenerate = instrumentationModule.instrumentArtifactGenerate(this.artifactGenerate.bind(this));
+      }
+      
+    } catch (error) {
+      if (this.debug) {
+        console.warn('[KGEN-TRACE] Tracing initialization failed:', error.message);
+      }
+      // Continue without tracing if it fails
+    }
   }
 
   /**
@@ -56,11 +128,22 @@ class KGenCLIEngine {
       
       if (this.debug) console.log('🔧 Initializing KGEN CLI Engine...');
       
+      // Ensure tracing is initialized
+      if (!this.tracer) {
+        await this._initializeTracing();
+      }
+      
       // Load configuration
       this.config = await this.loadConfiguration();
       
-      // Initialize deterministic rendering system
-      this.deterministicSystem = new DeterministicRenderingSystem({
+      // Initialize deterministic rendering system (lazy load)
+      if (!DeterministicRenderingSystem) {
+        const module = await lazyImport('../src/kgen/deterministic/index.js');
+        DeterministicRenderingSystem = module?.default;
+      }
+      
+      if (DeterministicRenderingSystem) {
+        this.deterministicSystem = new DeterministicRenderingSystem({
         templatesDir: this.config.directories?.templates || '_templates',
         outputDir: this.config.directories?.out || './generated',
         cacheDir: this.config.directories?.cache || './.kgen/cache',
@@ -71,33 +154,69 @@ class KGenCLIEngine {
         enableSemanticEnrichment: this.config.generate?.enableSemanticEnrichment === true,
         strictMode: this.config.generate?.strictMode !== false,
         debug: this.debug
-      });
+        });
+      }
 
-      // Initialize artifact generator (legacy compatibility)
-      this.artifactGenerator = new DeterministicArtifactGenerator({
+      // Initialize artifact generator (lazy load)
+      if (!DeterministicArtifactGenerator) {
+        const module = await lazyImport('../src/kgen/deterministic/artifact-generator.js');
+        DeterministicArtifactGenerator = module?.default;
+      }
+      
+      if (DeterministicArtifactGenerator) {
+        this.artifactGenerator = new DeterministicArtifactGenerator({
         templatesDir: this.config.directories?.templates || '_templates',
         outputDir: this.config.directories?.out || './generated',
         debug: this.debug,
         ...this.config.generate
-      });
+        });
+      }
       
-      this.driftDetector = new DriftDetector({
+      // Initialize drift detector (lazy load)
+      if (!DriftDetector) {
+        const module = await lazyImport('../src/kgen/drift/detector.js');
+        DriftDetector = module?.DriftDetector;
+      }
+      
+      if (DriftDetector) {
+        this.driftDetector = new DriftDetector({
         debug: this.debug,
         baselinePath: this.config.directories?.state || './.kgen/state',
         ...this.config.drift
-      });
+        });
+      }
       
-      this.impactCalculator = new ImpactCalculator({
+      // Initialize impact calculator (lazy load)
+      if (!ImpactCalculator) {
+        const module = await lazyImport('../src/kgen/impact/calculator.js');
+        ImpactCalculator = module?.ImpactCalculator;
+      }
+      
+      if (ImpactCalculator) {
+        this.impactCalculator = new ImpactCalculator({
         debug: this.debug,
         ...this.config.impact
-      });
+        });
+      }
       
       // Initialize drift detector
-      await this.driftDetector.initialize();
+      if (this.driftDetector) {
+        await this.driftDetector.initialize();
+      }
       
-      // Initialize RDF bridge for semantic processing
-      await this.rdfBridge.initialize();
-      this.semanticProcessingEnabled = true;
+      // Initialize RDF bridge for semantic processing (lazy load)
+      if (!this.rdfBridge) {
+        if (!StandaloneKGenBridge) {
+          const module = await lazyImport('../src/kgen/rdf/standalone-bridge.js');
+          StandaloneKGenBridge = module?.StandaloneKGenBridge;
+        }
+        
+        if (StandaloneKGenBridge) {
+          this.rdfBridge = new StandaloneKGenBridge();
+          await this.rdfBridge.initialize();
+          this.semanticProcessingEnabled = true;
+        }
+      }
       
       if (this.debug) console.log('✅ KGEN CLI Engine initialized successfully');
       
@@ -172,29 +291,25 @@ class KGenCLIEngine {
    * Fallback naive graph hash implementation
    */
   async _fallbackGraphHash(filePath) {
+    const output = await getStandardOutput();
+    
     try {
       if (!fs.existsSync(filePath)) {
-        return { success: false, error: `File not found: ${filePath}` };
+        return output.error('graph:hash', 'FILE_NOT_FOUND', `File not found: ${filePath}`, { path: filePath });
       }
 
       const content = fs.readFileSync(filePath, 'utf8');
       const hash = crypto.createHash('sha256').update(content).digest('hex');
       
-      const result = {
-        success: true,
+      return output.success('graph:hash', {
         file: filePath,
         hash: hash,
         size: content.length,
-        timestamp: new Date().toISOString(),
-        _mode: 'fallback'
-      };
-
-      console.log(JSON.stringify(result, null, 2));
-      return result;
+        mode: 'fallback',
+        algorithm: 'sha256'
+      });
     } catch (error) {
-      const result = { success: false, error: error.message };
-      console.log(JSON.stringify(result, null, 2));
-      return result;
+      return output.error('graph:hash', 'OPERATION_FAILED', error.message, { path: filePath });
     }
   }
 
@@ -312,7 +427,7 @@ class KGenCLIEngine {
           predicates: Array.from(predicates).slice(0, 10),
           objects: Array.from(objects).slice(0, 5)
         },
-        timestamp: new Date().toISOString(),
+        timestamp: getDeterministicISOString(),
         _mode: 'fallback'
       };
 
@@ -453,7 +568,7 @@ class KGenCLIEngine {
         contentHash: artifact.contentHash,
         attestationPath: `${artifact.outputPath}.attest.json`,
         context: Object.keys(context),
-        timestamp: new Date().toISOString()
+        timestamp: getDeterministicISOString()
       };
       
       if (!artifact.success) {
@@ -468,7 +583,7 @@ class KGenCLIEngine {
         success: false,
         operation: 'artifact:generate',
         error: error.message,
-        timestamp: new Date().toISOString()
+        timestamp: getDeterministicISOString()
       };
       console.log(JSON.stringify(result, null, 2));
       return result;
@@ -486,7 +601,7 @@ class KGenCLIEngine {
       const rdfFiles = this.findRDFFiles(directory);
       const lockData = {
         version: '1.0.0',
-        timestamp: new Date().toISOString(),
+        timestamp: getDeterministicISOString(),
         directory: directory,
         files: {}
       };
@@ -761,18 +876,16 @@ class KGenCLIEngine {
       const rulesDir = this.config?.directories?.rules || './rules';
       let rulePath = null;
       
-      // Try different extensions
-      const extensions = ['.n3', '.ttl', '.rules'];
-      for (const ext of extensions) {
-        const candidatePath = path.resolve(rulesDir, `${ruleName}${ext}`);
-        if (fs.existsSync(candidatePath)) {
-          rulePath = candidatePath;
-          break;
-        }
+      // First discover all rules to find the right one
+      const allRules = await this.discoverRules(rulesDir);
+      const targetRule = allRules.find(rule => rule.name === ruleName);
+      
+      if (targetRule) {
+        rulePath = targetRule.path;
       }
       
       if (!rulePath) {
-        throw new Error(`Rule not found: ${ruleName}`);
+        throw new Error(`Rule not found: ${ruleName}. Available rules: ${allRules.map(r => r.name).join(', ')}`);
       }
 
       const content = fs.readFileSync(rulePath, 'utf8');
@@ -831,7 +944,23 @@ const graphCommand = defineCommand({
         }
       },
       async run({ args }) {
-        return await kgen.graphHash(args.file);
+        try {
+          // Initialize kgen for enhanced RDF processing
+          if (!kgen.rdfBridge) {
+            await kgen.initialize({ debug: args.debug, verbose: args.verbose });
+          }
+          
+          return await kgen.graphHash(args.file);
+        } catch (error) {
+          const result = { 
+            success: false, 
+            error: error.message,
+            file: args.file,
+            timestamp: getDeterministicISOString()
+          };
+          console.log(JSON.stringify(result, null, 2));
+          return result;
+        }
       }
     }),
     diff: defineCommand({
@@ -884,7 +1013,7 @@ const graphCommand = defineCommand({
             riskLevel: impactAnalysis.riskAssessment.level,
             blastRadius: impactAnalysis.blastRadius.maxRadius,
             recommendations: impactAnalysis.recommendations,
-            timestamp: new Date().toISOString()
+            timestamp: getDeterministicISOString()
           };
           
           console.log(JSON.stringify(result, null, 2));
@@ -895,7 +1024,7 @@ const graphCommand = defineCommand({
             success: false,
             operation: 'graph:diff',
             error: error.message,
-            timestamp: new Date().toISOString()
+            timestamp: getDeterministicISOString()
           };
           console.log(JSON.stringify(result, null, 2));
           return result;
@@ -1011,7 +1140,7 @@ const artifactCommand = defineCommand({
             operation: 'artifact:drift',
             error: error.message,
             exitCode: 1,
-            timestamp: new Date().toISOString()
+            timestamp: getDeterministicISOString()
           };
           console.log(JSON.stringify(result, null, 2));
           process.exitCode = 1;
@@ -1070,7 +1199,7 @@ const artifactCommand = defineCommand({
               nodeVersion: attestation.environment?.nodeVersion,
               reproducible: attestation.verification?.reproducible
             } : null,
-            timestamp: new Date().toISOString()
+            timestamp: getDeterministicISOString()
           };
           
           console.log(JSON.stringify(result, null, 2));
@@ -1082,7 +1211,7 @@ const artifactCommand = defineCommand({
             operation: 'artifact:explain',
             artifact: args.artifact,
             error: error.message,
-            timestamp: new Date().toISOString()
+            timestamp: getDeterministicISOString()
           };
           console.log(JSON.stringify(result, null, 2));
           return result;
@@ -1134,7 +1263,7 @@ const projectCommand = defineCommand({
           }
           
           const projectDir = path.resolve(args.directory || '.');
-          const attestationPath = path.join(projectDir, `kgen-attestation-${new Date().toISOString().replace(/[:.]/g, '-')}.json`);
+          const attestationPath = path.join(projectDir, `kgen-attestation-${getDeterministicISOString().replace(/[:.]/g, '-')}.json`);
           
           // Find all generated artifacts
           const generatedDir = path.join(projectDir, kgen.config?.directories?.out || 'generated');
@@ -1163,7 +1292,7 @@ const projectCommand = defineCommand({
               directory: projectDir
             },
             attestation: {
-              createdAt: new Date().toISOString(),
+              createdAt: getDeterministicISOString(),
               kgenVersion: kgen.version,
               nodeVersion: process.version,
               platform: process.platform,
@@ -1229,7 +1358,7 @@ const projectCommand = defineCommand({
             operation: 'project:attest',
             directory: args.directory || '.',
             error: error.message,
-            timestamp: new Date().toISOString()
+            timestamp: getDeterministicISOString()
           };
           console.log(JSON.stringify(result, null, 2));
           return result;
@@ -1273,7 +1402,7 @@ const templatesCommand = defineCommand({
             templatesDir: templatesDir,
             templates: templates,
             count: templates.length,
-            timestamp: new Date().toISOString()
+            timestamp: getDeterministicISOString()
           };
           
           console.log(JSON.stringify(result, null, 2));
@@ -1284,7 +1413,7 @@ const templatesCommand = defineCommand({
             success: false,
             operation: 'templates:ls',
             error: error.message,
-            timestamp: new Date().toISOString()
+            timestamp: getDeterministicISOString()
           };
           console.log(JSON.stringify(result, null, 2));
           return result;
@@ -1316,7 +1445,7 @@ const templatesCommand = defineCommand({
             operation: 'templates:show',
             template: args.template,
             details: templateDetails,
-            timestamp: new Date().toISOString()
+            timestamp: getDeterministicISOString()
           };
           
           console.log(JSON.stringify(result, null, 2));
@@ -1328,7 +1457,7 @@ const templatesCommand = defineCommand({
             operation: 'templates:show',
             template: args.template,
             error: error.message,
-            timestamp: new Date().toISOString()
+            timestamp: getDeterministicISOString()
           };
           console.log(JSON.stringify(result, null, 2));
           return result;
@@ -1365,7 +1494,7 @@ const rulesCommand = defineCommand({
             rulesDir: rulesDir,
             rules: rules,
             count: rules.length,
-            timestamp: new Date().toISOString()
+            timestamp: getDeterministicISOString()
           };
           
           console.log(JSON.stringify(result, null, 2));
@@ -1376,7 +1505,7 @@ const rulesCommand = defineCommand({
             success: false,
             operation: 'rules:ls',
             error: error.message,
-            timestamp: new Date().toISOString()
+            timestamp: getDeterministicISOString()
           };
           console.log(JSON.stringify(result, null, 2));
           return result;
@@ -1408,7 +1537,7 @@ const rulesCommand = defineCommand({
             operation: 'rules:show',
             rule: args.rule,
             details: ruleDetails,
-            timestamp: new Date().toISOString()
+            timestamp: getDeterministicISOString()
           };
           
           console.log(JSON.stringify(result, null, 2));
@@ -1420,7 +1549,7 @@ const rulesCommand = defineCommand({
             operation: 'rules:show',
             rule: args.rule,
             error: error.message,
-            timestamp: new Date().toISOString()
+            timestamp: getDeterministicISOString()
           };
           console.log(JSON.stringify(result, null, 2));
           return result;
@@ -1492,7 +1621,7 @@ const deterministicCommand = defineCommand({
             deterministic: result.metadata?.deterministic,
             outputPath: args.output,
             metadata: result.metadata,
-            timestamp: new Date().toISOString()
+            timestamp: getDeterministicISOString()
           };
           
           if (!result.success) {
@@ -1509,7 +1638,7 @@ const deterministicCommand = defineCommand({
             operation: 'deterministic:render',
             template: args.template,
             error: error.message,
-            timestamp: new Date().toISOString()
+            timestamp: getDeterministicISOString()
           };
           console.log(JSON.stringify(result, null, 2));
           return result;
@@ -1560,7 +1689,7 @@ const deterministicCommand = defineCommand({
             attestationPath: result.attestationPath,
             contentHash: result.contentHash,
             cached: result.cached,
-            timestamp: new Date().toISOString()
+            timestamp: getDeterministicISOString()
           };
           
           if (!result.success) {
@@ -1577,7 +1706,7 @@ const deterministicCommand = defineCommand({
             operation: 'deterministic:generate',
             template: args.template,
             error: error.message,
-            timestamp: new Date().toISOString()
+            timestamp: getDeterministicISOString()
           };
           console.log(JSON.stringify(result, null, 2));
           return result;
@@ -1613,7 +1742,7 @@ const deterministicCommand = defineCommand({
             issues: analysis.issues || [],
             recommendations: analysis.recommendations || [],
             variables: analysis.variables || [],
-            timestamp: new Date().toISOString()
+            timestamp: getDeterministicISOString()
           };
           
           console.log(JSON.stringify(result, null, 2));
@@ -1625,7 +1754,7 @@ const deterministicCommand = defineCommand({
             operation: 'deterministic:validate',
             template: args.template,
             error: error.message,
-            timestamp: new Date().toISOString()
+            timestamp: getDeterministicISOString()
           };
           console.log(JSON.stringify(result, null, 2));
           return result;
@@ -1669,7 +1798,7 @@ const deterministicCommand = defineCommand({
             iterations: verification.iterations,
             originalHash: verification.originalHash,
             reproductions: verification.reproductions,
-            timestamp: new Date().toISOString()
+            timestamp: getDeterministicISOString()
           };
           
           console.log(JSON.stringify(result, null, 2));
@@ -1681,7 +1810,7 @@ const deterministicCommand = defineCommand({
             operation: 'deterministic:verify',
             artifact: args.artifact,
             error: error.message,
-            timestamp: new Date().toISOString()
+            timestamp: getDeterministicISOString()
           };
           console.log(JSON.stringify(result, null, 2));
           return result;
@@ -1709,7 +1838,7 @@ const deterministicCommand = defineCommand({
             health: health.status,
             statistics: stats,
             healthDetails: health,
-            timestamp: new Date().toISOString()
+            timestamp: getDeterministicISOString()
           };
           
           console.log(JSON.stringify(result, null, 2));
@@ -1720,7 +1849,7 @@ const deterministicCommand = defineCommand({
             success: false,
             operation: 'deterministic:status',
             error: error.message,
-            timestamp: new Date().toISOString()
+            timestamp: getDeterministicISOString()
           };
           console.log(JSON.stringify(result, null, 2));
           return result;
@@ -1761,7 +1890,144 @@ const main = defineCommand({
     templates: templatesCommand,
     rules: rulesCommand,
     deterministic: deterministicCommand,
-    cache: cacheCommand,
+    // Advanced commands loaded on-demand for performance
+    perf: defineCommand({
+      meta: {
+        name: 'perf',
+        description: 'Performance testing and optimization (Agent 9)'
+      },
+      subCommands: {
+        test: defineCommand({
+          meta: {
+            name: 'test',
+            description: 'Run performance compliance tests'
+          },
+          args: {
+            report: {
+              type: 'string',
+              description: 'Output report file',
+              alias: 'r'
+            }
+          },
+          async run({ args }) {
+            try {
+              // Use the fixed performance test infrastructure
+              const { FixedPerformanceTestSuite } = await import('../src/performance/performance-fixes.js');
+              
+              const testSuite = new FixedPerformanceTestSuite({ 
+                debug: process.env.KGEN_DEBUG === 'true' 
+              });
+              
+              const result = await testSuite.runBasicPerformanceTest();
+              
+              // Write report if requested
+              if (args.report) {
+                const fs = await import('fs/promises');
+                await fs.writeFile(args.report, JSON.stringify(result, null, 2));
+                console.error(`Performance report written to ${args.report}`);
+              }
+              
+              console.log(JSON.stringify(result, null, 2));
+              
+              // Set exit code based on compliance
+              if (!result.compliance?.allPassing) {
+                process.exitCode = 1;
+              }
+              
+              return result;
+              
+            } catch (error) {
+              const errorResult = {
+                success: false,
+                error: error.message,
+                timestamp: new Date().toISOString()
+              };
+              console.log(JSON.stringify(errorResult, null, 2));
+              process.exitCode = 1;
+              return errorResult;
+            }
+          }
+        }),
+        status: defineCommand({
+          meta: {
+            name: 'status',
+            description: 'Show current performance metrics'
+          },
+          async run({ args }) {
+            const coldStartElapsed = performance.now() - coldStartTime;
+            
+            const result = {
+              success: true,
+              coldStart: {
+                elapsed: Math.round(coldStartElapsed * 100) / 100,
+                target: 2000,
+                status: coldStartElapsed <= 2000 ? 'PASS' : 'FAIL'
+              },
+              charter: {
+                coldStartTarget: '≤2s',
+                renderTarget: '≤150ms p95',
+                cacheTarget: '≥80%'
+              },
+              timestamp: getDeterministicISOString()
+            };
+            
+            console.log(JSON.stringify(result, null, 2));
+            return result;
+          }
+        }),
+        benchmark: defineCommand({
+          meta: {
+            name: 'benchmark',
+            description: 'Run performance benchmarks'
+          },
+          args: {
+            type: {
+              type: 'string',
+              description: 'Benchmark type (rdf|template|full)',
+              default: 'full'
+            }
+          },
+          async run({ args }) {
+            try {
+              // Use the fixed benchmark infrastructure
+              const { FixedBenchmarkRunner } = await import('../src/performance/performance-fixes.js');
+              
+              const benchmarkRunner = new FixedBenchmarkRunner({ 
+                iterations: args.iterations || 10 
+              });
+              
+              if (args.type === 'graph-hash') {
+                return await benchmarkRunner.runGraphHashBenchmark();
+              } else if (args.type === 'template-render') {
+                return await benchmarkRunner.runTemplateRenderBenchmark();
+              } else {
+                // Run both benchmarks
+                const graphHashResult = await benchmarkRunner.runGraphHashBenchmark();
+                const templateRenderResult = await benchmarkRunner.runTemplateRenderBenchmark();
+                
+                return {
+                  success: true,
+                  benchmarks: {
+                    graphHash: graphHashResult,
+                    templateRender: templateRenderResult
+                  },
+                  timestamp: new Date().toISOString()
+                };
+              }
+              
+            } catch (error) {
+              const errorResult = {
+                success: false,
+                error: error.message,
+                timestamp: new Date().toISOString()
+              };
+              console.log(JSON.stringify(errorResult, null, 2));
+              return errorResult;
+            }
+          }
+        })
+      }
+    }),
     drift: defineCommand({
       meta: {
         name: 'drift',
@@ -1795,7 +2061,7 @@ const main = defineCommand({
                     status: 'Basic file system validation only - full drift detection not available',
                     message: 'Drift detector initialization failed. Check KGEN installation.',
                     error: initResult.error || 'Drift detector not available',
-                    timestamp: new Date().toISOString()
+                    timestamp: getDeterministicISOString()
                   };
                   
                   console.log(JSON.stringify(result, null, 2));
@@ -1838,7 +2104,7 @@ const main = defineCommand({
                 operation: 'drift:detect',
                 error: error.message,
                 exitCode: 1,
-                timestamp: new Date().toISOString()
+                timestamp: getDeterministicISOString()
               };
               console.log(JSON.stringify(result, null, 2));
               process.exitCode = 1;
@@ -1857,28 +2123,71 @@ const main = defineCommand({
         artifacts: defineCommand({
           meta: {
             name: 'artifacts',
-            description: 'Validate generated artifacts'
+            description: 'Validate generated artifacts with schema validation'
           },
           args: {
             path: {
               type: 'positional',
-              description: 'Path to artifact or directory'
+              description: 'Path to artifact or directory',
+              default: '.'
             },
             recursive: {
               type: 'boolean',
               description: 'Recursively validate directories',
               alias: 'r'
+            },
+            'shapes-file': {
+              type: 'string',
+              description: 'Path to SHACL shapes file for validation',
+              alias: 's'
+            },
+            verbose: {
+              type: 'boolean',
+              description: 'Enable verbose validation output',
+              alias: 'v'
             }
           },
           async run({ args }) {
-            const result = {
-              success: true,
-              operation: 'validate:artifacts',
-              path: args.path || '.',
-              timestamp: new Date().toISOString()
-            };
-            console.log(JSON.stringify(result, null, 2));
-            return result;
+            try {
+              // Initialize validation engine
+              const { ValidationCLIEngine } = await import('../src/kgen/validation/cli-integration.js');
+              const validator = new ValidationCLIEngine({
+                debug: args.verbose,
+                enableFallback: true
+              });
+              
+              await validator.initialize();
+              
+              // Validate artifacts
+              const result = await validator.validateArtifacts(args.path, {
+                recursive: args.recursive,
+                shapesFile: args['shapes-file'],
+                verbose: args.verbose
+              });
+              
+              console.log(JSON.stringify(result, null, 2));
+              
+              // Set appropriate exit code
+              if (!result.success) {
+                process.exitCode = result.summary?.errors > 0 ? 1 : 0;
+              }
+              
+              return result;
+              
+            } catch (error) {
+              const result = {
+                success: false,
+                operation: 'validate:artifacts',
+                error: error.message,
+                path: args.path || '.',
+                timestamp: new Date().toISOString(),
+                fallback: true
+              };
+              
+              console.log(JSON.stringify(result, null, 2));
+              process.exitCode = 1;
+              return result;
+            }
           }
         }),
         graph: defineCommand({
@@ -1902,7 +2211,7 @@ const main = defineCommand({
               success: true,
               operation: 'validate:graph',
               file: args.file,
-              timestamp: new Date().toISOString()
+              timestamp: getDeterministicISOString()
             };
             console.log(JSON.stringify(result, null, 2));
             return result;
@@ -1925,7 +2234,7 @@ const main = defineCommand({
               success: true,
               operation: 'validate:provenance',
               artifact: args.artifact,
-              timestamp: new Date().toISOString()
+              timestamp: getDeterministicISOString()
             };
             console.log(JSON.stringify(result, null, 2));
             return result;
@@ -1974,7 +2283,7 @@ const main = defineCommand({
               graph: args.graph,
               query: args.query || args.file,
               format: args.format,
-              timestamp: new Date().toISOString()
+              timestamp: getDeterministicISOString()
             };
             console.log(JSON.stringify(result, null, 2));
             return result;
@@ -2019,7 +2328,7 @@ const main = defineCommand({
               graph: args.graph,
               template: args.template,
               output: args.output,
-              timestamp: new Date().toISOString()
+              timestamp: getDeterministicISOString()
             };
             console.log(JSON.stringify(result, null, 2));
             return result;
@@ -2030,5 +2339,108 @@ const main = defineCommand({
   }
 });
 
-// Run the CLI
-runMain(main);
+// Load advanced commands lazily for performance
+async function loadAdvancedCommands() {
+  const commands = {};
+  
+  try {
+    // Load cache command
+    if (!cacheCommand) {
+      const module = await lazyImport('../packages/kgen-cli/src/commands/cache/index.js');
+      cacheCommand = module?.default;
+    }
+    if (cacheCommand) commands.cache = cacheCommand;
+    
+    // Load policy commands
+    if (!policyCommands) {
+      const policyModule = await lazyImport('../src/kgen/validation/policy-cli.js');
+      const simplePolicyModule = await lazyImport('../src/kgen/validation/policy-cli-simple.js');
+      policyCommands = {
+        policy: policyModule?.policyCommand,
+        'policy-simple': simplePolicyModule?.simplePolicyCommand
+      };
+    }
+    if (policyCommands.policy) commands.policy = policyCommands.policy;
+    if (policyCommands['policy-simple']) commands['policy-simple'] = policyCommands['policy-simple'];
+    
+    // Load git commands
+    if (!gitCommands) {
+      const gitModule = await lazyImport('../src/kgen/git-commands.js');
+      gitCommands = {
+        'git-artifact': gitModule?.gitArtifactCommand,
+        'git-drift': gitModule?.gitDriftCommand,
+        'git-packfile': gitModule?.gitPackfileCommand,
+        'git-compliance': gitModule?.gitComplianceCommand,
+        'git-perf': gitModule?.gitPerformanceCommand
+      };
+    }
+    
+    Object.entries(gitCommands).forEach(([name, command]) => {
+      if (command) commands[name] = command;
+    });
+    
+  } catch (error) {
+    console.warn('[KGEN] Could not load advanced commands:', error.message);
+  }
+  
+  return commands;
+}
+
+// Handle graceful shutdown with tracing cleanup
+process.on('SIGINT', async () => {
+  console.log('\n[KGEN] Shutting down...');
+  if (tracingModule) {
+    await tracingModule.shutdownTracing();
+  }
+  process.exit(0);
+});
+
+process.on('SIGTERM', async () => {
+  console.log('\n[KGEN] Terminating...');
+  if (tracingModule) {
+    await tracingModule.shutdownTracing();
+  }
+  process.exit(0);
+});
+
+// Dynamically add advanced commands before running
+async function setupMainCommand() {
+  try {
+    const advancedCommands = await loadAdvancedCommands();
+    Object.assign(main.subCommands, advancedCommands);
+  } catch (error) {
+    console.warn('[KGEN] Could not load advanced commands:', error.message);
+  }
+}
+
+// Run the CLI with enhanced error handling
+setupMainCommand().then(() => {
+  runMain(main).catch(async (error) => {
+    console.error('[KGEN] Fatal error:', error.message);
+    
+    // Output JSON error for machine consumption
+    const errorResponse = {
+      success: false,
+      operation: 'system:fatal',
+      error: error.message,
+      errorCode: 'FATAL_ERROR',
+      exitCode: 1,
+      timestamp: getDeterministicISOString(),
+      metadata: {
+        version: '1.0.0',
+        nodeVersion: process.version,
+        platform: process.platform
+      }
+    };
+    
+    console.log(JSON.stringify(errorResponse, null, 2));
+    
+    if (tracingModule) {
+      await tracingModule.shutdownTracing();
+    }
+    process.exit(1);
+  });
+}).catch((error) => {
+  console.error('[KGEN] Initialization error:', error.message);
+  process.exit(1);
+});

@@ -2,7 +2,7 @@
  * Deterministic ID Generator
  * 
  * Provides content-addressed, reproducible ID generation to replace
- * non-deterministic Math.random() and Date.now() based IDs.
+ * non-deterministic Math.random() and this.getDeterministicTimestamp() based IDs.
  */
 
 import crypto from 'crypto';

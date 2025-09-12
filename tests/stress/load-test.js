@@ -12,7 +12,7 @@ import { join } from 'path';
 class LoadTester {
   constructor() {
     this.results = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       loadTests: [],
       throughputMetrics: {},
       summary: {}

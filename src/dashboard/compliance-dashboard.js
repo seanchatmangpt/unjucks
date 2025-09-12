@@ -170,7 +170,7 @@ export class ComplianceDashboardService {
    */
   async getUpcomingDeadlines(organizationId, daysAhead = 30) {
     const dashboard = await this.getDashboard(organizationId);
-    const cutoffDate = new Date();
+    const cutoffDate = this.getDeterministicDate();
     cutoffDate.setDate(cutoffDate.getDate() + daysAhead);
     
     return dashboard.upcomingDeadlines
@@ -191,7 +191,7 @@ export class ComplianceDashboardService {
     
     const report = {
       reportId: this.generateReportId(),
-      generatedAt: new Date(),
+      generatedAt: this.getDeterministicDate(),
       organization: organizationId,
       overallScore,
       riskLevel,
@@ -285,7 +285,7 @@ export class ComplianceDashboardService {
 
     // Check for overdue deadlines
     const overdueDeadlines = dashboard.upcomingDeadlines.filter(
-      d => d.dueDate < new Date() && d.status !== 'Completed'
+      d => d.dueDate < this.getDeterministicDate() && d.status !== 'Completed'
     );
     const deadlineCheck = {
       name: 'Compliance Deadlines',
@@ -370,8 +370,8 @@ export class ComplianceDashboardService {
     return {
       isCompliant,
       complianceScore,
-      lastAuditDate: new Date(Date.now() - Math.random() * 90 * 24 * 60 * 60 * 1000), // Last 90 days
-      nextAuditDue: new Date(Date.now() + Math.random() * 180 * 24 * 60 * 60 * 1000), // Next 180 days
+      lastAuditDate: new Date(this.getDeterministicTimestamp() - Math.random() * 90 * 24 * 60 * 60 * 1000), // Last 90 days
+      nextAuditDue: new Date(this.getDeterministicTimestamp() + Math.random() * 180 * 24 * 60 * 60 * 1000), // Next 180 days
       violations: await this.generateSampleViolations(regulation),
       recommendations: this.getComplianceRecommendations(regulation)
     };
@@ -412,7 +412,7 @@ export class ComplianceDashboardService {
         article: `Article ${Math.floor(Math.random() * 10) + 1}`,
         description: `Sample ${regulation} violation ${i + 1}`,
         remediation: `Remediate ${regulation} violation ${i + 1}`,
-        deadline: new Date(Date.now() + Math.random() * 60 * 24 * 60 * 60 * 1000), // Next 60 days
+        deadline: new Date(this.getDeterministicTimestamp() + Math.random() * 60 * 24 * 60 * 60 * 1000), // Next 60 days
         status: ['Open', 'In Progress', 'Resolved'][Math.floor(Math.random() * 3)]
       });
     }
@@ -472,7 +472,7 @@ export class ComplianceDashboardService {
     return templates.map(templateId => ({
       templateId,
       usageCount: Math.floor(Math.random() * 50) + 10,
-      lastUsed: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000),
+      lastUsed: new Date(this.getDeterministicTimestamp() - Math.random() * 30 * 24 * 60 * 60 * 1000),
       userFeedback: Math.floor(Math.random() * 2) + 4, // 4-5 stars
       successRate: Math.floor(Math.random() * 10) + 90, // 90-100%
       averageImplementationTime: Math.floor(Math.random() * 120) + 30 // 30-150 minutes
@@ -502,7 +502,7 @@ export class ComplianceDashboardService {
     let baseScore = 70 + Math.random() * 20;
     
     for (let i = 5; i >= 0; i--) {
-      const date = new Date();
+      const date = this.getDeterministicDate();
       date.setMonth(date.getMonth() - i);
       
       baseScore += (Math.random() - 0.5) * 10;
@@ -524,7 +524,7 @@ export class ComplianceDashboardService {
     const trends = [];
     
     for (let i = 5; i >= 0; i--) {
-      const date = new Date();
+      const date = this.getDeterministicDate();
       date.setMonth(date.getMonth() - i);
       
       trends.push({
@@ -550,7 +550,7 @@ export class ComplianceDashboardService {
       const deadlineCount = Math.floor(Math.random() * 3) + 1;
       
       for (let i = 0; i < deadlineCount; i++) {
-        const dueDate = new Date();
+        const dueDate = this.getDeterministicDate();
         dueDate.setDate(dueDate.getDate() + Math.floor(Math.random() * 90));
         
         deadlines.push({
@@ -667,21 +667,21 @@ The compliance program demonstrates strong governance with automated monitoring 
    * @private
    */
   generateReportId() {
-    return `report_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
+    return `report_${this.getDeterministicTimestamp()}_${Math.random().toString(36).substring(2, 8)}`;
   }
 
   /**
    * @private
    */
   generateMonitoringId() {
-    return `monitor_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
+    return `monitor_${this.getDeterministicTimestamp()}_${Math.random().toString(36).substring(2, 8)}`;
   }
 
   /**
    * @private
    */
   calculateNextCheckTime(frequency) {
-    const next = new Date();
+    const next = this.getDeterministicDate();
     switch (frequency) {
       case 'daily':
         next.setDate(next.getDate() + 1);

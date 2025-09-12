@@ -61,7 +61,7 @@ export default defineCommand({
   },
   async run({ args }) {
     try {
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
       // Load configuration
       const config = await loadKgenConfig(args.config);
@@ -107,8 +107,8 @@ export default defineCommand({
             created: stats.birthtime.toISOString(),
             modified: stats.mtime.toISOString(),
             accessed: stats.atime.toISOString(),
-            age: Date.now() - stats.birthtime.getTime(),
-            ageHuman: formatAge(Date.now() - stats.birthtime.getTime())
+            age: this.getDeterministicTimestamp() - stats.birthtime.getTime(),
+            ageHuman: formatAge(this.getDeterministicTimestamp() - stats.birthtime.getTime())
           };
           
           // Apply filter if specified
@@ -193,7 +193,7 @@ export default defineCommand({
         return base;
       });
       
-      const duration = Date.now() - startTime;
+      const duration = this.getDeterministicTimestamp() - startTime;
       
       const result = paginated(
         formattedEntries,

@@ -380,7 +380,7 @@ class EnterpriseRateLimiter {
    * @returns {string} Current hour in format YYYY-MM-DDTHH
    */
   getCurrentHour() {
-    return new Date().toISOString().substr(0, 13); // YYYY-MM-DDTHH
+    return this.getDeterministicDate().toISOString().substr(0, 13); // YYYY-MM-DDTHH
   }
 
   /**
@@ -388,7 +388,7 @@ class EnterpriseRateLimiter {
    * @returns {string} Request ID
    */
   generateRequestId() {
-    return `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    return `req_${this.getDeterministicTimestamp()}_${Math.random().toString(36).substr(2, 9)}`;
   }
 
   /**
@@ -430,7 +430,7 @@ class EnterpriseRateLimiter {
    */
   async getTokenBucket(bucketKey, config) {
     const bucketData = await dbManager.redis.hmget(bucketKey, 'tokens', 'lastRefill');
-    const now = Date.now();
+    const now = this.getDeterministicTimestamp();
     
     let tokens = parseFloat(bucketData[0] || config.burstSize.toString());
     const lastRefill = parseInt(bucketData[1] || now.toString());

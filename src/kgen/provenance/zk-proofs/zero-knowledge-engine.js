@@ -102,7 +102,7 @@ export class ZeroKnowledgeProvenanceEngine extends EventEmitter {
     try {
       this.logger.info(`Generating ZK proof for provenance record: ${provenanceRecord.operationId}`);
       
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
       // Create privacy-preserving commitments
       const commitments = await this._createProvenanceCommitments(provenanceRecord, privateWitness);
@@ -120,8 +120,8 @@ export class ZeroKnowledgeProvenanceEngine extends EventEmitter {
         proofSystem: this.config.proofSystem,
         commitments,
         publicInputs,
-        timestamp: new Date(),
-        provingTime: Date.now() - startTime,
+        timestamp: this.getDeterministicDate(),
+        provingTime: this.getDeterministicTimestamp() - startTime,
         verifier: this._generateVerifierHash(proof, publicInputs)
       };
       
@@ -134,7 +134,7 @@ export class ZeroKnowledgeProvenanceEngine extends EventEmitter {
       this.proofCache.set(proofMetadata.proofId, {
         proof,
         metadata: proofMetadata,
-        cachedAt: new Date()
+        cachedAt: this.getDeterministicDate()
       });
       
       this.metrics.proofsGenerated++;
@@ -167,7 +167,7 @@ export class ZeroKnowledgeProvenanceEngine extends EventEmitter {
     try {
       this.logger.info(`Verifying ZK proof: ${metadata.proofId}`);
       
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
       // Check verification cache
       const cacheKey = this._generateVerificationCacheKey(proof, publicInputs);
@@ -194,11 +194,11 @@ export class ZeroKnowledgeProvenanceEngine extends EventEmitter {
       const verificationResult = {
         valid: zkVerification.valid && commitmentVerification.valid && privacyCheck.valid,
         proofId: metadata.proofId,
-        verificationTime: Date.now() - startTime,
+        verificationTime: this.getDeterministicTimestamp() - startTime,
         zkVerification,
         commitmentVerification,
         privacyCheck,
-        verifiedAt: new Date()
+        verifiedAt: this.getDeterministicDate()
       };
       
       // Cache verification result
@@ -228,7 +228,7 @@ export class ZeroKnowledgeProvenanceEngine extends EventEmitter {
     try {
       this.logger.info(`Generating batch ZK proof for ${provenanceRecords.length} records`);
       
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
       // Create batch commitments
       const batchCommitments = [];
@@ -260,8 +260,8 @@ export class ZeroKnowledgeProvenanceEngine extends EventEmitter {
         proofSystem: this.config.proofSystem,
         batchCommitments,
         publicInputsArray,
-        timestamp: new Date(),
-        batchProvingTime: Date.now() - startTime,
+        timestamp: this.getDeterministicDate(),
+        batchProvingTime: this.getDeterministicTimestamp() - startTime,
         aggregated: true
       };
       
@@ -305,7 +305,7 @@ export class ZeroKnowledgeProvenanceEngine extends EventEmitter {
         blindingFactor: bf,
         provenanceHash: message,
         scheme: 'pedersen',
-        createdAt: new Date()
+        createdAt: this.getDeterministicDate()
       };
       
     } catch (error) {
@@ -341,7 +341,7 @@ export class ZeroKnowledgeProvenanceEngine extends EventEmitter {
         revealed: true,
         provenanceData,
         proof,
-        verifiedAt: new Date()
+        verifiedAt: this.getDeterministicDate()
       };
       
     } catch (error) {
@@ -453,7 +453,7 @@ export class ZeroKnowledgeProvenanceEngine extends EventEmitter {
     return {
       // Public witness elements
       public: {
-        timestamp: record.startTime?.getTime() || Date.now(),
+        timestamp: record.startTime?.getTime() || this.getDeterministicTimestamp(),
         status: record.status === 'success' ? 1 : 0,
         hasInputs: record.inputs?.length > 0 ? 1 : 0,
         hasOutputs: record.outputs?.length > 0 ? 1 : 0
@@ -490,7 +490,7 @@ export class ZeroKnowledgeProvenanceEngine extends EventEmitter {
     return {
       ...proofElements,
       system: this.config.proofSystem,
-      generatedAt: new Date()
+      generatedAt: this.getDeterministicDate()
     };
   }
 
@@ -731,14 +731,14 @@ export class ZeroKnowledgeProvenanceEngine extends EventEmitter {
   }
 
   async _aggregateProofs(batch) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     // Aggregate proofs (simplified)
     const aggregated = {
       proofs: batch.map(b => b.proof),
       metadata: batch.map(b => b.metadata),
       aggregationMethod: 'linear_combination',
-      processingTime: Date.now() - startTime
+      processingTime: this.getDeterministicTimestamp() - startTime
     };
     
     return aggregated;

@@ -52,7 +52,7 @@ class HealthCheck {
     this.totalChecks = 0;
     this.totalFailures = 0;
     this.averageResponseTime = 0;
-    this.lastHealthyTime = Date.now();
+    this.lastHealthyTime = this.getDeterministicTimestamp();
     
     // Status history for trend analysis
     this.statusHistory = [];
@@ -68,14 +68,14 @@ class HealthCheck {
         name: this.name,
         status: HealthStatus.HEALTHY,
         message: 'Check disabled',
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         responseTime: 0,
         metadata: { disabled: true }
       };
     }
     
     const startTime = performance.now();
-    this.lastCheck = Date.now();
+    this.lastCheck = this.getDeterministicTimestamp();
     this.totalChecks++;
     
     let attempt = 0;
@@ -115,7 +115,7 @@ class HealthCheck {
           name: this.name,
           status: this.critical ? HealthStatus.CRITICAL : HealthStatus.UNHEALTHY,
           message: `Health check failed after ${this.retries} attempts: ${error.message}`,
-          timestamp: new Date().toISOString(),
+          timestamp: this.getDeterministicDate().toISOString(),
           responseTime,
           error: {
             name: error.name,
@@ -161,7 +161,7 @@ class HealthCheck {
         name: this.name,
         status: result ? HealthStatus.HEALTHY : HealthStatus.UNHEALTHY,
         message: result ? 'Check passed' : 'Check failed',
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         responseTime,
         metadata: {}
       };
@@ -172,7 +172,7 @@ class HealthCheck {
         name: this.name,
         status: HealthStatus.HEALTHY,
         message: result,
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         responseTime,
         metadata: {}
       };
@@ -183,7 +183,7 @@ class HealthCheck {
       name: this.name,
       status: result.status || HealthStatus.HEALTHY,
       message: result.message || 'Check completed',
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       responseTime,
       metadata: result.metadata || {},
       ...result
@@ -201,7 +201,7 @@ class HealthCheck {
     
     if (success) {
       this.consecutiveFailures = 0;
-      this.lastHealthyTime = Date.now();
+      this.lastHealthyTime = this.getDeterministicTimestamp();
     } else {
       this.totalFailures++;
       this.consecutiveFailures++;
@@ -270,7 +270,7 @@ class HealthCheck {
       lastCheck: this.lastCheck,
       lastHealthyTime: this.lastHealthyTime,
       recentTrend: this.getRecentTrend(),
-      uptime: Date.now() - this.lastHealthyTime
+      uptime: this.getDeterministicTimestamp() - this.lastHealthyTime
     };
   }
 }
@@ -290,7 +290,7 @@ class HealthCheckOrchestrator extends EventEmitter {
     // Global health status
     this.globalStatus = {
       status: HealthStatus.HEALTHY,
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       version: process.env.npm_package_version || '1.0.0',
       uptime: process.uptime(),
       checks: []
@@ -374,7 +374,7 @@ class HealthCheckOrchestrator extends EventEmitter {
     this.register('filesystem', async () => {
       try {
         const fs = await import('fs/promises');
-        const tmpFile = `/tmp/health-check-${Date.now()}`;
+        const tmpFile = `/tmp/health-check-${this.getDeterministicTimestamp()}`;
         
         await fs.writeFile(tmpFile, 'health-check');
         const content = await fs.readFile(tmpFile, 'utf8');
@@ -477,7 +477,7 @@ class HealthCheckOrchestrator extends EventEmitter {
           name: typeChecks[index].name,
           status: HealthStatus.CRITICAL,
           message: `Check execution failed: ${result.reason.message}`,
-          timestamp: new Date().toISOString(),
+          timestamp: this.getDeterministicDate().toISOString(),
           responseTime: 0,
           error: { message: result.reason.message }
         };
@@ -490,7 +490,7 @@ class HealthCheckOrchestrator extends EventEmitter {
     return {
       status: overallStatus,
       message: `${type} checks completed`,
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       checks: checkResults
     };
   }
@@ -500,7 +500,7 @@ class HealthCheckOrchestrator extends EventEmitter {
    */
   async checkAll() {
     const startTime = performance.now();
-    this.lastGlobalCheck = Date.now();
+    this.lastGlobalCheck = this.getDeterministicTimestamp();
     
     const results = await Promise.allSettled(
       Array.from(this.checks.values()).map(check => check.execute())
@@ -516,7 +516,7 @@ class HealthCheckOrchestrator extends EventEmitter {
           name: checkName,
           status: HealthStatus.CRITICAL,
           message: `Check execution failed: ${result.reason.message}`,
-          timestamp: new Date().toISOString(),
+          timestamp: this.getDeterministicDate().toISOString(),
           responseTime: 0,
           error: { message: result.reason.message }
         };
@@ -528,7 +528,7 @@ class HealthCheckOrchestrator extends EventEmitter {
     
     this.globalStatus = {
       status: overallStatus,
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       version: process.env.npm_package_version || '1.0.0',
       uptime: process.uptime(),
       responseTime: totalTime.toFixed(2),

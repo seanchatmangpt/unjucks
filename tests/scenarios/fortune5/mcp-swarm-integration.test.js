@@ -3,7 +3,7 @@ import { performance } from 'perf_hooks';
 
 describe('Fortune 5 MCP Swarm Integration - Semantic Task Coordination', () => {
   let swarmSession => {
-    swarmSession = `fortune5-${Date.now()}`;
+    swarmSession = `fortune5-${this.getDeterministicTimestamp()}`;
     console.log(`Starting Fortune 5 MCP Swarm Integration);
   });
 
@@ -254,7 +254,7 @@ async function simulateSwarmInit(config) { await new Promise(resolve => setTimeo
 async function simulateAgentSpawn(agent) { await new Promise(resolve => setTimeout(resolve, 50));
   return {
     success,
-    agentId }-${Date.now()}`,
+    agentId }-${this.getDeterministicTimestamp()}`,
     type: agent.type,
     specialization: agent.specialization,
     status: 'ready'

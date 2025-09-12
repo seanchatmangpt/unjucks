@@ -56,7 +56,7 @@ class MemoryProfiler {
       memwatch.on('leak', (info) => {
         console.warn('Memory leak detected:', info);
         this.leaks.push({
-          timestamp: new Date().toISOString(),
+          timestamp: this.getDeterministicDate().toISOString(),
           info,
           memoryUsage: process.memoryUsage()
         });
@@ -65,7 +65,7 @@ class MemoryProfiler {
       // Garbage collection stats
       memwatch.on('stats', (stats) => {
         this.gcStats.push({
-          timestamp: new Date().toISOString(),
+          timestamp: this.getDeterministicDate().toISOString(),
           ...stats,
           memoryUsage: process.memoryUsage()
         });
@@ -89,7 +89,7 @@ class MemoryProfiler {
       complex: {
         title: 'Memory Test Dashboard',
         description: 'Testing memory usage patterns',
-        timestamp: new Date(),
+        timestamp: this.getDeterministicDate(),
         users: Array.from({ length: 1000 }, (_, i) => ({
           id: i + 1,
           name: `User ${i + 1}`,
@@ -108,7 +108,7 @@ class MemoryProfiler {
           name: 'Memory Test Project',
           description: 'Testing nested template memory usage',
           status: 'active',
-          lastUpdated: new Date(),
+          lastUpdated: this.getDeterministicDate(),
           teams: Array.from({ length: 10 }, (_, teamIndex) => ({
             name: `Team ${teamIndex + 1}`,
             members: Array.from({ length: 20 }, (_, memberIndex) => ({
@@ -147,8 +147,8 @@ class MemoryProfiler {
             name: `Role ${i}`,
             permissions: Array.from({ length: 20 }, (_, j) => `permission_${i}_${j}`)
           })),
-          createdAt: new Date(),
-          updatedAt: new Date(),
+          createdAt: this.getDeterministicDate(),
+          updatedAt: this.getDeterministicDate(),
           isActive: true,
           loginCount: 1000
         }
@@ -243,7 +243,7 @@ class MemoryProfiler {
   async takeHeapSnapshot(label) {
     if (!heapdump) return null;
 
-    const filename = `heap-${label}-${Date.now()}.heapsnapshot`;
+    const filename = `heap-${label}-${this.getDeterministicTimestamp()}.heapsnapshot`;
     const filepath = path.join(this.options.outputDir, filename);
     
     return new Promise((resolve, reject) => {
@@ -255,7 +255,7 @@ class MemoryProfiler {
           this.snapshots.push({
             label,
             filename,
-            timestamp: new Date().toISOString(),
+            timestamp: this.getDeterministicDate().toISOString(),
             memoryUsage: process.memoryUsage(),
             heapStats: this.v8HeapStats ? this.v8HeapStats() : null
           });
@@ -271,7 +271,7 @@ class MemoryProfiler {
     
     console.log(`Starting memory profiling for ${this.options.duration} seconds...`);
     
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     const endTime = startTime + (this.options.duration * 1000);
     const sampleInterval = (this.options.duration * 1000) / this.options.samples;
     
@@ -290,7 +290,7 @@ class MemoryProfiler {
     }
 
     const memoryMonitoringInterval = setInterval(async () => {
-      const timestamp = new Date().toISOString();
+      const timestamp = this.getDeterministicDate().toISOString();
       const memUsage = process.memoryUsage();
       const heapStats = this.v8HeapStats ? this.v8HeapStats() : null;
       
@@ -308,7 +308,7 @@ class MemoryProfiler {
         await this.takeHeapSnapshot(`sample-${sampleCount}`);
       }
 
-      if (Date.now() >= endTime) {
+      if (this.getDeterministicTimestamp() >= endTime) {
         clearInterval(memoryMonitoringInterval);
         clearInterval(templateOperationInterval);
         await this.finalizeProfile(hd);
@@ -336,7 +336,7 @@ class MemoryProfiler {
 
     return new Promise((resolve) => {
       const checkCompletion = setInterval(() => {
-        if (Date.now() >= endTime) {
+        if (this.getDeterministicTimestamp() >= endTime) {
           clearInterval(checkCompletion);
           resolve();
         }
@@ -356,7 +356,7 @@ class MemoryProfiler {
     if (heapDiff) {
       const diff = heapDiff.end();
       this.heapDiffs.push({
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         diff
       });
       
@@ -449,7 +449,7 @@ class MemoryProfiler {
     
     const report = {
       metadata: {
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         nodeVersion: process.version,
         platform: process.platform,
         options: this.options

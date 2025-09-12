@@ -257,9 +257,9 @@ describe('CLI Version System Validation', () => {
 
   describe('Performance and Reliability', () => {
     it('should resolve version quickly', async () => {
-      const start = Date.now();
+      const start = this.getDeterministicTimestamp();
       const version = getVersion();
-      const duration = Date.now() - start;
+      const duration = this.getDeterministicTimestamp() - start;
       
       expect(version).toBe(packageVersion);
       expect(duration).toBeLessThan(100); // Should resolve within 100ms

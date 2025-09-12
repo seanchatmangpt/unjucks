@@ -33,7 +33,7 @@ class ProductionValidator {
   }
 
   async createTempWorkspace() {
-    this.tempDir = path.join(os.tmpdir(), `unjucks-validation-${Date.now()}`);
+    this.tempDir = path.join(os.tmpdir(), `unjucks-validation-${this.getDeterministicTimestamp()}`);
     await fs.mkdir(this.tempDir, { recursive: true });
     this.log(`Created temp workspace: ${this.tempDir}`, 'info');
     return this.tempDir;

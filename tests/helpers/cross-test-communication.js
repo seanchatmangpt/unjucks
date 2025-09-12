@@ -49,7 +49,7 @@ export class CrossTestCommunication extends EventEmitter {
     const entry = {
       key,
       data,
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       ttl,
       persistent,
       testId: this.getCurrentTestId()
@@ -184,7 +184,7 @@ export class CrossTestCommunication extends EventEmitter {
     this.messageQueue.push({
       channel,
       message,
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       testId: this.getCurrentTestId()
     });
     
@@ -208,9 +208,9 @@ export class CrossTestCommunication extends EventEmitter {
    * Wait for shared data to be available
    */
   async waitForSharedData(key, timeout = 10000, pollInterval = 100) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
-    while (Date.now() - startTime < timeout) {
+    while (this.getDeterministicTimestamp() - startTime < timeout) {
       if (this.hasSharedData(key)) {
         return this.getSharedData(key);
       }
@@ -277,7 +277,7 @@ export class CrossTestCommunication extends EventEmitter {
       content,
       metadata: {
         ...metadata,
-        createdAt: new Date().toISOString(),
+        createdAt: this.getDeterministicDate().toISOString(),
         createdBy: this.getCurrentTestId(),
         size: typeof content === 'string' ? content.length : JSON.stringify(content).length
       }
@@ -320,7 +320,7 @@ export class CrossTestCommunication extends EventEmitter {
     const resultData = {
       ...result,
       testName,
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       testId: this.getCurrentTestId()
     };
     
@@ -416,14 +416,14 @@ export class CrossTestCommunication extends EventEmitter {
    */
   isExpired(entry) {
     if (!entry.ttl) return false;
-    return Date.now() - entry.timestamp > entry.ttl;
+    return this.getDeterministicTimestamp() - entry.timestamp > entry.ttl;
   }
 
   /**
    * Clean up old entries
    */
   cleanupOldEntries() {
-    const now = Date.now();
+    const now = this.getDeterministicTimestamp();
     const toDelete = [];
     
     for (const [key, entry] of this.sharedData) {
@@ -494,7 +494,7 @@ export class CrossTestCommunication extends EventEmitter {
           Array.from(this.sharedData.entries())
             .filter(([, entry]) => entry.persistent)
         ),
-        timestamp: Date.now()
+        timestamp: this.getDeterministicTimestamp()
       };
       
       await fs.ensureDir(path.dirname(this.options.stateFile));
@@ -508,7 +508,7 @@ export class CrossTestCommunication extends EventEmitter {
    * Generate unique subscription ID
    */
   generateSubscriptionId() {
-    return `sub-${Date.now()}-${Math.random().toString(36).substring(2)}`;
+    return `sub-${this.getDeterministicTimestamp()}-${Math.random().toString(36).substring(2)}`;
   }
 
   /**
@@ -520,7 +520,7 @@ export class CrossTestCommunication extends EventEmitter {
                     global.currentTestName || 
                     'unknown-test';
     
-    return `${testName}-${process.pid}-${Date.now()}`;
+    return `${testName}-${process.pid}-${this.getDeterministicTimestamp()}`;
   }
 
   /**

@@ -290,13 +290,13 @@ describe('Multi-Tenant Isolation Tests', () => {
       const maxProcessingTimePerTenant = 5000; // 5 seconds
 
       const trackTenantProcessing = async (tenantId, operation) => Promise) => {
-        const startTime = Date.now();
+        const startTime = this.getDeterministicTimestamp();
         
         try {
           const result = await operation();
           return result;
         } finally {
-          const endTime = Date.now();
+          const endTime = this.getDeterministicTimestamp();
           const processingTime = endTime - startTime;
           
           tenantProcessingTime[tenantId] += processingTime;

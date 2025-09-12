@@ -19,7 +19,7 @@ class MasterTestRunner {
       advanced: null,
       summary: null
     };
-    this.startTime = Date.now();
+    this.startTime = this.getDeterministicTimestamp();
   }
 
   async runTest(testName, scriptPath) {
@@ -57,8 +57,8 @@ class MasterTestRunner {
     const advancedReport = this.parseTestReport('advanced-cli-test-report.json');
     
     const masterReport = {
-      timestamp: new Date().toISOString(),
-      duration: Date.now() - this.startTime,
+      timestamp: this.getDeterministicDate().toISOString(),
+      duration: this.getDeterministicTimestamp() - this.startTime,
       environment: {
         node_version: process.version,
         platform: process.platform,

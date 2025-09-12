@@ -7,7 +7,7 @@
  */
 
 import { EventEmitter } from 'events';
-import { Logger } from 'consola';
+import { Consola } from 'consola';
 import { promises as fs } from 'fs';
 import path from 'path';
 import crypto from 'crypto';
@@ -67,7 +67,7 @@ export class MemoryOptimizer extends EventEmitter {
       ...config
     };
     
-    this.logger = new Logger({ tag: 'memory-optimizer' });
+    this.logger = new Consola({ tag: 'memory-optimizer' });
     
     // Cache systems
     this.caches = new Map();
@@ -230,7 +230,7 @@ export class MemoryOptimizer extends EventEmitter {
    * @returns {Promise<Object>} Optimization results
    */
   async optimizeMemory(options = {}) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       this.logger.info('Starting memory optimization...');
@@ -269,7 +269,7 @@ export class MemoryOptimizer extends EventEmitter {
       }
       
       const after = this._getMemorySnapshot();
-      const optimizationTime = Date.now() - startTime;
+      const optimizationTime = this.getDeterministicTimestamp() - startTime;
       
       const result = {
         before,
@@ -383,7 +383,7 @@ export class MemoryOptimizer extends EventEmitter {
     const systemMemory = this._getSystemMemoryInfo();
     
     return {
-      timestamp: new Date(),
+      timestamp: this.getDeterministicDate(),
       system: systemMemory,
       process: {
         current: currentMemory,
@@ -494,7 +494,7 @@ export class MemoryOptimizer extends EventEmitter {
     await new Promise(resolve => setTimeout(resolve, 1000)); // Wait for GC
     
     this.memoryBaseline = this._getMemorySnapshot();
-    this.memoryHistory.push({...this.memoryBaseline, timestamp: Date.now()});
+    this.memoryHistory.push({...this.memoryBaseline, timestamp: this.getDeterministicTimestamp()});
     
     this.logger.info(`Memory baseline established: ${(this.memoryBaseline.heapUsed / 1024 / 1024).toFixed(1)}MB`);
   }
@@ -533,7 +533,7 @@ export class MemoryOptimizer extends EventEmitter {
   _startMemoryMonitoring() {
     this.monitoringInterval = setInterval(() => {
       const memorySnapshot = this._getMemorySnapshot();
-      this.memoryHistory.push({...memorySnapshot, timestamp: Date.now()});
+      this.memoryHistory.push({...memorySnapshot, timestamp: this.getDeterministicTimestamp()});
       
       // Keep only recent history
       if (this.memoryHistory.length > 1000) {
@@ -583,7 +583,7 @@ export class MemoryOptimizer extends EventEmitter {
     const memUsage = process.memoryUsage();
     return {
       ...memUsage,
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       heapUsedMB: memUsage.heapUsed / 1024 / 1024,
       heapTotalMB: memUsage.heapTotal / 1024 / 1024,
       externalMB: memUsage.external / 1024 / 1024
@@ -767,7 +767,7 @@ export class MemoryOptimizer extends EventEmitter {
     cache.on('hit', () => {
       const stats = this.cacheStatistics.get(cacheName);
       stats.hits++;
-      stats.lastAccess = Date.now();
+      stats.lastAccess = this.getDeterministicTimestamp();
     });
     
     cache.on('miss', () => {
@@ -789,14 +789,14 @@ export class MemoryOptimizer extends EventEmitter {
       if (this.leakSuspects.has(key)) {
         const suspect = this.leakSuspects.get(key);
         suspect.count++;
-        suspect.lastSeen = Date.now();
+        suspect.lastSeen = this.getDeterministicTimestamp();
         suspect.severity = Math.max(suspect.severity, this._severityToNumber(leak.severity));
       } else {
         this.leakSuspects.set(key, {
           type: leak.type,
           count: 1,
-          firstSeen: Date.now(),
-          lastSeen: Date.now(),
+          firstSeen: this.getDeterministicTimestamp(),
+          lastSeen: this.getDeterministicTimestamp(),
           severity: this._severityToNumber(leak.severity),
           description: leak.description
         });
@@ -835,7 +835,7 @@ export class MemoryOptimizer extends EventEmitter {
     const system = this._getSystemMemoryInfo();
     
     return {
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       memory: current,
       system,
       caches: this._getCacheSnapshot(),
@@ -960,12 +960,12 @@ export class MemoryOptimizer extends EventEmitter {
   }
 
   // Placeholder methods for statistics
-  _getLastOptimizationTime() { return Date.now(); }
+  _getLastOptimizationTime() { return this.getDeterministicTimestamp(); }
   _getTotalOptimizationRuns() { return 0; }
   _getAverageOptimizationImprovement() { return 0; }
-  _getLastGCTime() { return Date.now(); }
+  _getLastGCTime() { return this.getDeterministicTimestamp(); }
   _getGCFrequency() { return 0; }
-  _getLastLeakCheckTime() { return Date.now(); }
+  _getLastLeakCheckTime() { return this.getDeterministicTimestamp(); }
   _calculateOptimizationEffectiveness() { return 85; }
 }
 
@@ -993,14 +993,14 @@ class SmartCache extends EventEmitter {
     }
 
     // Check TTL
-    if (this.ttl && Date.now() - entry.timestamp > this.ttl) {
+    if (this.ttl && this.getDeterministicTimestamp() - entry.timestamp > this.ttl) {
       this.delete(key);
       this.emit('miss', key);
       return undefined;
     }
 
     // Update access tracking
-    this.accessTimes.set(key, Date.now());
+    this.accessTimes.set(key, this.getDeterministicTimestamp());
     this.accessCounts.set(key, (this.accessCounts.get(key) || 0) + 1);
 
     this.emit('hit', key);
@@ -1021,9 +1021,9 @@ class SmartCache extends EventEmitter {
     // Add new entry
     this.data.set(key, {
       value,
-      timestamp: Date.now()
+      timestamp: this.getDeterministicTimestamp()
     });
-    this.accessTimes.set(key, Date.now());
+    this.accessTimes.set(key, this.getDeterministicTimestamp());
     this.accessCounts.set(key, 1);
     this.size++;
 
@@ -1053,7 +1053,7 @@ class SmartCache extends EventEmitter {
     if (!this.ttl) return 0;
 
     let cleared = 0;
-    const now = Date.now();
+    const now = this.getDeterministicTimestamp();
 
     for (const [key, entry] of this.data) {
       if (now - entry.timestamp > this.ttl) {
@@ -1127,7 +1127,7 @@ class SmartCache extends EventEmitter {
   }
 
   _findLRU() {
-    let oldest = Date.now();
+    let oldest = this.getDeterministicTimestamp();
     let keyToEvict = null;
 
     for (const [key, time] of this.accessTimes) {
@@ -1158,7 +1158,7 @@ class SmartCache extends EventEmitter {
     // Combine LRU and LFU with weights
     let bestScore = Infinity;
     let keyToEvict = null;
-    const now = Date.now();
+    const now = this.getDeterministicTimestamp();
 
     for (const [key] of this.data) {
       const lastAccess = this.accessTimes.get(key) || 0;
@@ -1207,11 +1207,11 @@ class ObjectPool {
     
     if (!obj) {
       obj = this.factory();
-      obj._poolCreated = Date.now();
+      obj._poolCreated = this.getDeterministicTimestamp();
       this.created++;
     }
     
-    obj._poolAcquired = Date.now();
+    obj._poolAcquired = this.getDeterministicTimestamp();
     this.active.add(obj);
     
     return obj;
@@ -1225,7 +1225,7 @@ class ObjectPool {
     this.active.delete(obj);
     
     // Check if object is too old
-    if (obj._poolCreated && Date.now() - obj._poolCreated > this.maxAge) {
+    if (obj._poolCreated && this.getDeterministicTimestamp() - obj._poolCreated > this.maxAge) {
       return; // Don't return to pool, let it be garbage collected
     }
     
@@ -1239,13 +1239,13 @@ class ObjectPool {
       obj.reset();
     }
     
-    obj._poolReleased = Date.now();
+    obj._poolReleased = this.getDeterministicTimestamp();
     this.available.push(obj);
   }
 
   cleanup() {
     const before = this.available.length;
-    const now = Date.now();
+    const now = this.getDeterministicTimestamp();
     
     this.available = this.available.filter(obj => 
       !obj._poolCreated || now - obj._poolCreated < this.maxAge

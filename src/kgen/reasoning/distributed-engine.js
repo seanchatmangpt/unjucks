@@ -7,7 +7,7 @@
  */
 
 import { EventEmitter } from 'events';
-import { Logger } from 'consola';
+import { Consola } from 'consola';
 import { Store, DataFactory } from 'n3';
 import crypto from 'crypto';
 
@@ -44,7 +44,7 @@ export class DistributedReasoningEngine extends EventEmitter {
       ...config
     };
     
-    this.logger = new Logger({ tag: 'distributed-reasoning' });
+    this.logger = new Consola({ tag: 'distributed-reasoning' });
     this.state = 'initialized';
     
     // Distributed state management
@@ -198,7 +198,7 @@ export class DistributedReasoningEngine extends EventEmitter {
    */
   async executeDistributedReasoning(shards, reasoningRules, options = {}) {
     const jobId = this._generateJobId();
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       this.logger.info(`Starting distributed reasoning job ${jobId}`);
@@ -249,7 +249,7 @@ export class DistributedReasoningEngine extends EventEmitter {
       }
       
       // Update performance metrics
-      const executionTime = Date.now() - startTime;
+      const executionTime = this.getDeterministicTimestamp() - startTime;
       this._updateJobMetrics(jobId, executionTime, true);
       
       this.activeReasoning.delete(jobId);
@@ -276,7 +276,7 @@ export class DistributedReasoningEngine extends EventEmitter {
       };
       
     } catch (error) {
-      const executionTime = Date.now() - startTime;
+      const executionTime = this.getDeterministicTimestamp() - startTime;
       this._updateJobMetrics(jobId, executionTime, false);
       
       this.activeReasoning.delete(jobId);
@@ -388,7 +388,7 @@ export class DistributedReasoningEngine extends EventEmitter {
         recoveryTime: 0
       };
       
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
       for (const failedNode of failedNodes) {
         try {
@@ -414,7 +414,7 @@ export class DistributedReasoningEngine extends EventEmitter {
         }
       }
       
-      recoveryResults.recoveryTime = Date.now() - startTime;
+      recoveryResults.recoveryTime = this.getDeterministicTimestamp() - startTime;
       this.performance.faultRecoveryEvents++;
       
       this.emit('fault:recovered', recoveryResults);
@@ -556,11 +556,11 @@ export class DistributedReasoningEngine extends EventEmitter {
   }
 
   _generateJobId() {
-    return `job_${Date.now()}_${crypto.randomBytes(4).toString('hex')}`;
+    return `job_${this.getDeterministicTimestamp()}_${crypto.randomBytes(4).toString('hex')}`;
   }
 
   _generateOperationId() {
-    return `op_${Date.now()}_${crypto.randomBytes(4).toString('hex')}`;
+    return `op_${this.getDeterministicTimestamp()}_${crypto.randomBytes(4).toString('hex')}`;
   }
 
   // Sharding implementations
@@ -607,7 +607,7 @@ export class DistributedReasoningEngine extends EventEmitter {
         domain,
         triples,
         size: triples.length,
-        createdAt: new Date()
+        createdAt: this.getDeterministicDate()
       });
       
       shardIndex++;

@@ -242,7 +242,7 @@ export class ProvenanceQueries {
     return {
       validationResults: results,
       overallValid: this._assessOverallValidity(results),
-      validatedAt: new Date()
+      validatedAt: this.getDeterministicDate()
     };
   }
 
@@ -280,7 +280,7 @@ export class ProvenanceQueries {
       regulation,
       queries,
       parameters,
-      generatedAt: new Date()
+      generatedAt: this.getDeterministicDate()
     };
   }
 
@@ -652,7 +652,7 @@ export class ProvenanceQueries {
 
     this.queryCache.set(key, {
       ...results,
-      cachedAt: new Date()
+      cachedAt: this.getDeterministicDate()
     });
   }
 

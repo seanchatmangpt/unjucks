@@ -112,7 +112,7 @@ export class GraphQLFederationEngine extends EventEmitter {
         id: subgraphId,
         schema: transformedSchema,
         introspection: schemaInfo,
-        registeredAt: new Date().toISOString(),
+        registeredAt: this.getDeterministicDate().toISOString(),
         status: 'active',
         statistics: {
           totalQueries: 0,
@@ -135,7 +135,7 @@ export class GraphQLFederationEngine extends EventEmitter {
         success: true,
         subgraphId,
         schema: schemaInfo.schema,
-        timestamp: new Date().toISOString()
+        timestamp: this.getDeterministicDate().toISOString()
       };
       
     } catch (error) {
@@ -149,7 +149,7 @@ export class GraphQLFederationEngine extends EventEmitter {
    */
   async execute(queryConfig, executionPlan, provenanceContext) {
     const queryId = crypto.randomUUID();
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       console.log(`🔄 Executing federated GraphQL query: ${queryId}`);
@@ -193,12 +193,12 @@ export class GraphQLFederationEngine extends EventEmitter {
       const processedResult = await this.postProcessResult(result, queryAnalysis);
       
       // Update statistics
-      this.updateStatistics(queryId, 'success', Date.now() - startTime, queryAnalysis);
+      this.updateStatistics(queryId, 'success', this.getDeterministicTimestamp() - startTime, queryAnalysis);
       
       // Clean up
       this.state.activeQueries.delete(queryId);
       
-      console.log(`✅ GraphQL query completed: ${queryId} (${Date.now() - startTime}ms)`);
+      console.log(`✅ GraphQL query completed: ${queryId} (${this.getDeterministicTimestamp() - startTime}ms)`);
       
       return {
         success: true,
@@ -209,7 +209,7 @@ export class GraphQLFederationEngine extends EventEmitter {
           queryType: 'graphql',
           federationStrategy: federationPlan.strategy,
           subgraphsInvolved: federationPlan.subgraphs.length,
-          executionTime: Date.now() - startTime,
+          executionTime: this.getDeterministicTimestamp() - startTime,
           complexity: queryAnalysis.complexity,
           depth: queryAnalysis.depth
         },
@@ -219,7 +219,7 @@ export class GraphQLFederationEngine extends EventEmitter {
     } catch (error) {
       console.error(`❌ GraphQL query failed (${queryId}):`, error);
       
-      this.updateStatistics(queryId, 'failure', Date.now() - startTime);
+      this.updateStatistics(queryId, 'failure', this.getDeterministicTimestamp() - startTime);
       this.state.activeQueries.delete(queryId);
       
       throw new Error(`GraphQL query execution failed: ${error.message}`);
@@ -311,7 +311,7 @@ export class GraphQLFederationEngine extends EventEmitter {
    * Execute GraphQL query on specific subgraph
    */
   async executeOnSubgraph(document, subgraph, provenanceContext) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       console.log(`📊 Executing on subgraph: ${subgraph.id} (${subgraph.url})`);
@@ -339,7 +339,7 @@ export class GraphQLFederationEngine extends EventEmitter {
       const result = await response.json();
       
       // Record execution metrics
-      const executionTime = Date.now() - startTime;
+      const executionTime = this.getDeterministicTimestamp() - startTime;
       
       if (provenanceContext) {
         await provenanceContext.recordSubgraphExecution(subgraph.id, queryString, executionTime, result);
@@ -350,7 +350,7 @@ export class GraphQLFederationEngine extends EventEmitter {
       if (!result.errors) {
         subgraph.statistics.successfulQueries++;
       }
-      subgraph.statistics.lastQueried = new Date().toISOString();
+      subgraph.statistics.lastQueried = this.getDeterministicDate().toISOString();
       
       // Update average response time
       const total = subgraph.statistics.totalQueries;
@@ -360,7 +360,7 @@ export class GraphQLFederationEngine extends EventEmitter {
       return result;
       
     } catch (error) {
-      const executionTime = Date.now() - startTime;
+      const executionTime = this.getDeterministicTimestamp() - startTime;
       
       if (provenanceContext) {
         await provenanceContext.recordSubgraphError(subgraph.id, document, executionTime, error);
@@ -499,7 +499,7 @@ export class GraphQLFederationEngine extends EventEmitter {
         discovered: true,
         schema,
         introspectionResult: result.data,
-        timestamp: new Date().toISOString()
+        timestamp: this.getDeterministicDate().toISOString()
       };
       
     } catch (error) {
@@ -507,7 +507,7 @@ export class GraphQLFederationEngine extends EventEmitter {
       return {
         discovered: false,
         error: error.message,
-        timestamp: new Date().toISOString()
+        timestamp: this.getDeterministicDate().toISOString()
       };
     }
   }
@@ -518,7 +518,7 @@ export class GraphQLFederationEngine extends EventEmitter {
   async rebuildStitchedSchema() {
     console.log('🔧 Rebuilding stitched GraphQL schema...');
     
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       const subgraphs = Array.from(this.state.subgraphConnections.values())
@@ -541,13 +541,13 @@ export class GraphQLFederationEngine extends EventEmitter {
         mergeTypes: true
       });
       
-      const stitchTime = Date.now() - startTime;
+      const stitchTime = this.getDeterministicTimestamp() - startTime;
       this.state.statistics.schemaStitchTime = stitchTime;
       
       this.emit('schemaStitched', {
         subgraphs: subgraphs.length,
         stitchTime,
-        timestamp: new Date().toISOString()
+        timestamp: this.getDeterministicDate().toISOString()
       });
       
       console.log(`✅ Schema stitched successfully (${stitchTime}ms, ${subgraphs.length} subgraphs)`);
@@ -876,7 +876,7 @@ export class GraphQLFederationEngine extends EventEmitter {
       engine: 'graphql',
       strategy: plan.strategy,
       subgraphs: plan.subgraphs,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     };
   }
   

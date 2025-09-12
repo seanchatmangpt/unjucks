@@ -1,0 +1,113 @@
+```mermaid
+C4Component
+    title Code Diagram - OPC Document Normalizer
+    
+    Container_Boundary(opc, "OPC Normalization Core") {
+        Component(opcNormalizer, "OPCNormalizer", "Main Engine", "Orchestrates Office document deterministic processing")
+        Component(packageAnalyzer, "OPCPackageAnalyzer", "Analyzer", "Analyzes OPC package structure")
+        Component(contentNormalizer, "ContentNormalizer", "Normalizer", "Normalizes document content")
+        Component(metadataStripper, "MetadataStripper", "Stripper", "Removes volatile metadata")
+    }
+    
+    Container_Boundary(structure, "Package Structure") {
+        Component(partManager, "PartManager", "Manager", "Manages OPC parts and relationships")
+        Component(relationshipResolver, "RelationshipResolver", "Resolver", "Resolves inter-part relationships")
+        Component(contentTypeManager, "ContentTypeManager", "Manager", "Manages content type definitions")
+        Component(partSorter, "PartSorter", "Sorter", "Sorts parts in deterministic order")
+    }
+    
+    Container_Boundary(content, "Content Processing") {
+        Component(xmlNormalizer, "XMLNormalizer", "XML Processor", "Normalizes XML content")
+        Component(namespaceManager, "NamespaceManager", "Manager", "Manages XML namespaces")
+        Component(attributeSorter, "AttributeSorter", "Sorter", "Sorts XML attributes")
+        Component(whitespaceNormalizer, "WhitespaceNormalizer", "Normalizer", "Normalizes XML whitespace")
+    }
+    
+    Container_Boundary(metadata, "Metadata Management") {
+        Component(corePropsStripper, "CorePropertiesStripper", "Stripper", "Strips volatile core properties")
+        Component(docPropsNormalizer, "DocumentPropertiesNormalizer", "Normalizer", "Normalizes document properties")
+        Component(customPropsFilter, "CustomPropertiesFilter", "Filter", "Filters custom properties")
+        Component(timestampRemover, "TimestampRemover", "Remover", "Removes volatile timestamps")
+    }
+    
+    Container_Boundary(binary, "Binary Content") {
+        Component(imageNormalizer, "ImageNormalizer", "Normalizer", "Normalizes embedded images")
+        Component(fontSubsetter, "FontSubsetter", "Subsetter", "Subsets embedded fonts")
+        Component(mediaProcessor, "MediaProcessor", "Processor", "Processes embedded media")
+        Component(binaryHasher, "BinaryHasher", "Hasher", "Hashes binary content")
+    }
+    
+    Container_Boundary(validation, "Document Validation") {
+        Component(schemaValidator, "SchemaValidator", "Validator", "Validates against OPC schema")
+        Component(consistencyChecker, "ConsistencyChecker", "Checker", "Checks document consistency")
+        Component(integrityVerifier, "IntegrityVerifier", "Verifier", "Verifies document integrity")
+        Component(deterministicTester, "DeterministicTester", "Tester", "Tests deterministic output")
+    }
+    
+    Container_Boundary(formats, "Format Support") {
+        Component(docxProcessor, "DOCXProcessor", "Processor", "Processes Word documents")
+        Component(xlsxProcessor, "XLSXProcessor", "Processor", "Processes Excel documents")
+        Component(pptxProcessor, "PPTXProcessor", "Processor", "Processes PowerPoint documents")
+        Component(genericOpcProcessor, "GenericOPCProcessor", "Processor", "Processes generic OPC documents")
+    }
+    
+    Container_Boundary(compression, "Compression Management") {
+        Component(zipNormalizer, "ZIPNormalizer", "Normalizer", "Normalizes ZIP compression")
+        Component(compressionOptimizer, "CompressionOptimizer", "Optimizer", "Optimizes compression settings")
+        Component(entryOrderer, "EntryOrderer", "Orderer", "Orders ZIP entries deterministically")
+        Component(deflateNormalizer, "DeflateNormalizer", "Normalizer", "Normalizes deflate parameters")
+    }
+    
+    Container_Boundary(caching, "Processing Cache") {
+        Component(documentCache, "DocumentCache", "Cache", "Caches processed documents")
+        Component(partCache, "PartCache", "Cache", "Caches normalized parts")
+        Component(hashCache, "HashCache", "Cache", "Caches content hashes")
+        Component(validationCache, "ValidationCache", "Cache", "Caches validation results")
+    }
+    
+    Rel(opcNormalizer, packageAnalyzer, "analyzes packages with")
+    Rel(opcNormalizer, contentNormalizer, "normalizes content with")
+    Rel(opcNormalizer, metadataStripper, "strips metadata with")
+    
+    Rel(packageAnalyzer, partManager, "manages parts with")
+    Rel(packageAnalyzer, relationshipResolver, "resolves relationships with")
+    Rel(packageAnalyzer, contentTypeManager, "manages content types with")
+    Rel(packageAnalyzer, partSorter, "sorts parts with")
+    
+    Rel(contentNormalizer, xmlNormalizer, "normalizes XML with")
+    Rel(xmlNormalizer, namespaceManager, "manages namespaces with")
+    Rel(xmlNormalizer, attributeSorter, "sorts attributes with")
+    Rel(xmlNormalizer, whitespaceNormalizer, "normalizes whitespace with")
+    
+    Rel(metadataStripper, corePropsStripper, "strips core props with")
+    Rel(metadataStripper, docPropsNormalizer, "normalizes doc props with")
+    Rel(metadataStripper, customPropsFilter, "filters custom props with")
+    Rel(metadataStripper, timestampRemover, "removes timestamps with")
+    
+    Rel(contentNormalizer, imageNormalizer, "normalizes images with")
+    Rel(contentNormalizer, fontSubsetter, "subsets fonts with")
+    Rel(contentNormalizer, mediaProcessor, "processes media with")
+    Rel(contentNormalizer, binaryHasher, "hashes binary with")
+    
+    Rel(opcNormalizer, schemaValidator, "validates schema with")
+    Rel(opcNormalizer, consistencyChecker, "checks consistency with")
+    Rel(opcNormalizer, integrityVerifier, "verifies integrity with")
+    Rel(opcNormalizer, deterministicTester, "tests determinism with")
+    
+    Rel(opcNormalizer, docxProcessor, "processes DOCX with")
+    Rel(opcNormalizer, xlsxProcessor, "processes XLSX with")
+    Rel(opcNormalizer, pptxProcessor, "processes PPTX with")
+    Rel(opcNormalizer, genericOpcProcessor, "processes generic OPC with")
+    
+    Rel(packageAnalyzer, zipNormalizer, "normalizes ZIP with")
+    Rel(zipNormalizer, compressionOptimizer, "optimizes compression with")
+    Rel(zipNormalizer, entryOrderer, "orders entries with")
+    Rel(zipNormalizer, deflateNormalizer, "normalizes deflate with")
+    
+    Rel(opcNormalizer, documentCache, "caches documents in")
+    Rel(partManager, partCache, "caches parts in")
+    Rel(binaryHasher, hashCache, "caches hashes in")
+    Rel(schemaValidator, validationCache, "caches validation in")
+    
+    UpdateLayoutConfig($c4ShapeInRow="4", $c4BoundaryInRow="2")
+```

@@ -37,7 +37,7 @@ const execAsync = promisify(exec);
  */
 class MasterTestOrchestrator {
   constructor() {
-    this.startTime = Date.now();
+    this.startTime = this.getDeterministicTimestamp();
     this.results = {
       environment: null,
       testSuites: {},
@@ -156,7 +156,7 @@ class MasterTestOrchestrator {
 
       // Collect environment information
       this.results.environment = {
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         node_version: process.version,
         platform: process.platform,
         arch: process.arch,
@@ -217,13 +217,13 @@ class MasterTestOrchestrator {
     console.log(`   Path: ${suite.path}`);
     console.log(`   Pattern: ${suite.pattern}`);
     
-    const suiteStart = Date.now();
+    const suiteStart = this.getDeterministicTimestamp();
     const result = {
       name: suite.name,
       description: suite.description,
       weight: suite.weight,
       critical: suite.critical,
-      start_time: new Date().toISOString(),
+      start_time: this.getDeterministicDate().toISOString(),
       duration: 0,
       status: 'running',
       tests_run: 0,
@@ -283,8 +283,8 @@ class MasterTestOrchestrator {
         console.warn(`⚠️  Critical suite ${suite.name} failed - continuing with reduced readiness score`);
       }
     } finally {
-      result.duration = Date.now() - suiteStart;
-      result.end_time = new Date().toISOString();
+      result.duration = this.getDeterministicTimestamp() - suiteStart;
+      result.end_time = this.getDeterministicDate().toISOString();
       
       if (result.tests_run > 0) {
         result.success_rate = (result.tests_passed / result.tests_run * 100);
@@ -480,7 +480,7 @@ class MasterTestOrchestrator {
    * Generate comprehensive JSON report
    */
   async generateJSONReport() {
-    const totalDuration = Date.now() - this.startTime;
+    const totalDuration = this.getDeterministicTimestamp() - this.startTime;
     
     // Calculate final metrics
     const readinessMetrics = this.calculateReadinessScore();
@@ -503,7 +503,7 @@ class MasterTestOrchestrator {
     const reportData = {
       meta: {
         report_type: 'master_test_orchestration',
-        generated_at: new Date().toISOString(),
+        generated_at: this.getDeterministicDate().toISOString(),
         orchestrator_version: '1.0.0',
         total_duration_ms: totalDuration
       },
@@ -904,7 +904,7 @@ ${suite.artifacts.map(artifact => `- ${artifact.name}`).join('\n')}
       const errorReport = {
         meta: {
           report_type: 'orchestration_failure',
-          generated_at: new Date().toISOString(),
+          generated_at: this.getDeterministicDate().toISOString(),
           error: error.message
         },
         environment: this.results.environment,

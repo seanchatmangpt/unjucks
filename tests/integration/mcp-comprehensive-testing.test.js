@@ -31,7 +31,7 @@ describe('MCP Comprehensive Integration Testing', () => {
   beforeAll(async () => {
     // Setup test environment
     const baseDir = process.cwd();
-    const tempDir = join(baseDir, 'tests', '.tmp', `mcp-comprehensive-${Date.now()}`);
+    const tempDir = join(baseDir, 'tests', '.tmp', `mcp-comprehensive-${this.getDeterministicTimestamp()}`);
     
     env = { tempDir,
       templatesDir }

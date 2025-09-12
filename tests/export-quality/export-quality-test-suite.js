@@ -463,7 +463,7 @@ export class ExportQualityTestSuite {
       status,
       message,
       duration: Math.round(duration),
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     });
 
     if (status === 'passed') {
@@ -530,7 +530,7 @@ export class ExportQualityTestSuite {
       metadata: {
         testSuite: 'Export Quality Assurance',
         version: '1.0.0',
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         duration: Math.round(this.testResults.overall.duration),
         formats: Object.keys(this.validators),
         options: this.options
@@ -763,7 +763,7 @@ export class ExportQualityTestSuite {
    */
   async generateComparisonReport(mainReport) {
     const comparison = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       formats: {},
       summary: {
         bestPerforming: null,
@@ -807,7 +807,7 @@ export class ExportQualityTestSuite {
   async generateExecutiveSummary(mainReport) {
     const summary = {
       title: 'Export Quality Assurance - Executive Summary',
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       
       keyFindings: [
         `Tested ${this.testResults.overall.totalTests} quality aspects across ${Object.keys(this.validators).length} export formats`,

@@ -107,7 +107,7 @@ describe('Spec-Driven Development Integration Tests', () => {
         generatedFiles
       }, {
         status: 'completed',
-        endTime: new Date().toISOString()
+        endTime: this.getDeterministicDate().toISOString()
       });
 
       integrationContext.workflows.set(workflow.id, workflow);
@@ -327,7 +327,7 @@ describe('Spec-Driven Development Integration Tests', () => {
       phases.forEach(phase => {
         const metrics = {
           phase,
-          timestamp: new Date().toISOString(),
+          timestamp: this.getDeterministicDate().toISOString(),
           metrics: {
             velocity: {
               tasksCompleted: Math.floor(Math.random() * 10) + 5,
@@ -442,7 +442,7 @@ describe('Spec-Driven Development Integration Tests', () => {
       for (const phase of phases) {
         const phaseResult = {
           phase,
-          startTime: new Date().toISOString(),
+          startTime: this.getDeterministicDate().toISOString(),
           status: 'running'
         };
 
@@ -452,11 +452,11 @@ describe('Spec-Driven Development Integration Tests', () => {
 
         if (success) {
           phaseResult.status = 'completed';
-          phaseResult.endTime = new Date().toISOString();
+          phaseResult.endTime = this.getDeterministicDate().toISOString();
         } else {
           phaseResult.status = 'failed';
           phaseResult.error = `Simulated failure in ${phase} phase`;
-          phaseResult.endTime = new Date().toISOString();
+          phaseResult.endTime = this.getDeterministicDate().toISOString();
           
           // Simulate recovery attempt
           phaseResult.recovery = {
@@ -575,7 +575,7 @@ describe('Spec-Driven Development Integration Tests', () => {
         const processed = largeTasks.map(task => ({
           ...task,
           processed: true,
-          processingTime: Date.now()
+          processingTime: this.getDeterministicTimestamp()
         }));
 
         return {
@@ -697,10 +697,10 @@ describe('Spec-Driven Development Integration Tests', () => {
       const auditTrail = {
         workflowId: specification.id,
         events: [
-          { timestamp: new Date().toISOString(), action: 'specification_created', user: 'system' },
-          { timestamp: new Date().toISOString(), action: 'compliance_check_gdpr', result: 'passed' },
-          { timestamp: new Date().toISOString(), action: 'compliance_check_security', result: 'passed' },
-          { timestamp: new Date().toISOString(), action: 'compliance_check_accessibility', result: 'passed' }
+          { timestamp: this.getDeterministicDate().toISOString(), action: 'specification_created', user: 'system' },
+          { timestamp: this.getDeterministicDate().toISOString(), action: 'compliance_check_gdpr', result: 'passed' },
+          { timestamp: this.getDeterministicDate().toISOString(), action: 'compliance_check_security', result: 'passed' },
+          { timestamp: this.getDeterministicDate().toISOString(), action: 'compliance_check_accessibility', result: 'passed' }
         ],
         compliant: true
       };

@@ -154,7 +154,7 @@ export class FederationManager extends EventEmitter {
         success: true,
         federationId: this.config.federationId,
         engines: Object.keys(this.engines),
-        timestamp: new Date().toISOString()
+        timestamp: this.getDeterministicDate().toISOString()
       };
       
     } catch (error) {
@@ -199,7 +199,7 @@ export class FederationManager extends EventEmitter {
       ...validatedConfig,
       id: endpointId,
       schemaInfo,
-      registeredAt: new Date().toISOString(),
+      registeredAt: this.getDeterministicDate().toISOString(),
       status: 'active',
       statistics: {
         totalQueries: 0,
@@ -217,7 +217,7 @@ export class FederationManager extends EventEmitter {
       success: true,
       endpointId,
       schemaInfo,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     };
   }
   
@@ -226,7 +226,7 @@ export class FederationManager extends EventEmitter {
    */
   async executeFederatedQuery(queryConfig) {
     const queryId = crypto.randomUUID();
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       // Validate query configuration
@@ -240,7 +240,7 @@ export class FederationManager extends EventEmitter {
         console.log(`📦 Cache hit for query ${queryId}`);
         
         // Update statistics
-        this.updateQueryStatistics(queryId, 'cache_hit', Date.now() - startTime);
+        this.updateQueryStatistics(queryId, 'cache_hit', this.getDeterministicTimestamp() - startTime);
         
         return {
           success: true,
@@ -297,17 +297,17 @@ export class FederationManager extends EventEmitter {
           data: result.data,
           metadata: result.metadata,
           provenance: result.provenance,
-          timestamp: new Date().toISOString()
+          timestamp: this.getDeterministicDate().toISOString()
         });
       }
       
       // Update statistics
-      this.updateQueryStatistics(queryId, result.success ? 'success' : 'failure', Date.now() - startTime);
+      this.updateQueryStatistics(queryId, result.success ? 'success' : 'failure', this.getDeterministicTimestamp() - startTime);
       
       // Clean up active query tracking
       this.state.activeQueries.delete(queryId);
       
-      this.emit('queryCompleted', { queryId, success: result.success, executionTime: Date.now() - startTime });
+      this.emit('queryCompleted', { queryId, success: result.success, executionTime: this.getDeterministicTimestamp() - startTime });
       
       return {
         success: result.success,
@@ -315,7 +315,7 @@ export class FederationManager extends EventEmitter {
         data: result.data,
         metadata: {
           ...result.metadata,
-          executionTime: Date.now() - startTime,
+          executionTime: this.getDeterministicTimestamp() - startTime,
           endpoints: executionPlan.endpoints.length,
           cached: false
         },
@@ -327,7 +327,7 @@ export class FederationManager extends EventEmitter {
       console.error(`❌ Federated query failed (${queryId}):`, error);
       
       // Update failure statistics
-      this.updateQueryStatistics(queryId, 'failure', Date.now() - startTime);
+      this.updateQueryStatistics(queryId, 'failure', this.getDeterministicTimestamp() - startTime);
       
       // Clean up
       this.state.activeQueries.delete(queryId);
@@ -383,7 +383,7 @@ export class FederationManager extends EventEmitter {
         overall: healthChecks.every(h => h.status === 'fulfilled') ? 'healthy' : 'degraded',
         checks: healthChecks
       },
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     };
   }
   
@@ -574,7 +574,7 @@ export class FederationManager extends EventEmitter {
       endpointsConnected: this.state.endpoints.size > 0,
       activeQueries: this.state.activeQueries.size,
       memoryUsage: process.memoryUsage(),
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     };
     
     return {
@@ -593,7 +593,7 @@ export class FederationManager extends EventEmitter {
       const connectivity = await this.testEndpointConnectivity(endpoint);
       return {
         status: connectivity.success ? 'healthy' : 'unhealthy',
-        lastCheck: new Date().toISOString(),
+        lastCheck: this.getDeterministicDate().toISOString(),
         responseTime: connectivity.responseTime,
         error: connectivity.error
       };
@@ -602,7 +602,7 @@ export class FederationManager extends EventEmitter {
       return {
         status: 'error',
         error: error.message,
-        lastCheck: new Date().toISOString()
+        lastCheck: this.getDeterministicDate().toISOString()
       };
     }
   }

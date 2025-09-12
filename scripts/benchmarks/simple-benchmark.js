@@ -56,7 +56,7 @@ class SimpleBenchmark {
       },
       success: !error,
       error,
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
     };
 
     this.results.push(benchmark);
@@ -207,7 +207,7 @@ class SimpleBenchmark {
     const memoryHungry = [...successful].sort((a, b) => b.memoryDelta.heapUsed - a.memoryDelta.heapUsed).slice(0, 3);
 
     return {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       systemInfo: this.systemInfo,
       summary: {
         total: this.results.length,

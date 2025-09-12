@@ -193,7 +193,7 @@ class PerformanceTestRunner {
 
   async generateReport() {
     const report = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       duration: this.endTime - this.startTime,
       serverUrl: this.serverUrl,
       testResults: this.results,

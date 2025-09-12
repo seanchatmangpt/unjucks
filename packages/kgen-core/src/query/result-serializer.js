@@ -5,7 +5,7 @@
  * with streaming capabilities for large result sets.
  */
 
-import { Logger } from 'consola';
+import { Consola } from 'consola';
 
 export class ResultSerializer {
   constructor(config = {}) {
@@ -16,7 +16,7 @@ export class ResultSerializer {
       ...config
     };
     
-    this.logger = new Logger({ tag: 'result-serializer' });
+    this.logger = new Consola({ tag: 'result-serializer' });
   }
 
   /**
@@ -397,7 +397,7 @@ class StreamingResultSerializer {
   constructor(format, config = {}) {
     this.format = format;
     this.config = config;
-    this.logger = new Logger({ tag: 'streaming-serializer' });
+    this.logger = new Consola({ tag: 'streaming-serializer' });
     this.serializer = new ResultSerializer(config);
   }
 

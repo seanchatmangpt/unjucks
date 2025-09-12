@@ -651,9 +651,9 @@ describe('API Contract Tests', () => {
 
   describe('Performance Contracts', () => {
     it('should validate response times meet SLA', async () => {
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       await apiClient.get('/health');
-      const endTime = Date.now();
+      const endTime = this.getDeterministicTimestamp();
       
       const responseTime = endTime - startTime;
       expect(responseTime).toBeLessThan(1000); // Should respond within 1 second
@@ -662,10 +662,10 @@ describe('API Contract Tests', () => {
     it('should validate bulk operations performance', async () => {
       const bulkUsers = testData.users.slice(0, 3);
       
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const promises = bulkUsers.map(user => apiClient.post('/users', user));
       await Promise.all(promises);
-      const endTime = Date.now();
+      const endTime = this.getDeterministicTimestamp();
       
       const totalTime = endTime - startTime;
       const avgTimePerRequest = totalTime / bulkUsers.length;
@@ -691,7 +691,7 @@ describe('Third-Party Integration Contracts', () => {
     it('should validate webhook payload contracts', async () => {
       const webhookPayload = {
         event: 'template.created',
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         data: {
           templateId: faker.number.int(),
           templateName: faker.lorem.words(2),

@@ -219,7 +219,7 @@ export class WordProcessor extends EventEmitter {
    */
   async processDocument(template, data = {}, options = {}) {
     const sessionId = this._generateSessionId();
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       this.logger.info(`Starting document processing session: ${sessionId}`);
@@ -270,7 +270,7 @@ export class WordProcessor extends EventEmitter {
         content: outputBuffer,
         metadata: await this._extractMetadata(doc),
         stats: this._getSessionStats(sessionId),
-        processingTime: Date.now() - startTime
+        processingTime: this.getDeterministicTimestamp() - startTime
       };
       
       this.emit('processingCompleted', result);
@@ -796,7 +796,7 @@ export class WordProcessor extends EventEmitter {
   async _extractMetadata(doc) {
     return {
       templateEngine: 'docxtemplater',
-      processingDate: new Date().toISOString(),
+      processingDate: this.getDeterministicDate().toISOString(),
       variablesProcessed: this.stats.variablesReplaced,
       imagesProcessed: this.stats.imagesProcessed,
       fileSize: doc.getZip().generate({ type: 'nodebuffer' }).length
@@ -850,7 +850,7 @@ export class WordProcessor extends EventEmitter {
    * @private
    */
   _generateSessionId() {
-    return `word_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    return `word_${this.getDeterministicTimestamp()}_${Math.random().toString(36).substr(2, 9)}`;
   }
 
   /**
@@ -859,7 +859,7 @@ export class WordProcessor extends EventEmitter {
    */
   _updateStats(startTime) {
     this.stats.documentsProcessed++;
-    this.stats.processingTime += Date.now() - startTime;
+    this.stats.processingTime += this.getDeterministicTimestamp() - startTime;
   }
 
   /**
@@ -869,7 +869,7 @@ export class WordProcessor extends EventEmitter {
   _getSessionStats(sessionId) {
     return {
       sessionId,
-      processingTime: Date.now() - (this.processingSessions.get(sessionId) || Date.now()),
+      processingTime: this.getDeterministicTimestamp() - (this.processingSessions.get(sessionId) || this.getDeterministicTimestamp()),
       variablesReplaced: this.stats.variablesReplaced,
       imagesProcessed: this.stats.imagesProcessed
     };

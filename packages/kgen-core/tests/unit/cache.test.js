@@ -91,7 +91,7 @@ describe('Cache Behavior', () => {
   describe('cache operations', () => {
     it('should store and retrieve cache entries', async () => {
       const key = 'test-cache-key';
-      const data = { result: 'test-data', timestamp: Date.now() };
+      const data = { result: 'test-data', timestamp: this.getDeterministicTimestamp() };
       
       // Store data
       const stored = await cacheManager.set(key, data);
@@ -241,17 +241,17 @@ describe('Cache Behavior', () => {
       };
       
       // First generation (cache miss)
-      const start1 = Date.now();
+      const start1 = this.getDeterministicTimestamp();
       const result1 = await engine.generate(generateOptions);
-      const duration1 = Date.now() - start1;
+      const duration1 = this.getDeterministicTimestamp() - start1;
       
       expect(result1.success).toBe(true);
       expect(result1.cacheHit).toBe(false);
       
       // Second generation (cache hit)
-      const start2 = Date.now();
+      const start2 = this.getDeterministicTimestamp();
       const result2 = await engine.generate(generateOptions);
-      const duration2 = Date.now() - start2;
+      const duration2 = this.getDeterministicTimestamp() - start2;
       
       expect(result2.success).toBe(true);
       expect(result2.cacheHit).toBe(true);
@@ -267,24 +267,24 @@ describe('Cache Behavior', () => {
           id: i,
           name: `Item ${i}`,
           description: 'A'.repeat(100),
-          metadata: { created: new Date(), index: i }
+          metadata: { created: this.getDeterministicDate(), index: i }
         }))
       };
       
       const key = 'large-data-test';
       
       // Store large data
-      const start1 = Date.now();
+      const start1 = this.getDeterministicTimestamp();
       const stored = await cacheManager.set(key, largeData);
-      const storeTime = Date.now() - start1;
+      const storeTime = this.getDeterministicTimestamp() - start1;
       
       expect(stored.success).toBe(true);
       expect(storeTime).toBeLessThan(1000); // Should store within 1 second
       
       // Retrieve large data
-      const start2 = Date.now();
+      const start2 = this.getDeterministicTimestamp();
       const retrieved = await cacheManager.get(key);
-      const retrieveTime = Date.now() - start2;
+      const retrieveTime = this.getDeterministicTimestamp() - start2;
       
       expect(retrieved.found).toBe(true);
       expect(retrieved.data.items).toHaveLength(10000);

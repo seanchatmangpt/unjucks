@@ -456,7 +456,7 @@ export class LaTeXBeamerProcessor extends BaseOfficeProcessor {
       title: presentationData.presentation?.title || parseResult.metadata?.title || 'LaTeX Beamer Presentation',
       author: presentationData.presentation?.author || parseResult.metadata?.author || 'Presenter',
       institute: presentationData.presentation?.institute || '',
-      date: new Date().toISOString(),
+      date: this.getDeterministicDate().toISOString(),
       documentClass: parseResult.metadata?.documentClass || 'beamer',
       slideCount: presentationData.slideCount || 0,
       sectionCount: presentationData.sections?.length || 0,

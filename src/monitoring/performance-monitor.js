@@ -73,7 +73,7 @@ class PerformanceMetric {
   /**
    * Add a measurement
    */
-  addMeasurement(value, timestamp = Date.now(), metadata = {}) {
+  addMeasurement(value, timestamp = this.getDeterministicTimestamp(), metadata = {}) {
     const measurement = {
       value,
       timestamp,
@@ -170,7 +170,7 @@ class PerformanceMetric {
       this.anomalies.push(anomaly);
       
       // Keep only recent anomalies (last 24 hours)
-      const cutoff = Date.now() - (24 * 60 * 60 * 1000);
+      const cutoff = this.getDeterministicTimestamp() - (24 * 60 * 60 * 1000);
       this.anomalies = this.anomalies.filter(a => a.timestamp > cutoff);
       
       return anomaly;
@@ -210,7 +210,7 @@ class PerformanceMetric {
   getSummary() {
     const recentMeasurements = this.measurements.slice(-100);
     const recentAnomalies = this.anomalies.filter(a => 
-      a.timestamp > Date.now() - (60 * 60 * 1000) // Last hour
+      a.timestamp > this.getDeterministicTimestamp() - (60 * 60 * 1000) // Last hour
     );
     
     return {
@@ -400,7 +400,7 @@ class PerformanceMonitor extends EventEmitter {
       return;
     }
     
-    const measurement = metric.addMeasurement(value, Date.now(), metadata);
+    const measurement = metric.addMeasurement(value, this.getDeterministicTimestamp(), metadata);
     
     // Emit measurement event
     this.emit('measurement', {
@@ -506,7 +506,7 @@ class PerformanceMonitor extends EventEmitter {
    * Add performance alert rule
    */
   addAlertRule(metricName, condition, severity = 'warning', message = null) {
-    const alertId = `${metricName}_${Date.now()}`;
+    const alertId = `${metricName}_${this.getDeterministicTimestamp()}`;
     const rule = {
       id: alertId,
       metricName,
@@ -537,7 +537,7 @@ class PerformanceMonitor extends EventEmitter {
       
       try {
         if (rule.condition(measurement.value, measurement.level, measurement.metadata)) {
-          rule.lastTriggered = Date.now();
+          rule.lastTriggered = this.getDeterministicTimestamp();
           rule.triggerCount++;
           
           const alert = {
@@ -546,7 +546,7 @@ class PerformanceMonitor extends EventEmitter {
             measurement,
             severity: rule.severity,
             message: rule.message,
-            timestamp: Date.now()
+            timestamp: this.getDeterministicTimestamp()
           };
           
           this.alertHistory.push(alert);
@@ -585,7 +585,7 @@ class PerformanceMonitor extends EventEmitter {
     }
     
     // Collect recent alerts (last 24 hours)
-    const last24h = Date.now() - (24 * 60 * 60 * 1000);
+    const last24h = this.getDeterministicTimestamp() - (24 * 60 * 60 * 1000);
     alerts.push(...this.alertHistory.filter(a => a.timestamp > last24h));
     
     // Collect recent anomalies
@@ -620,7 +620,7 @@ class PerformanceMonitor extends EventEmitter {
         criticalMetrics: Object.values(metrics).filter(m => m.currentLevel === PerformanceLevel.CRITICAL).length,
         recentAnomalies: anomalies.length
       },
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     };
   }
   
@@ -628,9 +628,9 @@ class PerformanceMonitor extends EventEmitter {
    * Export performance data
    */
   exportPerformanceData(format = 'json', timeRange = 24 * 60 * 60 * 1000) {
-    const cutoff = Date.now() - timeRange;
+    const cutoff = this.getDeterministicTimestamp() - timeRange;
     const data = {
-      exportTime: new Date().toISOString(),
+      exportTime: this.getDeterministicDate().toISOString(),
       timeRange: `${timeRange / (60 * 60 * 1000)}h`,
       metrics: {}
     };
@@ -708,7 +708,7 @@ export function MeasurePerformance(metricName, category = PerformanceCategory.RE
     
     descriptor.value = async function(...args) {
       const start = performance.now();
-      const markName = `${metricName}_${Date.now()}_start`;
+      const markName = `${metricName}_${this.getDeterministicTimestamp()}_start`;
       
       performance.mark(markName);
       

@@ -26,7 +26,7 @@ class WorkflowOrchestrator {
       phases: [],
       currentPhase: 0,
       status: 'running',
-      startTime: new Date().toISOString(),
+      startTime: this.getDeterministicDate().toISOString(),
       deliverables: {},
       metrics: {},
       stakeholders: options.stakeholders || []
@@ -57,7 +57,7 @@ class WorkflowOrchestrator {
       }
 
       workflow.status = 'completed';
-      workflow.endTime = new Date().toISOString();
+      workflow.endTime = this.getDeterministicDate().toISOString();
       workflow.totalDuration = this.calculateDuration(workflow.startTime, workflow.endTime);
 
       return workflow;
@@ -75,7 +75,7 @@ class WorkflowOrchestrator {
       type: 'rapid_prototype',
       phases: [],
       timeLimit,
-      startTime: new Date().toISOString()
+      startTime: this.getDeterministicDate().toISOString()
     };
 
     const rapidPhases = [
@@ -87,9 +87,9 @@ class WorkflowOrchestrator {
     ];
 
     for (const phase of rapidPhases) {
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const phaseResult = await this.executeRapidPhase(prototype, phase);
-      const duration = Date.now() - startTime;
+      const duration = this.getDeterministicTimestamp() - startTime;
       
       phaseResult.actualDuration = duration;
       phaseResult.withinTimeLimit = duration <= (phase.timeLimit * (phase.unit === 'hours' ? 3600000 : phase.unit === 'minutes' ? 60000 : 86400000));
@@ -417,7 +417,7 @@ class WorkflowOrchestrator {
       recovery.backups.set(point.stage, backup);
       recovery.rollbackPoints.push({
         stage: point.stage,
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         backupId: backup.id
       });
     }
@@ -440,13 +440,13 @@ class WorkflowOrchestrator {
 
   // Helper methods
   generateWorkflowId() {
-    return 'workflow-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+    return 'workflow-' + this.getDeterministicTimestamp() + '-' + Math.random().toString(36).substr(2, 9);
   }
 
   async executePhase(workflow, phaseDef) {
     const phase = {
       name: phaseDef.name,
-      startTime: new Date().toISOString(),
+      startTime: this.getDeterministicDate().toISOString(),
       expectedDuration: phaseDef.duration,
       deliverables: phaseDef.deliverables,
       status: 'running'
@@ -455,7 +455,7 @@ class WorkflowOrchestrator {
     // Simulate phase execution
     await this.simulatePhaseWork(phase);
 
-    phase.endTime = new Date().toISOString();
+    phase.endTime = this.getDeterministicDate().toISOString();
     phase.actualDuration = this.calculateDuration(phase.startTime, phase.endTime);
     phase.status = 'completed';
 
@@ -470,7 +470,7 @@ class WorkflowOrchestrator {
       name: phase.name,
       timeLimit: phase.timeLimit,
       unit: phase.unit,
-      startTime: new Date().toISOString(),
+      startTime: this.getDeterministicDate().toISOString(),
       status: 'running'
     };
 
@@ -493,7 +493,7 @@ class WorkflowOrchestrator {
         break;
     }
 
-    phaseResult.endTime = new Date().toISOString();
+    phaseResult.endTime = this.getDeterministicDate().toISOString();
     phaseResult.status = 'completed';
 
     return phaseResult;
@@ -504,7 +504,7 @@ class WorkflowOrchestrator {
     if (workflow.stakeholders.length > 0) {
       workflow.notifications = workflow.notifications || [];
       workflow.notifications.push({
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         message,
         recipients: workflow.stakeholders
       });
@@ -706,7 +706,7 @@ class WorkflowOrchestrator {
       criteria: gateDef.criteria,
       results: [],
       passed: false,
-      executedAt: new Date().toISOString()
+      executedAt: this.getDeterministicDate().toISOString()
     };
 
     // Execute quality checks based on criteria

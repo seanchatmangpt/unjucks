@@ -818,11 +818,11 @@ function hello() {
         }
       }
 
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const result = await generator.generate(content, {
         filename: 'large-document-test'
       });
-      const endTime = Date.now();
+      const endTime = this.getDeterministicTimestamp();
 
       expect(result.success).toBe(true);
       expect(endTime - startTime).toBeLessThan(10000); // Should complete within 10 seconds
@@ -855,20 +855,20 @@ function hello() {
       );
 
       // First generation (should load template)
-      const start1 = Date.now();
+      const start1 = this.getDeterministicTimestamp();
       const result1 = await generator.generateFromTemplate('cached-test', 
         { message: 'First generation' }, 
         { filename: 'cache-test-1' }
       );
-      const time1 = Date.now() - start1;
+      const time1 = this.getDeterministicTimestamp() - start1;
 
       // Second generation (should use cached template)
-      const start2 = Date.now();
+      const start2 = this.getDeterministicTimestamp();
       const result2 = await generator.generateFromTemplate('cached-test',
         { message: 'Second generation' },
         { filename: 'cache-test-2' }
       );
-      const time2 = Date.now() - start2;
+      const time2 = this.getDeterministicTimestamp() - start2;
 
       expect(result1.success).toBe(true);
       expect(result2.success).toBe(true);

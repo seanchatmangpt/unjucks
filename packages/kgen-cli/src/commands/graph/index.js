@@ -16,7 +16,33 @@ export default defineCommand({
     index: () => import('./index-cmd.js').then(m => m.default)
   },
   async run() {
-    console.log('Available graph commands: hash, diff, index');
-    console.log('Use: kgen graph <command> --help for specific help');
+    // Default help for graph tool - JSON output
+    const result = {
+      success: true,
+      data: {
+        tool: 'graph',
+        description: 'Knowledge graph operations (hash, diff, index)',
+        verbs: [
+          {
+            name: 'hash',
+            description: 'Generate canonical CID hash of a knowledge graph',
+            usage: 'kgen graph hash <file.ttl> [options]'
+          },
+          {
+            name: 'diff',
+            description: 'Compare two knowledge graphs and show differences',
+            usage: 'kgen graph diff <file1.ttl> <file2.ttl> [options]'
+          },
+          {
+            name: 'index',
+            description: 'Index knowledge graph for fast querying',
+            usage: 'kgen graph index <file.ttl> [options]'
+          }
+        ]
+      },
+      timestamp: this.getDeterministicDate().toISOString()
+    };
+
+    console.log(JSON.stringify(result, null, 2));
   }
 });

@@ -10,7 +10,7 @@ import path from 'path';
 import crypto from 'crypto';
 import os from 'os';
 import consola from 'consola';
-import { v4 as uuidv4 } from 'uuid';
+// Note: Using crypto.randomUUID() instead of uuid package
 import { CryptoManager } from '../crypto/manager.js';
 
 export class AttestationGenerator {
@@ -31,7 +31,8 @@ export class AttestationGenerator {
     // Initialize crypto manager if signing is enabled
     this.cryptoManager = null;
     if (this.config.enableCryptographicSigning) {
-      this.cryptoManager = new CryptoManager(config);
+      // Use provided cryptoManager if available, otherwise create new one
+      this.cryptoManager = config.cryptoManager || new CryptoManager(config);
     }
   }
 
@@ -62,7 +63,7 @@ export class AttestationGenerator {
         version: this.config.attestationVersion,
         
         // Unique identifiers
-        attestationId: uuidv4(),
+        attestationId: crypto.randomUUID(),
         artifactId: artifact.id || this._generateArtifactId(artifact.path),
         
         // Artifact metadata
@@ -84,8 +85,8 @@ export class AttestationGenerator {
         timestamps: {
           generated: new Date().toISOString(),
           artifactCreated: artifact.createdAt?.toISOString() || new Date().toISOString(),
-          operationStarted: context.startTime.toISOString(),
-          operationCompleted: context.endTime.toISOString()
+          operationStarted: context.startTime?.toISOString() || new Date().toISOString(),
+          operationCompleted: context.endTime?.toISOString() || new Date().toISOString()
         },
         
         // Compliance and validation

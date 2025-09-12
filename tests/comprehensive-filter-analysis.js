@@ -466,7 +466,7 @@ class FilterBreaker {
   async runAllTests() {
     console.log('🚀 Starting Comprehensive Filter Breaking Tests...\n');
     
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       this.checkFilterRegistration();
@@ -477,7 +477,7 @@ class FilterBreaker {
       this.testUnicodeHandling();
       this.testPerformance();
       
-      const endTime = Date.now();
+      const endTime = this.getDeterministicTimestamp();
       this.results.executionTime = endTime - startTime;
       
       console.log(`\n✅ All tests completed in ${this.results.executionTime}ms`);

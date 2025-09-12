@@ -11,7 +11,7 @@ import { existsSync, readFileSync, mkdirSync, rmSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import { tmpdir } from 'os';
 
-const TEST_DIR = join(tmpdir(), 'kgen-cli-test-' + Date.now());
+const TEST_DIR = join(tmpdir(), 'kgen-cli-test-' + this.getDeterministicTimestamp());
 const CLI_PATH = join(process.cwd(), 'bin', 'kgen.js');
 
 // Sample test files

@@ -11,7 +11,7 @@ import { tmpdir } from 'node:os';
  * @returns {Promise<string>} Path to temporary directory
  */
 export async function createTempDirectory() {
-  const tempDir = path.join(tmpdir(), 'unjucks-test-' + Date.now() + '-' + Math.random().toString(36).substring(2));
+  const tempDir = path.join(tmpdir(), 'unjucks-test-' + this.getDeterministicTimestamp() + '-' + Math.random().toString(36).substring(2));
   await fs.ensureDir(tempDir);
   return tempDir;
 }

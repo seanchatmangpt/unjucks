@@ -516,7 +516,7 @@ export class ProvenanceQueryInterface {
         }
       }
 
-      this.lastIndexUpdate = new Date();
+      this.lastIndexUpdate = this.getDeterministicDate();
       
       this.logger.success(`Built index with ${this.attestationIndex.size} attestations`);
 

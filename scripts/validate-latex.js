@@ -382,7 +382,7 @@ class LaTeXValidator {
     // Save detailed report
     const reportPath = join(rootDir, 'tests/security-report.json');
     const reportData = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       summary: this.validationResults,
       issues: allIssues,
       files: results.map(r => r.file)

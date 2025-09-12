@@ -301,7 +301,7 @@ class SecurityThresholdChecker {
 
   generateThresholdReport(metrics) {
     const report = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       passed: this.violations.length === 0,
       overallScore: metrics.overallScore || 0,
       thresholds: this.thresholds,

@@ -227,9 +227,9 @@ export class TemplateMemoizationSystem {
   async set(key, value, options = {}) {
     try {
       const metadata = {
-        timestamp: Date.now(),
+        timestamp: this.getDeterministicTimestamp(),
         accessCount: 0,
-        lastAccess: Date.now(),
+        lastAccess: this.getDeterministicTimestamp(),
         size: this.estimateSize(value),
         ttl: options.ttl || this.options.ttl,
         scope: options.scope || this.options.scope,
@@ -463,7 +463,7 @@ export class TemplateMemoizationSystem {
    */
   isExpired(metadata) {
     if (!metadata.ttl) return false;
-    return Date.now() - metadata.timestamp > metadata.ttl;
+    return this.getDeterministicTimestamp() - metadata.timestamp > metadata.ttl;
   }
 
   /**
@@ -589,7 +589,7 @@ export class TemplateMemoizationSystem {
     return {
       entries,
       stats: this.getStats(),
-      exportedAt: new Date().toISOString()
+      exportedAt: this.getDeterministicDate().toISOString()
     };
   }
 
@@ -618,7 +618,7 @@ class LRUCache {
       // Move to end (most recent)
       this.cache.delete(key);
       this.cache.set(key, entry);
-      entry.metadata.lastAccess = Date.now();
+      entry.metadata.lastAccess = this.getDeterministicTimestamp();
       entry.metadata.accessCount++;
       return entry;
     }
@@ -727,11 +727,11 @@ class TTLCache extends LRUCache {
   get(key) {
     const entry = this.cache.get(key);
     if (entry) {
-      if (Date.now() - entry.metadata.timestamp > entry.metadata.ttl) {
+      if (this.getDeterministicTimestamp() - entry.metadata.timestamp > entry.metadata.ttl) {
         this.cache.delete(key);
         return undefined;
       }
-      entry.metadata.lastAccess = Date.now();
+      entry.metadata.lastAccess = this.getDeterministicTimestamp();
       entry.metadata.accessCount++;
       return entry;
     }
@@ -760,7 +760,7 @@ class AdaptiveCache extends LRUCache {
   recordHit(key) {
     const pattern = this.hitPattern.get(key) || { hits: 0, lastHit: 0 };
     pattern.hits++;
-    pattern.lastHit = Date.now();
+    pattern.lastHit = this.getDeterministicTimestamp();
     this.hitPattern.set(key, pattern);
 
     // Adapt strategy based on hit patterns

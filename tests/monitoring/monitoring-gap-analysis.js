@@ -4,7 +4,7 @@
  */
 
 const MONITORING_ANALYSIS = {
-  timestamp: new Date().toISOString(),
+  timestamp: this.getDeterministicDate().toISOString(),
   
   // What was CLAIMED to work
   theoretical_features: {

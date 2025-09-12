@@ -13,7 +13,7 @@ const testDir = path.join(__dirname, '../temp/concurrent-export');
 async function testConcurrentExports() {
   await fs.ensureDir(testDir);
   
-  const testContent = `# Concurrent Export Test ${Date.now()}
+  const testContent = `# Concurrent Export Test ${this.getDeterministicTimestamp()}
 
 This document tests concurrent export operations.
 
@@ -29,7 +29,7 @@ ${'Test line with content to make file larger.\n'.repeat(100)}
   // Test 1: Same file, different outputs
   console.log('Test 1: Same input, different outputs (10 concurrent)');
   const promises1 = [];
-  const startTime1 = Date.now();
+  const startTime1 = this.getDeterministicTimestamp();
   
   for (let i = 0; i < 10; i++) {
     promises1.push(
@@ -45,7 +45,7 @@ ${'Test line with content to make file larger.\n'.repeat(100)}
   }
   
   const results1 = await Promise.allSettled(promises1);
-  const duration1 = Date.now() - startTime1;
+  const duration1 = this.getDeterministicTimestamp() - startTime1;
   
   const successful1 = results1.filter(r => r.status === 'fulfilled' && r.value.success).length;
   const failed1 = results1.filter(r => r.status === 'rejected' || !r.value.success).length;
@@ -58,7 +58,7 @@ ${'Test line with content to make file larger.\n'.repeat(100)}
   console.log('\nTest 2: Same input, same output (race condition test)');
   const sameOutputFile = path.join(testDir, 'race-condition.html');
   const promises2 = [];
-  const startTime2 = Date.now();
+  const startTime2 = this.getDeterministicTimestamp();
   
   for (let i = 0; i < 5; i++) {
     promises2.push(
@@ -74,7 +74,7 @@ ${'Test line with content to make file larger.\n'.repeat(100)}
   }
   
   const results2 = await Promise.allSettled(promises2);
-  const duration2 = Date.now() - startTime2;
+  const duration2 = this.getDeterministicTimestamp() - startTime2;
   
   const successful2 = results2.filter(r => r.status === 'fulfilled' && r.value.success).length;
   const failed2 = results2.filter(r => r.status === 'rejected' || !r.value.success).length;
@@ -90,7 +90,7 @@ ${'Test line with content to make file larger.\n'.repeat(100)}
   console.log('\nTest 3: Batch concurrent exports (different formats)');
   const formats = ['html', 'txt', 'md', 'rtf'];
   const promises3 = [];
-  const startTime3 = Date.now();
+  const startTime3 = this.getDeterministicTimestamp();
   
   for (let i = 0; i < 20; i++) {
     const format = formats[i % formats.length];
@@ -107,7 +107,7 @@ ${'Test line with content to make file larger.\n'.repeat(100)}
   }
   
   const results3 = await Promise.allSettled(promises3);
-  const duration3 = Date.now() - startTime3;
+  const duration3 = this.getDeterministicTimestamp() - startTime3;
   
   const successful3 = results3.filter(r => r.status === 'fulfilled' && r.value.success).length;
   const failed3 = results3.filter(r => r.status === 'rejected' || !r.value.success).length;

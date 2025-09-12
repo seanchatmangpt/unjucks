@@ -109,7 +109,7 @@ export class SandboxManager extends EventEmitter {
    * @returns {Promise<object>} Execution result
    */
   async executeTemplate(template, variables = {}, options = {}) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     const executionId = randomBytes(16).toString('hex');
     
     try {
@@ -137,7 +137,7 @@ export class SandboxManager extends EventEmitter {
       
       // Update metrics
       this.metrics.executionsCompleted++;
-      const executionTime = Date.now() - startTime;
+      const executionTime = this.getDeterministicTimestamp() - startTime;
       this._updateExecutionMetrics(executionTime);
       
       this.emit('execution-completed', {
@@ -169,7 +169,7 @@ export class SandboxManager extends EventEmitter {
       this.emit('execution-failed', {
         executionId,
         error: error.message,
-        executionTime: Date.now() - startTime
+        executionTime: this.getDeterministicTimestamp() - startTime
       });
       
       return {
@@ -177,7 +177,7 @@ export class SandboxManager extends EventEmitter {
         executionId,
         error: error.message,
         metadata: {
-          executionTime: Date.now() - startTime
+          executionTime: this.getDeterministicTimestamp() - startTime
         }
       };
     }
@@ -191,7 +191,7 @@ export class SandboxManager extends EventEmitter {
    * @returns {Promise<object>} Execution result
    */
   async executeCode(code, context = {}, options = {}) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     const executionId = randomBytes(16).toString('hex');
     
     try {
@@ -214,7 +214,7 @@ export class SandboxManager extends EventEmitter {
       
       // Execute code
       const result = vm.run(code);
-      const executionTime = Date.now() - startTime;
+      const executionTime = this.getDeterministicTimestamp() - startTime;
       
       // Update metrics
       this.metrics.executionsCompleted++;
@@ -238,7 +238,7 @@ export class SandboxManager extends EventEmitter {
         executionId,
         error: error.message,
         metadata: {
-          executionTime: Date.now() - startTime
+          executionTime: this.getDeterministicTimestamp() - startTime
         }
       };
     }
@@ -251,7 +251,7 @@ export class SandboxManager extends EventEmitter {
    * @returns {Promise<object>} Processing result
    */
   async processFileSecurely(filePath, options = {}) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     const executionId = randomBytes(16).toString('hex');
     
     try {
@@ -277,7 +277,7 @@ export class SandboxManager extends EventEmitter {
         executionId,
         result,
         metadata: {
-          executionTime: Date.now() - startTime,
+          executionTime: this.getDeterministicTimestamp() - startTime,
           fileSize: result.fileSize
         }
       };
@@ -294,7 +294,7 @@ export class SandboxManager extends EventEmitter {
         executionId,
         error: error.message,
         metadata: {
-          executionTime: Date.now() - startTime
+          executionTime: this.getDeterministicTimestamp() - startTime
         }
       };
     }
@@ -524,7 +524,7 @@ export class SandboxManager extends EventEmitter {
     
     const sandbox = {
       id: executionId,
-      createdAt: Date.now(),
+      createdAt: this.getDeterministicTimestamp(),
       options,
       worker: null,
       vm: null
@@ -630,7 +630,7 @@ export class SandboxManager extends EventEmitter {
   }
 
   async _executeSandboxedTemplate(sandbox, template, variables, options) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       // Execute template based on engine
@@ -660,7 +660,7 @@ export class SandboxManager extends EventEmitter {
       
       return {
         output,
-        executionTime: Date.now() - startTime,
+        executionTime: this.getDeterministicTimestamp() - startTime,
         memoryUsed: this._getMemoryUsage(),
         warnings: []
       };
@@ -729,7 +729,7 @@ export class SandboxManager extends EventEmitter {
     return {
       content,
       fileSize: stats.size,
-      processedAt: new Date()
+      processedAt: this.getDeterministicDate()
     };
   }
 
@@ -756,7 +756,7 @@ export class SandboxManager extends EventEmitter {
   }
 
   _cleanupExpiredSandboxes() {
-    const now = Date.now();
+    const now = this.getDeterministicTimestamp();
     const expiredSandboxes = [];
     
     for (const [id, sandbox] of this.activeSandboxes.entries()) {

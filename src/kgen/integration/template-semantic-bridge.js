@@ -543,7 +543,7 @@ export class TemplateSemanticBridge {
       start: (id) => {
         this.generationHistory.set(id, {
           id,
-          startTime: Date.now(),
+          startTime: this.getDeterministicTimestamp(),
           status: 'in_progress',
           artifacts: [],
           metrics: {}
@@ -554,7 +554,7 @@ export class TemplateSemanticBridge {
         const generation = this.generationHistory.get(id);
         if (generation) {
           generation.status = 'completed';
-          generation.endTime = Date.now();
+          generation.endTime = this.getDeterministicTimestamp();
           generation.duration = generation.endTime - generation.startTime;
           generation.artifacts = artifacts;
         }
@@ -565,7 +565,7 @@ export class TemplateSemanticBridge {
         if (generation) {
           generation.status = 'failed';
           generation.error = error.message;
-          generation.endTime = Date.now();
+          generation.endTime = this.getDeterministicTimestamp();
         }
       }
     };
@@ -681,7 +681,7 @@ export class TemplateSemanticBridge {
       outputPath,
       content: rendered,
       generationId,
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       size: rendered.length,
       hash: crypto.createHash('sha256').update(rendered).digest('hex'),
       metadata: {
@@ -725,7 +725,7 @@ export class TemplateSemanticBridge {
   async _attachProvenanceData(artifacts, semanticData, request, generationId) {
     const provenance = {
       generationId,
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       sources: request.graphSources,
       templates: artifacts.map(a => a.templatePath),
       engine: 'kgen-semantic-bridge',
@@ -798,7 +798,7 @@ export class TemplateSemanticBridge {
   async _generateBatchSummary(results, batchId) { return { successCount: 0, errorCount: 0 }; }
   
   _generateId(prefix) {
-    return `${prefix}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    return `${prefix}_${this.getDeterministicTimestamp()}_${Math.random().toString(36).substr(2, 9)}`;
   }
 
   _generateCacheKey(source) {

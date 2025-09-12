@@ -31,7 +31,7 @@ class MockAuditLogger {
     const logEntry = {
       id: `log-${this.sequenceNumber.toString().padStart(8, '0')}`,
       sequenceNumber: this.sequenceNumber,
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       eventType: eventData.eventType,
       userId: eventData.userId,
       sessionId: eventData.sessionId,
@@ -42,7 +42,7 @@ class MockAuditLogger {
       ipAddress: eventData.ipAddress,
       userAgent: eventData.userAgent,
       metadata: {
-        serverTime: new Date().toISOString(),
+        serverTime: this.getDeterministicDate().toISOString(),
         hostname: 'audit-server-01',
         processId: process.pid
       }
@@ -187,8 +187,8 @@ class MockAuditLogger {
     const matchingLogs = this.searchLogs(criteria);
     
     const report = {
-      reportId: `audit-report-${Date.now()}`,
-      generatedAt: new Date().toISOString(),
+      reportId: `audit-report-${this.getDeterministicTimestamp()}`,
+      generatedAt: this.getDeterministicDate().toISOString(),
       criteria,
       totalEvents: matchingLogs.length,
       eventSummary: {},
@@ -501,7 +501,7 @@ describe('Audit Trail Functionality Security', () => {
     });
 
     it('should search by date range', () => {
-      const now = new Date();
+      const now = this.getDeterministicDate();
       const oneHourAgo = new Date(now.getTime() - 3600000);
       
       const recentEvents = auditLogger.searchLogs({
@@ -618,7 +618,7 @@ describe('Audit Trail Functionality Security', () => {
     it('should implement data retention policies', async () => {
       const retentionManager = {
         checkRetentionPolicy(logs, retentionDays) {
-          const cutoffDate = new Date(Date.now() - (retentionDays * 24 * 60 * 60 * 1000));
+          const cutoffDate = new Date(this.getDeterministicTimestamp() - (retentionDays * 24 * 60 * 60 * 1000));
           
           return {
             eligibleForDeletion: logs.filter(log => new Date(log.timestamp) < cutoffDate),
@@ -630,14 +630,14 @@ describe('Audit Trail Functionality Security', () => {
           // Mock archival process
           return {
             archived: logs.length,
-            archiveId: `archive-${Date.now()}`,
+            archiveId: `archive-${this.getDeterministicTimestamp()}`,
             location: 'cold-storage-s3://audit-archives/'
           };
         }
       };
 
       // Create old and new logs
-      const oldTimestamp = new Date(Date.now() - (10 * 365 * 24 * 60 * 60 * 1000)); // 10 years ago
+      const oldTimestamp = new Date(this.getDeterministicTimestamp() - (10 * 365 * 24 * 60 * 60 * 1000)); // 10 years ago
       const oldLog = {
         id: 'old-log-1',
         timestamp: oldTimestamp.toISOString(),
@@ -646,7 +646,7 @@ describe('Audit Trail Functionality Security', () => {
 
       const recentLog = {
         id: 'recent-log-1',
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         eventType: 'RECENT_EVENT'
       };
 
@@ -666,7 +666,7 @@ describe('Audit Trail Functionality Security', () => {
             id: holdId,
             criteria,
             reason,
-            placedDate: new Date(),
+            placedDate: this.getDeterministicDate(),
             active: true
           });
         },
@@ -692,7 +692,7 @@ describe('Audit Trail Functionality Security', () => {
           const hold = this.legalHolds.get(holdId);
           if (hold) {
             hold.active = false;
-            hold.releasedDate = new Date();
+            hold.releasedDate = this.getDeterministicDate();
           }
         }
       };
@@ -715,8 +715,8 @@ describe('Audit Trail Functionality Security', () => {
           const integrityCheck = auditLogger.verifyIntegrity();
           
           return {
-            attestationId: `attestation-${Date.now()}`,
-            generatedDate: new Date().toISOString(),
+            attestationId: `attestation-${this.getDeterministicTimestamp()}`,
+            generatedDate: this.getDeterministicDate().toISOString(),
             timeframe,
             totalEvents: report.totalEvents,
             integrityStatus: integrityCheck.valid ? 'VERIFIED' : 'COMPROMISED',

@@ -7,7 +7,7 @@
  */
 
 import { EventEmitter } from 'events';
-import { Logger } from 'consola';
+import { Consola } from 'consola';
 import { Worker, isMainThread, parentPort, workerData } from 'worker_threads';
 import { promises as fs } from 'fs';
 import path from 'path';
@@ -60,7 +60,7 @@ export class ConcurrentProcessor extends EventEmitter {
       ...config
     };
     
-    this.logger = new Logger({ tag: 'concurrent-processor' });
+    this.logger = new Consola({ tag: 'concurrent-processor' });
     
     // Worker pool management
     this.workers = new Map();
@@ -155,7 +155,7 @@ export class ConcurrentProcessor extends EventEmitter {
    */
   async processTask(taskType, taskData, options = {}) {
     const taskId = this._generateTaskId();
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       // Validate task type
@@ -179,7 +179,7 @@ export class ConcurrentProcessor extends EventEmitter {
           ...options
         },
         metadata: {
-          submittedAt: new Date(),
+          submittedAt: this.getDeterministicDate(),
           submitTime: startTime
         }
       };
@@ -228,7 +228,7 @@ export class ConcurrentProcessor extends EventEmitter {
    */
   async processBatch(tasks, options = {}) {
     const batchId = this._generateBatchId();
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       this.logger.info(`Processing batch: ${batchId} (${tasks.length} tasks)`);
@@ -261,7 +261,7 @@ export class ConcurrentProcessor extends EventEmitter {
         error: result.status === 'rejected' ? result.reason : null
       }));
       
-      const batchTime = Date.now() - startTime;
+      const batchTime = this.getDeterministicTimestamp() - startTime;
       const successful = processedResults.filter(r => r.status === 'fulfilled').length;
       
       this.logger.success(`Batch completed: ${batchId} (${successful}/${tasks.length} successful, ${batchTime}ms)`);
@@ -417,15 +417,15 @@ export class ConcurrentProcessor extends EventEmitter {
   // Private methods
 
   _generateTaskId() {
-    return `task_${Date.now()}_${crypto.randomBytes(4).toString('hex')}`;
+    return `task_${this.getDeterministicTimestamp()}_${crypto.randomBytes(4).toString('hex')}`;
   }
 
   _generateBatchId() {
-    return `batch_${Date.now()}_${crypto.randomBytes(4).toString('hex')}`;
+    return `batch_${this.getDeterministicTimestamp()}_${crypto.randomBytes(4).toString('hex')}`;
   }
 
   _generateWorkerId() {
-    return `worker_${Date.now()}_${crypto.randomBytes(4).toString('hex')}`;
+    return `worker_${this.getDeterministicTimestamp()}_${crypto.randomBytes(4).toString('hex')}`;
   }
 
   _initializePriorityQueues() {
@@ -461,12 +461,12 @@ export class ConcurrentProcessor extends EventEmitter {
         id: workerId,
         worker,
         status: 'available',
-        createdAt: new Date(),
+        createdAt: this.getDeterministicDate(),
         tasksCompleted: 0,
         totalTime: 0,
         memoryUsage: 0,
         cpuUsage: 0,
-        lastActivity: new Date()
+        lastActivity: this.getDeterministicDate()
       };
       
       // Setup worker event handlers
@@ -536,15 +536,15 @@ export class ConcurrentProcessor extends EventEmitter {
     }
     
     // Update task metrics
-    const completionTime = Date.now() - task.metadata.submitTime;
-    task.metadata.completedAt = new Date();
+    const completionTime = this.getDeterministicTimestamp() - task.metadata.submitTime;
+    task.metadata.completedAt = this.getDeterministicDate();
     task.metadata.processingTime = completionTime;
     task.metadata.workerMetrics = metrics;
     
     // Update worker stats
     workerData.tasksCompleted++;
     workerData.totalTime += completionTime;
-    workerData.lastActivity = new Date();
+    workerData.lastActivity = this.getDeterministicDate();
     
     // Update global metrics
     this.metrics.tasksProcessed++;
@@ -618,7 +618,7 @@ export class ConcurrentProcessor extends EventEmitter {
 
   _handleWorkerReady(workerData) {
     workerData.status = 'available';
-    workerData.lastActivity = new Date();
+    workerData.lastActivity = this.getDeterministicDate();
     
     if (!this.availableWorkers.includes(workerData)) {
       this.availableWorkers.push(workerData);
@@ -676,7 +676,7 @@ export class ConcurrentProcessor extends EventEmitter {
   _updateWorkerMetrics(workerData, metrics) {
     workerData.memoryUsage = metrics.memoryUsage || 0;
     workerData.cpuUsage = metrics.cpuUsage || 0;
-    workerData.lastActivity = new Date();
+    workerData.lastActivity = this.getDeterministicDate();
   }
 
   async _submitToQueue(task) {
@@ -813,7 +813,7 @@ class TaskProcessor {
   }
 
   async processTask(taskId, taskType, taskData, options) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       let result;
@@ -841,7 +841,7 @@ class TaskProcessor {
           throw new Error(\`Unsupported task type: \${taskType}\`);
       }
       
-      const processingTime = Date.now() - startTime;
+      const processingTime = this.getDeterministicTimestamp() - startTime;
       const metrics = {
         processingTime,
         memoryUsage: process.memoryUsage().heapUsed,
@@ -856,7 +856,7 @@ class TaskProcessor {
       });
       
     } catch (error) {
-      const processingTime = Date.now() - startTime;
+      const processingTime = this.getDeterministicTimestamp() - startTime;
       const metrics = {
         processingTime,
         memoryUsage: process.memoryUsage().heapUsed
@@ -875,7 +875,7 @@ class TaskProcessor {
     // Mock template rendering
     return {
       rendered: \`Template rendered with data: \${JSON.stringify(taskData)}\`,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     };
   }
 
@@ -884,7 +884,7 @@ class TaskProcessor {
     return {
       triples: taskData.rdfData ? taskData.rdfData.split('\\n').length : 0,
       format: taskData.format || 'turtle',
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     };
   }
 
@@ -895,7 +895,7 @@ class TaskProcessor {
         bindings: []
       },
       executionTime: Math.random() * 100,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     };
   }
 
@@ -904,7 +904,7 @@ class TaskProcessor {
     return {
       inferences: Math.floor(Math.random() * 50),
       reasoningTime: Math.random() * 200,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     };
   }
 
@@ -913,7 +913,7 @@ class TaskProcessor {
     return {
       isValid: Math.random() > 0.1,
       violations: Math.floor(Math.random() * 5),
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     };
   }
 
@@ -922,7 +922,7 @@ class TaskProcessor {
     return {
       transformedData: { ...taskData, transformed: true },
       transformationTime: Math.random() * 50,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     };
   }
 }
@@ -979,7 +979,7 @@ parentPort.postMessage({
   }
 
   _checkScalingConditions(utilization) {
-    const currentTime = Date.now();
+    const currentTime = this.getDeterministicTimestamp();
     
     if (utilization > this.config.scaleUpThreshold && this.workers.size < this.config.maxWorkers) {
       // Scale up

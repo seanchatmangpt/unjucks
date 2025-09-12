@@ -293,7 +293,7 @@ export class AutonomousEvolutionEngine extends EventEmitter {
         from: previousVersion,
         to: newVersion,
         evolution: evolutionProposal,
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         migrationSteps: result.migrationSteps
       });
       
@@ -374,7 +374,7 @@ export class AutonomousEvolutionEngine extends EventEmitter {
         validation: this.generateValidationQuery(step.evolution),
         rollback: this.generateRollbackSPARQL(step.evolution)
       })),
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     };
     
     return script;
@@ -436,7 +436,7 @@ export class AutonomousEvolutionEngine extends EventEmitter {
     }
     
     this.evolutionHistory.set(this.currentVersion, {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       proposal,
       result,
       validation

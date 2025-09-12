@@ -117,7 +117,7 @@ describe('LockfileGenerator', () => {
     it('should validate a valid lockfile', async () => {
       const validLockfile = {
         lockfileVersion: '1.0.0',
-        generatedAt: new Date().toISOString(),
+        generatedAt: this.getDeterministicDate().toISOString(),
         projectName: 'test-project',
         templates: {},
         rules: {},
@@ -155,7 +155,7 @@ describe('LockfileGenerator', () => {
     it('should detect version incompatibility', async () => {
       const incompatibleLockfile = {
         lockfileVersion: '0.9.0', // Incompatible version
-        generatedAt: new Date().toISOString(),
+        generatedAt: this.getDeterministicDate().toISOString(),
         projectName: 'test-project',
         templates: {},
         rules: {},
@@ -178,7 +178,7 @@ describe('LockfileGenerator', () => {
     it('should write lockfile to disk', async () => {
       const lockfile = {
         lockfileVersion: '1.0.0',
-        generatedAt: new Date().toISOString(),
+        generatedAt: this.getDeterministicDate().toISOString(),
         projectName: 'test-project'
       };
 
@@ -202,7 +202,7 @@ describe('LockfileGenerator', () => {
     it('should read and parse lockfile from disk', async () => {
       const originalLockfile = {
         lockfileVersion: '1.0.0',
-        generatedAt: new Date().toISOString(),
+        generatedAt: this.getDeterministicDate().toISOString(),
         projectName: 'test-project',
         templates: {},
         rules: {},
@@ -235,7 +235,7 @@ describe('LockfileGenerator', () => {
     it('should update lockfile with new template', async () => {
       const originalLockfile = {
         lockfileVersion: '1.0.0',
-        generatedAt: new Date().toISOString(),
+        generatedAt: this.getDeterministicDate().toISOString(),
         templates: {
           'template-1': {
             id: 'template-1',

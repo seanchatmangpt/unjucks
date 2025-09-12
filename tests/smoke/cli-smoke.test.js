@@ -118,9 +118,9 @@ describe('CLI Smoke Tests', () => {
 
   describe('Performance and Reliability', () => {
     test('should execute commands within reasonable time', async () => {
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const result = await testHelper.runCli('--version');
-      const duration = Date.now() - startTime;
+      const duration = this.getDeterministicTimestamp() - startTime;
       
       expect(result.exitCode).toBe(0);
       expect(duration).toBeLessThan(5000); // Should complete within 5 seconds

@@ -128,7 +128,7 @@ export class BlockchainAnchor extends EventEmitter {
       const anchorEntry = {
         id: recordId,
         hash,
-        timestamp: timestamp || new Date(),
+        timestamp: timestamp || this.getDeterministicDate(),
         metadata,
         status: 'pending'
       };
@@ -220,7 +220,7 @@ export class BlockchainAnchor extends EventEmitter {
         chainVerification,
         merkleVerification,
         signatureVerification,
-        verifiedAt: new Date()
+        verifiedAt: this.getDeterministicDate()
       };
 
       this.emit('verified', result);
@@ -371,7 +371,7 @@ export class BlockchainAnchor extends EventEmitter {
     if (this.hashChain.length === 0) {
       const genesisBlock = {
         index: 0,
-        timestamp: new Date(),
+        timestamp: this.getDeterministicDate(),
         operationId: 'genesis',
         previousHash: '0',
         hash: crypto.createHash(this.config.hashAlgorithm)
@@ -485,7 +485,7 @@ export class BlockchainAnchor extends EventEmitter {
       const blockData = await this._addToHashChain({
         operationId: `anchor-batch-${this.hashChain.length}`,
         type: 'anchor',
-        endTime: new Date(),
+        endTime: this.getDeterministicDate(),
         integrityHash: merkleRoot
       });
 

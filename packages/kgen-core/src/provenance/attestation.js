@@ -53,7 +53,7 @@ export class AttestationGenerator {
    */
   async generateAttestation(artifactPath, metadata = {}) {
     try {
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
       // Calculate artifact hash
       const artifactHash = await this.calculateFileHash(artifactPath);
@@ -66,7 +66,7 @@ export class AttestationGenerator {
         // Core identification
         attestationId: uuidv4(),
         version: this.config.attestationVersion,
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         
         // Artifact information
         artifact: {
@@ -86,7 +86,7 @@ export class AttestationGenerator {
           rules: metadata.rules || null,
           rulesVersion: metadata.rulesVersion || null,
           engine: `kgen@${metadata.engineVersion || 'unknown'}`,
-          timestamp: metadata.timestamp || new Date().toISOString(),
+          timestamp: metadata.timestamp || this.getDeterministicDate().toISOString(),
           operationId: metadata.operationId || null
         },
         
@@ -113,12 +113,12 @@ export class AttestationGenerator {
           algorithm: this.config.hashAlgorithm,
           checksum: artifactHash,
           integrityVerified: true,
-          verificationTime: new Date().toISOString()
+          verificationTime: this.getDeterministicDate().toISOString()
         },
         
         // Performance metrics
         metrics: {
-          generationTime: Date.now() - startTime,
+          generationTime: this.getDeterministicTimestamp() - startTime,
           attestationSize: null // Will be calculated after serialization
         }
       };
@@ -179,7 +179,7 @@ export class AttestationGenerator {
       entity: {
         '@type': 'prov:Entity',
         '@id': `${baseUri}entity/${uuidv4()}`,
-        'prov:generatedAtTime': new Date().toISOString(),
+        'prov:generatedAtTime': this.getDeterministicDate().toISOString(),
         'dct:format': this.detectFileFormat(artifactPath || metadata.artifactPath),
         'kgen:artifactType': metadata.artifactType || 'generated'
       },
@@ -188,8 +188,8 @@ export class AttestationGenerator {
       activity: {
         '@type': 'prov:Activity',
         '@id': `${baseUri}activity/${metadata.operationId || uuidv4()}`,
-        'prov:startedAtTime': metadata.startTime || new Date().toISOString(),
-        'prov:endedAtTime': new Date().toISOString(),
+        'prov:startedAtTime': metadata.startTime || this.getDeterministicDate().toISOString(),
+        'prov:endedAtTime': this.getDeterministicDate().toISOString(),
         'kgen:operationType': metadata.operationType || 'generate',
         'kgen:template': metadata.template,
         'kgen:rules': metadata.rules
@@ -233,7 +233,7 @@ export class AttestationGenerator {
         type: 'source',
         resource: metadata.sourceGraph,
         hash: metadata.graphHash,
-        timestamp: metadata.graphTimestamp || new Date().toISOString()
+        timestamp: metadata.graphTimestamp || this.getDeterministicDate().toISOString()
       });
     }
     
@@ -244,7 +244,7 @@ export class AttestationGenerator {
         resource: metadata.template,
         version: metadata.templateVersion,
         hash: metadata.templateHash,
-        timestamp: metadata.templateTimestamp || new Date().toISOString()
+        timestamp: metadata.templateTimestamp || this.getDeterministicDate().toISOString()
       });
     }
     
@@ -255,7 +255,7 @@ export class AttestationGenerator {
         resource: metadata.rules,
         version: metadata.rulesVersion,
         hash: metadata.rulesHash,
-        timestamp: metadata.rulesTimestamp || new Date().toISOString()
+        timestamp: metadata.rulesTimestamp || this.getDeterministicDate().toISOString()
       });
     }
     
@@ -290,7 +290,7 @@ export class AttestationGenerator {
         hostname: os.hostname(),
         type: os.type(),
         release: os.release(),
-        timestamp: new Date().toISOString()
+        timestamp: this.getDeterministicDate().toISOString()
       },
       working_directory: process.cwd(),
       environment_hash: createHash('sha256')
@@ -328,7 +328,7 @@ export class AttestationGenerator {
         algorithm: this.config.signatureAlgorithm,
         signature: signature,
         publicKeyFingerprint: await this.getPublicKeyFingerprint(),
-        signedAt: new Date().toISOString(),
+        signedAt: this.getDeterministicDate().toISOString(),
         canonicalContent: createHash('sha256').update(canonicalContent).digest('hex')
       };
     } catch (error) {

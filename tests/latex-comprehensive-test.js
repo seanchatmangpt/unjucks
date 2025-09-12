@@ -139,7 +139,7 @@ async function runTests() {
   
   // Write report
   const report = {
-    timestamp: new Date().toISOString(),
+    timestamp: this.getDeterministicDate().toISOString(),
     passed,
     failed,
     successRate: Math.round((passed / (passed + failed)) * 100),

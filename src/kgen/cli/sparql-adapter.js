@@ -156,7 +156,7 @@ export class SparqlCliAdapter extends EventEmitter {
     try {
       this.logger.info(`Building graph index for: ${graphPath}`);
       
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
       // Load graph if not already loaded
       if (this.store.size === 0) {
@@ -167,7 +167,7 @@ export class SparqlCliAdapter extends EventEmitter {
       const index = {
         metadata: {
           graphPath,
-          timestamp: new Date().toISOString(),
+          timestamp: this.getDeterministicDate().toISOString(),
           tripleCount: this.store.size,
           graphHash: await this._getGraphHash(graphPath),
           kgenVersion: '1.0.0'
@@ -199,7 +199,7 @@ export class SparqlCliAdapter extends EventEmitter {
       const subjectMapPath = path.join(this.config.indexOutputDir, 'subject-artifact-map.json');
       await writeFile(subjectMapPath, JSON.stringify(index.subjects, null, 2));
       
-      const executionTime = Date.now() - startTime;
+      const executionTime = this.getDeterministicTimestamp() - startTime;
       
       this.logger.success(`Graph index built in ${executionTime}ms`);
       this.logger.info(`Index written to: ${indexPath}`);
@@ -253,7 +253,7 @@ export class SparqlCliAdapter extends EventEmitter {
       this.emit('template:analyzed', {
         templateUri,
         results,
-        timestamp: new Date().toISOString()
+        timestamp: this.getDeterministicDate().toISOString()
       });
       
       return results;
@@ -301,7 +301,7 @@ export class SparqlCliAdapter extends EventEmitter {
         metadata: {
           baseGraph: baseGraphPath,
           targetGraph: targetGraphPath,
-          timestamp: new Date().toISOString(),
+          timestamp: this.getDeterministicDate().toISOString(),
           baseHash: this._calculateGraphHash(baseRdf),
           targetHash: this._calculateGraphHash(targetRdf)
         },
@@ -342,7 +342,7 @@ export class SparqlCliAdapter extends EventEmitter {
       
       const dependencies = {
         metadata: {
-          timestamp: new Date().toISOString(),
+          timestamp: this.getDeterministicDate().toISOString(),
           inputArtifacts: artifactUris.length
         },
         artifacts: {}
@@ -400,7 +400,7 @@ export class SparqlCliAdapter extends EventEmitter {
       
       const formattedResult = {
         metadata: {
-          timestamp: new Date().toISOString(),
+          timestamp: this.getDeterministicDate().toISOString(),
           query: query.substring(0, 200) + (query.length > 200 ? '...' : ''),
           resultCount: result.results?.bindings?.length || 0,
           executionTime: result.executionTime || 0

@@ -7,7 +7,7 @@
  */
 
 import { EventEmitter } from 'events';
-import { Logger } from 'consola';
+import { Consola } from 'consola';
 import { Generator } from '../../lib/generator.js';
 import { TemplateScanner } from '../../lib/template-scanner.js';
 import { FrontmatterParser } from '../../lib/frontmatter-parser.js';
@@ -53,7 +53,7 @@ export class UnjucksTemplateBridge extends EventEmitter {
       ...config
     };
     
-    this.logger = new Logger({ tag: 'kgen-unjucks-bridge' });
+    this.logger = new Consola({ tag: 'kgen-unjucks-bridge' });
     this.state = 'initialized';
     
     // Initialize error handler
@@ -168,7 +168,7 @@ export class UnjucksTemplateBridge extends EventEmitter {
             ...enhancement,
             kgenMetadata: {
               operationId,
-              discoveredAt: new Date().toISOString(),
+              discoveredAt: this.getDeterministicDate().toISOString(),
               bridgeVersion: this.getVersion(),
               contentAddress: enhancement.contentAddress
             }
@@ -181,7 +181,7 @@ export class UnjucksTemplateBridge extends EventEmitter {
             ...generator,
             kgenMetadata: {
               operationId,
-              discoveredAt: new Date().toISOString(),
+              discoveredAt: this.getDeterministicDate().toISOString(),
               bridgeVersion: this.getVersion(),
               enhancementFailed: true,
               enhancementError: error.message
@@ -249,7 +249,7 @@ export class UnjucksTemplateBridge extends EventEmitter {
             kgenMetadata: {
               operationId,
               generatorName,
-              discoveredAt: new Date().toISOString(),
+              discoveredAt: this.getDeterministicDate().toISOString(),
               bridgeVersion: this.getVersion(),
               contentAddress: enhancement.contentAddress
             }
@@ -262,7 +262,7 @@ export class UnjucksTemplateBridge extends EventEmitter {
             kgenMetadata: {
               operationId,
               generatorName,
-              discoveredAt: new Date().toISOString(),
+              discoveredAt: this.getDeterministicDate().toISOString(),
               bridgeVersion: this.getVersion(),
               enhancementFailed: true,
               enhancementError: error.message
@@ -330,7 +330,7 @@ export class UnjucksTemplateBridge extends EventEmitter {
           generatorName,
           templateName,
           bridgeVersion: this.getVersion(),
-          timestamp: new Date().toISOString()
+          timestamp: this.getDeterministicDate().toISOString()
         },
         _unjucks: {
           generator: generatorName,
@@ -481,7 +481,7 @@ export class UnjucksTemplateBridge extends EventEmitter {
           operationId,
           generatorName,
           templateName,
-          extractedAt: new Date().toISOString(),
+          extractedAt: this.getDeterministicDate().toISOString(),
           hasFrontmatter: parseResult.hasValidFrontmatter,
           bridgeVersion: this.getVersion()
         }
@@ -585,7 +585,7 @@ export class UnjucksTemplateBridge extends EventEmitter {
   // Private methods
 
   _generateOperationId() {
-    return `utb_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    return `utb_${this.getDeterministicTimestamp()}_${Math.random().toString(36).substr(2, 9)}`;
   }
 
   async _enhanceGeneratorMetadata(generator, options) {
@@ -773,7 +773,7 @@ export class UnjucksTemplateBridge extends EventEmitter {
             workflowMetadata: workflowResult.metadata,
             pathResolution: workflowResult.pathResolution,
             conditionalResult: workflowResult.conditionalResult,
-            generatedAt: new Date().toISOString()
+            generatedAt: this.getDeterministicDate().toISOString()
           }
         });
       }
@@ -796,7 +796,7 @@ export class UnjucksTemplateBridge extends EventEmitter {
             templateName,
             existed: file.exists,
             frontmatter: file.frontmatter,
-            generatedAt: new Date().toISOString()
+            generatedAt: this.getDeterministicDate().toISOString()
           }
         });
       }

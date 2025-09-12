@@ -285,14 +285,14 @@ declare module '{{name}}' {
   describe('Stress Testing', () => {
     it('should handle rapid consecutive commands', async () => {
       const promises = [];
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
       for (let i = 0; i < 20; i++) {
         promises.push(runCLI(['perf', 'large-content', `Stress${i}`, '--dry']));
       }
       
       const results = await Promise.all(promises);
-      const endTime = Date.now();
+      const endTime = this.getDeterministicTimestamp();
       
       // All should succeed
       const successCount = results.filter(r => r.exitCode === 0).length;

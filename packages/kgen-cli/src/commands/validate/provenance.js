@@ -241,7 +241,7 @@ class ProvenanceValidator {
     // Check timestamp validity
     if (attestation.timestamp) {
       const attestationTime = new Date(attestation.timestamp);
-      const now = new Date();
+      const now = this.getDeterministicDate();
       
       if (attestationTime > now) {
         result.valid = false;

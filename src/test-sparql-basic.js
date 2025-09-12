@@ -99,7 +99,7 @@ class BasicSparqlEngine {
   }
   
   async executeQuery(queryString, options = {}) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     this.metrics.queriesExecuted++;
     
     this.logger.debug(`Executing query: ${queryString.substring(0, 100)}...`);
@@ -123,7 +123,7 @@ class BasicSparqlEngine {
         }
       };
       
-      const executionTime = Date.now() - startTime;
+      const executionTime = this.getDeterministicTimestamp() - startTime;
       this.metrics.totalExecutionTime += executionTime;
       
       return results;
@@ -180,7 +180,7 @@ class BasicSparqlEngine {
       },
       metadata: {
         'dc:creator': 'KGEN System',
-        'dc:created': new Date().toISOString()
+        'dc:created': this.getDeterministicDate().toISOString()
       }
     };
     

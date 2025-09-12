@@ -236,7 +236,7 @@ export class Logger {
     }
     
     const entry: LogEntry = {
-      timestamp: new Date(),
+      timestamp: this.getDeterministicDate(),
       level,
       component: this.component,
       message,
@@ -472,16 +472,16 @@ export class Logger {
    * @returns Result of the function
    */
   async time<T>(label: string, fn: () => Promise<T> | T): Promise<T> {
-    const start = Date.now();
+    const start = this.getDeterministicTimestamp();
     this.debug(`Starting ${label}`);
     
     try {
       const result = await fn();
-      const duration = Date.now() - start;
+      const duration = this.getDeterministicTimestamp() - start;
       this.debug(`Completed ${label}`, { duration: `${duration}ms` });
       return result;
     } catch (error) {
-      const duration = Date.now() - start;
+      const duration = this.getDeterministicTimestamp() - start;
       this.error(`Failed ${label}`, error, { duration: `${duration}ms` });
       throw error;
     }

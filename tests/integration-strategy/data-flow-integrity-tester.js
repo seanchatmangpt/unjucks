@@ -524,7 +524,7 @@ ex:Props2 a ex:ComponentProp ;
         return { ...data, validated: true };
 
       case 'memory_write':
-        return { ...data, stored: true, timestamp: Date.now() };
+        return { ...data, stored: true, timestamp: this.getDeterministicTimestamp() };
 
       case 'memory_read':
         return { ...data, retrieved: true };
@@ -754,7 +754,7 @@ ex:Props2 a ex:ComponentProp ;
       this.transactionLog.push({
         scenario: scenario.name,
         step: step,
-        timestamp: Date.now()
+        timestamp: this.getDeterministicTimestamp()
       });
       
       // Simulate failure at specific steps
@@ -843,7 +843,7 @@ ex:Props2 a ex:ComponentProp ;
     };
 
     // Save report
-    const reportPath = path.join(this.options.projectRoot, 'tests/reports', `data-flow-integrity-report-${Date.now()}.json`);
+    const reportPath = path.join(this.options.projectRoot, 'tests/reports', `data-flow-integrity-report-${this.getDeterministicTimestamp()}.json`);
     await fs.ensureDir(path.dirname(reportPath));
     await fs.writeJSON(reportPath, report, { spaces: 2 });
 

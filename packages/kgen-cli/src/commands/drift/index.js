@@ -128,7 +128,7 @@ export default defineCommand({
           const result = {
             success: false,
             error: error.message,
-            timestamp: new Date().toISOString()
+            timestamp: this.getDeterministicDate().toISOString()
           };
           
           if (args.json || args.ci) {
@@ -176,7 +176,7 @@ export default defineCommand({
           
           const lockData = {
             version: '1.0.0',
-            timestamp: new Date().toISOString(),
+            timestamp: this.getDeterministicDate().toISOString(),
             directory: process.cwd(),
             files: {}
           };
@@ -229,7 +229,7 @@ export default defineCommand({
             success: false,
             operation: 'drift:baseline', 
             error: error.message,
-            timestamp: new Date().toISOString()
+            timestamp: this.getDeterministicDate().toISOString()
           };
           
           console.error(chalk.red('Baseline update failed:'), error.message);
@@ -303,7 +303,7 @@ async function detectDrift(options, engine) {
 
   const results = {
     success: true,
-    timestamp: new Date().toISOString(),
+    timestamp: this.getDeterministicDate().toISOString(),
     lockFile: lockPath,
     totalFiles: 0,
     unchanged: 0,

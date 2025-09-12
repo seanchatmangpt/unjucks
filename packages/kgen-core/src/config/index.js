@@ -87,7 +87,7 @@ export async function initConfig(options = {}) {
     
     // Create directories if requested
     if (createDirectories) {
-      const { mkdirp } = await import('mkdirp');
+      const mkdirp = (await import('mkdirp')).default;
       const { join } = await import('node:path');
       
       for (const [key, dir] of Object.entries(configResult.config.directories)) {

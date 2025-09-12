@@ -224,8 +224,8 @@ export class LaTeXOfficeProcessor extends EventEmitter {
           warnings: []
         },
         stats: {
-          startTime: new Date(),
-          endTime: new Date(),
+          startTime: this.getDeterministicDate(),
+          endTime: this.getDeterministicDate(),
           duration: 0,
           variablesProcessed: 0,
           injectionsPerformed: 0,
@@ -625,7 +625,7 @@ export class LaTeXOfficeProcessor extends EventEmitter {
       return this.options.output.naming
         .replace('{name}', baseName)
         .replace('{index}', index)
-        .replace('{timestamp}', Date.now())
+        .replace('{timestamp}', this.getDeterministicTimestamp())
         .replace('{ext}', extension);
     }
     
@@ -704,9 +704,9 @@ export class LaTeXOfficeProcessor extends EventEmitter {
       }
     };
     
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     await scanDirectory(directory);
-    const duration = Date.now() - startTime;
+    const duration = this.getDeterministicTimestamp() - startTime;
     
     // Calculate type distribution
     const typeDistribution = templates.reduce((acc, template) => {

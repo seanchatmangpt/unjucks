@@ -70,7 +70,7 @@ export class CircuitBreaker extends EventEmitter {
     // State management
     this.state = CircuitState.CLOSED;
     this.lastFailureTime = null;
-    this.lastStateChange = Date.now();
+    this.lastStateChange = this.getDeterministicTimestamp();
     this.nextAttemptTime = 0;
     
     // Counters
@@ -107,7 +107,7 @@ export class CircuitBreaker extends EventEmitter {
    */
   async execute(operation, fallback = null) {
     const callId = this._generateCallId();
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       // Check if we can execute the call
@@ -123,15 +123,15 @@ export class CircuitBreaker extends EventEmitter {
       const result = await this._executeWithTimeout(operation, callId);
       
       // Record success
-      this._recordSuccess(Date.now() - startTime);
+      this._recordSuccess(this.getDeterministicTimestamp() - startTime);
       
-      this.logger.debug(`Call ${callId} succeeded in ${Date.now() - startTime}ms`);
+      this.logger.debug(`Call ${callId} succeeded in ${this.getDeterministicTimestamp() - startTime}ms`);
       
       return result;
       
     } catch (error) {
       // Record failure
-      this._recordFailure(error, Date.now() - startTime);
+      this._recordFailure(error, this.getDeterministicTimestamp() - startTime);
       
       this.logger.warn(`Call ${callId} failed: ${error.message}`);
       
@@ -160,15 +160,15 @@ export class CircuitBreaker extends EventEmitter {
   forceState(newState, reason = 'manual') {
     const oldState = this.state;
     this.state = newState;
-    this.lastStateChange = Date.now();
+    this.lastStateChange = this.getDeterministicTimestamp();
     this.metrics.stateTransitions++;
     
     if (newState === CircuitState.OPEN) {
-      this.nextAttemptTime = Date.now() + this.adaptiveTimeoutValue;
+      this.nextAttemptTime = this.getDeterministicTimestamp() + this.adaptiveTimeoutValue;
     }
     
     this.logger.info(`Circuit breaker state changed: ${oldState} -> ${newState} (${reason})`);
-    this.emit('state:changed', { oldState, newState, reason, timestamp: Date.now() });
+    this.emit('state:changed', { oldState, newState, reason, timestamp: this.getDeterministicTimestamp() });
   }
   
   /**
@@ -186,7 +186,7 @@ export class CircuitBreaker extends EventEmitter {
         return; // Always allow calls
         
       case CircuitState.OPEN:
-        if (Date.now() < this.nextAttemptTime) {
+        if (this.getDeterministicTimestamp() < this.nextAttemptTime) {
           this.metrics.rejectedCalls++;
           throw new Error(`Circuit breaker ${this.name} is OPEN. Next attempt allowed at ${new Date(this.nextAttemptTime).toISOString()}`);
         }
@@ -236,7 +236,7 @@ export class CircuitBreaker extends EventEmitter {
     this.consecutiveFailures = 0;
     
     // Add to call history for rate calculations
-    this._addToHistory(this.callHistory, { success: true, timestamp: Date.now(), responseTime });
+    this._addToHistory(this.callHistory, { success: true, timestamp: this.getDeterministicTimestamp(), responseTime });
     
     // Adjust adaptive timeout based on response time
     if (this.config.adaptiveTimeout) {
@@ -251,7 +251,7 @@ export class CircuitBreaker extends EventEmitter {
     this.emit('call:success', {
       responseTime,
       state: this.state,
-      timestamp: Date.now()
+      timestamp: this.getDeterministicTimestamp()
     });
   }
   
@@ -261,11 +261,11 @@ export class CircuitBreaker extends EventEmitter {
   _recordFailure(error, responseTime) {
     this.totalFailures++;
     this.consecutiveFailures++;
-    this.lastFailureTime = Date.now();
+    this.lastFailureTime = this.getDeterministicTimestamp();
     
     // Add to failure history for rate calculations
-    this._addToHistory(this.failureHistory, { error: error.message, timestamp: Date.now(), responseTime });
-    this._addToHistory(this.callHistory, { success: false, timestamp: Date.now(), responseTime, error: error.message });
+    this._addToHistory(this.failureHistory, { error: error.message, timestamp: this.getDeterministicTimestamp(), responseTime });
+    this._addToHistory(this.callHistory, { success: false, timestamp: this.getDeterministicTimestamp(), responseTime, error: error.message });
     
     // Adjust adaptive timeout based on failure
     if (this.config.adaptiveTimeout) {
@@ -280,7 +280,7 @@ export class CircuitBreaker extends EventEmitter {
       responseTime,
       state: this.state,
       consecutiveFailures: this.consecutiveFailures,
-      timestamp: Date.now()
+      timestamp: this.getDeterministicTimestamp()
     });
   }
   
@@ -329,13 +329,13 @@ export class CircuitBreaker extends EventEmitter {
   _transitionToOpen(reason) {
     const oldState = this.state;
     this.state = CircuitState.OPEN;
-    this.lastStateChange = Date.now();
+    this.lastStateChange = this.getDeterministicTimestamp();
     this.metrics.stateTransitions++;
     this.halfOpenCalls = 0;
     
     // Calculate next attempt time with backoff
     const backoffMultiplier = Math.min(Math.pow(2, this.metrics.stateTransitions), 8); // Max 8x backoff
-    this.nextAttemptTime = Date.now() + (this.adaptiveTimeoutValue * backoffMultiplier);
+    this.nextAttemptTime = this.getDeterministicTimestamp() + (this.adaptiveTimeoutValue * backoffMultiplier);
     
     this.logger.warn(`Circuit breaker opened: ${reason}. Next attempt at ${new Date(this.nextAttemptTime).toISOString()}`);
     
@@ -344,7 +344,7 @@ export class CircuitBreaker extends EventEmitter {
       newState: CircuitState.OPEN,
       reason,
       nextAttemptTime: this.nextAttemptTime,
-      timestamp: Date.now()
+      timestamp: this.getDeterministicTimestamp()
     });
     
     // Start health checking to automatically transition to half-open
@@ -357,7 +357,7 @@ export class CircuitBreaker extends EventEmitter {
   _transitionToHalfOpen() {
     const oldState = this.state;
     this.state = CircuitState.HALF_OPEN;
-    this.lastStateChange = Date.now();
+    this.lastStateChange = this.getDeterministicTimestamp();
     this.metrics.stateTransitions++;
     this.halfOpenCalls = 0;
     
@@ -367,7 +367,7 @@ export class CircuitBreaker extends EventEmitter {
       oldState,
       newState: CircuitState.HALF_OPEN,
       reason: 'timeout_expired',
-      timestamp: Date.now()
+      timestamp: this.getDeterministicTimestamp()
     });
   }
   
@@ -379,7 +379,7 @@ export class CircuitBreaker extends EventEmitter {
     if (this.halfOpenCalls >= this.config.halfOpenMaxCalls) {
       const oldState = this.state;
       this.state = CircuitState.CLOSED;
-      this.lastStateChange = Date.now();
+      this.lastStateChange = this.getDeterministicTimestamp();
       this.metrics.stateTransitions++;
       this.halfOpenCalls = 0;
       this.consecutiveFailures = 0;
@@ -390,7 +390,7 @@ export class CircuitBreaker extends EventEmitter {
         oldState,
         newState: CircuitState.CLOSED,
         reason: 'half_open_success',
-        timestamp: Date.now()
+        timestamp: this.getDeterministicTimestamp()
       });
     }
   }
@@ -431,7 +431,7 @@ export class CircuitBreaker extends EventEmitter {
         oldTimeout: currentTimeout,
         newTimeout,
         reason: success ? 'fast_response' : 'slow_response',
-        timestamp: Date.now()
+        timestamp: this.getDeterministicTimestamp()
       });
     }
   }
@@ -443,7 +443,7 @@ export class CircuitBreaker extends EventEmitter {
     history.push(entry);
     
     // Remove entries outside time window
-    const cutoff = Date.now() - this.config.timeWindow;
+    const cutoff = this.getDeterministicTimestamp() - this.config.timeWindow;
     while (history.length > 0 && history[0].timestamp < cutoff) {
       history.shift();
     }
@@ -453,7 +453,7 @@ export class CircuitBreaker extends EventEmitter {
    * Get recent failures within time window
    */
   _getRecentFailures() {
-    const cutoff = Date.now() - this.config.timeWindow;
+    const cutoff = this.getDeterministicTimestamp() - this.config.timeWindow;
     return this.failureHistory.filter(entry => entry.timestamp >= cutoff);
   }
   
@@ -461,7 +461,7 @@ export class CircuitBreaker extends EventEmitter {
    * Get recent calls within time window
    */
   _getRecentCalls() {
-    const cutoff = Date.now() - this.config.timeWindow;
+    const cutoff = this.getDeterministicTimestamp() - this.config.timeWindow;
     return this.callHistory.filter(entry => entry.timestamp >= cutoff);
   }
   
@@ -470,11 +470,11 @@ export class CircuitBreaker extends EventEmitter {
    */
   _scheduleStateTransition() {
     if (this.state === CircuitState.OPEN) {
-      const timeUntilNextAttempt = this.nextAttemptTime - Date.now();
+      const timeUntilNextAttempt = this.nextAttemptTime - this.getDeterministicTimestamp();
       
       if (timeUntilNextAttempt > 0) {
         setTimeout(() => {
-          if (this.state === CircuitState.OPEN && Date.now() >= this.nextAttemptTime) {
+          if (this.state === CircuitState.OPEN && this.getDeterministicTimestamp() >= this.nextAttemptTime) {
             this._transitionToHalfOpen();
           }
         }, timeUntilNextAttempt);
@@ -503,7 +503,7 @@ export class CircuitBreaker extends EventEmitter {
       // Basic health metrics
       const healthMetrics = {
         state: this.state,
-        uptime: Date.now() - this.lastStateChange,
+        uptime: this.getDeterministicTimestamp() - this.lastStateChange,
         failureRate: this.totalCalls > 0 ? (this.totalFailures / this.totalCalls * 100).toFixed(2) : 0,
         consecutiveFailures: this.consecutiveFailures,
         concurrentCalls: this.concurrentCalls,
@@ -511,14 +511,14 @@ export class CircuitBreaker extends EventEmitter {
       };
       
       this.emit('health:checked', {
-        timestamp: Date.now(),
+        timestamp: this.getDeterministicTimestamp(),
         metrics: healthMetrics,
         status: this._getHealthStatus()
       });
       
     } catch (error) {
       this.logger.error('Health check failed:', error);
-      this.emit('health:error', { error: error.message, timestamp: Date.now() });
+      this.emit('health:error', { error: error.message, timestamp: this.getDeterministicTimestamp() });
     }
   }
   
@@ -557,7 +557,7 @@ export class CircuitBreaker extends EventEmitter {
     const recentFailures = this._getRecentFailures();
     
     const metrics = {
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       name: this.name,
       state: this.state,
       totals: {
@@ -583,7 +583,7 @@ export class CircuitBreaker extends EventEmitter {
         ...this.metrics,
         consecutiveFailures: this.consecutiveFailures,
         concurrentCalls: this.concurrentCalls,
-        uptime: Date.now() - this.lastStateChange
+        uptime: this.getDeterministicTimestamp() - this.lastStateChange
       }
     };
     
@@ -652,7 +652,7 @@ export class CircuitBreaker extends EventEmitter {
     this.totalCalls = 0;
     this.halfOpenCalls = 0;
     this.lastFailureTime = null;
-    this.lastStateChange = Date.now();
+    this.lastStateChange = this.getDeterministicTimestamp();
     this.nextAttemptTime = 0;
     this.adaptiveTimeoutValue = this.config.timeout;
     
@@ -668,7 +668,7 @@ export class CircuitBreaker extends EventEmitter {
     };
     
     this.logger.info('Circuit breaker reset to initial state');
-    this.emit('circuit:reset', { timestamp: Date.now() });
+    this.emit('circuit:reset', { timestamp: this.getDeterministicTimestamp() });
   }
   
   /**
@@ -680,7 +680,7 @@ export class CircuitBreaker extends EventEmitter {
       this.healthCheckTimer = null;
     }
     
-    this.emit('circuit:shutdown', { timestamp: Date.now() });
+    this.emit('circuit:shutdown', { timestamp: this.getDeterministicTimestamp() });
     this.logger.info('Circuit breaker shutdown');
   }
   
@@ -688,7 +688,7 @@ export class CircuitBreaker extends EventEmitter {
    * Generate unique call ID
    */
   _generateCallId() {
-    return `${this.name}-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
+    return `${this.name}-${this.getDeterministicTimestamp()}-${Math.random().toString(36).substring(2, 8)}`;
   }
 }
 
@@ -745,7 +745,7 @@ export class CircuitBreakerManager extends EventEmitter {
     }
     
     return {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       totalCircuitBreakers: this.circuitBreakers.size,
       circuitBreakers: stats
     };

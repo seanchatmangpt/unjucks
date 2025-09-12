@@ -113,7 +113,7 @@ describe('DriftDetectionEngine', () => {
     // Create sample lockfile
     const lockData = {
       version: '1.0.0',
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       directory: TEST_DIR,
       files: {}
     };
@@ -123,7 +123,7 @@ describe('DriftDetectionEngine', () => {
       if (name !== 'new-file.ttl' && existsSync(path)) {
         const content = readFileSync(path);
         const hash = createHash('sha256').update(content).digest('hex');
-        const stat = { size: content.length, mtime: new Date() };
+        const stat = { size: content.length, mtime: this.getDeterministicDate() };
         
         lockData.files[name] = {
           hash,
@@ -319,7 +319,7 @@ ex:Person a ex:Class .`; // Missing required hasName and hasAge
       lockData.files['test-file.js'] = {
         hash: createHash('sha256').update(content).digest('hex'),
         size: content.length,
-        modified: new Date().toISOString()
+        modified: this.getDeterministicDate().toISOString()
       };
       writeFileSync(LOCK_FILE, JSON.stringify(lockData, null, 2));
       
@@ -601,14 +601,14 @@ ex:Person a ex:Class .`; // Missing required hasName and hasAge
         lockData.files[name] = {
           hash: createHash('sha256').update(content).digest('hex'),
           size: content.length,
-          modified: new Date().toISOString()
+          modified: this.getDeterministicDate().toISOString()
         };
       });
       writeFileSync(LOCK_FILE, JSON.stringify(lockData, null, 2));
       
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const results = await engine.detectDrift();
-      const duration = Date.now() - startTime;
+      const duration = this.getDeterministicTimestamp() - startTime;
       
       expect(results.success).toBe(true);
       expect(results.totalFiles).toBe(52); // 2 original + 50 new
@@ -644,7 +644,7 @@ ex:Person a ex:Class .`; // Missing required hasName and hasAge
       lockData.files['protected.ttl'] = {
         hash: 'some-hash',
         size: 100,
-        modified: new Date().toISOString()
+        modified: this.getDeterministicDate().toISOString()
       };
       writeFileSync(LOCK_FILE, JSON.stringify(lockData, null, 2));
       

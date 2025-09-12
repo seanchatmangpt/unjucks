@@ -19,7 +19,7 @@ export default {
     globalVars: {               // Global variables available to all templates
       author: 'KGEN Team',
       license: 'MIT',
-      timestamp: () => new Date().toISOString()
+      timestamp: () => this.getDeterministicDate().toISOString()
     },
     attestByDefault: true,      // Generate attestations by default
     cleanOutput: false,         // Clean output directory before generation

@@ -130,7 +130,7 @@ export class QueryResultMerger extends EventEmitter {
    */
   async mergeResults(results, executionPlan, options = {}) {
     const mergeId = crypto.randomUUID();
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       console.log(`🔀 Merging results from ${results.length || results.results?.length || 0} sources (${mergeId})`);
@@ -178,7 +178,7 @@ export class QueryResultMerger extends EventEmitter {
       const processedResults = await this.postProcessResults(finalData, qualityMetrics, options);
       
       // Update statistics
-      this.updateMergeStatistics(mergeId, 'success', Date.now() - startTime, processedResults);
+      this.updateMergeStatistics(mergeId, 'success', this.getDeterministicTimestamp() - startTime, processedResults);
       
       const result = {
         success: true,
@@ -189,7 +189,7 @@ export class QueryResultMerger extends EventEmitter {
           sourceCount: normalizedData.length,
           duplicatesRemoved: this.state.statistics.duplicatesRemoved,
           conflictsResolved: mergedData.conflicts?.length || 0,
-          mergeTime: Date.now() - startTime,
+          mergeTime: this.getDeterministicTimestamp() - startTime,
           qualityScore: qualityMetrics.overall || 0,
           deduplicationEnabled: this.config.deduplication,
           ...processedResults.metadata
@@ -200,14 +200,14 @@ export class QueryResultMerger extends EventEmitter {
       
       this.emit('mergeCompleted', result);
       
-      console.log(`✅ Results merged successfully (${Date.now() - startTime}ms)`);
+      console.log(`✅ Results merged successfully (${this.getDeterministicTimestamp() - startTime}ms)`);
       
       return result;
       
     } catch (error) {
       console.error(`❌ Result merge failed (${mergeId}):`, error);
       
-      this.updateMergeStatistics(mergeId, 'failure', Date.now() - startTime);
+      this.updateMergeStatistics(mergeId, 'failure', this.getDeterministicTimestamp() - startTime);
       
       throw new Error(`Result merge failed: ${error.message}`);
     }
@@ -943,7 +943,7 @@ export class QueryResultMerger extends EventEmitter {
         source: result.endpointId || result.source || 'unknown',
         priority: result.priority || 1,
         weight: result.weight || 1.0,
-        timestamp: result.timestamp || new Date().toISOString(),
+        timestamp: result.timestamp || this.getDeterministicDate().toISOString(),
         metadata: result.metadata || {}
       };
       
@@ -1154,7 +1154,7 @@ export class QueryResultMerger extends EventEmitter {
     }
     
     if (result.timestamp) {
-      const age = Date.now() - new Date(result.timestamp).getTime();
+      const age = this.getDeterministicTimestamp() - new Date(result.timestamp).getTime();
       const ageInDays = age / (1000 * 60 * 60 * 24);
       quality += Math.max(0, 0.2 - (ageInDays / 365) * 0.2); // Fresher data = higher quality
     }
@@ -1291,7 +1291,7 @@ export class QueryResultMerger extends EventEmitter {
     
     let totalAge = 0;
     let itemsWithTimestamp = 0;
-    const now = Date.now();
+    const now = this.getDeterministicTimestamp();
     
     for (const item of finalData.data) {
       const timestamp = this.extractTimestamp(item);
@@ -1379,7 +1379,7 @@ export class QueryResultMerger extends EventEmitter {
       strategy,
       sourceCount: results.length,
       sources: results.map(r => r.source),
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     };
   }
   
@@ -1424,7 +1424,7 @@ export class QueryResultMerger extends EventEmitter {
   getStatistics() {
     return {
       ...this.state.statistics,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     };
   }
   

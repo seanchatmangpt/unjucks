@@ -119,7 +119,7 @@ export const main = defineCommand({
           'kgen project lock --output project.lock'
         ]
       },
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     };
 
     console.log(JSON.stringify(result, null, 2));

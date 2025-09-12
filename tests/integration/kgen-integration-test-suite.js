@@ -32,7 +32,7 @@ class KGenIntegrationTester {
   }
 
   log(message) {
-    console.log(`[KGEN-TEST] ${new Date().toISOString()} ${message}`);
+    console.log(`[KGEN-TEST] ${this.getDeterministicDate().toISOString()} ${message}`);
   }
 
   async runCommand(command) {
@@ -82,9 +82,9 @@ class KGenIntegrationTester {
 
     for (const test of tests) {
       this.testResults.total++;
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const result = await this.runCommand(test.command);
-      const duration = Date.now() - startTime;
+      const duration = this.getDeterministicTimestamp() - startTime;
       
       this.testResults.performance[test.name] = duration;
 
@@ -141,9 +141,9 @@ class KGenIntegrationTester {
 
     for (const test of tests) {
       this.testResults.total++;
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const result = await this.runCommand(test.command);
-      const duration = Date.now() - startTime;
+      const duration = this.getDeterministicTimestamp() - startTime;
 
       this.testResults.performance[test.name] = duration;
 
@@ -174,9 +174,9 @@ class KGenIntegrationTester {
 
     for (const test of tests) {
       this.testResults.total++;
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const result = await this.runCommand(test.command);
-      const duration = Date.now() - startTime;
+      const duration = this.getDeterministicTimestamp() - startTime;
 
       this.testResults.performance[test.name] = duration;
 
@@ -207,9 +207,9 @@ class KGenIntegrationTester {
 
     for (const test of tests) {
       this.testResults.total++;
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const result = await this.runCommand(test.command);
-      const duration = Date.now() - startTime;
+      const duration = this.getDeterministicTimestamp() - startTime;
 
       this.testResults.performance[test.name] = duration;
 
@@ -227,13 +227,13 @@ class KGenIntegrationTester {
   async performanceStressTest() {
     this.log('Running Performance Stress Tests...');
     const iterations = 10;
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
 
     for (let i = 0; i < iterations; i++) {
       await this.runCommand('graph hash test.ttl');
     }
 
-    const totalTime = Date.now() - startTime;
+    const totalTime = this.getDeterministicTimestamp() - startTime;
     const avgTime = totalTime / iterations;
 
     this.testResults.performance['Stress Test - Average Hash Time'] = avgTime;

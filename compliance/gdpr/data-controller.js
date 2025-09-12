@@ -30,14 +30,14 @@ class GDPRDataController {
 
     this.processingActivities.set(activity.id, {
       ...activity,
-      registeredAt: new Date().toISOString(),
+      registeredAt: this.getDeterministicDate().toISOString(),
       status: 'active'
     });
 
     this.logEvent('processing_activity_registered', {
       activityId: activity.id,
       purpose: activity.purpose,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     });
 
     return activity.id;
@@ -47,13 +47,13 @@ class GDPRDataController {
    * Record consent from data subject
    */
   recordConsent(dataSubjectId, purposes, metadata = {}) {
-    const consentId = `consent_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const consentId = `consent_${this.getDeterministicTimestamp()}_${Math.random().toString(36).substr(2, 9)}`;
     
     const consentRecord = {
       id: consentId,
       dataSubjectId,
       purposes,
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       ipAddress: metadata.ipAddress,
       userAgent: metadata.userAgent,
       method: metadata.method || 'explicit',
@@ -69,19 +69,19 @@ class GDPRDataController {
         id: dataSubjectId,
         consents: [],
         requests: [],
-        lastActivity: new Date().toISOString()
+        lastActivity: this.getDeterministicDate().toISOString()
       });
     }
     
     const subject = this.dataSubjects.get(dataSubjectId);
     subject.consents.push(consentId);
-    subject.lastActivity = new Date().toISOString();
+    subject.lastActivity = this.getDeterministicDate().toISOString();
 
     this.logEvent('consent_recorded', {
       consentId,
       dataSubjectId,
       purposes,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     });
 
     return consentId;
@@ -97,14 +97,14 @@ class GDPRDataController {
     }
 
     consent.status = 'withdrawn';
-    consent.withdrawnAt = new Date().toISOString();
+    consent.withdrawnAt = this.getDeterministicDate().toISOString();
     consent.withdrawalReason = reason;
 
     this.logEvent('consent_withdrawn', {
       consentId,
       dataSubjectId: consent.dataSubjectId,
       reason,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     });
 
     // Trigger data deletion if no other lawful basis
@@ -117,7 +117,7 @@ class GDPRDataController {
    * Handle data subject access request (Article 15)
    */
   handleAccessRequest(dataSubjectId, requestId = null) {
-    requestId = requestId || `sar_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    requestId = requestId || `sar_${this.getDeterministicTimestamp()}_${Math.random().toString(36).substr(2, 9)}`;
     
     const subject = this.dataSubjects.get(dataSubjectId);
     if (!subject) {
@@ -140,7 +140,7 @@ class GDPRDataController {
       id: requestId,
       type: 'access',
       dataSubjectId,
-      requestedAt: new Date().toISOString(),
+      requestedAt: this.getDeterministicDate().toISOString(),
       status: 'fulfilled',
       data: personalData
     };
@@ -150,7 +150,7 @@ class GDPRDataController {
     this.logEvent('access_request_fulfilled', {
       requestId,
       dataSubjectId,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     });
 
     return { data: personalData, requestId };
@@ -160,7 +160,7 @@ class GDPRDataController {
    * Handle data portability request (Article 20)
    */
   handlePortabilityRequest(dataSubjectId, format = 'json') {
-    const requestId = `port_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const requestId = `port_${this.getDeterministicTimestamp()}_${Math.random().toString(36).substr(2, 9)}`;
     
     const accessResult = this.handleAccessRequest(dataSubjectId, requestId);
     if (accessResult.error) {
@@ -170,7 +170,7 @@ class GDPRDataController {
     // Filter to machine-readable data only
     const portableData = {
       dataSubjectId,
-      exportedAt: new Date().toISOString(),
+      exportedAt: this.getDeterministicDate().toISOString(),
       format,
       data: {
         personalData: accessResult.data.dataCategories,
@@ -183,7 +183,7 @@ class GDPRDataController {
       requestId,
       dataSubjectId,
       format,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     });
 
     return { data: portableData, requestId };
@@ -193,7 +193,7 @@ class GDPRDataController {
    * Handle erasure request (Article 17 - Right to be forgotten)
    */
   handleErasureRequest(dataSubjectId, reason = '') {
-    const requestId = `erase_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const requestId = `erase_${this.getDeterministicTimestamp()}_${Math.random().toString(36).substr(2, 9)}`;
     
     const subject = this.dataSubjects.get(dataSubjectId);
     if (!subject) {
@@ -217,7 +217,7 @@ class GDPRDataController {
       id: requestId,
       type: 'erasure',
       dataSubjectId,
-      requestedAt: new Date().toISOString(),
+      requestedAt: this.getDeterministicDate().toISOString(),
       status: 'fulfilled',
       reason,
       result: erasureResult
@@ -230,7 +230,7 @@ class GDPRDataController {
       dataSubjectId,
       reason,
       itemsErased: erasureResult.itemsErased,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     });
 
     return { result: erasureResult, requestId };
@@ -252,7 +252,7 @@ class GDPRDataController {
       const lastActivity = new Date(subject.lastActivity);
       const retentionExpiry = new Date(lastActivity.getTime() + (this.config.retentionPeriod * 24 * 60 * 60 * 1000));
       
-      if (new Date() > retentionExpiry) {
+      if (this.getDeterministicDate() > retentionExpiry) {
         // Trigger automatic erasure
         this.handleErasureRequest(dataSubjectId, 'Automatic retention period expiry');
         return false;
@@ -361,7 +361,7 @@ class GDPRDataController {
 
     return {
       itemsErased,
-      erasedAt: new Date().toISOString(),
+      erasedAt: this.getDeterministicDate().toISOString(),
       categories: ['consent_records', 'subject_profile']
     };
   }
@@ -371,7 +371,7 @@ class GDPRDataController {
    */
   logEvent(eventType, data) {
     const logEntry = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       eventType,
       data,
       controller: this.config.organizationName
@@ -394,7 +394,7 @@ class GDPRDataController {
     const totalActivities = this.processingActivities.size;
 
     return {
-      reportGeneratedAt: new Date().toISOString(),
+      reportGeneratedAt: this.getDeterministicDate().toISOString(),
       organization: this.config.organizationName,
       summary: {
         totalDataSubjects: totalSubjects,

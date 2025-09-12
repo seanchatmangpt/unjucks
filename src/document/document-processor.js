@@ -109,7 +109,7 @@ class DocumentStructureProcessor {
       toc: toc,
       metadata: {
         ...metadata,
-        processed: new Date().toISOString(),
+        processed: this.getDeterministicDate().toISOString(),
         documentType: this.options.documentType,
         totalSections: this.structure.hierarchy.length
       }

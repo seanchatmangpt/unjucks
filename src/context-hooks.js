@@ -80,7 +80,7 @@ export class KgenContextHooks extends EventEmitter {
    */
   async extractTemplateContext(templateInfo, options = {}) {
     const extractionId = this._generateExtractionId();
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       console.log(`[Context Hooks] Extracting context for template: ${templateInfo.name || templateInfo.id}`);
@@ -112,13 +112,13 @@ export class KgenContextHooks extends EventEmitter {
       const context = await this._performContextExtraction(templateInfo, options);
       
       // Add extraction metadata
-      const executionTime = Date.now() - startTime;
+      const executionTime = this.getDeterministicTimestamp() - startTime;
       context.metadata = {
         ...context.metadata,
         extractionId,
         extractionTime: executionTime,
         templateInfo,
-        extractedAt: new Date().toISOString()
+        extractedAt: this.getDeterministicDate().toISOString()
       };
       
       // Cache the context
@@ -140,7 +140,7 @@ export class KgenContextHooks extends EventEmitter {
       return context;
       
     } catch (error) {
-      const executionTime = Date.now() - startTime;
+      const executionTime = this.getDeterministicTimestamp() - startTime;
       this._updateExtractionMetrics({ extractionId, templateInfo }, executionTime, false);
       this.activeExtractions.delete(extractionId);
       
@@ -160,7 +160,7 @@ export class KgenContextHooks extends EventEmitter {
       const hookContext = {
         ...context,
         templateInfo,
-        preprocessedAt: new Date().toISOString()
+        preprocessedAt: this.getDeterministicDate().toISOString()
       };
       
       // Extract additional context if needed
@@ -219,7 +219,7 @@ export class KgenContextHooks extends EventEmitter {
         ...context,
         artifactAnalysis,
         insights,
-        processedAt: new Date().toISOString()
+        processedAt: this.getDeterministicDate().toISOString()
       };
       
       this.emit('hook:post_template', { templateInfo, context: postContext, artifacts });
@@ -360,7 +360,7 @@ export class KgenContextHooks extends EventEmitter {
         operation,
         lineage: provenance.results.bindings,
         metadata: {
-          trackedAt: new Date().toISOString(),
+          trackedAt: this.getDeterministicDate().toISOString(),
           depth: options.depth || 5,
           direction: options.direction || 'both'
         }
@@ -441,7 +441,7 @@ export class KgenContextHooks extends EventEmitter {
       resourceType,
       context: apiContext,
       formatted: JSON.parse(formattedContext),
-      extractedAt: new Date().toISOString()
+      extractedAt: this.getDeterministicDate().toISOString()
     };
   }
 
@@ -465,7 +465,7 @@ export class KgenContextHooks extends EventEmitter {
       relationships: templateContext.relationships,
       properties: Object.fromEntries(templateContext.properties),
       variables: Object.fromEntries(templateContext.templateVariables),
-      extractedAt: new Date().toISOString()
+      extractedAt: this.getDeterministicDate().toISOString()
     };
   }
 
@@ -488,7 +488,7 @@ export class KgenContextHooks extends EventEmitter {
       endpoints: templateContext.relationships,
       operations: this._extractOperations(templateContext),
       variables: Object.fromEntries(templateContext.templateVariables),
-      extractedAt: new Date().toISOString()
+      extractedAt: this.getDeterministicDate().toISOString()
     };
   }
 
@@ -512,7 +512,7 @@ export class KgenContextHooks extends EventEmitter {
       columns: this._extractColumns(templateContext),
       relationships: templateContext.relationships,
       variables: Object.fromEntries(templateContext.templateVariables),
-      extractedAt: new Date().toISOString()
+      extractedAt: this.getDeterministicDate().toISOString()
     };
   }
 
@@ -534,7 +534,7 @@ export class KgenContextHooks extends EventEmitter {
       type: 'generic',
       context: templateContext,
       variables: Object.fromEntries(templateContext.templateVariables),
-      extractedAt: new Date().toISOString()
+      extractedAt: this.getDeterministicDate().toISOString()
     };
   }
 
@@ -545,7 +545,7 @@ export class KgenContextHooks extends EventEmitter {
       templateType: templateInfo.type,
       templateVersion: templateInfo.version || '1.0.0',
       contextHash: this._generateContextHash(context),
-      buildTime: new Date().toISOString()
+      buildTime: this.getDeterministicDate().toISOString()
     };
   }
 
@@ -611,7 +611,7 @@ export class KgenContextHooks extends EventEmitter {
         operationType: a.operationType
       })),
       analysis,
-      completedAt: new Date().toISOString()
+      completedAt: this.getDeterministicDate().toISOString()
     };
   }
 
@@ -737,7 +737,7 @@ export class KgenContextHooks extends EventEmitter {
   }
 
   _generateExtractionId() {
-    return `ctx_extract_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    return `ctx_extract_${this.getDeterministicTimestamp()}_${Math.random().toString(36).substr(2, 9)}`;
   }
 
   _generateCacheKey(templateInfo, options) {
@@ -752,7 +752,7 @@ export class KgenContextHooks extends EventEmitter {
   }
 
   _isCacheValid(cached) {
-    return (Date.now() - cached.timestamp) < this.config.contextCacheTTL;
+    return (this.getDeterministicTimestamp() - cached.timestamp) < this.config.contextCacheTTL;
   }
 
   _cacheContext(cacheKey, context, executionTime) {
@@ -760,7 +760,7 @@ export class KgenContextHooks extends EventEmitter {
     
     this.contextCache.set(cacheKey, {
       context,
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       executionTime,
       size: contextSize
     });
@@ -788,7 +788,7 @@ export class KgenContextHooks extends EventEmitter {
       ...extraction,
       executionTime,
       success,
-      timestamp: Date.now()
+      timestamp: this.getDeterministicTimestamp()
     });
     
     // Limit history size

@@ -21,8 +21,8 @@ class FailureAnalyzer {
     console.log(`🔍 Analyzing failure for workflow: ${this.workflowName}`);
     
     const analysis = {
-      id: `failure-${Date.now()}`,
-      timestamp: new Date().toISOString(),
+      id: `failure-${this.getDeterministicTimestamp()}`,
+      timestamp: this.getDeterministicDate().toISOString(),
       workflow_id: this.workflowId,
       workflow_name: this.workflowName,
       run_url: this.runUrl,

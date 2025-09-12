@@ -31,7 +31,7 @@ defineFeature(feature, (test) => {
   beforeEach(() => {
     auditLog = [];
     processedData = null;
-    startTime = Date.now();
+    startTime = this.getDeterministicTimestamp();
   });
 
   test('Process FHIR Patient Bundle with PHI Protection', ({ given, when, then }) => {
@@ -129,7 +129,7 @@ defineFeature(feature, (test) => {
         'utf8'
       );
       
-      startTime = Date.now();
+      startTime = this.getDeterministicTimestamp();
       processedData = await generateClinicalSummary(fhirData, clinicalTemplate);
     });
 
@@ -158,7 +158,7 @@ defineFeature(feature, (test) => {
     });
 
     then('performance should be under 2 seconds for 100 resources', () => {
-      const processingTime = Date.now() - startTime;
+      const processingTime = this.getDeterministicTimestamp() - startTime;
       expect(processingTime).toBeLessThan(2000);
     });
   });

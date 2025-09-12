@@ -22,7 +22,7 @@ class WorkflowValidator {
   }
 
   log(message, type = 'info') {
-    const timestamp = new Date().toISOString();
+    const timestamp = this.getDeterministicDate().toISOString();
     const prefix = {
       info: '🔍',
       success: '✅',

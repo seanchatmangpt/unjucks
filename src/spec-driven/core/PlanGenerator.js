@@ -31,7 +31,7 @@ export class PlanGenerator {
         metadata: {
           name: `${spec.metadata.name}-execution-plan`,
           description: `Execution plan for ${spec.metadata.name}`,
-          createdAt: new Date().toISOString(),
+          createdAt: this.getDeterministicDate().toISOString(),
           specification: {
             name: spec.metadata.name,
             version: spec.metadata.version || '1.0.0'
@@ -188,7 +188,7 @@ export class PlanGenerator {
    * @returns {string} Plan ID
    */
   generatePlanId() {
-    const timestamp = Date.now();
+    const timestamp = this.getDeterministicTimestamp();
     const random = Math.random().toString(36).substr(2, 9);
     return `plan-${timestamp}-${random}`;
   }

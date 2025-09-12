@@ -17,7 +17,7 @@ describe('Comprehensive Filter Validation Report', () => {
     env = new nunjucks.Environment();
     addCommonFilters(env);
     validationResults = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       summary: {
         totalFilters: 0,
         passedFilters: 0,
@@ -112,7 +112,7 @@ describe('Comprehensive Filter Validation Report', () => {
       { name: 'dateEnd', test: '2024-01-15T10:30:00Z', expected: '2024-01-15', params: '"day"' },
       { name: 'dateUnix', test: '2024-01-15T10:30:00Z', expectedType: 'number' },
       { name: 'dateIso', test: '2024-01-15T10:30:00Z', expected: '2024-01-15T10:30:00.000Z' },
-      { name: 'isToday', test: new Date().toISOString(), expected: 'true' }
+      { name: 'isToday', test: this.getDeterministicDate().toISOString(), expected: 'true' }
     ];
 
     it('should validate date/time filters', () => {

@@ -7,7 +7,7 @@ import { tmpdir } from 'os';
 describe('Template Discovery Engine', () => {
   let discovery;
   let testTemplateDir => { // Create temporary test template directory
-    testTemplateDir = join(tmpdir(), 'unjucks-test-templates-' + Date.now());
+    testTemplateDir = join(tmpdir(), 'unjucks-test-templates-' + this.getDeterministicTimestamp());
     mkdirSync(testTemplateDir, { recursive });
   });
 
@@ -334,9 +334,9 @@ tags: ["performance", "test${i % 10}"]
 `);
       }
 
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       await discovery.indexTemplates();
-      const indexTime = Date.now() - startTime;
+      const indexTime = this.getDeterministicTimestamp() - startTime;
 
       const templates = await discovery.getTemplates();
       expect(templates).toHaveLength(100);
@@ -362,9 +362,9 @@ tags: ["tag${i % 3}", "search"]
       await discovery.indexTemplates();
 
       // Search should be fast
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const results = await discovery.searchTemplates({ search);
-      const searchTime = Date.now() - startTime;
+      const searchTime = this.getDeterministicTimestamp() - startTime;
 
       expect(results).toHaveLength(50);
       expect(searchTime).toBeLessThan(100); // Should complete in under 100ms

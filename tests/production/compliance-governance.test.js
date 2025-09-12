@@ -105,7 +105,7 @@ describe('Production Compliance and Governance Controls Tests', () => {
       const gdprTest = {
         framework: 'GDPR',
         requirement: 'data_minimization',
-        startTime: Date.now(),
+        startTime: this.getDeterministicTimestamp(),
         validations: [],
         status: 'testing'
       };
@@ -136,7 +136,7 @@ describe('Production Compliance and Governance Controls Tests', () => {
         
         gdprTest.complianceScore = (passedValidations / totalValidations) * 100;
         gdprTest.status = gdprTest.complianceScore >= COMPLIANCE_CONFIG.COMPLIANCE_THRESHOLDS.COMPLIANCE_SCORE_MIN ? 'compliant' : 'non_compliant';
-        gdprTest.duration = Date.now() - gdprTest.startTime;
+        gdprTest.duration = this.getDeterministicTimestamp() - gdprTest.startTime;
         
         complianceResults.regulations.push(gdprTest);
         
@@ -148,7 +148,7 @@ describe('Production Compliance and Governance Controls Tests', () => {
       } catch (gdprError) {
         gdprTest.status = 'error';
         gdprTest.error = gdprError.message;
-        gdprTest.duration = Date.now() - gdprTest.startTime;
+        gdprTest.duration = this.getDeterministicTimestamp() - gdprTest.startTime;
         
         complianceResults.regulations.push(gdprTest);
         throw gdprError;
@@ -161,7 +161,7 @@ describe('Production Compliance and Governance Controls Tests', () => {
       const consentTest = {
         framework: 'GDPR',
         requirement: 'consent_management',
-        startTime: Date.now(),
+        startTime: this.getDeterministicTimestamp(),
         validations: [],
         status: 'testing'
       };
@@ -188,7 +188,7 @@ describe('Production Compliance and Governance Controls Tests', () => {
         
         consentTest.complianceScore = (passedValidations / totalValidations) * 100;
         consentTest.status = consentTest.complianceScore >= COMPLIANCE_CONFIG.COMPLIANCE_THRESHOLDS.COMPLIANCE_SCORE_MIN ? 'compliant' : 'non_compliant';
-        consentTest.duration = Date.now() - consentTest.startTime;
+        consentTest.duration = this.getDeterministicTimestamp() - consentTest.startTime;
         
         complianceResults.privacyControls.push(consentTest);
         
@@ -199,7 +199,7 @@ describe('Production Compliance and Governance Controls Tests', () => {
       } catch (consentError) {
         consentTest.status = 'error';
         consentTest.error = consentError.message;
-        consentTest.duration = Date.now() - consentTest.startTime;
+        consentTest.duration = this.getDeterministicTimestamp() - consentTest.startTime;
         
         complianceResults.privacyControls.push(consentTest);
         throw consentError;
@@ -212,7 +212,7 @@ describe('Production Compliance and Governance Controls Tests', () => {
       const erasureTest = {
         framework: 'GDPR',
         requirement: 'right_to_be_forgotten',
-        startTime: Date.now(),
+        startTime: this.getDeterministicTimestamp(),
         validations: [],
         status: 'testing'
       };
@@ -239,7 +239,7 @@ describe('Production Compliance and Governance Controls Tests', () => {
         
         erasureTest.complianceScore = (passedValidations / totalValidations) * 100;
         erasureTest.status = erasureTest.complianceScore >= COMPLIANCE_CONFIG.COMPLIANCE_THRESHOLDS.COMPLIANCE_SCORE_MIN ? 'compliant' : 'non_compliant';
-        erasureTest.duration = Date.now() - erasureTest.startTime;
+        erasureTest.duration = this.getDeterministicTimestamp() - erasureTest.startTime;
         
         complianceResults.privacyControls.push(erasureTest);
         
@@ -250,7 +250,7 @@ describe('Production Compliance and Governance Controls Tests', () => {
       } catch (erasureError) {
         erasureTest.status = 'error';
         erasureTest.error = erasureError.message;
-        erasureTest.duration = Date.now() - erasureTest.startTime;
+        erasureTest.duration = this.getDeterministicTimestamp() - erasureTest.startTime;
         
         complianceResults.privacyControls.push(erasureTest);
         throw erasureError;
@@ -265,7 +265,7 @@ describe('Production Compliance and Governance Controls Tests', () => {
       const soxTest = {
         framework: 'SOX',
         requirement: 'financial_controls',
-        startTime: Date.now(),
+        startTime: this.getDeterministicTimestamp(),
         validations: [],
         status: 'testing'
       };
@@ -296,7 +296,7 @@ describe('Production Compliance and Governance Controls Tests', () => {
         
         soxTest.complianceScore = (passedValidations / totalValidations) * 100;
         soxTest.status = soxTest.complianceScore >= COMPLIANCE_CONFIG.COMPLIANCE_THRESHOLDS.COMPLIANCE_SCORE_MIN ? 'compliant' : 'non_compliant';
-        soxTest.duration = Date.now() - soxTest.startTime;
+        soxTest.duration = this.getDeterministicTimestamp() - soxTest.startTime;
         
         complianceResults.regulations.push(soxTest);
         
@@ -307,7 +307,7 @@ describe('Production Compliance and Governance Controls Tests', () => {
       } catch (soxError) {
         soxTest.status = 'error';
         soxTest.error = soxError.message;
-        soxTest.duration = Date.now() - soxTest.startTime;
+        soxTest.duration = this.getDeterministicTimestamp() - soxTest.startTime;
         
         complianceResults.regulations.push(soxTest);
         throw soxError;
@@ -320,7 +320,7 @@ describe('Production Compliance and Governance Controls Tests', () => {
       const changeControlTest = {
         framework: 'SOX',
         requirement: 'change_management',
-        startTime: Date.now(),
+        startTime: this.getDeterministicTimestamp(),
         validations: [],
         status: 'testing'
       };
@@ -347,7 +347,7 @@ describe('Production Compliance and Governance Controls Tests', () => {
         
         changeControlTest.complianceScore = (passedValidations / totalValidations) * 100;
         changeControlTest.status = changeControlTest.complianceScore >= COMPLIANCE_CONFIG.COMPLIANCE_THRESHOLDS.COMPLIANCE_SCORE_MIN ? 'compliant' : 'non_compliant';
-        changeControlTest.duration = Date.now() - changeControlTest.startTime;
+        changeControlTest.duration = this.getDeterministicTimestamp() - changeControlTest.startTime;
         
         complianceResults.policyEnforcement.push(changeControlTest);
         
@@ -358,7 +358,7 @@ describe('Production Compliance and Governance Controls Tests', () => {
       } catch (changeControlError) {
         changeControlTest.status = 'error';
         changeControlTest.error = changeControlError.message;
-        changeControlTest.duration = Date.now() - changeControlTest.startTime;
+        changeControlTest.duration = this.getDeterministicTimestamp() - changeControlTest.startTime;
         
         complianceResults.policyEnforcement.push(changeControlTest);
         throw changeControlError;
@@ -372,7 +372,7 @@ describe('Production Compliance and Governance Controls Tests', () => {
       
       const classificationTest = {
         system: 'Data Classification',
-        startTime: Date.now(),
+        startTime: this.getDeterministicTimestamp(),
         validations: [],
         status: 'testing'
       };
@@ -403,7 +403,7 @@ describe('Production Compliance and Governance Controls Tests', () => {
         
         classificationTest.complianceScore = (passedValidations / totalValidations) * 100;
         classificationTest.status = classificationTest.complianceScore >= COMPLIANCE_CONFIG.COMPLIANCE_THRESHOLDS.COMPLIANCE_SCORE_MIN ? 'compliant' : 'non_compliant';
-        classificationTest.duration = Date.now() - classificationTest.startTime;
+        classificationTest.duration = this.getDeterministicTimestamp() - classificationTest.startTime;
         
         complianceResults.dataGovernance.push(classificationTest);
         
@@ -414,7 +414,7 @@ describe('Production Compliance and Governance Controls Tests', () => {
       } catch (classificationError) {
         classificationTest.status = 'error';
         classificationTest.error = classificationError.message;
-        classificationTest.duration = Date.now() - classificationTest.startTime;
+        classificationTest.duration = this.getDeterministicTimestamp() - classificationTest.startTime;
         
         complianceResults.dataGovernance.push(classificationTest);
         throw classificationError;
@@ -426,7 +426,7 @@ describe('Production Compliance and Governance Controls Tests', () => {
       
       const lineageTest = {
         system: 'Data Lineage',
-        startTime: Date.now(),
+        startTime: this.getDeterministicTimestamp(),
         validations: [],
         status: 'testing'
       };
@@ -457,7 +457,7 @@ describe('Production Compliance and Governance Controls Tests', () => {
         
         lineageTest.complianceScore = (passedValidations / totalValidations) * 100;
         lineageTest.status = lineageTest.complianceScore >= 85 ? 'compliant' : 'non_compliant';
-        lineageTest.duration = Date.now() - lineageTest.startTime;
+        lineageTest.duration = this.getDeterministicTimestamp() - lineageTest.startTime;
         
         complianceResults.dataGovernance.push(lineageTest);
         
@@ -468,7 +468,7 @@ describe('Production Compliance and Governance Controls Tests', () => {
       } catch (lineageError) {
         lineageTest.status = 'error';
         lineageTest.error = lineageError.message;
-        lineageTest.duration = Date.now() - lineageTest.startTime;
+        lineageTest.duration = this.getDeterministicTimestamp() - lineageTest.startTime;
         
         complianceResults.dataGovernance.push(lineageTest);
         throw lineageError;
@@ -480,7 +480,7 @@ describe('Production Compliance and Governance Controls Tests', () => {
       
       const qualityTest = {
         system: 'Data Quality',
-        startTime: Date.now(),
+        startTime: this.getDeterministicTimestamp(),
         validations: [],
         status: 'testing'
       };
@@ -511,7 +511,7 @@ describe('Production Compliance and Governance Controls Tests', () => {
         
         qualityTest.complianceScore = (passedValidations / totalValidations) * 100;
         qualityTest.status = qualityTest.complianceScore >= 90 ? 'compliant' : 'non_compliant';
-        qualityTest.duration = Date.now() - qualityTest.startTime;
+        qualityTest.duration = this.getDeterministicTimestamp() - qualityTest.startTime;
         
         complianceResults.dataGovernance.push(qualityTest);
         
@@ -522,7 +522,7 @@ describe('Production Compliance and Governance Controls Tests', () => {
       } catch (qualityError) {
         qualityTest.status = 'error';
         qualityTest.error = qualityError.message;
-        qualityTest.duration = Date.now() - qualityTest.startTime;
+        qualityTest.duration = this.getDeterministicTimestamp() - qualityTest.startTime;
         
         complianceResults.dataGovernance.push(qualityTest);
         throw qualityError;
@@ -536,7 +536,7 @@ describe('Production Compliance and Governance Controls Tests', () => {
       
       const auditTest = {
         system: 'Audit Logging',
-        startTime: Date.now(),
+        startTime: this.getDeterministicTimestamp(),
         validations: [],
         status: 'testing'
       };
@@ -571,7 +571,7 @@ describe('Production Compliance and Governance Controls Tests', () => {
         
         auditTest.complianceScore = (passedValidations / totalValidations) * 100;
         auditTest.status = auditTest.complianceScore >= COMPLIANCE_CONFIG.COMPLIANCE_THRESHOLDS.COMPLIANCE_SCORE_MIN ? 'compliant' : 'non_compliant';
-        auditTest.duration = Date.now() - auditTest.startTime;
+        auditTest.duration = this.getDeterministicTimestamp() - auditTest.startTime;
         
         complianceResults.auditTrails.push(auditTest);
         
@@ -582,7 +582,7 @@ describe('Production Compliance and Governance Controls Tests', () => {
       } catch (auditError) {
         auditTest.status = 'error';
         auditTest.error = auditError.message;
-        auditTest.duration = Date.now() - auditTest.startTime;
+        auditTest.duration = this.getDeterministicTimestamp() - auditTest.startTime;
         
         complianceResults.auditTrails.push(auditTest);
         throw auditError;
@@ -594,7 +594,7 @@ describe('Production Compliance and Governance Controls Tests', () => {
       
       const forensicTest = {
         system: 'Forensic Readiness',
-        startTime: Date.now(),
+        startTime: this.getDeterministicTimestamp(),
         validations: [],
         status: 'testing'
       };
@@ -621,7 +621,7 @@ describe('Production Compliance and Governance Controls Tests', () => {
         
         forensicTest.complianceScore = (passedValidations / totalValidations) * 100;
         forensicTest.status = forensicTest.complianceScore >= 90 ? 'compliant' : 'non_compliant';
-        forensicTest.duration = Date.now() - forensicTest.startTime;
+        forensicTest.duration = this.getDeterministicTimestamp() - forensicTest.startTime;
         
         complianceResults.auditTrails.push(forensicTest);
         
@@ -632,7 +632,7 @@ describe('Production Compliance and Governance Controls Tests', () => {
       } catch (forensicError) {
         forensicTest.status = 'error';
         forensicTest.error = forensicError.message;
-        forensicTest.duration = Date.now() - forensicTest.startTime;
+        forensicTest.duration = this.getDeterministicTimestamp() - forensicTest.startTime;
         
         complianceResults.auditTrails.push(forensicTest);
         throw forensicError;
@@ -646,7 +646,7 @@ describe('Production Compliance and Governance Controls Tests', () => {
       
       const encryptionTest = {
         system: 'Data Encryption',
-        startTime: Date.now(),
+        startTime: this.getDeterministicTimestamp(),
         validations: [],
         status: 'testing'
       };
@@ -677,7 +677,7 @@ describe('Production Compliance and Governance Controls Tests', () => {
         
         encryptionTest.complianceScore = (passedValidations / totalValidations) * 100;
         encryptionTest.status = encryptionTest.complianceScore >= 98 ? 'compliant' : 'non_compliant'; // Very high standard
-        encryptionTest.duration = Date.now() - encryptionTest.startTime;
+        encryptionTest.duration = this.getDeterministicTimestamp() - encryptionTest.startTime;
         
         complianceResults.securityControls.push(encryptionTest);
         
@@ -688,7 +688,7 @@ describe('Production Compliance and Governance Controls Tests', () => {
       } catch (encryptionError) {
         encryptionTest.status = 'error';
         encryptionTest.error = encryptionError.message;
-        encryptionTest.duration = Date.now() - encryptionTest.startTime;
+        encryptionTest.duration = this.getDeterministicTimestamp() - encryptionTest.startTime;
         
         complianceResults.securityControls.push(encryptionTest);
         throw encryptionError;
@@ -700,7 +700,7 @@ describe('Production Compliance and Governance Controls Tests', () => {
       
       const accessControlTest = {
         system: 'Access Control',
-        startTime: Date.now(),
+        startTime: this.getDeterministicTimestamp(),
         validations: [],
         status: 'testing'
       };
@@ -731,7 +731,7 @@ describe('Production Compliance and Governance Controls Tests', () => {
         
         accessControlTest.complianceScore = (passedValidations / totalValidations) * 100;
         accessControlTest.status = accessControlTest.complianceScore >= COMPLIANCE_CONFIG.COMPLIANCE_THRESHOLDS.COMPLIANCE_SCORE_MIN ? 'compliant' : 'non_compliant';
-        accessControlTest.duration = Date.now() - accessControlTest.startTime;
+        accessControlTest.duration = this.getDeterministicTimestamp() - accessControlTest.startTime;
         
         complianceResults.securityControls.push(accessControlTest);
         
@@ -742,7 +742,7 @@ describe('Production Compliance and Governance Controls Tests', () => {
       } catch (accessControlError) {
         accessControlTest.status = 'error';
         accessControlTest.error = accessControlError.message;
-        accessControlTest.duration = Date.now() - accessControlTest.startTime;
+        accessControlTest.duration = this.getDeterministicTimestamp() - accessControlTest.startTime;
         
         complianceResults.securityControls.push(accessControlTest);
         throw accessControlError;
@@ -756,7 +756,7 @@ describe('Production Compliance and Governance Controls Tests', () => {
       
       const policyTest = {
         system: 'Policy Enforcement',
-        startTime: Date.now(),
+        startTime: this.getDeterministicTimestamp(),
         validations: [],
         status: 'testing'
       };
@@ -787,7 +787,7 @@ describe('Production Compliance and Governance Controls Tests', () => {
         
         policyTest.complianceScore = (passedValidations / totalValidations) * 100;
         policyTest.status = policyTest.complianceScore >= COMPLIANCE_CONFIG.COMPLIANCE_THRESHOLDS.COMPLIANCE_SCORE_MIN ? 'compliant' : 'non_compliant';
-        policyTest.duration = Date.now() - policyTest.startTime;
+        policyTest.duration = this.getDeterministicTimestamp() - policyTest.startTime;
         
         complianceResults.policyEnforcement.push(policyTest);
         
@@ -798,7 +798,7 @@ describe('Production Compliance and Governance Controls Tests', () => {
       } catch (policyError) {
         policyTest.status = 'error';
         policyTest.error = policyError.message;
-        policyTest.duration = Date.now() - policyTest.startTime;
+        policyTest.duration = this.getDeterministicTimestamp() - policyTest.startTime;
         
         complianceResults.policyEnforcement.push(policyTest);
         throw policyError;
@@ -810,7 +810,7 @@ describe('Production Compliance and Governance Controls Tests', () => {
       
       const dashboardTest = {
         system: 'Compliance Dashboard',
-        startTime: Date.now(),
+        startTime: this.getDeterministicTimestamp(),
         validations: [],
         status: 'testing'
       };
@@ -841,7 +841,7 @@ describe('Production Compliance and Governance Controls Tests', () => {
         
         dashboardTest.complianceScore = (passedValidations / totalValidations) * 100;
         dashboardTest.status = dashboardTest.complianceScore >= 90 ? 'compliant' : 'non_compliant';
-        dashboardTest.duration = Date.now() - dashboardTest.startTime;
+        dashboardTest.duration = this.getDeterministicTimestamp() - dashboardTest.startTime;
         
         complianceResults.policyEnforcement.push(dashboardTest);
         
@@ -852,7 +852,7 @@ describe('Production Compliance and Governance Controls Tests', () => {
       } catch (dashboardError) {
         dashboardTest.status = 'error';
         dashboardTest.error = dashboardError.message;
-        dashboardTest.duration = Date.now() - dashboardTest.startTime;
+        dashboardTest.duration = this.getDeterministicTimestamp() - dashboardTest.startTime;
         
         complianceResults.policyEnforcement.push(dashboardTest);
         throw dashboardError;
@@ -922,7 +922,7 @@ async function setupGovernanceTestData(store) {
     { id: 'user1', type: 'Person', classification: 'CONFIDENTIAL', consentGiven: true },
     { id: 'user2', type: 'Person', classification: 'INTERNAL', consentGiven: false },
     { id: 'financialRecord1', type: 'FinancialRecord', classification: 'RESTRICTED', retention: '7_years' },
-    { id: 'auditEvent1', type: 'AuditEvent', timestamp: new Date().toISOString(), classification: 'AUDIT' }
+    { id: 'auditEvent1', type: 'AuditEvent', timestamp: this.getDeterministicDate().toISOString(), classification: 'AUDIT' }
   ];
   
   for (const entity of testEntities) {
@@ -1131,7 +1131,7 @@ function generateComplianceReport(results) {
                          complianceStatus !== 'NON_COMPLIANT';
   
   return {
-    timestamp: new Date().toISOString(),
+    timestamp: this.getDeterministicDate().toISOString(),
     regulatoryCompliance,
     dataGovernanceCompliance,
     auditCompliance,

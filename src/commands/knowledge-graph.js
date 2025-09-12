@@ -209,7 +209,7 @@ Output: ${args.output}`);
           
           // Generate report
           const report = {
-            timestamp: new Date().toISOString(),
+            timestamp: this.getDeterministicDate().toISOString(),
             inputFiles: rdfFiles.length,
             validation: validationResult,
             files: rdfFiles.map(file => ({
@@ -389,7 +389,7 @@ Output: ${args.output}`);
             ...process.env,
             KG_DATA_PATH: dataPath,
             KG_ENV: args.env,
-            API_KEY: process.env.API_KEY || 'kg-api-key-' + Date.now(),
+            API_KEY: process.env.API_KEY || 'kg-api-key-' + this.getDeterministicTimestamp(),
             BACKUP_S3_BUCKET: process.env.BACKUP_S3_BUCKET || '',
             BACKUP_S3_ACCESS_KEY: process.env.BACKUP_S3_ACCESS_KEY || '',
             BACKUP_S3_SECRET_KEY: process.env.BACKUP_S3_SECRET_KEY || ''

@@ -96,7 +96,7 @@ export class TurtleSerializationMaster extends EventEmitter {
    * Smart serialize - automatically selects optimal serialization method
    */
   async serialize(quads, options = {}) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       // Determine optimal serialization mode
@@ -108,7 +108,7 @@ export class TurtleSerializationMaster extends EventEmitter {
       const result = await this._performSerialization(mode, quads, options);
       
       // Update statistics
-      await this._updateStatistics(mode, Date.now() - startTime, quads);
+      await this._updateStatistics(mode, this.getDeterministicTimestamp() - startTime, quads);
       
       // Add master metadata
       const masterResult = {
@@ -116,8 +116,8 @@ export class TurtleSerializationMaster extends EventEmitter {
         master: {
           mode,
           version: '1.0.0',
-          timestamp: new Date(),
-          processingTime: Date.now() - startTime,
+          timestamp: this.getDeterministicDate(),
+          processingTime: this.getDeterministicTimestamp() - startTime,
           autoSelected: options.mode ? false : true
         }
       };
@@ -184,7 +184,7 @@ export class TurtleSerializationMaster extends EventEmitter {
     return {
       formats: results,
       metadata: {
-        timestamp: new Date(),
+        timestamp: this.getDeterministicDate(),
         formatsGenerated: Object.keys(results),
         totalFormats: formats.length
       }
@@ -214,7 +214,7 @@ export class TurtleSerializationMaster extends EventEmitter {
       results,
       comparison,
       metadata: {
-        comparedAt: new Date(),
+        comparedAt: this.getDeterministicDate(),
         modes,
         semanticallyEquivalent: comparison.allEquivalent
       }
@@ -283,11 +283,11 @@ export class TurtleSerializationMaster extends EventEmitter {
         const modeTimes = [];
         
         for (let i = 0; i < iterations; i++) {
-          const startTime = Date.now();
+          const startTime = this.getDeterministicTimestamp();
           
           try {
             await this._performSerialization(mode, testQuads, { benchmark: true });
-            modeTimes.push(Date.now() - startTime);
+            modeTimes.push(this.getDeterministicTimestamp() - startTime);
           } catch (error) {
             this.logger.error(`Benchmark failed for ${mode} with ${size} quads:`, error);
             modeTimes.push(null);
@@ -308,7 +308,7 @@ export class TurtleSerializationMaster extends EventEmitter {
       metadata: {
         testSizes,
         iterations,
-        timestamp: new Date(),
+        timestamp: this.getDeterministicDate(),
         environment: this._getEnvironmentInfo()
       }
     };
@@ -485,15 +485,15 @@ export class TurtleSerializationMaster extends EventEmitter {
   }
 
   async _measurePerformance(turtleContent) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       await this._validateSyntax(turtleContent);
       
       return {
-        parseTime: Date.now() - startTime,
+        parseTime: this.getDeterministicTimestamp() - startTime,
         size: Buffer.byteLength(turtleContent, 'utf8'),
-        throughput: Buffer.byteLength(turtleContent, 'utf8') / ((Date.now() - startTime) / 1000)
+        throughput: Buffer.byteLength(turtleContent, 'utf8') / ((this.getDeterministicTimestamp() - startTime) / 1000)
       };
       
     } catch (error) {

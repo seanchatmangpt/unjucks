@@ -21,7 +21,7 @@ class UnjucksCliTester {
       skipped: 0,
       tests: []
     };
-    this.testDir = path.join(os.tmpdir(), 'unjucks-cli-test-' + Date.now());
+    this.testDir = path.join(os.tmpdir(), 'unjucks-cli-test-' + this.getDeterministicTimestamp());
     this.originalDir = process.cwd();
   }
 
@@ -75,7 +75,7 @@ class UnjucksCliTester {
       passed: false,
       result,
       expectations,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     };
 
     // Check expectations
@@ -397,7 +397,7 @@ export const <%= name %> = () => {
         skipped: this.results.skipped,
         success_rate: ((this.results.passed / this.results.tests.length) * 100).toFixed(2)
       },
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       environment: {
         node_version: process.version,
         platform: process.platform,

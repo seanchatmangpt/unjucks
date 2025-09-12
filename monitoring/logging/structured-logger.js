@@ -60,7 +60,7 @@ class StructuredLogger {
         correlationId,
         traceId,
         spanId,
-        timestamp: new Date().toISOString()
+        timestamp: this.getDeterministicDate().toISOString()
       };
     })();
   }
@@ -171,10 +171,10 @@ class StructuredLogger {
         correlationNamespace.set('traceId', traceId);
         correlationNamespace.set('spanId', spanId);
 
-        const startTime = Date.now();
+        const startTime = this.getDeterministicTimestamp();
         
         res.on('finish', () => {
-          const duration = Date.now() - startTime;
+          const duration = this.getDeterministicTimestamp() - startTime;
           this.logAPI(req.method, req.path, res.statusCode, duration, {
             userAgent: req.headers['user-agent'],
             ip: req.ip,

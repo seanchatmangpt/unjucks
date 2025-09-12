@@ -59,7 +59,7 @@ export class QueryResultFormatter extends EventEmitter {
    * Format query results according to specified format
    */
   async formatResults(results: QueryResults, options?: Partial<FormatterOptions>): Promise<string> {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     const opts = { ...this.options, ...options };
     
     try {
@@ -110,7 +110,7 @@ export class QueryResultFormatter extends EventEmitter {
           throw new Error(`Unsupported format: ${opts.format}`);
       }
 
-      stats.executionTime = Date.now() - startTime;
+      stats.executionTime = this.getDeterministicTimestamp() - startTime;
       stats.outputSize = formatted.length;
 
       this.emit('formatting:completed', { stats, format: opts.format });

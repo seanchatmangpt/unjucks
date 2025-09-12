@@ -300,7 +300,7 @@ module.exports = router;`
 export const ${generatorName.replace(/-/g, '_')} = {
   id: ${i},
   name: '{{name}}',
-  timestamp: new Date().toISOString(),
+  timestamp: this.getDeterministicDate().toISOString(),
   data: ${JSON.stringify(Array.from({length: 100}).fill(null).map((_, idx) => ({ id: idx, value: `item-${idx}` })))}
 };`
           }

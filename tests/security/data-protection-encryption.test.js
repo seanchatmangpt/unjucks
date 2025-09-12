@@ -133,7 +133,7 @@ describe('Data Protection and Encryption Security', () => {
         currentKeyId: 'key-v1',
         keys: new Map(),
         generateNewKey() {
-          const keyId = `key-v${Date.now()}`;
+          const keyId = `key-v${this.getDeterministicTimestamp()}`;
           const key = cryptoProvider.generateSecureRandom(32);
           this.keys.set(keyId, key);
           return keyId;
@@ -363,7 +363,7 @@ describe('Data Protection and Encryption Security', () => {
         ...cryptoProvider,
         encryptAESGCM: async function(plaintext, key, aad) {
           auditLog.push({
-            timestamp: new Date().toISOString(),
+            timestamp: this.getDeterministicDate().toISOString(),
             operation: 'ENCRYPT',
             algorithm: 'AES-256-GCM',
             keyLength: key.length * 8,
@@ -398,18 +398,18 @@ describe('Data Protection and Encryption Security', () => {
         
         storeData(dataId, data, classification) {
           const policy = this.policies.get(classification);
-          const expirationDate = new Date(Date.now() + policy.retentionPeriod);
+          const expirationDate = new Date(this.getDeterministicTimestamp() + policy.retentionPeriod);
           
           this.encryptedData.set(dataId, {
             data: data,
             classification: classification,
-            createdAt: new Date(),
+            createdAt: this.getDeterministicDate(),
             expiresAt: expirationDate
           });
         },
         
         checkExpiredData() {
-          const now = new Date();
+          const now = this.getDeterministicDate();
           const expiredData = [];
           
           for (const [dataId, record] of this.encryptedData.entries()) {
@@ -436,7 +436,7 @@ describe('Data Protection and Encryption Security', () => {
       
       // Simulate data with past expiration
       const expiredRecord = dataRetentionManager.encryptedData.get('log-001');
-      expiredRecord.expiresAt = new Date(Date.now() - 86400000); // 1 day ago
+      expiredRecord.expiresAt = new Date(this.getDeterministicTimestamp() - 86400000); // 1 day ago
 
       const expiredData = dataRetentionManager.checkExpiredData();
       expect(expiredData).toContain('log-001');

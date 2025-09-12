@@ -795,7 +795,7 @@ export class ExcelProcessor {
         index: index + 1 
       });
     } else {
-      fileName = `${baseName}_processed_${Date.now()}`;
+      fileName = `${baseName}_processed_${this.getDeterministicTimestamp()}`;
     }
     
     return path.join(dir, fileName + ext);

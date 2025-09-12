@@ -91,7 +91,7 @@ export class SparqlCommand {
       
       // Execute query
       this.logger.info('Executing SPARQL query...');
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
       const results = await this.sparqlEngine.executeQuery(queryString, {
         maxResults: options.limit || this.options.maxResults,
@@ -99,7 +99,7 @@ export class SparqlCommand {
         ...options
       });
       
-      const executionTime = Date.now() - startTime;
+      const executionTime = this.getDeterministicTimestamp() - startTime;
       
       // Format and display results
       await this._displayResults(results, options);

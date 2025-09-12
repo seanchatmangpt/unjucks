@@ -25,7 +25,7 @@ import FileOutputTest from './04-file-output.test.js';
 
 class SmokeTestRunner {
   constructor() {
-    this.startTime = Date.now();
+    this.startTime = this.getDeterministicTimestamp();
     this.results = [];
     this.totalPassed = 0;
     this.totalFailed = 0;
@@ -82,7 +82,7 @@ class SmokeTestRunner {
   }
 
   generateConsolidatedReport() {
-    const duration = Date.now() - this.startTime;
+    const duration = this.getDeterministicTimestamp() - this.startTime;
     const successRate = this.totalTests > 0 ? Math.round((this.totalPassed / this.totalTests) * 100) : 0;
     
     console.log('\n🏆 KGEN SMOKE TEST RESULTS');
@@ -178,8 +178,8 @@ class SmokeTestRunner {
   async saveReport() {
     try {
       const report = {
-        timestamp: new Date().toISOString(),
-        duration: Date.now() - this.startTime,
+        timestamp: this.getDeterministicDate().toISOString(),
+        duration: this.getDeterministicTimestamp() - this.startTime,
         summary: {
           totalTests: this.totalTests,
           totalPassed: this.totalPassed,

@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "timestamp": "2025-09-12T04:25:25.031Z",
+  "timestamp": "2024-01-01T00:00:00.000Z",
   "directory": ".",
   "files": {
     "_templates/enterprise/data/schemas/api-standards.ttl": {
@@ -27,6 +27,11 @@
       "hash": "c396715eee773327d18ee819d655693dbaf75fa0b94335e57d13bb1595e1ea69",
       "size": 3765,
       "modified": "2025-09-12T04:23:59.051Z"
+    },
+    "demo/sample-graph.ttl": {
+      "hash": "396730fa21f4dfc1221304117696769bdb3d58635dcba5f21678ea22819e4dca",
+      "size": 479,
+      "modified": "2025-09-12T08:45:22.673Z"
     },
     "docs/book/examples/09-rdf-turtle-integration.ttl": {
       "hash": "018baf9b791517e3f83ca6f298228a0ad0627e1a46dc2001c8dc857e6492074e",
@@ -93,6 +98,11 @@
       "size": 1193,
       "modified": "2025-09-11T18:55:53.526Z"
     },
+    "packages/kgen-cli/test-graph.ttl": {
+      "hash": "6a0da1d856033daf84bddebd3929cb65674322e45482aa740ca630f7220bfeca",
+      "size": 197,
+      "modified": "2025-09-12T16:56:34.117Z"
+    },
     "packages/kgen-core/src/validation/schemas/compliance-shapes.ttl": {
       "hash": "9d1f77de3b8981f3a57c555b4539b085cfd4f5cc23d7904a3a788e725fb15acf",
       "size": 14503,
@@ -158,6 +168,21 @@
       "size": 1029,
       "modified": "2025-09-10T17:22:44.758Z"
     },
+    "src/kgen/validation/shapes/governance-compliance-shapes.ttl": {
+      "hash": "65da5eefaac3f6db1a8a88954dcc91fef0620d29c5048d59bf4953dc38f59341",
+      "size": 18164,
+      "modified": "2025-09-12T08:56:09.946Z"
+    },
+    "src/kgen/validation/shapes/kgen-attest-shapes.ttl": {
+      "hash": "32ec9d694291e4b40ac789a1824fec0327ba3796dfd0bf8339de681fb036ce51",
+      "size": 17494,
+      "modified": "2025-09-12T08:57:17.280Z"
+    },
+    "src/kgen/validation/shapes/template-constraints.ttl": {
+      "hash": "53966060187a2153aee5cf666decdbc5aa2915d20740547c286e640788151766",
+      "size": 15479,
+      "modified": "2025-09-12T08:57:50.851Z"
+    },
     "src/semantic/ontologies/enterprise-template-ontology.ttl": {
       "hash": "f1a4fca6d5bac0afbf2bfc3f8b472398be54eb4d3b4fab00ba32132c03a48322",
       "size": 16043,
@@ -188,6 +213,21 @@
       "size": 6839,
       "modified": "2025-09-10T17:22:44.879Z"
     },
+    "test-data/rdf/baseline.ttl": {
+      "hash": "a7e35700290a69e4ac9ccbab995ec67933cb763b39e1aac0fd4f344b91ce37c8",
+      "size": 653,
+      "modified": "2025-09-12T18:29:10.198Z"
+    },
+    "test-data/rdf/modified.ttl": {
+      "hash": "d3dff52c1d1872ddc461e7c83d566b4947bc65f34a043ad7eb01166e1880662c",
+      "size": 1010,
+      "modified": "2025-09-12T18:27:27.229Z"
+    },
+    "test-data/rdf/semantically-equivalent.ttl": {
+      "hash": "e767987829d377f71891fc7e095d6e368a3131507ee02a810f28d1ba7794d6e1",
+      "size": 809,
+      "modified": "2025-09-12T18:27:52.237Z"
+    },
     "test-data/simple-graph.ttl": {
       "hash": "84e6bf6f5796f75b0f42c4e9f148cd9f65a75823c5d0e6dc94553fbad4bcc240",
       "size": 655,
@@ -208,25 +248,45 @@
       "size": 471,
       "modified": "2025-09-11T21:58:10.304Z"
     },
+    "test-graph-copy.ttl": {
+      "hash": "d41943dde2dff7a9cabf806f7870c8595340ee6cda300d3af8b029b623e9b879",
+      "size": 1934,
+      "modified": "2025-09-12T16:54:25.681Z"
+    },
+    "test-graph-formatted.ttl": {
+      "hash": "bc094bd8b5bba25bec9374487278bfc074d68ed19a4dafd72a9976a65a5c971e",
+      "size": 2221,
+      "modified": "2025-09-12T16:54:34.824Z"
+    },
+    "test-graph-reordered.ttl": {
+      "hash": "70405fb03a91bff2647db4b20be4b3a13809f0a0ecc505d16680aee22de4c2e8",
+      "size": 2042,
+      "modified": "2025-09-12T16:57:13.457Z"
+    },
     "test-graph.ttl": {
       "hash": "d41943dde2dff7a9cabf806f7870c8595340ee6cda300d3af8b029b623e9b879",
       "size": 1934,
       "modified": "2025-09-12T03:44:40.967Z"
     },
     "test.ttl": {
-      "hash": "06af33cf8f4155bb2efffb9fa0c3c53d340344790c0de7fccede3ef53690691e",
-      "size": 165,
-      "modified": "2025-09-11T22:24:36.333Z"
+      "hash": "d1e63b271827135ebbf9c9e58db5b2f24e1fa419f9cca7ebd0a49530dd2e630f",
+      "size": 61,
+      "modified": "2025-09-12T19:03:51.038Z"
     },
-    "test1.ttl": {
-      "hash": "98c23a526a3004d16acd6c4db4fad25a7107621ab5459f20514deb004f497194",
-      "size": 92,
-      "modified": "2025-09-12T04:24:05.123Z"
+    "tests/agent6-test-dataset.ttl": {
+      "hash": "a574d2599b22c643cb93ba97fc98cbbad8f9089a673c87b0f568989d820a9f15",
+      "size": 3582,
+      "modified": "2025-09-12T18:26:34.023Z"
     },
-    "test2.ttl": {
-      "hash": "bdab611418a8cbd330444754aa9be473296fa6ae102a91c6bb65be482d76ed55",
-      "size": 97,
-      "modified": "2025-09-12T04:24:05.123Z"
+    "tests/blank-nodes-graph.ttl": {
+      "hash": "5dc650ba7219076fe3a06371df64524e92e27faede3b9b28d93f15e4864af5a4",
+      "size": 1010,
+      "modified": "2025-09-12T18:25:54.243Z"
+    },
+    "tests/blank-nodes-reordered.ttl": {
+      "hash": "b1dd59907f59b467d2897298f475e4d828931f4a67bacc236c678504c11e58d3",
+      "size": 994,
+      "modified": "2025-09-12T18:26:05.858Z"
     },
     "tests/fixtures/api-data.ttl": {
       "hash": "6c88f0d09654d227a52c92f3f34a3569dc76fd4bbf5f4987652be609211d6a46",
@@ -237,6 +297,21 @@
       "hash": "bbdfb1c0e074261fa577de8d42e5a6090f24791cf51d09e095737d83e51ea9b4",
       "size": 2829,
       "modified": "2025-09-10T17:22:45.080Z"
+    },
+    "tests/fixtures/cli/services.ttl": {
+      "hash": "644d50b453cd2a3b7b08ca5b9995d638c407d884414c34d4b0258350a1c57604",
+      "size": 491,
+      "modified": "2025-09-12T04:46:14.246Z"
+    },
+    "tests/fixtures/data/invalid-data.ttl": {
+      "hash": "8dcbc5472d1a59f12825f6815c61110c82e8495e71303ce5c32cf039ed7677a7",
+      "size": 230,
+      "modified": "2025-09-12T17:09:22.286Z"
+    },
+    "tests/fixtures/data/valid-data.ttl": {
+      "hash": "b9bb63afb723f73875c7d6ca2c4be3a92b4b85f431fad7f440ab32c1eaee6860",
+      "size": 218,
+      "modified": "2025-09-12T17:09:22.286Z"
     },
     "tests/fixtures/fortune5/cvs-health/patient-records.ttl": {
       "hash": "e0686e1abb7151b40edb078429267b6f746849dab1e298b7dca94447092877c2",
@@ -297,6 +372,11 @@
       "hash": "c6691786baa265b2a3342bb7e3e53ed97f42b559c7cdc43e58cf75c3b5ba0d6f",
       "size": 7436,
       "modified": "2025-09-10T17:22:45.102Z"
+    },
+    "tests/fixtures/shapes/sample-shapes.ttl": {
+      "hash": "3cc0a02b78380160ad0a45f182acdf4df995802931a3f355eb3ee19e88c098b0",
+      "size": 736,
+      "modified": "2025-09-12T17:09:22.286Z"
     },
     "tests/fixtures/turtle/api-ontology.ttl": {
       "hash": "aff704ac0f5e2e62b2838d941536c57f9ae48f04b28a8e61327b74ee467354c3",
@@ -403,10 +483,60 @@
       "size": 2764,
       "modified": "2025-09-10T17:22:45.110Z"
     },
+    "tests/invalid-test-data.ttl": {
+      "hash": "05530f298a1adb76c04f3a5c687d29632428f2ee41561b88aaec6ed90d868950",
+      "size": 1943,
+      "modified": "2025-09-12T18:25:02.373Z"
+    },
     "tests/malformed-turtle-test.ttl": {
       "hash": "7bbb3a97cc8250929ea79b3294d54794573014d5d4c243c76560418d9e9c696f",
       "size": 458,
       "modified": "2025-09-10T21:06:42.687Z"
+    },
+    "tests/modified-test-graph.ttl": {
+      "hash": "f683637a6cb608eb9838f5d2322f86ed6454adbc6da93b7b19738e23a252a1ba",
+      "size": 2159,
+      "modified": "2025-09-12T18:24:53.702Z"
+    },
+    "tests/performance/data/test-huge.ttl": {
+      "hash": "88b9895f56cd3e3947e744f0cdcd58732ed55262c56c01d9a3c96fa83d301f32",
+      "size": 6100208,
+      "modified": "2025-09-12T18:37:27.451Z"
+    },
+    "tests/performance/data/test-large.ttl": {
+      "hash": "ad5caba6c559229252e3f2257233d5294a023f1aeb7a9c5b833f14d40fb27cc1",
+      "size": 596208,
+      "modified": "2025-09-12T18:37:27.347Z"
+    },
+    "tests/performance/data/test-medium.ttl": {
+      "hash": "78ae4aa27f5faa14e15fe92add5f115fd7e541355067d9b589db3b611ef2060f",
+      "size": 50051,
+      "modified": "2025-09-12T18:31:45.819Z"
+    },
+    "tests/performance/data/test-small.ttl": {
+      "hash": "5640788e8615fda5079c6c30dad7f87ba6394d824f49146aa476950b428ede84",
+      "size": 5011,
+      "modified": "2025-09-12T18:31:45.817Z"
+    },
+    "tests/performance/data/test-tiny.ttl": {
+      "hash": "8fe4c79785318b5f8702a6f9f4591adb55dbfb566f7c6810c3cc480751105eae",
+      "size": 669,
+      "modified": "2025-09-12T18:37:27.332Z"
+    },
+    "tests/performance/templates/test-graph.ttl": {
+      "hash": "f1004f95e754a00480322f68b2d26288fde053e2feecde2f19f10e79f472039b",
+      "size": 404,
+      "modified": "2025-09-12T19:00:50.287Z"
+    },
+    "tests/reproducibility/reports/perf-test/perf-test.ttl": {
+      "hash": "5b5f1c6845fcd36f80ff023af2d9a61cca827c7ae938097aedcea8628f8aad56",
+      "size": 8314,
+      "modified": "2025-09-12T08:50:49.075Z"
+    },
+    "tests/reproducibility/reports/test-graph.ttl": {
+      "hash": "0760a3d62a9eb346c48b75ac9d8233e879e8871a5a2ff85c5e45e94273523a3c",
+      "size": 71,
+      "modified": "2025-09-12T08:50:05.731Z"
     },
     "tests/sample-data/test.ttl": {
       "hash": "cc05ae53390139ce6da76e696c2b2ac51b5bba6f86943ce4a9af4074e37de3fe",
@@ -448,10 +578,95 @@
       "size": 15203,
       "modified": "2025-09-10T18:29:09.289Z"
     },
+    "tests/shacl-validation/comprehensive-shapes.ttl": {
+      "hash": "15b634b3c596e827976a6cec062ec0d4132d336a472fdda59dce6f8f1698032d",
+      "size": 14346,
+      "modified": "2025-09-12T19:03:28.695Z"
+    },
+    "tests/shacl-validation/edge-case-data.ttl": {
+      "hash": "3b17b064013bae5b2c2326276817f1730a72cc2f2a8188701c93657bbcabd9e7",
+      "size": 11698,
+      "modified": "2025-09-12T19:03:29.028Z"
+    },
+    "tests/shacl-validation/invalid-test-data.ttl": {
+      "hash": "8ba1052cfbf7931fc3ffab32dc4d494dbb3afbd8b0bc8923e94a56d78d88bdfa",
+      "size": 13124,
+      "modified": "2025-09-12T19:03:28.920Z"
+    },
+    "tests/shacl-validation/valid-test-data.ttl": {
+      "hash": "abcd75e86b0add755e91c56f18a464b65fcde279f1908caf6e2144146071421d",
+      "size": 8318,
+      "modified": "2025-09-12T19:03:28.814Z"
+    },
+    "tests/simple-graph.jsonld": {
+      "hash": "292d8ca4e08ba64e6635ea46d2587744e982b6f3f2c1dd90b98ef789eb0c8f2c",
+      "size": 1051,
+      "modified": "2025-09-12T18:25:15.269Z"
+    },
+    "tests/simple-graph.nt": {
+      "hash": "10a49f7c4d3a2b945d5fb012f622250d9f57c483f811d0f5655bd43b11c7f84f",
+      "size": 897,
+      "modified": "2025-09-12T18:25:04.956Z"
+    },
+    "tests/test-data/blank-node-test1.ttl": {
+      "hash": "59e085af620e5ba23730a9c93fe90523dc15f5412de72fcd29bad534d0b09fc0",
+      "size": 178,
+      "modified": "2025-09-12T18:31:25.838Z"
+    },
+    "tests/test-data/blank-node-test2.ttl": {
+      "hash": "8c9c7fc5030f54227dab3893efd9202d54ba86eaf5df098e25050e9bf8c6d276",
+      "size": 199,
+      "modified": "2025-09-12T18:31:47.823Z"
+    },
+    "tests/test-data/graph1.ttl": {
+      "hash": "1bbf0be5b4fd46b0a382108a44d199ada6501c04f56a070004d3f01f3ef4035f",
+      "size": 675,
+      "modified": "2025-09-12T18:25:55.049Z"
+    },
+    "tests/test-data/graph2.ttl": {
+      "hash": "00322fb3bbeb97edde406c59d4b6274987b85f6b6c52b95cdd95202ec72b7528",
+      "size": 808,
+      "modified": "2025-09-12T18:26:29.517Z"
+    },
+    "tests/test-data/graph3.ttl": {
+      "hash": "84decdbd917757a01f55499a3306bcc16e871449f72349fcd213da0c8ff8458f",
+      "size": 770,
+      "modified": "2025-09-12T18:26:38.980Z"
+    },
+    "tests/test-data/invalid.ttl": {
+      "hash": "0c25c82c7cb6235eacc568494d68c4f966802bd20c32a46b05944a7e0f2c2b00",
+      "size": 397,
+      "modified": "2025-09-12T18:26:48.361Z"
+    },
     "tests/test-data/sample-api.ttl": {
       "hash": "3b25ac243b344e3287ee143b0de63492439e55c9e8099b506d74837f71f24296",
       "size": 4026,
       "modified": "2025-09-11T23:52:13.268Z"
+    },
+    "tests/test-shacl-shapes.ttl": {
+      "hash": "697864a3bf39bf210c540156866470d0ec3e2a90f0bb76c82031eacd186e0807",
+      "size": 7172,
+      "modified": "2025-09-12T18:25:52.523Z"
+    },
+    "tests/valid-test-data.ttl": {
+      "hash": "3bd55b6a31ae90e2eefb8909d02d01d81b8a3125c8236044e14064f4c3710fd4",
+      "size": 2448,
+      "modified": "2025-09-12T18:25:21.699Z"
+    },
+    "workshop/rdf/kgen-shapes.ttl": {
+      "hash": "4902c6eb0cdc9e21d31ed7d5bf5fa0ba31b43f9ad664551daf13977f645317be",
+      "size": 10757,
+      "modified": "2025-09-12T08:53:03.499Z"
+    },
+    "workshop/rdf/workshop.ttl": {
+      "hash": "18d954388a58c7bdbc601a5d904ff6926f112007e835bac272926efbff9f4004",
+      "size": 9482,
+      "modified": "2025-09-12T08:53:03.426Z"
+    },
+    "workshop/validation/validation-report.ttl": {
+      "hash": "13c487570ee7205bfbb208124c2ee14db17851695977ee1eed56dfbcd73d2d3f",
+      "size": 212,
+      "modified": "2025-09-12T08:53:59.682Z"
     }
   }
 }

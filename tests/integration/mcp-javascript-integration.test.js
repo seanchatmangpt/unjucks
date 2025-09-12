@@ -59,7 +59,7 @@ describe('MCP JavaScript Integration Test Suite', () => {
     console.log('🚀 Setting up MCP JavaScript Integration Tests...');
     
     // Create temporary test directory
-    testTempDir = join(process.cwd(), 'tests', 'temp', `mcp-js-test-${Date.now()}`);
+    testTempDir = join(process.cwd(), 'tests', 'temp', `mcp-js-test-${this.getDeterministicTimestamp()}`);
     await fs.mkdir(testTempDir, { recursive: true });
     
     // Initialize request handler
@@ -250,7 +250,7 @@ describe('MCP JavaScript Integration Test Suite', () => {
             throw new Error('Not connected to MCP server');
           }
           
-          const requestId = Date.now() + Math.random();
+          const requestId = this.getDeterministicTimestamp() + Math.random();
           mockClient.requests.push({ id: requestId, method, params });
           
           // Simulate different response types

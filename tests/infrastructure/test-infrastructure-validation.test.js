@@ -154,12 +154,12 @@ describe('Test Infrastructure Validation', () => {
         )
       );
 
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const result = await asyncHelper.executeParallel(operations, {
         concurrency: 3,
         timeout: 2000
       });
-      const duration = Date.now() - startTime;
+      const duration = this.getDeterministicTimestamp() - startTime;
 
       expect(result.successCount).toBe(10);
       expect(result.errorCount).toBe(0);

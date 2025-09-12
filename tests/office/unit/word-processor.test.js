@@ -299,8 +299,8 @@ class WordProcessor {
       filename: path.basename(filePath),
       format: path.extname(filePath).toLowerCase(),
       size: Math.floor(Math.random() * 10000),
-      created: new Date(),
-      modified: new Date()
+      created: this.getDeterministicDate(),
+      modified: this.getDeterministicDate()
     };
   }
 
@@ -328,7 +328,7 @@ class WordProcessor {
       target,
       content,
       mode,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     };
   }
 

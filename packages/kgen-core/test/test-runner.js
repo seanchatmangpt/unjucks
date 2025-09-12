@@ -50,7 +50,7 @@ class KGenTestRunner {
     ];
     
     this.results = [];
-    this.startTime = Date.now();
+    this.startTime = this.getDeterministicTimestamp();
   }
 
   async run(options = {}) {
@@ -94,7 +94,7 @@ class KGenTestRunner {
   async runTestSuite(suite) {
     console.log(chalk.blue(`🔍 Running ${suite.name}...`));
     
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       const result = await this.executeCommand(suite.command, suite.args, {
@@ -102,7 +102,7 @@ class KGenTestRunner {
         cwd: process.cwd()
       });
       
-      const duration = Date.now() - startTime;
+      const duration = this.getDeterministicTimestamp() - startTime;
       
       this.results.push({
         name: suite.name,
@@ -123,7 +123,7 @@ class KGenTestRunner {
       }
       
     } catch (error) {
-      const duration = Date.now() - startTime;
+      const duration = this.getDeterministicTimestamp() - startTime;
       
       this.results.push({
         name: suite.name,
@@ -179,7 +179,7 @@ class KGenTestRunner {
   }
 
   async generateReport() {
-    const totalDuration = Date.now() - this.startTime;
+    const totalDuration = this.getDeterministicTimestamp() - this.startTime;
     const totalTests = this.results.length;
     const passedTests = this.results.filter(r => r.success).length;
     const failedTests = totalTests - passedTests;
@@ -212,7 +212,7 @@ class KGenTestRunner {
 
     // Generate JSON report
     const report = {
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       version: process.env.npm_package_version || '1.0.0',
       environment: {
         nodeVersion: process.version,

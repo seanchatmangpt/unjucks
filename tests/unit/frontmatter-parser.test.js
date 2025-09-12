@@ -749,9 +749,9 @@ to: "large.ts"
 ---
 ${largeContent}`;
 
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const result = await parser.parse(content);
-      const endTime = Date.now();
+      const endTime = this.getDeterministicTimestamp();
 
       expect(result.hasValidFrontmatter).toBe(true);
       expect(result.frontmatter.to).toBe('large.ts');
@@ -765,9 +765,9 @@ to: "file${i}.ts"
 ---
 Content ${i}`);
 
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const results = await Promise.all(templates.map(template => parser.parse(template)));
-      const endTime = Date.now();
+      const endTime = this.getDeterministicTimestamp();
 
       expect(results).toHaveLength(50);
       results.forEach((result, i) => {

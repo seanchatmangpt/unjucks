@@ -5,11 +5,11 @@
  */
 
 import { QueryEngine } from '../../packages/kgen-core/src/query/engine.js';
-import { Logger } from 'consola';
+import { Consola } from 'consola';
 import { Store, DataFactory } from 'n3';
 
 const { namedNode, literal } = DataFactory;
-const logger = new Logger({ tag: 'simple-query-test' });
+const logger = new Consola({ tag: 'simple-query-test' });
 
 async function testQueryEngine() {
   logger.info('🚀 Testing SPARQL Query Engine...');

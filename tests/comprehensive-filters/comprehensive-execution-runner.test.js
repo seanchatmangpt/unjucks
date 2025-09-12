@@ -36,7 +36,7 @@ describe('Comprehensive Filter Test Execution Runner', () => {
 
     // Initialize execution report
     executionReport = {
-      startTime: Date.now(),
+      startTime: this.getDeterministicTimestamp(),
       categories: new Map(),
       overallStats: {
         totalFilters: 65,
@@ -118,7 +118,7 @@ describe('Comprehensive Filter Test Execution Runner', () => {
         description: 'Format dates using moment.js',
         testCases: [
           { input: '2023-12-25T10:30:00Z', format: 'YYYY-MM-DD', expected: '2023-12-25' },
-          { input: new Date().toISOString(), format: 'dddd', expected: /Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday/ }
+          { input: this.getDeterministicDate().toISOString(), format: 'dddd', expected: /Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday/ }
         ]
       },
       'semanticValue': {
@@ -747,7 +747,7 @@ async function loadRDFTestData(store) {
  * Generate unified test report
  */
 function generateUnifiedReport(report) {
-  report.performanceMetrics.totalExecutionTime = Date.now() - report.startTime;
+  report.performanceMetrics.totalExecutionTime = this.getDeterministicTimestamp() - report.startTime;
   
   console.log('\n🎯 COMPREHENSIVE FILTER TEST EXECUTION REPORT');
   console.log('============================================');

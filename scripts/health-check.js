@@ -27,7 +27,7 @@ class HealthCheck {
             
             const result = {
                 status: 'healthy',
-                timestamp: new Date().toISOString(),
+                timestamp: this.getDeterministicDate().toISOString(),
                 duration_ms: duration,
                 checks: this.checks.filter(check => check.status !== 'healthy').length === 0 ? 'all_passed' : 'some_failed',
                 details: this.isVerbose ? this.checks : undefined
@@ -373,7 +373,7 @@ class HealthCheck {
             name,
             status,
             message,
-            timestamp: new Date().toISOString()
+            timestamp: this.getDeterministicDate().toISOString()
         });
         
         if (this.isVerbose) {

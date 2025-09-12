@@ -155,7 +155,7 @@ export class CostBasedOptimizer extends EventEmitter {
         actualExecutionTime: executionResult.executionTime,
         estimatedExecutionTime: plan.estimatedCost,
         actualCardinality: executionResult.results?.bindings?.length || 0,
-        timestamp: Date.now(),
+        timestamp: this.getDeterministicTimestamp(),
         success: !executionResult.error
       };
       
@@ -627,7 +627,7 @@ export class CostBasedOptimizer extends EventEmitter {
     
     this.emit('model:adapted', {
       executionsAnalyzed: recentExecutions.length,
-      timestamp: Date.now()
+      timestamp: this.getDeterministicTimestamp()
     });
   }
 

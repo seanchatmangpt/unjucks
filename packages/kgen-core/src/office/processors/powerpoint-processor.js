@@ -351,8 +351,8 @@ export class PowerPointProcessor extends BaseOfficeProcessor {
         properties: {
           title: 'Sample PowerPoint Template',
           author: 'Template System',
-          created: new Date(),
-          modified: new Date(),
+          created: this.getDeterministicDate(),
+          modified: this.getDeterministicDate(),
           slideCount: 1
         },
         layouts: [

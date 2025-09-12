@@ -1,0 +1,78 @@
+```mermaid
+C4Component
+    title Code Diagram - Cryptographic Attestation Generator
+    
+    Container_Boundary(attestation, "Attestation Generator System") {
+        Component(attestationGen, "AttestationGenerator", "Main Class", "Orchestrates cryptographic proof generation")
+        Component(hashCalculator, "SemanticHashCalculator", "Hash Engine", "Calculates meaning-aware content hashes")
+        Component(signatureGen, "CryptographicSigner", "Crypto Engine", "Generates digital signatures and proofs")
+        Component(proofBuilder, "MerkleProofBuilder", "Tree Builder", "Constructs Merkle trees for integrity proofs")
+    }
+    
+    Container_Boundary(hashing, "Hashing Subsystem") {
+        Component(contentNormalizer, "ContentNormalizer", "Normalizer", "Normalizes content for consistent hashing")
+        Component(semanticExtractor, "SemanticFeatureExtractor", "ML Extractor", "Extracts semantic features from content")
+        Component(hashRegistry, "HashRegistry", "Registry", "Manages hash algorithms and their implementations")
+        Component(collisionDetector, "CollisionDetector", "Detector", "Detects and prevents hash collisions")
+    }
+    
+    Container_Boundary(crypto, "Cryptographic Core") {
+        Component(keyManager, "KeyManager", "Key Store", "Manages cryptographic keys and rotation")
+        Component(algSelector, "AlgorithmSelector", "Selector", "Selects appropriate crypto algorithms")
+        Component(entropySource, "EntropySource", "Random Generator", "Provides cryptographic randomness")
+        Component(signatureValidator, "SignatureValidator", "Validator", "Validates signatures and proofs")
+    }
+    
+    Container_Boundary(persistence, "Attestation Storage") {
+        Component(attestationStore, "AttestationStore", "Storage", "Stores attestation records")
+        Component(proofChain, "ProofChain", "Blockchain", "Maintains tamper-evident proof chain")
+        Component(timestampService, "TimestampService", "RFC 3161", "Provides trusted timestamps")
+        Component(auditLogger, "AuditLogger", "Logger", "Logs all attestation operations")
+    }
+    
+    Container_Boundary(verification, "Verification Engine") {
+        Component(proofVerifier, "ProofVerifier", "Verifier", "Verifies cryptographic proofs")
+        Component(integrityChecker, "IntegrityChecker", "Checker", "Checks artifact integrity")
+        Component(chainValidator, "ChainValidator", "Validator", "Validates proof chain continuity")
+        Component(trustCalculator, "TrustScoreCalculator", "Calculator", "Calculates trust scores")
+    }
+    
+    Container_Boundary(formats, "Output Formats") {
+        Component(jsonGenerator, "JSONAttestationGenerator", "JSON Writer", "Generates JSON attestations")
+        Component(x509Generator, "X509CertificateGenerator", "Cert Writer", "Generates X.509 certificates")
+        Component(jwsGenerator, "JWSGenerator", "JWT Writer", "Generates JSON Web Signatures")
+        Component(binaryGenerator, "BinaryProofGenerator", "Binary Writer", "Generates compact binary proofs")
+    }
+    
+    Rel(attestationGen, hashCalculator, "calculates hashes with")
+    Rel(attestationGen, signatureGen, "generates signatures with")
+    Rel(attestationGen, proofBuilder, "builds proofs with")
+    Rel(attestationGen, attestationStore, "stores attestations in")
+    
+    Rel(hashCalculator, contentNormalizer, "normalizes content with")
+    Rel(hashCalculator, semanticExtractor, "extracts features with")
+    Rel(hashCalculator, hashRegistry, "uses algorithms from")
+    Rel(hashCalculator, collisionDetector, "detects collisions with")
+    
+    Rel(signatureGen, keyManager, "uses keys from")
+    Rel(signatureGen, algSelector, "selects algorithms with")
+    Rel(signatureGen, entropySource, "gets randomness from")
+    Rel(signatureGen, signatureValidator, "validates with")
+    
+    Rel(proofBuilder, timestampService, "timestamps proofs with")
+    Rel(proofBuilder, proofChain, "adds to chain with")
+    
+    Rel(attestationStore, auditLogger, "logs operations to")
+    Rel(proofChain, chainValidator, "validates chain with")
+    
+    Rel(attestationGen, proofVerifier, "verifies proofs with")
+    Rel(proofVerifier, integrityChecker, "checks integrity with")
+    Rel(proofVerifier, trustCalculator, "calculates trust with")
+    
+    Rel(attestationGen, jsonGenerator, "outputs JSON with")
+    Rel(attestationGen, x509Generator, "outputs certificates with")
+    Rel(attestationGen, jwsGenerator, "outputs JWS with")
+    Rel(attestationGen, binaryGenerator, "outputs binary with")
+    
+    UpdateLayoutConfig($c4ShapeInRow="4", $c4BoundaryInRow="2")
+```

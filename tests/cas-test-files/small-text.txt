@@ -1,0 +1,4 @@
+This is a small test file for Content-Addressed Storage validation.
+It contains basic text content with some special characters: åéîöü
+Line breaks and formatting should be preserved.
+Hash: This content should produce a deterministic SHA-256 hash.

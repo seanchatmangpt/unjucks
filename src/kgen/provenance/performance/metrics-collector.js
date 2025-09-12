@@ -194,7 +194,7 @@ export class GraphProcessingMetricsCollector extends EventEmitter {
         metrics.slowQueries.push({
           query: query.slice(0, 200),
           executionTime,
-          timestamp: Date.now(),
+          timestamp: this.getDeterministicTimestamp(),
           complexity,
           resultCount
         });
@@ -235,7 +235,7 @@ export class GraphProcessingMetricsCollector extends EventEmitter {
       complexity: complexity?.score,
       cacheHit,
       error: !!error,
-      timestamp: Date.now()
+      timestamp: this.getDeterministicTimestamp()
     });
     
     // Limit recent queries
@@ -292,7 +292,7 @@ export class GraphProcessingMetricsCollector extends EventEmitter {
       parseTime,
       format,
       error: !!error,
-      timestamp: Date.now()
+      timestamp: this.getDeterministicTimestamp()
     });
     
     // Limit recent processing history
@@ -356,7 +356,7 @@ export class GraphProcessingMetricsCollector extends EventEmitter {
       executionTime,
       totalChanges,
       cacheHit,
-      timestamp: Date.now()
+      timestamp: this.getDeterministicTimestamp()
     });
     
     // Limit recent diffs
@@ -421,7 +421,7 @@ export class GraphProcessingMetricsCollector extends EventEmitter {
     if (violations && violations.length > 0) {
       metrics.recentViolations.push(...violations.map(v => ({
         ...v,
-        timestamp: Date.now()
+        timestamp: this.getDeterministicTimestamp()
       })));
       
       // Limit recent violations
@@ -476,7 +476,7 @@ export class GraphProcessingMetricsCollector extends EventEmitter {
       executionTime,
       integrityVerified,
       blockchainAnchored,
-      timestamp: Date.now()
+      timestamp: this.getDeterministicTimestamp()
     });
     
     // Limit recent operations
@@ -579,7 +579,7 @@ export class GraphProcessingMetricsCollector extends EventEmitter {
    * Get comprehensive metrics summary
    */
   getMetricsSummary() {
-    const now = Date.now();
+    const now = this.getDeterministicTimestamp();
     const memUsage = process.memoryUsage();
     
     return {
@@ -678,12 +678,12 @@ export class GraphProcessingMetricsCollector extends EventEmitter {
       
       this.metrics.system.memoryUsage.push({
         ...memUsage,
-        timestamp: Date.now()
+        timestamp: this.getDeterministicTimestamp()
       });
       
       this.metrics.system.cpuUsage.push({
         ...cpuUsage,
-        timestamp: Date.now()
+        timestamp: this.getDeterministicTimestamp()
       });
       
       // Update peak memory usage
@@ -766,7 +766,7 @@ export class GraphProcessingMetricsCollector extends EventEmitter {
    * Trim time series data to prevent memory leaks
    */
   _trimTimeSeriesData() {
-    const cutoffTime = Date.now() - this.config.metricsRetentionPeriod;
+    const cutoffTime = this.getDeterministicTimestamp() - this.config.metricsRetentionPeriod;
     
     this.metrics.system.memoryUsage = this.metrics.system.memoryUsage.filter(
       item => item.timestamp > cutoffTime
@@ -784,7 +784,7 @@ export class GraphProcessingMetricsCollector extends EventEmitter {
     // This would implement detailed aggregation logic
     // For now, just emit an event
     this.emit('metrics-aggregated', {
-      timestamp: Date.now(),
+      timestamp: this.getDeterministicTimestamp(),
       summary: this.getMetricsSummary()
     });
   }
@@ -846,7 +846,7 @@ export class GraphProcessingMetricsCollector extends EventEmitter {
         type: 'high-error-rate',
         severity: 'warning',
         message: `SPARQL error rate (${(summary.sparqlQueries.errorRate * 100).toFixed(1)}%) exceeds threshold`,
-        timestamp: Date.now()
+        timestamp: this.getDeterministicTimestamp()
       });
     }
     
@@ -855,7 +855,7 @@ export class GraphProcessingMetricsCollector extends EventEmitter {
         type: 'high-memory-usage',
         severity: 'warning',
         message: `Memory usage (${Math.round(summary.system.memoryUsage.heapUsed / 1024 / 1024)}MB) exceeds threshold`,
-        timestamp: Date.now()
+        timestamp: this.getDeterministicTimestamp()
       });
     }
     
@@ -869,7 +869,7 @@ export class GraphProcessingMetricsCollector extends EventEmitter {
     const alert = {
       type,
       data,
-      timestamp: Date.now()
+      timestamp: this.getDeterministicTimestamp()
     };
     
     this.alertConditions.set(type, alert);
@@ -888,7 +888,7 @@ export class GraphProcessingMetricsCollector extends EventEmitter {
         break;
       case 'file':
         const fs = await import('fs/promises');
-        const filename = `metrics-${Date.now()}.${format}`;
+        const filename = `metrics-${this.getDeterministicTimestamp()}.${format}`;
         await fs.writeFile(filename, data, 'utf8');
         break;
       default:

@@ -1,0 +1,19 @@
+{
+  "name": "CAS Test Data",
+  "version": "1.0.0",
+  "description": "Test JSON file for Content-Addressed Storage",
+  "data": {
+    "numbers": [1, 2, 3, 42, 100],
+    "strings": ["hello", "world", "test"],
+    "nested": {
+      "deep": {
+        "value": "nested content"
+      }
+    }
+  },
+  "metadata": {
+    "created": "2024-09-12",
+    "purpose": "CAS validation",
+    "hash_expected": true
+  }
+}

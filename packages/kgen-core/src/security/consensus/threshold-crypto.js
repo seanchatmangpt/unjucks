@@ -119,7 +119,7 @@ export class ThresholdCryptographySystem extends EventEmitter {
         signature: thresholdSignature,
         messageHash,
         signatories: partialSignatures.map(ps => ps.signatory),
-        timestamp: new Date()
+        timestamp: this.getDeterministicDate()
       };
 
     } catch (error) {
@@ -158,7 +158,7 @@ export class ThresholdCryptographySystem extends EventEmitter {
       return {
         valid,
         messageHash,
-        verifiedAt: new Date()
+        verifiedAt: this.getDeterministicDate()
       };
 
     } catch (error) {
@@ -194,7 +194,7 @@ export class ThresholdCryptographySystem extends EventEmitter {
 
       this.emit('keys_rotated', {
         nodeId: this.nodeId,
-        timestamp: new Date()
+        timestamp: this.getDeterministicDate()
       });
 
       return {

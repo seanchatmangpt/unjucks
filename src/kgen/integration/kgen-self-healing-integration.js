@@ -67,7 +67,7 @@ export class KGenSelfHealingIntegration extends EventEmitter {
       failedOperations: 0,
       recoveredOperations: 0,
       degradedOperations: 0,
-      startTime: Date.now()
+      startTime: this.getDeterministicTimestamp()
     };
     
     this._initialize();
@@ -206,7 +206,7 @@ export class KGenSelfHealingIntegration extends EventEmitter {
       }
       
       this.isActive = true;
-      this.metrics.startTime = Date.now();
+      this.metrics.startTime = this.getDeterministicTimestamp();
       
       this.logger.success('KGEN Self-Healing integration started successfully');
       this.emit('integration:started');
@@ -267,7 +267,7 @@ export class KGenSelfHealingIntegration extends EventEmitter {
       return await operation();
     }
     
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     this.metrics.totalOperations++;
     
     try {
@@ -291,7 +291,7 @@ export class KGenSelfHealingIntegration extends EventEmitter {
       
       this.emit('operation:success', {
         operationName,
-        responseTime: Date.now() - startTime,
+        responseTime: this.getDeterministicTimestamp() - startTime,
         result
       });
       
@@ -316,7 +316,7 @@ export class KGenSelfHealingIntegration extends EventEmitter {
               operationName,
               originalError: error.message,
               recovery,
-              responseTime: Date.now() - startTime
+              responseTime: this.getDeterministicTimestamp() - startTime
             });
             
             return recovery.result || recovery;
@@ -342,7 +342,7 @@ export class KGenSelfHealingIntegration extends EventEmitter {
               operationName,
               originalError: error.message,
               fallback,
-              responseTime: Date.now() - startTime
+              responseTime: this.getDeterministicTimestamp() - startTime
             });
             
             return fallback.value;
@@ -356,7 +356,7 @@ export class KGenSelfHealingIntegration extends EventEmitter {
       this.emit('operation:failed', {
         operationName,
         error: error.message,
-        responseTime: Date.now() - startTime
+        responseTime: this.getDeterministicTimestamp() - startTime
       });
       
       throw error;
@@ -371,7 +371,7 @@ export class KGenSelfHealingIntegration extends EventEmitter {
       integration: {
         initialized: this.isInitialized,
         active: this.isActive,
-        uptime: Date.now() - this.metrics.startTime
+        uptime: this.getDeterministicTimestamp() - this.metrics.startTime
       },
       metrics: this.metrics,
       components: {}

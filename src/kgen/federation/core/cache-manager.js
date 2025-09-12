@@ -178,7 +178,7 @@ export class FederatedCacheManager extends EventEmitter {
       return { success: false, reason: 'Cache not available' };
     }
     
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       // Generate cache entry
@@ -197,7 +197,7 @@ export class FederatedCacheManager extends EventEmitter {
         }
         
         // Update statistics
-        this.updateStatistics('set', Date.now() - startTime, entry.compressedSize || entry.size);
+        this.updateStatistics('set', this.getDeterministicTimestamp() - startTime, entry.compressedSize || entry.size);
         
         this.emit('set', { key, tier, size: entry.size });
         
@@ -226,7 +226,7 @@ export class FederatedCacheManager extends EventEmitter {
       return null;
     }
     
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       this.state.statistics.totalRequests++;
@@ -258,7 +258,7 @@ export class FederatedCacheManager extends EventEmitter {
           
           // Update statistics
           this.state.statistics.cacheHits++;
-          this.updateStatistics('get', Date.now() - startTime, entry.size, true);
+          this.updateStatistics('get', this.getDeterministicTimestamp() - startTime, entry.size, true);
           
           this.emit('hit', { key, tier: tierName, value });
           
@@ -268,7 +268,7 @@ export class FederatedCacheManager extends EventEmitter {
       
       // Cache miss
       this.state.statistics.cacheMisses++;
-      this.updateStatistics('get', Date.now() - startTime, 0, false);
+      this.updateStatistics('get', this.getDeterministicTimestamp() - startTime, 0, false);
       
       this.emit('miss', { key });
       
@@ -409,7 +409,7 @@ export class FederatedCacheManager extends EventEmitter {
       global: this.state.statistics,
       tiers: tierStats,
       performance: this.state.performance,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     };
   }
   
@@ -594,13 +594,13 @@ export class FederatedCacheManager extends EventEmitter {
     const entry = {
       key,
       value,
-      createdAt: new Date().toISOString(),
+      createdAt: this.getDeterministicDate().toISOString(),
       accessCount: 0,
-      lastAccessed: new Date().toISOString(),
+      lastAccessed: this.getDeterministicDate().toISOString(),
       ttl: options.ttl || this.config.defaultTTL,
       expiresAt: options.ttl ? 
-        new Date(Date.now() + options.ttl).toISOString() : 
-        new Date(Date.now() + this.config.defaultTTL).toISOString(),
+        new Date(this.getDeterministicTimestamp() + options.ttl).toISOString() : 
+        new Date(this.getDeterministicTimestamp() + this.config.defaultTTL).toISOString(),
       metadata: options.metadata || {},
       tags: options.tags || []
     };
@@ -747,7 +747,7 @@ export class FederatedCacheManager extends EventEmitter {
   
   isEntryExpired(entry) {
     if (!entry.expiresAt) return false;
-    return Date.now() > new Date(entry.expiresAt).getTime();
+    return this.getDeterministicTimestamp() > new Date(entry.expiresAt).getTime();
   }
   
   shouldCompress(entry) {
@@ -801,7 +801,7 @@ export class FederatedCacheManager extends EventEmitter {
     
     pattern[type === 'hit' ? 'hits' : 'misses']++;
     pattern.frequency = pattern.hits / (pattern.hits + pattern.misses);
-    pattern.lastAccess = new Date().toISOString();
+    pattern.lastAccess = this.getDeterministicDate().toISOString();
     
     this.intelligentCacheState.accessPatterns.set(key, pattern);
   }
@@ -841,7 +841,7 @@ export class FederatedCacheManager extends EventEmitter {
   
   updateAccessStatistics(key, entry) {
     entry.accessCount++;
-    entry.lastAccessed = new Date().toISOString();
+    entry.lastAccessed = this.getDeterministicDate().toISOString();
   }
   
   resetStatistics() {
@@ -960,7 +960,7 @@ export class FederatedCacheManager extends EventEmitter {
   }
   
   collectMetrics() {
-    const now = new Date().toISOString();
+    const now = this.getDeterministicDate().toISOString();
     
     // Collect performance metrics
     const hitRate = this.state.statistics.hitRate;
@@ -970,7 +970,7 @@ export class FederatedCacheManager extends EventEmitter {
     this.state.performance.sizeTrends.push({ timestamp: now, value: totalSize });
     
     // Keep only recent trends (last hour)
-    const oneHourAgo = Date.now() - 3600000;
+    const oneHourAgo = this.getDeterministicTimestamp() - 3600000;
     this.state.performance.hitRateTrends = this.state.performance.hitRateTrends
       .filter(entry => new Date(entry.timestamp).getTime() > oneHourAgo);
     this.state.performance.sizeTrends = this.state.performance.sizeTrends

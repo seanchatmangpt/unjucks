@@ -61,7 +61,7 @@ export class StreamingSPARQLEngine extends EventEmitter {
     
     // Stream state
     this.isProcessing = false;
-    this.lastFlush = Date.now();
+    this.lastFlush = this.getDeterministicTimestamp();
   }
 
   /**
@@ -128,7 +128,7 @@ export class StreamingSPARQLEngine extends EventEmitter {
         streamConfig,
         pipeline: streamPipeline,
         window: await this.windowManager.createWindow(queryId, streamConfig),
-        registeredAt: Date.now(),
+        registeredAt: this.getDeterministicTimestamp(),
         lastExecution: null,
         executionCount: 0
       };
@@ -164,7 +164,7 @@ export class StreamingSPARQLEngine extends EventEmitter {
    * @returns {Promise<Object>} Processing results
    */
   async processStreamData(streamId, data) {
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       // Normalize data to array format
@@ -181,7 +181,7 @@ export class StreamingSPARQLEngine extends EventEmitter {
       
       // Update metrics
       this.metrics.processedEvents += events.length;
-      const latency = Date.now() - startTime;
+      const latency = this.getDeterministicTimestamp() - startTime;
       this._updateLatencyMetrics(latency);
       
       this.emit('stream:processed', {
@@ -224,8 +224,8 @@ export class StreamingSPARQLEngine extends EventEmitter {
       this.activeStreams.set(streamId, {
         stream: enhancedStream,
         sourceConfig,
-        createdAt: Date.now(),
-        lastActivity: Date.now(),
+        createdAt: this.getDeterministicTimestamp(),
+        lastActivity: this.getDeterministicTimestamp(),
         eventCount: 0
       });
       
@@ -280,7 +280,7 @@ export class StreamingSPARQLEngine extends EventEmitter {
         query: sparqlQuery,
         results,
         window: queryWindow.getMetadata(),
-        executionTime: Date.now() - queryWindow.createdAt
+        executionTime: this.getDeterministicTimestamp() - queryWindow.createdAt
       };
       
     } catch (error) {
@@ -405,11 +405,11 @@ export class StreamingSPARQLEngine extends EventEmitter {
               queryId,
               streamId,
               results: queryResults,
-              timestamp: Date.now()
+              timestamp: this.getDeterministicTimestamp()
             });
           }
           
-          queryReg.lastExecution = Date.now();
+          queryReg.lastExecution = this.getDeterministicTimestamp();
           queryReg.executionCount++;
         }
         
@@ -431,7 +431,7 @@ export class StreamingSPARQLEngine extends EventEmitter {
           const enhancedChunk = {
             ...chunk,
             streamId,
-            timestamp: Date.now(),
+            timestamp: this.getDeterministicTimestamp(),
             sequenceNumber: this.sequenceNumber++
           };
           
@@ -452,7 +452,7 @@ export class StreamingSPARQLEngine extends EventEmitter {
       const streamInfo = this.activeStreams.get(streamId);
       if (streamInfo) {
         streamInfo.eventCount++;
-        streamInfo.lastActivity = Date.now();
+        streamInfo.lastActivity = this.getDeterministicTimestamp();
       }
     });
     
@@ -544,14 +544,14 @@ export class StreamingSPARQLEngine extends EventEmitter {
 
   _calculateCurrentLoad() {
     // Calculate current system load based on various metrics
-    const eventRate = this.metrics.processedEvents / ((Date.now() - this.lastFlush) / 1000);
+    const eventRate = this.metrics.processedEvents / ((this.getDeterministicTimestamp() - this.lastFlush) / 1000);
     const streamLoad = this.activeStreams.size / this.config.maxConcurrentStreams;
     
     return Math.max(eventRate / 1000, streamLoad); // Normalize to 0-1 scale
   }
 
   _calculateTotalThroughput() {
-    const timeWindow = Date.now() - this.lastFlush;
+    const timeWindow = this.getDeterministicTimestamp() - this.lastFlush;
     return (this.metrics.processedEvents / timeWindow) * 1000; // Events per second
   }
 
@@ -566,12 +566,12 @@ export class StreamingSPARQLEngine extends EventEmitter {
       
       this.emit('metrics:updated', {
         ...this.metrics,
-        timestamp: Date.now()
+        timestamp: this.getDeterministicTimestamp()
       });
       
       // Reset counters for next window
       this.metrics.processedEvents = 0;
-      this.lastFlush = Date.now();
+      this.lastFlush = this.getDeterministicTimestamp();
       
     }, 60000); // Update every minute
   }
@@ -611,7 +611,7 @@ class AdaptiveWindowManager {
   }
 
   async createTemporaryWindow(streamId, options) {
-    return new StreamWindow(`temp_${Date.now()}`, options);
+    return new StreamWindow(`temp_${this.getDeterministicTimestamp()}`, options);
   }
 
   async destroyWindow(queryId) {
@@ -653,8 +653,8 @@ class StreamWindow {
     this.id = id;
     this.config = config;
     this.events = [];
-    this.createdAt = Date.now();
-    this.lastTrigger = Date.now();
+    this.createdAt = this.getDeterministicTimestamp();
+    this.lastTrigger = this.getDeterministicTimestamp();
   }
 
   async addEvents(events) {
@@ -668,7 +668,7 @@ class StreamWindow {
 
   shouldTrigger() {
     // Determine if window should trigger query execution
-    const timeSinceLastTrigger = Date.now() - this.lastTrigger;
+    const timeSinceLastTrigger = this.getDeterministicTimestamp() - this.lastTrigger;
     const hasEnoughEvents = this.events.length >= (this.config.minEvents || 1);
     const timeThresholdMet = timeSinceLastTrigger >= (this.config.triggerInterval || 1000);
     

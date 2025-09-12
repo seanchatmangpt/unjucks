@@ -159,7 +159,7 @@ export class FederatedProvenanceTracker extends EventEmitter {
       return null;
     }
     
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     try {
       console.log(`📋 Starting provenance tracking for query: ${queryId}`);
@@ -169,7 +169,7 @@ export class FederatedProvenanceTracker extends EventEmitter {
         queryId,
         federationId: this.config.federationId,
         nodeId: this.config.nodeId,
-        startTime: new Date().toISOString(),
+        startTime: this.getDeterministicDate().toISOString(),
         status: 'active'
       };
       
@@ -182,7 +182,7 @@ export class FederatedProvenanceTracker extends EventEmitter {
       this.state.queryTraces.set(queryId, {
         context: provenanceContext,
         timeline: [{
-          timestamp: new Date().toISOString(),
+          timestamp: this.getDeterministicDate().toISOString(),
           event: 'query_started',
           details: { queryId, type: queryConfig.type }
         }],
@@ -231,7 +231,7 @@ export class FederatedProvenanceTracker extends EventEmitter {
       
       // Update trace with completion info
       trace.timeline.push({
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         event: 'query_completed',
         details: {
           success: result.success,
@@ -240,7 +240,7 @@ export class FederatedProvenanceTracker extends EventEmitter {
         }
       });
       
-      trace.context.endTime = new Date().toISOString();
+      trace.context.endTime = this.getDeterministicDate().toISOString();
       trace.context.status = result.success ? 'completed' : 'failed';
       
       // Create completion provenance
@@ -252,7 +252,7 @@ export class FederatedProvenanceTracker extends EventEmitter {
       const queryProvenance = this.state.provenanceStore.get(queryId);
       if (queryProvenance) {
         queryProvenance.completion = completionProvenance;
-        queryProvenance.updated = new Date().toISOString();
+        queryProvenance.updated = this.getDeterministicDate().toISOString();
         
         // Update integrity hash
         if (this.config.enableIntegrity) {
@@ -289,7 +289,7 @@ export class FederatedProvenanceTracker extends EventEmitter {
             endpointId,
             query: this.config.includePayloads ? query : '[QUERY_CONTENT]',
             executionTime,
-            timestamp: new Date().toISOString(),
+            timestamp: this.getDeterministicDate().toISOString(),
             result: {
               success: result.success,
               dataCount: result.data ? (Array.isArray(result.data) ? result.data.length : 1) : 0,
@@ -332,7 +332,7 @@ export class FederatedProvenanceTracker extends EventEmitter {
             endpointId,
             query: this.config.includePayloads ? query : '[QUERY_CONTENT]',
             executionTime,
-            timestamp: new Date().toISOString(),
+            timestamp: this.getDeterministicDate().toISOString(),
             error: {
               message: error.message,
               type: error.constructor.name,
@@ -365,7 +365,7 @@ export class FederatedProvenanceTracker extends EventEmitter {
       const trace = this.state.queryTraces.get(queryId);
       if (trace) {
         trace.timeline.push({
-          timestamp: new Date().toISOString(),
+          timestamp: this.getDeterministicDate().toISOString(),
           event: 'query_failed',
           details: {
             error: error.message,
@@ -374,7 +374,7 @@ export class FederatedProvenanceTracker extends EventEmitter {
         });
         
         trace.context.status = 'failed';
-        trace.context.endTime = new Date().toISOString();
+        trace.context.endTime = this.getDeterministicDate().toISOString();
       }
       
       this.emit('queryFailed', { queryId, error });
@@ -489,7 +489,7 @@ export class FederatedProvenanceTracker extends EventEmitter {
         metadata: {
           federationId: this.config.federationId,
           nodeId: this.config.nodeId,
-          exportTime: new Date().toISOString(),
+          exportTime: this.getDeterministicDate().toISOString(),
           format,
           version: '1.0'
         },
@@ -576,7 +576,7 @@ export class FederatedProvenanceTracker extends EventEmitter {
       '@type': this.provOntology.Activity,
       id: queryId,
       type: 'FederatedQuery',
-      started: new Date().toISOString(),
+      started: this.getDeterministicDate().toISOString(),
       
       // Query information
       query: {
@@ -616,7 +616,7 @@ export class FederatedProvenanceTracker extends EventEmitter {
         nodeVersion: process.version,
         platform: process.platform,
         memory: process.memoryUsage(),
-        timestamp: new Date().toISOString()
+        timestamp: this.getDeterministicDate().toISOString()
       };
     }
     
@@ -628,7 +628,7 @@ export class FederatedProvenanceTracker extends EventEmitter {
       '@type': this.provOntology.Entity,
       id: `${queryId}-result`,
       type: 'QueryResult',
-      generated: new Date().toISOString(),
+      generated: this.getDeterministicDate().toISOString(),
       
       // Result information
       result: {
@@ -666,7 +666,7 @@ export class FederatedProvenanceTracker extends EventEmitter {
     const lineage = {
       id: crypto.randomUUID(),
       source: endpointId,
-      timestamp: new Date().toISOString(),
+      timestamp: this.getDeterministicDate().toISOString(),
       data: {
         type: typeof result.data,
         count: Array.isArray(result.data) ? result.data.length : 1,
@@ -708,7 +708,7 @@ export class FederatedProvenanceTracker extends EventEmitter {
       // Store cross-system link
       this.state.crossSystemLinks.set(link.id, {
         ...link,
-        received: new Date().toISOString(),
+        received: this.getDeterministicDate().toISOString(),
         verified: await this.verifyCrossSystemLink(link)
       });
       
@@ -1019,7 +1019,7 @@ export class FederatedProvenanceTracker extends EventEmitter {
   async performCleanup(retentionMs) {
     console.log('🧹 Performing provenance cleanup...');
     
-    const cutoff = Date.now() - retentionMs;
+    const cutoff = this.getDeterministicTimestamp() - retentionMs;
     let cleaned = 0;
     
     for (const [queryId, trace] of this.state.queryTraces.entries()) {
@@ -1073,7 +1073,7 @@ export class FederatedProvenanceTracker extends EventEmitter {
       activeTraces: Array.from(this.state.queryTraces.values())
         .filter(t => t.context.status === 'active').length,
       storageSize: this.calculateStorageSize(),
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     };
   }
   

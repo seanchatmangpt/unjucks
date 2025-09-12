@@ -332,7 +332,7 @@ export class LaTeXValidator {
       suggestion: rule.suggestion,
       position: violation.position,
       context: violation.context,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     };
     
     switch (rule.severity) {
@@ -358,7 +358,7 @@ export class LaTeXValidator {
       type,
       message,
       context,
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     });
   }
 
@@ -402,7 +402,7 @@ export class LaTeXValidator {
       structure: parseResult.structure,
       metadata: parseResult.metadata,
       recommendations: this.generateRecommendations(),
-      timestamp: new Date().toISOString()
+      timestamp: this.getDeterministicDate().toISOString()
     };
   }
 

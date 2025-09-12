@@ -640,7 +640,7 @@ export class KnowledgeBase {
     if (article && this.config.enableAnalytics) {
       // Update analytics
       article.analytics.views++;
-      article.analytics.lastAccessed = new Date().toISOString();
+      article.analytics.lastAccessed = this.getDeterministicDate().toISOString();
     }
     
     return article ? { ...article } : null;
@@ -706,7 +706,7 @@ export class KnowledgeBase {
     
     // Calculate review needs
     const reviewReminderMs = this.config.reviewReminderDays * 24 * 60 * 60 * 1000;
-    const now = Date.now();
+    const now = this.getDeterministicTimestamp();
     const needsReview = articles.filter(article => {
       const lastReview = article.metadata.lastReviewed ? new Date(article.metadata.lastReviewed).getTime() : 0;
       return (now - lastReview) > reviewReminderMs;
@@ -756,7 +756,7 @@ export class KnowledgeBase {
     console.log('🗺️  Generating knowledge base sitemap...');
     
     let sitemap = `# Knowledge Base Sitemap\n\n`;
-    sitemap += `Generated: ${new Date().toISOString()}\n\n`;
+    sitemap += `Generated: ${this.getDeterministicDate().toISOString()}\n\n`;
     
     // Categories
     for (const category of this.getCategories()) {
@@ -911,7 +911,7 @@ export class KnowledgeBase {
       articles: Array.from(this.articles.values()),
       categories: Array.from(this.categories.values()),
       stats: this.stats,
-      exportedAt: new Date().toISOString()
+      exportedAt: this.getDeterministicDate().toISOString()
     };
     
     const articlesPath = join(jsonDir, 'knowledge-base.json');
@@ -922,7 +922,7 @@ export class KnowledgeBase {
       index: Object.fromEntries(
         Array.from(this.searchIndex.entries()).map(([term, ids]) => [term, Array.from(ids)])
       ),
-      generatedAt: new Date().toISOString()
+      generatedAt: this.getDeterministicDate().toISOString()
     };
     
     const indexPath = join(jsonDir, 'search-index.json');
@@ -970,7 +970,7 @@ export class KnowledgeBase {
       }
     ];
     
-    const pathsData = { learningPaths, generatedAt: new Date().toISOString() };
+    const pathsData = { learningPaths, generatedAt: this.getDeterministicDate().toISOString() };
     writeFileSync(join(trainingDir, 'learning-paths.json'), JSON.stringify(pathsData, null, 2), 'utf-8');
   }
 

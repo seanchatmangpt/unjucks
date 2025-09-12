@@ -1,0 +1,98 @@
+```mermaid
+C4Component
+    title Component Diagram for Content-Addressed Storage System
+    
+    Container_Boundary(generation, "Artifact Generation") {
+        Component(artifactGen, "DeterministicArtifactGenerator", "Generator", "Generates artifacts with CAS integration")
+        Component(deterministicSys, "DeterministicRenderingSystem", "Renderer", "Renders templates with content addressing")
+        Component(hashGenerator, "Hash Generator", "SHA-256", "Generates content hashes")
+    }
+    
+    Container_Boundary(cas, "Content-Addressed Storage") {
+        Component(casManager, "CAS Manager", "Manager", "Manages content-addressed storage operations")
+        Component(contentHasher, "Content Hasher", "hash-wasm", "High-performance content hashing")
+        Component(deduplicator, "Deduplicator", "Engine", "Eliminates duplicate content")
+        Component(compressionEngine, "Compression Engine", "fflate", "Compresses stored content")
+    }
+    
+    Container_Boundary(storage, "Storage Backend") {
+        Component(objectStore, "Object Store", "File System", "Content-addressed object storage")
+        Component(indexStore, "Index Store", "JSON/SQLite", "Content index and metadata")
+        Component(cacheStore, "Cache Store", "Memory/Disk", "Hot content cache")
+        Component(gcEngine, "Garbage Collector", "Engine", "Unused content cleanup")
+    }
+    
+    Container_Boundary(integrity, "Integrity Verification") {
+        Component(checksumVerifier, "Checksum Verifier", "Verifier", "Verifies content integrity")
+        Component(attestationGenerator, "Attestation Generator", "Crypto", "Generates integrity attestations")
+        Component(merkleTree, "Merkle Tree", "Tree", "Hierarchical integrity verification")
+        Component(bloomFilter, "Bloom Filter", "Filter", "Fast duplicate detection")
+    }
+    
+    Container_Boundary(retrieval, "Content Retrieval") {
+        Component(contentResolver, "Content Resolver", "Resolver", "Resolves content by hash")
+        Component(cacheManager, "Cache Manager", "LRU/LFU", "Manages content cache")
+        Component(prefetcher, "Prefetcher", "Engine", "Predictive content prefetching")
+        Component(streamProcessor, "Stream Processor", "Processor", "Streaming content delivery")
+    }
+    
+    Container_Boundary(metadata, "Metadata Management") {
+        Component(metadataExtractor, "Metadata Extractor", "Extractor", "Extracts content metadata")
+        Component(tagManager, "Tag Manager", "Manager", "Manages content tags")
+        Component(relationshipTracker, "Relationship Tracker", "Tracker", "Tracks content relationships")
+        Component(versionTracker, "Version Tracker", "Tracker", "Tracks content versions")
+    }
+    
+    Container_Boundary(optimization, "Performance Optimization") {
+        Component(heatmapAnalyzer, "Heatmap Analyzer", "Analyzer", "Analyzes content access patterns")
+        Component(storageOptimizer, "Storage Optimizer", "Optimizer", "Optimizes storage layout")
+        Component(compressionOptimizer, "Compression Optimizer", "Optimizer", "Optimizes compression strategies")
+        Component(evictionPolicy, "Eviction Policy", "Policy", "Cache eviction policies")
+    }
+    
+    Container_Boundary(persistence, "Persistence Layer") {
+        Component(diskStore, "Disk Store", "File System", "Persistent disk storage")
+        Component(backupManager, "Backup Manager", "Manager", "Content backup and recovery")
+        Component(replicationEngine, "Replication Engine", "Engine", "Content replication")
+        Component(syncEngine, "Sync Engine", "Engine", "Cross-node synchronization")
+    }
+    
+    Rel(artifactGen, casManager, "stores artifacts in")
+    Rel(deterministicSys, contentHasher, "hashes content with")
+    Rel(hashGenerator, contentHasher, "uses for hashing")
+    
+    Rel(casManager, deduplicator, "deduplicates content with")
+    Rel(casManager, compressionEngine, "compresses content with")
+    Rel(deduplicator, bloomFilter, "checks duplicates with")
+    
+    Rel(casManager, objectStore, "stores objects in")
+    Rel(casManager, indexStore, "indexes content in")
+    Rel(casManager, cacheStore, "caches content in")
+    Rel(objectStore, gcEngine, "garbage collects with")
+    
+    Rel(casManager, checksumVerifier, "verifies integrity with")
+    Rel(checksumVerifier, attestationGenerator, "generates attestations with")
+    Rel(attestationGenerator, merkleTree, "builds merkle trees with")
+    
+    Rel(casManager, contentResolver, "resolves content with")
+    Rel(contentResolver, cacheManager, "manages cache with")
+    Rel(cacheManager, prefetcher, "prefetches with")
+    Rel(contentResolver, streamProcessor, "streams content with")
+    
+    Rel(casManager, metadataExtractor, "extracts metadata with")
+    Rel(metadataExtractor, tagManager, "manages tags with")
+    Rel(metadataExtractor, relationshipTracker, "tracks relationships with")
+    Rel(tagManager, versionTracker, "tracks versions with")
+    
+    Rel(cacheManager, heatmapAnalyzer, "analyzes patterns with")
+    Rel(heatmapAnalyzer, storageOptimizer, "optimizes storage with")
+    Rel(compressionEngine, compressionOptimizer, "optimizes compression with")
+    Rel(cacheManager, evictionPolicy, "applies eviction with")
+    
+    Rel(objectStore, diskStore, "persists to")
+    Rel(diskStore, backupManager, "backs up with")
+    Rel(backupManager, replicationEngine, "replicates with")
+    Rel(replicationEngine, syncEngine, "synchronizes with")
+    
+    UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="3")
+```

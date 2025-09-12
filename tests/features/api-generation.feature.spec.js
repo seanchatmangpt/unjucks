@@ -16,7 +16,7 @@ const feature = await loadFeature('./features/api-generation.feature');
 describeFeature(feature, ({ Background, Scenario }) => {
   let testDir => {
     Given('I have a clean test environment', () => {
-      testDir = join(tmpdir(), `unjucks-api-test-${Date.now()}`);
+      testDir = join(tmpdir(), `unjucks-api-test-${this.getDeterministicTimestamp()}`);
       templatesDir = join(testDir, '_templates');
       projectDir = join(testDir, 'project');
       ensureDirSync(templatesDir);

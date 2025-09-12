@@ -77,7 +77,7 @@ describe('DriftDetector', () => {
         'test-key': {
           path: '/test/file.js',
           fingerprint: { hash: 'test-hash', semanticHash: 'semantic-test' },
-          timestamp: new Date().toISOString()
+          timestamp: this.getDeterministicDate().toISOString()
         }
       };
       
@@ -628,11 +628,11 @@ describe('DriftDetector', () => {
         files.push(filePath);
       }
 
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const results = await detector.detectArtifactDrift({
         targetPath: tempDir
       });
-      const duration = Date.now() - startTime;
+      const duration = this.getDeterministicTimestamp() - startTime;
 
       expect(results.summary.totalFiles).toBe(fileCount);
       expect(duration).toBeLessThan(5000); // Should complete reasonably fast

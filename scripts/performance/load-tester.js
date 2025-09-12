@@ -32,7 +32,7 @@ class LoadTester {
 
     this.results = {
       metadata: {
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         scenario: this.options.scenario,
         workers: this.options.workers,
         duration: this.options.duration,
@@ -60,7 +60,7 @@ class LoadTester {
     const templates = {
       simple: {
         template: 'Hello {{ name }}! Time: {{ timestamp | dateFormat("HH:mm:ss") }}',
-        data: { name: 'LoadTest', timestamp: new Date() }
+        data: { name: 'LoadTest', timestamp: this.getDeterministicDate() }
       },
       
       complex: {
@@ -113,14 +113,14 @@ class LoadTester {
         data: {
           title: 'Load Test Dashboard',
           description: 'Testing concurrent template rendering',
-          timestamp: new Date(),
+          timestamp: this.getDeterministicDate(),
           items: Array.from({ length: 50 }, (_, i) => ({
             id: i + 1,
             name: `Item ${i + 1}`,
             description: `Description for item ${i + 1} with some additional content to test rendering performance`,
             tags: ['tag1', 'tag2', 'tag3'].slice(0, Math.floor(Math.random() * 3) + 1),
             metadata: {
-              created: new Date(Date.now() - Math.random() * 86400000),
+              created: new Date(this.getDeterministicTimestamp() - Math.random() * 86400000),
               status: ['active', 'pending', 'completed'][Math.floor(Math.random() * 3)],
               score: Math.random() * 100
             }
@@ -179,7 +179,7 @@ class LoadTester {
             name: 'Load Test Project',
             description: 'Testing nested template performance under load',
             status: 'active',
-            lastUpdated: new Date(),
+            lastUpdated: this.getDeterministicDate(),
             teams: Array.from({ length: 5 }, (_, teamIndex) => ({
               name: `Team ${teamIndex + 1}`,
               lead: {
@@ -302,9 +302,9 @@ class LoadTester {
                 { type: 'template', message: 'Template error', count: 2, percentage: 0.2 }
               ],
               status: 'completed',
-              completedAt: new Date()
+              completedAt: this.getDeterministicDate()
             },
-            createdAt: new Date(),
+            createdAt: this.getDeterministicDate(),
             environment: {
               nodeVersion: process.version,
               platform: process.platform,
@@ -331,7 +331,7 @@ class LoadTester {
     const templatesDir = await this.prepareTestEnvironment();
     
     this.isRunning = true;
-    const startTime = Date.now();
+    const startTime = this.getDeterministicTimestamp();
     
     // Run the appropriate scenario
     switch (this.options.scenario) {
@@ -351,7 +351,7 @@ class LoadTester {
         throw new Error(`Unknown scenario: ${this.options.scenario}`);
     }
     
-    const endTime = Date.now();
+    const endTime = this.getDeterministicTimestamp();
     this.results.metadata.actualDuration = (endTime - startTime) / 1000;
     
     await this.calculateMetrics();
@@ -366,7 +366,7 @@ class LoadTester {
     
     const phase = {
       name: 'burst',
-      startTime: Date.now(),
+      startTime: this.getDeterministicTimestamp(),
       workers: [],
       results: []
     };
@@ -384,7 +384,7 @@ class LoadTester {
 
     const workerResults = await Promise.all(workerPromises);
     phase.results = workerResults.flat();
-    phase.endTime = Date.now();
+    phase.endTime = this.getDeterministicTimestamp();
     
     this.results.phases.push(phase);
     await this.terminateWorkers(workers);
@@ -395,7 +395,7 @@ class LoadTester {
     
     const phase = {
       name: 'sustained',
-      startTime: Date.now(),
+      startTime: this.getDeterministicTimestamp(),
       workers: [],
       results: []
     };
@@ -413,7 +413,7 @@ class LoadTester {
 
     const workerResults = await Promise.all(workerPromises);
     phase.results = workerResults.flat();
-    phase.endTime = Date.now();
+    phase.endTime = this.getDeterministicTimestamp();
     
     this.results.phases.push(phase);
     await this.terminateWorkers(workers);
@@ -431,7 +431,7 @@ class LoadTester {
     for (let step = 1; step <= steps; step++) {
       const phase = {
         name: `ramp-up-step-${step}`,
-        startTime: Date.now(),
+        startTime: this.getDeterministicTimestamp(),
         workers: [],
         results: []
       };
@@ -451,7 +451,7 @@ class LoadTester {
 
       const workerResults = await Promise.all(workerPromises);
       phase.results = workerResults.flat();
-      phase.endTime = Date.now();
+      phase.endTime = this.getDeterministicTimestamp();
       
       this.results.phases.push(phase);
       await this.terminateWorkers(workers);
@@ -462,7 +462,7 @@ class LoadTester {
     // Sustained phase
     const sustainedPhase = {
       name: 'sustained',
-      startTime: Date.now(),
+      startTime: this.getDeterministicTimestamp(),
       workers: [],
       results: []
     };
@@ -479,7 +479,7 @@ class LoadTester {
 
     const workerResults = await Promise.all(workerPromises);
     sustainedPhase.results = workerResults.flat();
-    sustainedPhase.endTime = Date.now();
+    sustainedPhase.endTime = this.getDeterministicTimestamp();
     
     this.results.phases.push(sustainedPhase);
     await this.terminateWorkers(workers);
@@ -506,7 +506,7 @@ class LoadTester {
   async runPhase(phaseName, templatesDir, targetRPS, duration) {
     const phase = {
       name: phaseName,
-      startTime: Date.now(),
+      startTime: this.getDeterministicTimestamp(),
       workers: [],
       results: []
     };
@@ -523,7 +523,7 @@ class LoadTester {
 
     const workerResults = await Promise.all(workerPromises);
     phase.results = workerResults.flat();
-    phase.endTime = Date.now();
+    phase.endTime = this.getDeterministicTimestamp();
     
     this.results.phases.push(phase);
     await this.terminateWorkers(workers);
@@ -706,7 +706,7 @@ if (!isMainThread) {
     const data = { ...dataCache[templateType] };
     
     // Add some randomness to data
-    data.timestamp = new Date();
+    data.timestamp = this.getDeterministicDate();
     data.workerId = workerId;
     data.requestId = Math.random().toString(36).substring(7);
     
@@ -722,7 +722,7 @@ if (!isMainThread) {
         templateType,
         outputSize: result.length,
         workerId,
-        timestamp: Date.now()
+        timestamp: this.getDeterministicTimestamp()
       };
     } catch (error) {
       const endTime = performance.now();
@@ -732,7 +732,7 @@ if (!isMainThread) {
         duration: endTime - startTime,
         templateType,
         workerId,
-        timestamp: Date.now(),
+        timestamp: this.getDeterministicTimestamp(),
         error: {
           type: error.constructor.name,
           message: error.message

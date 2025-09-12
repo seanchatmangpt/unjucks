@@ -335,7 +335,7 @@ describe('Office Complete Workflow E2E Test', () => {
 
   describe('8. Summary Report Generation', () => {
     test('should generate comprehensive summary report', () => {
-      const startTime = new Date().toISOString();
+      const startTime = this.getDeterministicDate().toISOString();
       
       // Count template and data files found
       const officeDir = path.join(__dirname, '../../../_templates/office');

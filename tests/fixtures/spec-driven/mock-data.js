@@ -3,14 +3,14 @@
 export class MockDataFactory {
   static createSpecification(overrides = {}) {
     return {
-      id: `spec-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      id: `spec-${this.getDeterministicTimestamp()}-${Math.random().toString(36).substr(2, 9)}`,
       name: 'MockSpecification',
       description: 'A mock specification for testing purposes',
       type: 'feature',
       priority: 'medium',
       complexity: 'medium',
       version: 1,
-      createdAt: new Date().toISOString(),
+      createdAt: this.getDeterministicDate().toISOString(),
       acceptance: [
         'System should meet functional requirements',
         'System should handle edge cases properly',
@@ -22,7 +22,7 @@ export class MockDataFactory {
 
   static createPlan(specification, overrides = {}) {
     return {
-      id: `plan-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      id: `plan-${this.getDeterministicTimestamp()}-${Math.random().toString(36).substr(2, 9)}`,
       specificationId: specification.id,
       name: `Plan for ${specification.name}`,
       template: 'default',
@@ -69,7 +69,7 @@ export class MockDataFactory {
         }
       ],
       totalEstimatedDays: 22,
-      createdAt: new Date().toISOString(),
+      createdAt: this.getDeterministicDate().toISOString(),
       status: 'draft',
       ...overrides
     };
@@ -99,7 +99,7 @@ export class MockDataFactory {
         estimated_hours: taskType.hours,
         priority: index < 2 ? 'high' : index < 4 ? 'medium' : 'low',
         status: 'pending',
-        createdAt: new Date().toISOString(),
+        createdAt: this.getDeterministicDate().toISOString(),
         acceptanceCriteria: [
           `${taskType.type} meets functional requirements`,
           `${taskType.type} passes all tests`,
@@ -112,11 +112,11 @@ export class MockDataFactory {
 
   static createWorkflow(requirement, overrides = {}) {
     return {
-      id: `workflow-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      id: `workflow-${this.getDeterministicTimestamp()}-${Math.random().toString(36).substr(2, 9)}`,
       requirement,
       type: 'complete',
       status: 'running',
-      startTime: new Date().toISOString(),
+      startTime: this.getDeterministicDate().toISOString(),
       phases: [],
       currentPhase: 0,
       deliverables: {},
@@ -483,7 +483,7 @@ ${specification.acceptance ? specification.acceptance.map(criterion =>
         id: 'backup-spec-001',
         stage: 'specification',
         type: 'version_control',
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         size: '1.2MB',
         description: 'Specification backup before changes'
       },
@@ -491,7 +491,7 @@ ${specification.acceptance ? specification.acceptance.map(criterion =>
         id: 'backup-code-001',
         stage: 'code_generation',
         type: 'state_snapshot',
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         size: '45MB',
         description: 'Code generation state backup'
       },
@@ -499,7 +499,7 @@ ${specification.acceptance ? specification.acceptance.map(criterion =>
         id: 'backup-deploy-001',
         stage: 'deployment',
         type: 'automated_rollback',
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         size: '120MB',
         description: 'Deployment rollback point'
       },
@@ -507,7 +507,7 @@ ${specification.acceptance ? specification.acceptance.map(criterion =>
         id: 'backup-data-001',
         stage: 'data_migration',
         type: 'database_backup',
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         size: '2.1GB',
         description: 'Database backup before migration'
       }
@@ -529,11 +529,11 @@ ${specification.acceptance ? specification.acceptance.map(criterion =>
   }
 
   static generateId(prefix = 'mock') {
-    return `${prefix}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    return `${prefix}-${this.getDeterministicTimestamp()}-${Math.random().toString(36).substr(2, 9)}`;
   }
 
   static createTimestamp(offsetDays = 0) {
-    const date = new Date();
+    const date = this.getDeterministicDate();
     date.setDate(date.getDate() + offsetDays);
     return date.toISOString();
   }

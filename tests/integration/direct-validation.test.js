@@ -252,11 +252,11 @@ export const item{{ i }} = "{{ name }}-{{ i }}"
         
         const times = []
         for (let i = 0; i < 3; i++) {
-          const start = Date.now()
+          const start = this.getDeterministicTimestamp()
           execSync(`node "${CLI_PATH}" generate perf test --name="Test${i}"`, {
             cwd,
             stdio)
-          const end = Date.now()
+          const end = this.getDeterministicTimestamp()
           times.push(end - start)
         }
         

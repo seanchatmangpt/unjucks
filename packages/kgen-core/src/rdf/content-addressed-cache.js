@@ -108,7 +108,7 @@ export class ContentAddressedCache {
         this.memoryCache.set(hash, {
           content: contentBuffer,
           compressed: this.options.compressionEnabled,
-          storedAt: new Date(),
+          storedAt: this.getDeterministicDate(),
           accessCount: 1
         });
         
@@ -121,8 +121,8 @@ export class ContentAddressedCache {
         size: contentBuffer.length,
         compressedSize: finalContent.length,
         compressed: this.options.compressionEnabled,
-        storedAt: new Date(),
-        lastAccessed: new Date(),
+        storedAt: this.getDeterministicDate(),
+        lastAccessed: this.getDeterministicDate(),
         accessCount: 1,
         contentType: options.contentType || 'application/octet-stream',
         tags: options.tags || []
@@ -198,7 +198,7 @@ export class ContentAddressedCache {
         this.memoryCache.set(hash, {
           content,
           compressed: entry?.compressed || false,
-          storedAt: entry?.storedAt || new Date(),
+          storedAt: entry?.storedAt || this.getDeterministicDate(),
           accessCount: entry?.accessCount || 1
         });
       }
@@ -343,7 +343,7 @@ export class ContentAddressedCache {
       };
       
       const entries = Array.from(this.metadata.entries.values());
-      const now = new Date();
+      const now = this.getDeterministicDate();
       let deletedCount = 0;
       let freedSpace = 0;
       
@@ -464,7 +464,7 @@ export class ContentAddressedCache {
   _updateAccessTime(hash) {
     if (this.metadata.entries.has(hash)) {
       const entry = this.metadata.entries.get(hash);
-      entry.lastAccessed = new Date();
+      entry.lastAccessed = this.getDeterministicDate();
       entry.accessCount++;
     }
   }

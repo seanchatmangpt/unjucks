@@ -129,7 +129,7 @@ export class DistributedProvenanceConsensus extends EventEmitter {
       this.logger.info(`Proposing provenance record: ${provenanceRecord.operationId}`);
       
       const proposalId = crypto.randomUUID();
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
       // Create consensus proposal
       const proposal = {
@@ -138,7 +138,7 @@ export class DistributedProvenanceConsensus extends EventEmitter {
         metadata,
         proposer: this.config.nodeId,
         view: this.currentView,
-        timestamp: new Date(),
+        timestamp: this.getDeterministicDate(),
         hash: this._hashProposal(provenanceRecord)
       };
       
@@ -187,7 +187,7 @@ export class DistributedProvenanceConsensus extends EventEmitter {
         throw new Error(`Proposal not found: ${proposalId}`);
       }
       
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       const roundId = crypto.randomUUID();
       
       this.logger.info(`Executing consensus round: ${roundId} for proposal: ${proposalId}`);
@@ -208,7 +208,7 @@ export class DistributedProvenanceConsensus extends EventEmitter {
       // Execute PBFT consensus phases
       const result = await this._executePBFTConsensus(roundId);
       
-      const consensusTime = Date.now() - startTime;
+      const consensusTime = this.getDeterministicTimestamp() - startTime;
       this.metrics.roundsCompleted++;
       this.metrics.averageConsensusTime = (this.metrics.averageConsensusTime + consensusTime) / 2;
       
@@ -302,7 +302,7 @@ export class DistributedProvenanceConsensus extends EventEmitter {
       proposalHash: proposalData.proposal.hash,
       view: consensusRound.view,
       nodeId: this.config.nodeId,
-      timestamp: new Date()
+      timestamp: this.getDeterministicDate()
     };
     
     prepareMessage.signature = await this._signMessage(prepareMessage);
@@ -340,7 +340,7 @@ export class DistributedProvenanceConsensus extends EventEmitter {
       proposalId: consensusRound.proposalId,
       view: consensusRound.view,
       nodeId: this.config.nodeId,
-      timestamp: new Date()
+      timestamp: this.getDeterministicDate()
     };
     
     commitMessage.signature = await this._signMessage(commitMessage);
@@ -383,7 +383,7 @@ export class DistributedProvenanceConsensus extends EventEmitter {
       applicationResult,
       view: consensusRound.view,
       nodeId: this.config.nodeId,
-      timestamp: new Date()
+      timestamp: this.getDeterministicDate()
     };
     
     finalizeMessage.signature = await this._signMessage(finalizeMessage);
@@ -468,7 +468,7 @@ export class DistributedProvenanceConsensus extends EventEmitter {
       decision: 'accepted',
       votes: votes.length,
       requiredVotes: Math.floor(this.validators.size * this.config.thresholdRequired),
-      timestamp: new Date(),
+      timestamp: this.getDeterministicDate(),
       validators: Array.from(this.validators.keys()),
       protocol: this.config.consensusProtocol
     };
@@ -574,7 +574,7 @@ export class DistributedProvenanceConsensus extends EventEmitter {
       nodeId: this.config.nodeId,
       publicKey: this.keyPair.publicKey,
       stake: 100, // Simplified staking
-      joinedAt: new Date(),
+      joinedAt: this.getDeterministicDate(),
       active: true
     });
     
@@ -587,7 +587,7 @@ export class DistributedProvenanceConsensus extends EventEmitter {
         nodeId: validatorId,
         publicKey: validatorKeyPair.publicKey,
         stake: 100,
-        joinedAt: new Date(),
+        joinedAt: this.getDeterministicDate(),
         active: true
       });
     }
@@ -677,7 +677,7 @@ export class DistributedProvenanceConsensus extends EventEmitter {
         type: phase,
         roundId,
         nodeId: validatorId,
-        timestamp: new Date(),
+        timestamp: this.getDeterministicDate(),
         valid: Math.random() > 0.1 // 90% honest validators
       };
       
@@ -710,7 +710,7 @@ export class DistributedProvenanceConsensus extends EventEmitter {
     return {
       applied: true,
       operationId: proposal.provenanceRecord.operationId,
-      timestamp: new Date()
+      timestamp: this.getDeterministicDate()
     };
   }
 
@@ -768,7 +768,7 @@ export class DistributedProvenanceConsensus extends EventEmitter {
 
   async _processConsensusRounds() {
     // Process active consensus rounds
-    const now = Date.now();
+    const now = this.getDeterministicTimestamp();
     
     for (const [roundId, round] of this.consensusRounds) {
       if (now > round.timeout) {

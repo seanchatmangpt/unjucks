@@ -1,0 +1,404 @@
+{
+  "timestamp": "2025-09-12T18:43:08.230Z",
+  "system": {
+    "platform": "darwin",
+    "arch": "arm64",
+    "totalMemory": 48,
+    "nodeVersion": "v22.12.0"
+  },
+  "profiles": {
+    "version": {
+      "command": "--version ",
+      "success": false,
+      "duration": 38.617083,
+      "exitCode": 9,
+      "memoryStats": {
+        "start": {
+          "rss": 40255488,
+          "heapTotal": 5554176,
+          "heapUsed": 4749280,
+          "external": 1833618,
+          "arrayBuffers": 23347
+        },
+        "end": {
+          "rss": 42336256,
+          "heapTotal": 6602752,
+          "heapUsed": 4598752,
+          "external": 1820963,
+          "arrayBuffers": 10652
+        },
+        "peak": {
+          "rss": 3244032,
+          "heapUsed": 0,
+          "heapTotal": 0,
+          "external": 0
+        },
+        "delta": {
+          "rss": 2080768,
+          "heapUsed": -150528,
+          "heapTotal": 1048576,
+          "external": -12655
+        }
+      },
+      "gcStats": {
+        "gcCount": 0,
+        "gcEventsPerSecond": 0
+      },
+      "measurements": [
+        {
+          "rss": 2621440,
+          "vsz": 420022304768,
+          "timestamp": 40.864666
+        },
+        {
+          "rss": 3244032,
+          "vsz": 420022386688,
+          "timestamp": 51.142666
+        },
+        {
+          "rss": 0,
+          "vsz": 0,
+          "timestamp": 59.6235
+        }
+      ],
+      "output": "",
+      "error": "node: --trace-gc is not allowed in NODE_OPTIONS\n",
+      "memoryAnalysis": {
+        "pattern": "SHRINKING",
+        "growthBytes": -2621440,
+        "peakGrowthBytes": 622592,
+        "growthRateBytesPerSec": -139744293.27537096,
+        "hasMemorySpikes": true,
+        "efficiency": "GOOD"
+      }
+    },
+    "validate-small": {
+      "command": "validate graph /Users/sac/unjucks/tests/performance/data/test-small.ttl",
+      "success": false,
+      "duration": 37.33758300000001,
+      "exitCode": 9,
+      "memoryStats": {
+        "start": {
+          "rss": 42450944,
+          "heapTotal": 6602752,
+          "heapUsed": 4668016,
+          "external": 1820963,
+          "arrayBuffers": 10652
+        },
+        "end": {
+          "rss": 42762240,
+          "heapTotal": 6864896,
+          "heapUsed": 4874544,
+          "external": 1821145,
+          "arrayBuffers": 10834
+        },
+        "peak": {
+          "rss": 3227648,
+          "heapUsed": 0,
+          "heapTotal": 0,
+          "external": 0
+        },
+        "delta": {
+          "rss": 311296,
+          "heapUsed": 206528,
+          "heapTotal": 262144,
+          "external": 182
+        }
+      },
+      "gcStats": {
+        "gcCount": 0,
+        "gcEventsPerSecond": 0
+      },
+      "measurements": [
+        {
+          "rss": 2621440,
+          "vsz": 420022304768,
+          "timestamp": 80.582
+        },
+        {
+          "rss": 3227648,
+          "vsz": 420022386688,
+          "timestamp": 90.357333
+        },
+        {
+          "rss": 0,
+          "vsz": 0,
+          "timestamp": 99.217625
+        }
+      ],
+      "output": "",
+      "error": "node: --trace-gc is not allowed in NODE_OPTIONS\n",
+      "memoryAnalysis": {
+        "pattern": "SHRINKING",
+        "growthBytes": -2621440,
+        "peakGrowthBytes": 606208,
+        "growthRateBytesPerSec": -140668209.41073883,
+        "hasMemorySpikes": true,
+        "efficiency": "GOOD"
+      }
+    },
+    "validate-large": {
+      "command": "validate graph /Users/sac/unjucks/tests/performance/data/test-large.ttl",
+      "success": false,
+      "duration": 37.414416999999986,
+      "exitCode": 9,
+      "memoryStats": {
+        "start": {
+          "rss": 42778624,
+          "heapTotal": 6864896,
+          "heapUsed": 4887608,
+          "external": 1821145,
+          "arrayBuffers": 10834
+        },
+        "end": {
+          "rss": 43040768,
+          "heapTotal": 6864896,
+          "heapUsed": 5110552,
+          "external": 1821327,
+          "arrayBuffers": 11016
+        },
+        "peak": {
+          "rss": 3194880,
+          "heapUsed": 0,
+          "heapTotal": 0,
+          "external": 0
+        },
+        "delta": {
+          "rss": 262144,
+          "heapUsed": 222944,
+          "heapTotal": 0,
+          "external": 182
+        }
+      },
+      "gcStats": {
+        "gcCount": 0,
+        "gcEventsPerSecond": 0
+      },
+      "measurements": [
+        {
+          "rss": 2572288,
+          "vsz": 420022272000,
+          "timestamp": 117.910208
+        },
+        {
+          "rss": 3194880,
+          "vsz": 420022386688,
+          "timestamp": 128.104541
+        },
+        {
+          "rss": 0,
+          "vsz": 0,
+          "timestamp": 137.250458
+        }
+      ],
+      "output": "",
+      "error": "node: --trace-gc is not allowed in NODE_OPTIONS\n",
+      "memoryAnalysis": {
+        "pattern": "SHRINKING",
+        "growthBytes": -2572288,
+        "peakGrowthBytes": 622592,
+        "growthRateBytesPerSec": -133001796.77098273,
+        "hasMemorySpikes": true,
+        "efficiency": "GOOD"
+      }
+    },
+    "hash-small": {
+      "command": "graph hash /Users/sac/unjucks/tests/performance/data/test-small.ttl",
+      "success": false,
+      "duration": 38.61316600000001,
+      "exitCode": 9,
+      "memoryStats": {
+        "start": {
+          "rss": 43040768,
+          "heapTotal": 6864896,
+          "heapUsed": 5123800,
+          "external": 1821327,
+          "arrayBuffers": 11016
+        },
+        "end": {
+          "rss": 43778048,
+          "heapTotal": 7127040,
+          "heapUsed": 4835136,
+          "external": 1821008,
+          "arrayBuffers": 10697
+        },
+        "peak": {
+          "rss": 3145728,
+          "heapUsed": 0,
+          "heapTotal": 0,
+          "external": 0
+        },
+        "delta": {
+          "rss": 737280,
+          "heapUsed": -288664,
+          "heapTotal": 262144,
+          "external": -319
+        }
+      },
+      "gcStats": {
+        "gcCount": 0,
+        "gcEventsPerSecond": 0
+      },
+      "measurements": [
+        {
+          "rss": 2555904,
+          "vsz": 420022272000,
+          "timestamp": 156.164791
+        },
+        {
+          "rss": 3145728,
+          "vsz": 420022353920,
+          "timestamp": 164.991166
+        },
+        {
+          "rss": 0,
+          "vsz": 0,
+          "timestamp": 176.587458
+        }
+      ],
+      "output": "",
+      "error": "node: --trace-gc is not allowed in NODE_OPTIONS\n",
+      "memoryAnalysis": {
+        "pattern": "SHRINKING",
+        "growthBytes": -2555904,
+        "peakGrowthBytes": 589824,
+        "growthRateBytesPerSec": -125150353.77113092,
+        "hasMemorySpikes": true,
+        "efficiency": "GOOD"
+      }
+    },
+    "hash-large": {
+      "command": "graph hash /Users/sac/unjucks/tests/performance/data/test-large.ttl",
+      "success": false,
+      "duration": 37.606040999999976,
+      "exitCode": 9,
+      "memoryStats": {
+        "start": {
+          "rss": 43778048,
+          "heapTotal": 7127040,
+          "heapUsed": 4848008,
+          "external": 1821008,
+          "arrayBuffers": 10697
+        },
+        "end": {
+          "rss": 43876352,
+          "heapTotal": 7389184,
+          "heapUsed": 5074512,
+          "external": 1821190,
+          "arrayBuffers": 10879
+        },
+        "peak": {
+          "rss": 3162112,
+          "heapUsed": 0,
+          "heapTotal": 0,
+          "external": 0
+        },
+        "delta": {
+          "rss": 98304,
+          "heapUsed": 226504,
+          "heapTotal": 262144,
+          "external": 182
+        }
+      },
+      "gcStats": {
+        "gcCount": 0,
+        "gcEventsPerSecond": 0
+      },
+      "measurements": [
+        {
+          "rss": 2539520,
+          "vsz": 420022272000,
+          "timestamp": 194.259625
+        },
+        {
+          "rss": 3162112,
+          "vsz": 420022353920,
+          "timestamp": 204.044125
+        },
+        {
+          "rss": 0,
+          "vsz": 0,
+          "timestamp": 214.565416
+        }
+      ],
+      "output": "",
+      "error": "node: --trace-gc is not allowed in NODE_OPTIONS\n",
+      "memoryAnalysis": {
+        "pattern": "SHRINKING",
+        "growthBytes": -2539520,
+        "peakGrowthBytes": 622592,
+        "growthRateBytesPerSec": -125063830.31323428,
+        "hasMemorySpikes": true,
+        "efficiency": "GOOD"
+      }
+    },
+    "hash-huge": {
+      "command": "graph hash /Users/sac/unjucks/tests/performance/data/test-huge.ttl",
+      "success": false,
+      "duration": 38.60662500000001,
+      "exitCode": 9,
+      "memoryStats": {
+        "start": {
+          "rss": 43876352,
+          "heapTotal": 7389184,
+          "heapUsed": 5087552,
+          "external": 1821190,
+          "arrayBuffers": 10879
+        },
+        "end": {
+          "rss": 43876352,
+          "heapTotal": 7389184,
+          "heapUsed": 5257520,
+          "external": 1821372,
+          "arrayBuffers": 11061
+        },
+        "peak": {
+          "rss": 3162112,
+          "heapUsed": 0,
+          "heapTotal": 0,
+          "external": 0
+        },
+        "delta": {
+          "rss": 0,
+          "heapUsed": 169968,
+          "heapTotal": 0,
+          "external": 182
+        }
+      },
+      "gcStats": {
+        "gcCount": 0,
+        "gcEventsPerSecond": 0
+      },
+      "measurements": [
+        {
+          "rss": 2506752,
+          "vsz": 420022272000,
+          "timestamp": 231.674625
+        },
+        {
+          "rss": 3162112,
+          "vsz": 420022353920,
+          "timestamp": 242.278041
+        },
+        {
+          "rss": 0,
+          "vsz": 0,
+          "timestamp": 253.865291
+        }
+      ],
+      "output": "",
+      "error": "node: --trace-gc is not allowed in NODE_OPTIONS\n",
+      "memoryAnalysis": {
+        "pattern": "SHRINKING",
+        "growthBytes": -2506752,
+        "peakGrowthBytes": 655360,
+        "growthRateBytesPerSec": -112964252.62765874,
+        "hasMemorySpikes": true,
+        "efficiency": "GOOD"
+      }
+    }
+  },
+  "summary": {
+    "status": "NO_DATA"
+  }
+}

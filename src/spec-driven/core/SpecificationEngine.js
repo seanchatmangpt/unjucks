@@ -71,7 +71,7 @@ export class SpecificationEngine {
       
       // Add source path for reference
       spec.metadata.sourcePath = specFile;
-      spec.metadata.parsedAt = new Date().toISOString();
+      spec.metadata.parsedAt = this.getDeterministicDate().toISOString();
       
       // Validate specification if enabled
       if (this.options.validateOnParse) {
@@ -153,7 +153,7 @@ export class SpecificationEngine {
    * @returns {Promise<ExecutionResult>}
    */
   async executeSpec(specPath, options = {}) {
-    const startTime = new Date();
+    const startTime = this.getDeterministicDate();
     const executionId = this.generateExecutionId();
     
     try {
@@ -183,7 +183,7 @@ export class SpecificationEngine {
       const result = await this.taskOrchestrator.executeTasks(taskList, options);
       
       // Calculate metrics
-      const endTime = new Date();
+      const endTime = this.getDeterministicDate();
       result.metrics = {
         ...result.metrics,
         startTime,
@@ -194,7 +194,7 @@ export class SpecificationEngine {
       
       return result;
     } catch (error) {
-      const endTime = new Date();
+      const endTime = this.getDeterministicDate();
       return {
         success: false,
         executionId,
@@ -273,7 +273,7 @@ export class SpecificationEngine {
       spec.metadata = {
         ...spec.metadata,
         createdFrom: templateId,
-        createdAt: new Date().toISOString(),
+        createdAt: this.getDeterministicDate().toISOString(),
         variables: variables
       };
       
@@ -311,8 +311,8 @@ export class SpecificationEngine {
               description: template.metadata.description || 'No description',
               version: template.metadata.version || '1.0.0',
               tags: template.metadata.tags || [],
-              created: new Date(),
-              modified: new Date(),
+              created: this.getDeterministicDate(),
+              modified: this.getDeterministicDate(),
               metadata: template.metadata
             });
           }
@@ -414,7 +414,7 @@ export class SpecificationEngine {
    * @returns {string}
    */
   generateExecutionId() {
-    const timestamp = Date.now();
+    const timestamp = this.getDeterministicTimestamp();
     const random = Math.random().toString(36).substr(2, 9);
     return `exec-${timestamp}-${random}`;
   }

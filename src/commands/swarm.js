@@ -40,7 +40,7 @@ class SwarmCoordinator {
       const state = {
         swarms: Array.from(this.activeSwarms.values()),
         tasks: Array.from(this.taskRegistry.values()),
-        lastUpdated: new Date().toISOString()
+        lastUpdated: this.getDeterministicDate().toISOString()
       };
       await fs.writeJson(this.swarmStateFile, state, { spaces: 2 });
     } catch (error) {
@@ -51,8 +51,8 @@ class SwarmCoordinator {
   createSwarm(config) {
     const swarm = {
       ...config,
-      id: config.id || `swarm-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      created: new Date().toISOString(),
+      id: config.id || `swarm-${this.getDeterministicTimestamp()}-${Math.random().toString(36).substr(2, 9)}`,
+      created: this.getDeterministicDate().toISOString(),
       status: 'active',
       agents: config.agents || [],
       tasks: [],
@@ -79,7 +79,7 @@ class SwarmCoordinator {
   updateSwarm(id, updates) {
     const swarm = this.activeSwarms.get(id);
     if (swarm) {
-      Object.assign(swarm, updates, { lastUpdated: new Date().toISOString() });
+      Object.assign(swarm, updates, { lastUpdated: this.getDeterministicDate().toISOString() });
       this.saveState();
     }
     return swarm;
@@ -94,12 +94,12 @@ class SwarmCoordinator {
   }
 
   addTask(swarmId, task) {
-    const taskId = `task-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`;
+    const taskId = `task-${this.getDeterministicTimestamp()}-${Math.random().toString(36).substr(2, 6)}`;
     const taskData = {
       ...task,
       id: taskId,
       swarmId,
-      created: new Date().toISOString(),
+      created: this.getDeterministicDate().toISOString(),
       status: 'pending'
     };
     this.taskRegistry.set(taskId, taskData);
@@ -179,7 +179,7 @@ class MCPSwarmClient {
         type: agentConfig.type,
         capabilities: agentConfig.capabilities,
         mcpEnabled: true,
-        spawned: new Date().toISOString()
+        spawned: this.getDeterministicDate().toISOString()
       };
 
       return { success: true, agent: mcpAgent, mode: 'mcp' };
@@ -259,7 +259,7 @@ export const swarmCommand = defineCommand({
         
         try {
           await coordinator.ensureInitialized();
-          const swarmName = args.name || `swarm-${Date.now()}`;
+          const swarmName = args.name || `swarm-${this.getDeterministicTimestamp()}`;
           
           console.log(chalk.yellow("⚡ Initializing swarm components..."));
           
@@ -373,7 +373,7 @@ export const swarmCommand = defineCommand({
           const spawnedAgents = [];
           
           for (let i = 0; i < args.count; i++) {
-            const agentId = `${args.type}-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`;
+            const agentId = `${args.type}-${this.getDeterministicTimestamp()}-${Math.random().toString(36).substr(2, 6)}`;
             const capabilities = args.capabilities ? args.capabilities.split(',').map(c => c.trim()) : ['general'];
             
             const agent = {
@@ -381,7 +381,7 @@ export const swarmCommand = defineCommand({
               type: args.type,
               status: "active",
               capabilities,
-              spawned: new Date().toISOString()
+              spawned: this.getDeterministicDate().toISOString()
             };
             
             swarmConfig.agents.push(agent);
@@ -605,7 +605,7 @@ export const swarmCommand = defineCommand({
           
           // Simulate task execution
           const taskResults = [];
-          const startTime = Date.now();
+          const startTime = this.getDeterministicTimestamp();
           
           for (const agent of availableAgents) {
             const executionTime = Math.random() * 2000 + 500; // 0.5-2.5 seconds
@@ -617,7 +617,7 @@ export const swarmCommand = defineCommand({
               success,
               executionTime,
               result: success ? `Task completed by ${agent.type} agent` : "Task failed",
-              timestamp: new Date().toISOString()
+              timestamp: this.getDeterministicDate().toISOString()
             };
             
             taskResults.push(result);
@@ -626,7 +626,7 @@ export const swarmCommand = defineCommand({
             console.log(`${status} ${agent.id}: ${result.result} (${Math.round(executionTime)}ms)`);
           }
           
-          const totalTime = Date.now() - startTime;
+          const totalTime = this.getDeterministicTimestamp() - startTime;
           const successfulTasks = taskResults.filter(r => r.success).length;
           
           console.log(chalk.cyan(`\n📊 Execution Summary:`));
@@ -899,7 +899,7 @@ export const swarmCommand = defineCommand({
           console.log(chalk.gray("Press Ctrl+C to stop monitoring\n"));
 
           let elapsed = 0;
-          const startTime = Date.now();
+          const startTime = this.getDeterministicTimestamp();
           
           const monitorInterval = setInterval(() => {
             console.clear();
@@ -941,7 +941,7 @@ export const swarmCommand = defineCommand({
             console.log(chalk.magenta(`⚡ Performance: ${performance.efficiency}% efficient, ${performance.throughput} tasks/min`));
             
             console.log();
-            console.log(chalk.gray(`Last update: ${new Date().toLocaleTimeString()}`));
+            console.log(chalk.gray(`Last update: ${this.getDeterministicDate().toLocaleTimeString()}`));
 
             elapsed += args.interval;
             
@@ -974,7 +974,7 @@ export const swarmCommand = defineCommand({
         const efficiency = totalAgents > 0 ? Math.round((activeAgents / totalAgents) * 100) : 0;
         
         const recentTasks = coordinator.getTasks(swarm.id)
-          .filter(t => new Date() - new Date(t.created) < 60000); // Last minute
+          .filter(t => this.getDeterministicDate() - new Date(t.created) < 60000); // Last minute
         const throughput = recentTasks.length;
 
         return { efficiency, throughput };
@@ -1042,7 +1042,7 @@ export const swarmCommand = defineCommand({
             
             for (let i = 0; i < delta; i++) {
               const agentType = agentTypes[swarm.agents.length % agentTypes.length];
-              const agentId = `${agentType}-scaled-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`;
+              const agentId = `${agentType}-scaled-${this.getDeterministicTimestamp()}-${Math.random().toString(36).substr(2, 6)}`;
               
               const agentConfig = {
                 id: agentId,
@@ -1050,7 +1050,7 @@ export const swarmCommand = defineCommand({
                 status: "active",
                 capabilities: this.getAgentCapabilities(agentType),
                 mcpEnabled: mcpClient.mcpAvailable,
-                scaledAt: new Date().toISOString()
+                scaledAt: this.getDeterministicDate().toISOString()
               };
 
               // Spawn via MCP if available
@@ -1099,9 +1099,9 @@ export const swarmCommand = defineCommand({
           // Update swarm with new agents
           coordinator.updateSwarm(swarmId, { 
             agents: swarm.agents,
-            lastScaled: new Date().toISOString(),
+            lastScaled: this.getDeterministicDate().toISOString(),
             scalingHistory: [...(swarm.scalingHistory || []), {
-              timestamp: new Date().toISOString(),
+              timestamp: this.getDeterministicDate().toISOString(),
               from: currentAgents,
               to: swarm.agents.length,
               strategy: args.strategy,
@@ -1261,7 +1261,7 @@ export const swarmCommand = defineCommand({
         const neuralMetrics = swarm.neuralMetrics || {};
         neuralMetrics.trainingSessions = (neuralMetrics.trainingSessions || 0) + 1;
         neuralMetrics.accuracy = Math.min((neuralMetrics.accuracy || 0.6) + 0.05, 0.95);
-        neuralMetrics.lastTraining = new Date().toISOString();
+        neuralMetrics.lastTraining = this.getDeterministicDate().toISOString();
         neuralMetrics.model = model;
 
         coordinator.updateSwarm(swarm.id, { 
@@ -1349,7 +1349,7 @@ export const swarmCommand = defineCommand({
         // Update swarm with pattern analysis
         coordinator.updateSwarm(swarm.id, {
           cognitivePatterns: swarmPatterns,
-          patternAnalysis: new Date().toISOString()
+          patternAnalysis: this.getDeterministicDate().toISOString()
         });
 
         return {

@@ -135,7 +135,7 @@ export const graphDiffCommand = {
       await adapter.initialize();
       
       // Execute graph diff analysis
-      const startTime = Date.now();
+      const startTime = this.getDeterministicTimestamp();
       
       const diffResult = await adapter.executeGraphDiff(basePath, targetPath, {
         reportType: options['report-type'],
@@ -145,7 +145,7 @@ export const graphDiffCommand = {
         analyzeRisk: options['analyze-risk']
       });
       
-      const totalTime = Date.now() - startTime;
+      const totalTime = this.getDeterministicTimestamp() - startTime;
       
       // Process and filter results based on options
       const processedResult = this._processResults(diffResult, options);

@@ -161,7 +161,7 @@ export class ProvenanceEngine {
       }
       
       const operationId = operationContext.operationId || uuidv4();
-      const startTime = new Date();
+      const startTime = this.getDeterministicDate();
       
       this.logger.debug(`Beginning operation: ${operationId}`);
       
@@ -278,7 +278,7 @@ export class ProvenanceEngine {
       
       const step = {
         stepNumber: operation.reasoningChain.length,
-        timestamp: new Date().toISOString(),
+        timestamp: this.getDeterministicDate().toISOString(),
         rule: reasoningStep.rule,
         inferenceType: reasoningStep.type || 'unknown',
         inputEntities: reasoningStep.inputs || [],
@@ -335,7 +335,7 @@ export class ProvenanceEngine {
         throw new Error(`Active operation not found: ${operationId}`);
       }
       
-      const endTime = new Date();
+      const endTime = this.getDeterministicDate();
       const processingTime = endTime - operation.startTime;
       
       this.logger.debug(`Completing operation: ${operationId}`);
@@ -458,7 +458,7 @@ export class ProvenanceEngine {
       const verification = {
         projectPath,
         overallValid: true,
-        verificationTime: new Date().toISOString(),
+        verificationTime: this.getDeterministicDate().toISOString(),
         
         // Component verification results
         attestations: null,
@@ -693,39 +693,56 @@ export class ProvenanceEngine {
   }
 
   async _generateArtifactAttestation(operation, output) {
-    const context = {
-      operationId: operation.operationId,
-      type: operation.type,
-      startTime: operation.startTime,
-      endTime: operation.endTime,
-      agent: operation.agent,
-      templateId: operation.templateId,
-      templateVersion: operation.templateVersion,
-      ruleIds: operation.ruleIds,
-      integrityHash: operation.integrityHash,
-      chainIndex: operation.chainIndex,
-      reasoningChain: operation.reasoningChain,
-      configuration: operation.configuration,
-      sources: operation.inputs,
-      outputs: [output]
-    };
-    
-    const artifact = {
-      id: output.id || crypto.randomUUID(),
-      path: output.filePath,
-      hash: output.hash,
-      size: output.size,
-      createdAt: operation.endTime
-    };
-    
-    const attestation = await this.attestationGenerator.generateAttestation(context, artifact);
-    
-    // Sign attestation if crypto manager available
-    if (this.cryptoManager) {
-      return await this.attestationGenerator.signAttestation(attestation, this.cryptoManager);
+    // Try to use content URI integration first
+    try {
+      const { contentProvenanceIntegration } = await import('../../kgen/cas/provenance-integration.js');
+      const contentAttestation = await contentProvenanceIntegration.generateContentAttestation(operation, output);
+      
+      // Sign attestation if crypto manager available
+      if (this.cryptoManager) {
+        return await this.attestationGenerator.signAttestation(contentAttestation, this.cryptoManager);
+      }
+      
+      return contentAttestation;
+      
+    } catch (error) {
+      this.logger.warn('Failed to generate content URI attestation, falling back to standard:', error.message);
+      
+      // Fallback to standard attestation generation
+      const context = {
+        operationId: operation.operationId,
+        type: operation.type,
+        startTime: operation.startTime,
+        endTime: operation.endTime,
+        agent: operation.agent,
+        templateId: operation.templateId,
+        templateVersion: operation.templateVersion,
+        ruleIds: operation.ruleIds,
+        integrityHash: operation.integrityHash,
+        chainIndex: operation.chainIndex,
+        reasoningChain: operation.reasoningChain,
+        configuration: operation.configuration,
+        sources: operation.inputs,
+        outputs: [output]
+      };
+      
+      const artifact = {
+        id: output.id || crypto.randomUUID(),
+        path: output.filePath,
+        hash: output.hash,
+        size: output.size,
+        createdAt: operation.endTime
+      };
+      
+      const attestation = await this.attestationGenerator.generateAttestation(context, artifact);
+      
+      // Sign attestation if crypto manager available
+      if (this.cryptoManager) {
+        return await this.attestationGenerator.signAttestation(attestation, this.cryptoManager);
+      }
+      
+      return attestation;
     }
-    
-    return attestation;
   }
 
   _calculateOperationHash(operation) {

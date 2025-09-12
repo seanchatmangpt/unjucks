@@ -32,7 +32,7 @@ class MetricsCollector {
     }
 
     async collectSystemMetrics() {
-        const timestamp = Date.now();
+        const timestamp = this.getDeterministicTimestamp();
         
         // Memory metrics
         const totalMem = os.totalmem();

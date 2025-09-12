@@ -368,7 +368,7 @@ async function runComprehensiveValidation() {
   
   totalTests++;
   const exportData = {
-    timestamp: new Date().toISOString(),
+    timestamp: this.getDeterministicDate().toISOString(),
     format: "JSON & XML export",
     data: {
       users: [
