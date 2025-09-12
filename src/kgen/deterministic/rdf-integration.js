@@ -12,7 +12,7 @@
 import { Parser, Writer, Store, DataFactory, Quad } from 'n3';
 import crypto from 'crypto';
 import { EventEmitter } from 'events';
-import { Logger } from 'consola';
+import logger from 'consola';
 
 const { namedNode, literal, blankNode, quad } = DataFactory;
 
@@ -47,7 +47,7 @@ export class RDFIntegration extends EventEmitter {
       ...options
     };
     
-    this.logger = new Logger({ tag: 'rdf-integration' });
+    this.logger = logger.withTag('rdf-integration');
     
     // RDF store for semantic queries
     this.store = new Store();

@@ -1,0 +1,191 @@
+{
+  "3796ab0399eaa97984cafa399a8b8c780762da2f8f6650b25e4e12b0ffa29310": {
+    "path": ".kgen/cache-gc-test/content/3796ab0399eaa97984cafa399a8b8c780762da2f8f6650b25e4e12b0ffa29310.json",
+    "size": 402,
+    "created_at": 1757648311785,
+    "accessed_at": 1757648311785,
+    "compressed": false
+  },
+  "931470add74df128ce6204909ec4c05708564594a7ea3b882d03ab3234f71b70": {
+    "path": ".kgen/cache-gc-test/content/931470add74df128ce6204909ec4c05708564594a7ea3b882d03ab3234f71b70.json",
+    "size": 402,
+    "created_at": 1757648311785,
+    "accessed_at": 1757648311785,
+    "compressed": false
+  },
+  "b2383da9090761bdf50f0f9884d14f8661c92e0fe754888f5f55cbf1ec3431e3": {
+    "path": ".kgen/cache-gc-test/content/b2383da9090761bdf50f0f9884d14f8661c92e0fe754888f5f55cbf1ec3431e3.json",
+    "size": 403,
+    "created_at": 1757648311785,
+    "accessed_at": 1757648311785,
+    "compressed": false
+  },
+  "5f04b270ce098de5cc2c1a9f89ce8c92636c416de62910d0932648c957808888": {
+    "path": ".kgen/cache-gc-test/content/5f04b270ce098de5cc2c1a9f89ce8c92636c416de62910d0932648c957808888.json",
+    "size": 403,
+    "created_at": 1757648311785,
+    "accessed_at": 1757648311785,
+    "compressed": false
+  },
+  "ff57fb4f58d69bbc77376b501974cad40685cea9295938dfebcb7304790d51db": {
+    "path": ".kgen/cache-gc-test/content/ff57fb4f58d69bbc77376b501974cad40685cea9295938dfebcb7304790d51db.json",
+    "size": 403,
+    "created_at": 1757648311785,
+    "accessed_at": 1757648311785,
+    "compressed": false
+  },
+  "07802d142ede72850234e4b51c7fae730f43a55b055b5178e22eb468b424c2a2": {
+    "path": ".kgen/cache-gc-test/content/07802d142ede72850234e4b51c7fae730f43a55b055b5178e22eb468b424c2a2.json",
+    "size": 403,
+    "created_at": 1757648311785,
+    "accessed_at": 1757648311785,
+    "compressed": false
+  },
+  "06d750a5d4171ca539d8c053c214b7cacc1eb211f25e30e3362c375b0d0b8d93": {
+    "path": ".kgen/cache-gc-test/content/06d750a5d4171ca539d8c053c214b7cacc1eb211f25e30e3362c375b0d0b8d93.json",
+    "size": 403,
+    "created_at": 1757648311785,
+    "accessed_at": 1757648311785,
+    "compressed": false
+  },
+  "23d6df8aa1390bbc4febbc8817a39ec2b39d628796c876d64e04dba3000a99c3": {
+    "path": ".kgen/cache-gc-test/content/23d6df8aa1390bbc4febbc8817a39ec2b39d628796c876d64e04dba3000a99c3.json",
+    "size": 403,
+    "created_at": 1757648484642,
+    "accessed_at": 1757648484642,
+    "compressed": false
+  },
+  "cda55ea3ef49b6b993396b7c8f3275958cea874a3010ef93d19c5cab4fbb7171": {
+    "path": ".kgen/cache-gc-test/content/cda55ea3ef49b6b993396b7c8f3275958cea874a3010ef93d19c5cab4fbb7171.json",
+    "size": 403,
+    "created_at": 1757648484642,
+    "accessed_at": 1757648484642,
+    "compressed": false
+  },
+  "f0968f4b6ad2e793fabd6aee4325ed62ca3eaa11b757b15d52f9961ed04e9d50": {
+    "path": ".kgen/cache-gc-test/content/f0968f4b6ad2e793fabd6aee4325ed62ca3eaa11b757b15d52f9961ed04e9d50.json",
+    "size": 403,
+    "created_at": 1757648484642,
+    "accessed_at": 1757648484642,
+    "compressed": false
+  },
+  "506be5b7bb873d75a2319b9e6b038f4472522692cf8112b2547339814ab6f96e": {
+    "path": ".kgen/cache-gc-test/content/506be5b7bb873d75a2319b9e6b038f4472522692cf8112b2547339814ab6f96e.json",
+    "size": 403,
+    "created_at": 1757648484642,
+    "accessed_at": 1757648484642,
+    "compressed": false
+  },
+  "56829e975c8807e0131b596365273b26bdfa9607e3a7f7a8067613b3fa72fab7": {
+    "path": ".kgen/cache-gc-test/content/56829e975c8807e0131b596365273b26bdfa9607e3a7f7a8067613b3fa72fab7.json",
+    "size": 403,
+    "created_at": 1757648484642,
+    "accessed_at": 1757648484642,
+    "compressed": false
+  },
+  "443d3b35270ad138d0307c91f3592e1194361b1d24905d7ede1e38b31e786b72": {
+    "path": ".kgen/cache-gc-test/content/443d3b35270ad138d0307c91f3592e1194361b1d24905d7ede1e38b31e786b72.json",
+    "size": 402,
+    "created_at": 1757648484642,
+    "accessed_at": 1757648484642,
+    "compressed": false
+  },
+  "117f48e726dc2acda08b62285a1db51a09c67837c2e4b64f4043cd7792cb88fc": {
+    "path": ".kgen/cache-gc-test/content/117f48e726dc2acda08b62285a1db51a09c67837c2e4b64f4043cd7792cb88fc.json",
+    "size": 402,
+    "created_at": 1757648484642,
+    "accessed_at": 1757648484642,
+    "compressed": false
+  },
+  "94d0ada898ffc68b8afa8035e0e55e9ddc39f36ca2750fef29bd681a78a16709": {
+    "path": ".kgen/cache-gc-test/content/94d0ada898ffc68b8afa8035e0e55e9ddc39f36ca2750fef29bd681a78a16709.json",
+    "size": 402,
+    "created_at": 1757648484642,
+    "accessed_at": 1757648484642,
+    "compressed": false
+  },
+  "5671ce99d4beab41c616c6e32db63b8561a908b01be9b4300123ef412b985eae": {
+    "path": ".kgen/cache-gc-test/content/5671ce99d4beab41c616c6e32db63b8561a908b01be9b4300123ef412b985eae.json",
+    "size": 402,
+    "created_at": 1757648484642,
+    "accessed_at": 1757648484642,
+    "compressed": false
+  },
+  "01b15321dcff7e93b36621ba89fc87b3acf8d9d11fc13ea381a72029bcbc0adb": {
+    "path": ".kgen/cache-gc-test/content/01b15321dcff7e93b36621ba89fc87b3acf8d9d11fc13ea381a72029bcbc0adb.json",
+    "size": 402,
+    "created_at": 1757648484642,
+    "accessed_at": 1757648484642,
+    "compressed": false
+  },
+  "710c8d1225231cab93341c32ff2f3e348b29253b79ae49ca0b1c96d1f6bac165": {
+    "path": ".kgen/cache-gc-test/content/710c8d1225231cab93341c32ff2f3e348b29253b79ae49ca0b1c96d1f6bac165.json",
+    "size": 403,
+    "created_at": 1757648484642,
+    "accessed_at": 1757648484642,
+    "compressed": false
+  },
+  "5f9bba67a6afe8462fef533065f058e9b2205fefe0c443ae9782dd27ce765c18": {
+    "path": ".kgen/cache-gc-test/content/5f9bba67a6afe8462fef533065f058e9b2205fefe0c443ae9782dd27ce765c18.json",
+    "size": 403,
+    "created_at": 1757648484642,
+    "accessed_at": 1757648484642,
+    "compressed": false
+  },
+  "66af9b76fd71992822c588d3f4df059994ee31e2570f9be41b885e1735a18c1e": {
+    "path": ".kgen/cache-gc-test/content/66af9b76fd71992822c588d3f4df059994ee31e2570f9be41b885e1735a18c1e.json",
+    "size": 403,
+    "created_at": 1757648484642,
+    "accessed_at": 1757648484642,
+    "compressed": false
+  },
+  "63f8148a4626f732c417d44a55df16fc677948889f8c055fa19348407045a69f": {
+    "path": ".kgen/cache-gc-test/content/63f8148a4626f732c417d44a55df16fc677948889f8c055fa19348407045a69f.json",
+    "size": 403,
+    "created_at": 1757648484643,
+    "accessed_at": 1757648484643,
+    "compressed": false
+  },
+  "4f4badc11bb4f8c9d4a88d135b368c56abada2050d6e7dc2d405b27d528904d5": {
+    "path": ".kgen/cache-gc-test/content/4f4badc11bb4f8c9d4a88d135b368c56abada2050d6e7dc2d405b27d528904d5.json",
+    "size": 403,
+    "created_at": 1757648484643,
+    "accessed_at": 1757648484643,
+    "compressed": false
+  },
+  "31c1e519bbb86f3a2d39dc5dfd77a4283bdda70da55f2e6b78eaa869922e4142": {
+    "path": ".kgen/cache-gc-test/content/31c1e519bbb86f3a2d39dc5dfd77a4283bdda70da55f2e6b78eaa869922e4142.json",
+    "size": 403,
+    "created_at": 1757648484643,
+    "accessed_at": 1757648484643,
+    "compressed": false
+  },
+  "1a06990199f6a7991ff1065ab83fd37af7e73a1b51fb39a2a6d59af814e58628": {
+    "path": ".kgen/cache-gc-test/content/1a06990199f6a7991ff1065ab83fd37af7e73a1b51fb39a2a6d59af814e58628.json",
+    "size": 403,
+    "created_at": 1757648484643,
+    "accessed_at": 1757648484643,
+    "compressed": false
+  },
+  "28bcb3e8f8a2be9e7217c6e77cfd7d83e4fe941b1b881c7d6f0832cb7bdbc764": {
+    "path": ".kgen/cache-gc-test/content/28bcb3e8f8a2be9e7217c6e77cfd7d83e4fe941b1b881c7d6f0832cb7bdbc764.json",
+    "size": 403,
+    "created_at": 1757648484643,
+    "accessed_at": 1757648484643,
+    "compressed": false
+  },
+  "c7a63712ce46fb48ce34abe0a7a8bb29e36d50e521e7de5ef397d4adbd2dba34": {
+    "path": ".kgen/cache-gc-test/content/c7a63712ce46fb48ce34abe0a7a8bb29e36d50e521e7de5ef397d4adbd2dba34.json",
+    "size": 403,
+    "created_at": 1757648484643,
+    "accessed_at": 1757648484643,
+    "compressed": false
+  },
+  "c0237ef0762c95411caea4af4611cf9ccee5c013ece7db50a96bc3f08630a0d7": {
+    "path": ".kgen/cache-gc-test/content/c0237ef0762c95411caea4af4611cf9ccee5c013ece7db50a96bc3f08630a0d7.json",
+    "size": 403,
+    "created_at": 1757648484643,
+    "accessed_at": 1757648484643,
+    "compressed": false
+  }
+}

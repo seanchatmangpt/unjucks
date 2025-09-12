@@ -192,7 +192,7 @@ export default defineCommand({
       }
       
       // Perform basic template analysis
-      const basicAnalysis = analyzeBasicTemplate(content, templateType);
+      const basicAnalysis = await analyzeBasicTemplate(content, templateType);
       
       const duration = Date.now() - startTime;
       
@@ -270,7 +270,7 @@ export default defineCommand({
  * @param {string} type - Template type
  * @returns {object} Basic analysis
  */
-function analyzeBasicTemplate(content, type) {
+async function analyzeBasicTemplate(content, type) {
   const analysis = {
     variables: [],
     blocks: [],

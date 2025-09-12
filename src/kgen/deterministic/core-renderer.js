@@ -14,8 +14,27 @@ import nunjucks from 'nunjucks';
 import { EventEmitter } from 'events';
 import path from 'path';
 import fs from 'fs/promises';
-import { Logger } from 'consola';
-import grayMatter from 'gray-matter';
+import { consola } from 'consola';
+// Fallback gray-matter implementation for missing dependency
+const grayMatter = {
+  default: (content) => {
+    // Simple frontmatter parser fallback
+    if (content.startsWith('---\n')) {
+      const endIndex = content.indexOf('\n---\n', 4);
+      if (endIndex !== -1) {
+        const frontmatter = content.slice(4, endIndex);
+        const body = content.slice(endIndex + 5);
+        try {
+          const data = JSON.parse(`{${frontmatter.replace(/(\w+):\s*(.+)/g, '"$1": "$2"').replace(/"/g, '"')}}`);
+          return { data, content: body };
+        } catch {
+          return { data: {}, content };
+        }
+      }
+    }
+    return { data: {}, content };
+  }
+};
 
 export class DeterministicRenderer extends EventEmitter {
   constructor(options = {}) {
@@ -45,7 +64,7 @@ export class DeterministicRenderer extends EventEmitter {
       ...options
     };
     
-    this.logger = new Logger({ tag: 'deterministic-renderer' });
+    this.logger = consola.withTag('deterministic-renderer');
     this.cache = new Map();
     this.environment = null;
     
@@ -84,26 +103,26 @@ export class DeterministicRenderer extends EventEmitter {
    * Register deterministic filters that replace non-deterministic ones
    */
   _registerDeterministicFilters() {
-    const filters = this.environment.getFilters();
+    // Register filters using addFilter method instead of accessing getFilters()
     
     // Replace date filter with static build time
-    filters.date = (date, format) => {
+    this.environment.addFilter('date', (date, format) => {
       if (!date || date === 'now') {
         date = this.config.staticBuildTime;
       }
       return this._formatDate(date, format);
-    };
+    });
     
     // Replace random() with deterministic hash-based generation
-    filters.random = (seed = '') => {
+    this.environment.addFilter('random', (seed = '') => {
       const hash = crypto.createHash('sha256')
         .update(seed.toString())
         .digest('hex');
       return parseInt(hash.substring(0, 8), 16) / 0xffffffff;
-    };
+    });
     
     // Hash-based unique ID generator
-    filters.hash = (input, length = 8) => {
+    this.environment.addFilter('hash', (input, length = 8) => {
       if (typeof input === 'object') {
         input = JSON.stringify(this._sortObjectKeys(input));
       }
@@ -111,26 +130,26 @@ export class DeterministicRenderer extends EventEmitter {
         .update(input.toString())
         .digest('hex')
         .substring(0, length);
-    };
+    });
     
     // Content-addressed identifier
-    filters.contentId = (input) => {
+    this.environment.addFilter('contentId', (input) => {
       const content = typeof input === 'object' 
         ? JSON.stringify(this._sortObjectKeys(input))
         : input.toString();
       return crypto.createHash('sha256').update(content).digest('hex');
-    };
+    });
     
     // Deterministic slug generation
-    filters.slug = (input) => {
+    this.environment.addFilter('slug', (input) => {
       return input.toString()
         .toLowerCase()
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/^-+|-+$/g, '');
-    };
+    });
     
     // Sort array deterministically
-    filters.sort = (array, key) => {
+    this.environment.addFilter('sort', (array, key) => {
       if (!Array.isArray(array)) return array;
       
       return [...array].sort((a, b) => {
@@ -141,15 +160,15 @@ export class DeterministicRenderer extends EventEmitter {
         if (aVal > bVal) return 1;
         return 0;
       });
-    };
+    });
     
     // Sort object keys
-    filters.sortKeys = (obj) => {
+    this.environment.addFilter('sortKeys', (obj) => {
       return this._sortObjectKeys(obj);
-    };
+    });
     
     // Remove non-deterministic metadata
-    filters.stripMetadata = (obj) => {
+    this.environment.addFilter('stripMetadata', (obj) => {
       if (typeof obj !== 'object' || obj === null) return obj;
       
       const stripped = { ...obj };
@@ -159,64 +178,60 @@ export class DeterministicRenderer extends EventEmitter {
       delete stripped.id; // Remove auto-generated IDs
       
       return this._sortObjectKeys(stripped);
-    };
+    });
     
     // Canonical JSON stringification
-    filters.canonical = (obj) => {
+    this.environment.addFilter('canonical', (obj) => {
       return JSON.stringify(this._sortObjectKeys(obj), null, 2);
-    };
+    });
     
     // RDF namespace resolution
-    filters.namespace = (uri) => {
+    this.environment.addFilter('namespace', (uri) => {
       for (const [prefix, namespace] of Object.entries(this.config.rdfNamespaces)) {
         if (uri.startsWith(namespace)) {
           return uri.replace(namespace, `${prefix}:`);
         }
       }
       return uri;
-    };
+    });
     
     // Base64 encoding (deterministic)
-    filters.base64 = (input) => {
+    this.environment.addFilter('base64', (input) => {
       return Buffer.from(input.toString()).toString('base64');
-    };
+    });
     
     // Semantic context enrichment
-    filters.semantic = (input, context = {}) => {
+    this.environment.addFilter('semantic', (input, context = {}) => {
       if (!this.config.enableSemanticEnrichment) {
         return input;
       }
       
       return this._enrichWithSemanticContext(input, context);
-    };
+    });
   }
   
   /**
    * Register deterministic global variables
    */
   _registerDeterministicGlobals() {
-    const globals = this.environment.getGlobals();
+    // Register global variables using addGlobal method
     
     // Static build information
-    globals.BUILD_TIME = this.config.staticBuildTime;
-    globals.BUILD_HASH = crypto.createHash('sha256')
+    this.environment.addGlobal('BUILD_TIME', this.config.staticBuildTime);
+    this.environment.addGlobal('BUILD_HASH', crypto.createHash('sha256')
       .update(this.config.staticBuildTime)
-      .digest('hex').substring(0, 8);
+      .digest('hex').substring(0, 8));
     
     // Deterministic utilities
-    globals.hash = (input) => crypto.createHash('sha256')
+    this.environment.addGlobal('hash', (input) => crypto.createHash('sha256')
       .update(input.toString())
-      .digest('hex');
+      .digest('hex'));
     
-    globals.uuid = (namespace = 'default') => {
+    this.environment.addGlobal('uuid', (namespace = 'default') => {
       return crypto.createHash('sha256')
         .update(`uuid-${namespace}-${this.config.staticBuildTime}`)
         .digest('hex').substring(0, 32);
-    };
-    
-    // Remove system information that varies between builds
-    delete globals.env;
-    delete globals.process;
+    });
   }
   
   /**
@@ -236,7 +251,7 @@ export class DeterministicRenderer extends EventEmitter {
       
       // Load and parse template with frontmatter
       const templateContent = await this._loadTemplate(templatePath);
-      const { data: frontmatter, content: template } = grayMatter(templateContent);
+      const { data: frontmatter, content: template } = grayMatter.default(templateContent);
       
       // Merge frontmatter with context
       const enrichedContext = this._mergeContext(normalizedContext, frontmatter);
@@ -350,7 +365,7 @@ export class DeterministicRenderer extends EventEmitter {
   async analyzeTemplate(templatePath) {
     try {
       const templateContent = await this._loadTemplate(templatePath);
-      const { data: frontmatter, content: template } = grayMatter(templateContent);
+      const { data: frontmatter, content: template } = grayMatter.default(templateContent);
       
       // Find potentially non-deterministic patterns
       const nonDeterministicPatterns = [

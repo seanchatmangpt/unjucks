@@ -11,6 +11,7 @@ import { Store, Parser, Writer, Util, DataFactory } from 'n3';
 import fs from 'fs/promises';
 import crypto from 'crypto';
 import { getSemanticConfig } from '../../../config/semantic.config.js';
+import N3ReasoningEngine from './reasoning/n3-reasoning-engine.js';
 
 const { namedNode, literal, defaultGraph, quad } = DataFactory;
 
@@ -59,6 +60,15 @@ export class SemanticProcessor extends EventEmitter {
     this.reasoningCache = new Map();
     this.inferenceRules = new Map();
     
+    // Initialize N3 reasoning engine
+    this.reasoningEngine = new N3ReasoningEngine({
+      maxInferenceDepth: this.config.maxInferenceDepth || 10,
+      reasoningTimeout: this.config.reasoningTimeout,
+      enableIncrementalReasoning: true,
+      enableConsistencyChecking: true,
+      enableExplanations: true
+    });
+    
     this.state = 'initialized';
   }
 
@@ -72,7 +82,10 @@ export class SemanticProcessor extends EventEmitter {
       // Load core ontologies
       await this._loadCoreOntologies();
       
-      // Initialize reasoning engine
+      // Initialize N3 reasoning engine
+      await this.reasoningEngine.initialize();
+      
+      // Initialize built-in reasoning engine
       await this._initializeReasoningEngine();
       
       // Load inference rules
@@ -200,48 +213,66 @@ export class SemanticProcessor extends EventEmitter {
     try {
       this.logger.info(`Starting reasoning with ${rules.length} rules`);
       
-      // Create reasoning context
-      const reasoningContext = {
-        operationId: options.operationId,
-        startTime: Date.now(),
-        inputTriples: graph.triples?.length || 0,
-        rulesApplied: 0,
-        inferredTriples: 0
-      };
+      const operationId = options.operationId || crypto.randomUUID();
+      const startTime = Date.now();
       
-      // Load graph into reasoning store
-      const reasoningStore = await this._prepareReasoningStore(graph);
-      
-      // Apply reasoning rules
-      const inferenceResults = await this._applyReasoningRules(reasoningStore, rules, options);
-      
-      // Perform OWL reasoning if enabled
-      if (this.config.enableOWLReasoning) {
-        const owlInferences = await this._performOWLReasoning(reasoningStore, options);
-        inferenceResults.owlInferences = owlInferences;
-      }
-      
-      // Build inferred knowledge graph
-      const inferredGraph = await this._buildInferredGraph(graph, inferenceResults, reasoningContext);
-      
-      // Update reasoning context
-      reasoningContext.endTime = Date.now();
-      reasoningContext.rulesApplied = rules.length;
-      reasoningContext.inferredTriples = inferenceResults.newTriples?.length || 0;
-      reasoningContext.reasoningTime = reasoningContext.endTime - reasoningContext.startTime;
-      
-      // Cache reasoning results
+      // Check cache first
       if (options.enableCaching !== false) {
-        await this._cacheReasoningResults(graph, rules, inferredGraph);
+        const cachedResults = await this.reasoningEngine.getCachedResults(graph, rules);
+        if (cachedResults) {
+          this.logger.debug('Returning cached reasoning results');
+          return {
+            ...cachedResults,
+            fromCache: true,
+            operationId
+          };
+        }
       }
       
-      this.emit('reasoning:complete', { 
-        operationId: options.operationId, 
-        context: reasoningContext,
-        inferredGraph 
+      // Use N3 reasoning engine for comprehensive reasoning
+      const n3Results = await this.reasoningEngine.performReasoning(graph, rules, {
+        operationId,
+        enableIncrementalReasoning: options.enableIncrementalReasoning,
+        enableConsistencyChecking: this.config.enableSHACLValidation,
+        enableExplanations: options.enableExplanations !== false
       });
       
-      this.logger.success(`Reasoning completed in ${reasoningContext.reasoningTime}ms: ${reasoningContext.inferredTriples} new triples`);
+      // Enhance with semantic processor capabilities
+      const enhancedResults = await this._enhanceReasoningResults(graph, n3Results, options);
+      
+      // Perform additional validation if requested
+      if (options.validateResults) {
+        enhancedResults.validation = await this.reasoningEngine.validateInferenceResults(
+          enhancedResults.inferences
+        );
+      }
+      
+      // Build final inferred knowledge graph
+      const inferredGraph = {
+        ...graph,
+        inferences: enhancedResults.inferences,
+        explanations: enhancedResults.explanations,
+        consistencyReport: enhancedResults.consistencyReport,
+        reasoningMetrics: {
+          ...enhancedResults.context,
+          enhancementTime: Date.now() - startTime,
+          totalInferences: enhancedResults.inferences?.length || 0,
+          cacheHit: false
+        },
+        validation: enhancedResults.validation
+      };
+      
+      this.emit('reasoning:complete', { 
+        operationId, 
+        inferredGraph,
+        metrics: enhancedResults.metrics
+      });
+      
+      const totalTime = Date.now() - startTime;
+      this.logger.success(
+        `Reasoning completed in ${totalTime}ms: ${enhancedResults.inferences?.length || 0} inferences, ` +
+        `${enhancedResults.explanations?.length || 0} explanations`
+      );
       
       return inferredGraph;
       
@@ -456,6 +487,8 @@ export class SemanticProcessor extends EventEmitter {
    * Get processor status and metrics
    */
   getStatus() {
+    const n3Status = this.reasoningEngine?.getStatus() || {};
+    
     return {
       state: this.state,
       triplesLoaded: this.store.size,
@@ -468,6 +501,13 @@ export class SemanticProcessor extends EventEmitter {
         enableOWLReasoning: this.config.enableOWLReasoning,
         enableSHACLValidation: this.config.enableSHACLValidation,
         maxTriples: this.config.maxTriples
+      },
+      n3ReasoningEngine: {
+        state: n3Status.state,
+        rulePacks: n3Status.rulePacks,
+        metrics: n3Status.metrics,
+        performance: n3Status.performance,
+        incremental: n3Status.incremental
       }
     };
   }
@@ -478,6 +518,11 @@ export class SemanticProcessor extends EventEmitter {
   async shutdown() {
     try {
       this.logger.info('Shutting down semantic processor...');
+      
+      // Shutdown N3 reasoning engine
+      if (this.reasoningEngine) {
+        await this.reasoningEngine.shutdown();
+      }
       
       // Clear caches
       this.ontologyCache.clear();
@@ -1386,6 +1431,213 @@ export class SemanticProcessor extends EventEmitter {
   }
 
   // Additional semantic processing methods
+  
+  /**
+   * Enhance reasoning results with semantic processor capabilities
+   */
+  async _enhanceReasoningResults(graph, n3Results, options) {
+    try {
+      const enhanced = { ...n3Results };
+      
+      // Add semantic context enrichment
+      if (options.enrichContext) {
+        enhanced.semanticContext = await this.enrichGenerationContext(graph, options);
+      }
+      
+      // Add schema alignment information
+      if (options.alignSchemas && graph.schemas) {
+        enhanced.schemaAlignments = await this.alignSchemas(graph.schemas);
+      }
+      
+      // Add quality metrics
+      enhanced.qualityMetrics = await this._calculateReasoningQuality(enhanced.inferences);
+      
+      // Add compliance analysis
+      if (options.complianceRules) {
+        enhanced.complianceAnalysis = await this._analyzeCompliance(
+          enhanced.inferences, 
+          options.complianceRules
+        );
+      }
+      
+      return enhanced;
+      
+    } catch (error) {
+      this.logger.warn('Failed to enhance reasoning results:', error.message);
+      return n3Results;
+    }
+  }
+  
+  /**
+   * Calculate reasoning quality metrics
+   */
+  async _calculateReasoningQuality(inferences) {
+    if (!inferences || inferences.length === 0) {
+      return {
+        totalInferences: 0,
+        confidence: 1.0,
+        novelty: 0,
+        consistency: 1.0
+      };
+    }
+    
+    const metrics = {
+      totalInferences: inferences.length,
+      confidence: 0,
+      novelty: 0,
+      consistency: 1.0,
+      coverage: 0,
+      precision: 1.0
+    };
+    
+    // Calculate average confidence
+    const confidences = inferences.map(inf => inf.confidence || 1.0);
+    metrics.confidence = confidences.reduce((sum, c) => sum + c, 0) / confidences.length;
+    
+    // Calculate novelty (how many inferences were not in original graph)
+    const originalTriples = new Set();
+    if (this.store.size > 0) {
+      for (const quad of this.store.getQuads()) {
+        originalTriples.add(`${quad.subject.value}|${quad.predicate.value}|${quad.object.value}`);
+      }
+    }
+    
+    let novelInferences = 0;
+    for (const inf of inferences) {
+      const tripleKey = `${inf.subject}|${inf.predicate}|${inf.object}`;
+      if (!originalTriples.has(tripleKey)) {
+        novelInferences++;
+      }
+    }
+    
+    metrics.novelty = inferences.length > 0 ? novelInferences / inferences.length : 0;
+    
+    // Calculate coverage (how many entities were involved in reasoning)
+    const entities = new Set();
+    for (const inf of inferences) {
+      entities.add(inf.subject);
+      entities.add(inf.object);
+    }
+    metrics.coverage = entities.size;
+    
+    return metrics;
+  }
+  
+  /**
+   * Analyze compliance with given rules
+   */
+  async _analyzeCompliance(inferences, complianceRules) {
+    const analysis = {
+      totalRules: complianceRules.length,
+      compliantInferences: 0,
+      violations: [],
+      warnings: [],
+      overallCompliance: 1.0
+    };
+    
+    for (const rule of complianceRules) {
+      try {
+        const ruleAnalysis = await this._analyzeComplianceRule(inferences, rule);
+        
+        analysis.compliantInferences += ruleAnalysis.compliant;
+        analysis.violations.push(...ruleAnalysis.violations);
+        analysis.warnings.push(...ruleAnalysis.warnings);
+        
+      } catch (error) {
+        this.logger.warn(`Failed to analyze compliance rule ${rule.id}:`, error.message);
+        analysis.warnings.push({
+          ruleId: rule.id,
+          message: `Failed to analyze rule: ${error.message}`
+        });
+      }
+    }
+    
+    // Calculate overall compliance score
+    const totalIssues = analysis.violations.length + analysis.warnings.length;
+    const maxPossibleIssues = inferences.length * complianceRules.length;
+    analysis.overallCompliance = maxPossibleIssues > 0 ? 1 - (totalIssues / maxPossibleIssues) : 1.0;
+    
+    return analysis;
+  }
+  
+  /**
+   * Analyze compliance for a single rule
+   */
+  async _analyzeComplianceRule(inferences, rule) {
+    const analysis = {
+      compliant: 0,
+      violations: [],
+      warnings: []
+    };
+    
+    // Simple rule compliance checking
+    // In a real implementation, this would be more sophisticated
+    
+    for (const inference of inferences) {
+      try {
+        // Check if inference matches rule pattern
+        if (rule.pattern && this._matchesPattern(inference, rule.pattern)) {
+          if (rule.required && !this._satisfiesRequirement(inference, rule.required)) {
+            analysis.violations.push({
+              ruleId: rule.id,
+              inference,
+              message: `Inference does not satisfy requirement: ${rule.required.description}`
+            });
+          } else {
+            analysis.compliant++;
+          }
+        }
+        
+        // Check for warnings
+        if (rule.warning && this._triggersWarning(inference, rule.warning)) {
+          analysis.warnings.push({
+            ruleId: rule.id,
+            inference,
+            message: rule.warning.message
+          });
+        }
+        
+      } catch (error) {
+        // Skip problematic inferences
+        continue;
+      }
+    }
+    
+    return analysis;
+  }
+  
+  /**
+   * Check if inference matches a pattern
+   */
+  _matchesPattern(inference, pattern) {
+    // Simple pattern matching
+    if (pattern.subject && !inference.subject.includes(pattern.subject)) {
+      return false;
+    }
+    if (pattern.predicate && !inference.predicate.includes(pattern.predicate)) {
+      return false;
+    }
+    if (pattern.object && !inference.object.includes(pattern.object)) {
+      return false;
+    }
+    return true;
+  }
+  
+  /**
+   * Check if inference satisfies a requirement
+   */
+  _satisfiesRequirement(inference, requirement) {
+    // Implement requirement satisfaction checking
+    return true; // Placeholder
+  }
+  
+  /**
+   * Check if inference triggers a warning
+   */
+  _triggersWarning(inference, warning) {
+    // Implement warning trigger checking
+    return false; // Placeholder
+  }
 
   async _loadCustomRules() {
     // Load custom business rules from configuration

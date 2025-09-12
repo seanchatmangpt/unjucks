@@ -1,0 +1,46 @@
+{
+  "bundle": {
+    "version": "1.0.0",
+    "type": "kgen-attestation-bundle",
+    "createdAt": "2025-09-12T03:32:43.910Z",
+    "generator": {
+      "name": "kgen-cli",
+      "version": "1.0.0"
+    }
+  },
+  "project": {
+    "name": "unnamed-project",
+    "version": "1.0.0"
+  },
+  "directory": {
+    "path": "/Users/sac/unjucks/test-attest-dir",
+    "scanned": true
+  },
+  "artifacts": {
+    "artifact.txt": {
+      "path": "artifact.txt",
+      "hash": "8308d593eb56527137532595a60255a3fcfbe4b6b068e29b22d99742bad80f6f",
+      "size": 14,
+      "lastModified": "2025-09-12T03:32:29.366Z",
+      "contentType": "text/plain"
+    }
+  },
+  "attestations": {},
+  "provenance": {
+    "chain": [],
+    "integrity": {
+      "bundleHash": "f6801e0b4c569d82dd9db4466d0cb2655b5ae67be25560813333745c849d320f",
+      "artifacts": 1,
+      "attestations": 0,
+      "verified": false
+    }
+  },
+  "compliance": {
+    "standards": [
+      "SLSA",
+      "PROV-O"
+    ],
+    "level": "L2",
+    "verifiable": true
+  }
+}

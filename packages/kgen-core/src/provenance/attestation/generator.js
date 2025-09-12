@@ -8,6 +8,7 @@
 import { promises as fs } from 'fs';
 import path from 'path';
 import crypto from 'crypto';
+import os from 'os';
 import consola from 'consola';
 import { v4 as uuidv4 } from 'uuid';
 import { CryptoManager } from '../crypto/manager.js';
@@ -98,12 +99,52 @@ export class AttestationGenerator {
       }
       
       // Sign attestation if crypto manager is available
-      if (this.cryptoManager) {
-        const signedAttestation = await this.cryptoManager.signAttestation(attestation);
-        return signedAttestation;
+      if (this.cryptoManager && this.cryptoManager.state === 'ready') {
+        try {
+          const signedAttestation = await this.cryptoManager.signAttestation(attestation);
+          this.logger.debug('Attestation signed successfully');
+          return signedAttestation;
+        } catch (error) {
+          this.logger.error('Failed to sign attestation:', error);
+          // Fall back to unsigned attestation with error info
+          attestation.signature = {
+            error: 'Failed to generate signature',
+            details: error.message,
+            algorithm: null,
+            keyFingerprint: null,
+            signedAt: new Date().toISOString(),
+            signature: null
+          };
+          return attestation;
+        }
       } else {
-        // Add signature placeholder
-        attestation.signature = null;
+        // Initialize crypto manager if signing is enabled but not ready
+        if (this.config.enableCryptographicSigning && !this.cryptoManager) {
+          this.logger.warn('Cryptographic signing enabled but crypto manager not initialized');
+          try {
+            this.cryptoManager = new CryptoManager(this.config);
+            await this.cryptoManager.initialize();
+            const signedAttestation = await this.cryptoManager.signAttestation(attestation);
+            this.logger.info('Crypto manager auto-initialized and attestation signed');
+            return signedAttestation;
+          } catch (error) {
+            this.logger.error('Failed to auto-initialize crypto manager:', error);
+          }
+        }
+        
+        // Add signature placeholder with clear indication
+        attestation.signature = {
+          error: 'Cryptographic signing not available',
+          details: this.config.enableCryptographicSigning ? 
+            'Crypto manager not initialized' : 
+            'Cryptographic signing disabled in configuration',
+          algorithm: null,
+          keyFingerprint: null,
+          signedAt: new Date().toISOString(),
+          signature: null
+        };
+        
+        this.logger.warn('Attestation created without cryptographic signature');
         return attestation;
       }
       
@@ -357,8 +398,8 @@ export class AttestationGenerator {
       platform: process.platform,
       architecture: process.arch,
       nodeVersion: process.version,
-      hostname: require('os').hostname(),
-      username: require('os').userInfo().username,
+      hostname: os.hostname(),
+      username: os.userInfo().username,
       
       environment: this.config.includeEnvironment ? {
         NODE_ENV: process.env.NODE_ENV,
@@ -368,14 +409,14 @@ export class AttestationGenerator {
       } : null,
       
       memory: {
-        total: require('os').totalmem(),
-        free: require('os').freemem(),
+        total: os.totalmem(),
+        free: os.freemem(),
         used: process.memoryUsage()
       },
       
       cpu: {
-        count: require('os').cpus().length,
-        model: require('os').cpus()[0]?.model
+        count: os.cpus().length,
+        model: os.cpus()[0]?.model
       }
     };
     

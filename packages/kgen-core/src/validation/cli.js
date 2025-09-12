@@ -125,10 +125,10 @@ const validateCommand = defineCommand({
   }
 });
 
-const driftCommand = defineCommand({
+const artifactDriftCommand = defineCommand({
   meta: {
     name: 'drift',
-    description: 'Run drift detection only'
+    description: 'Enhanced drift detection with 100% unauthorized modification detection and fail/warn/fix modes'
   },
   args: {
     target: {
@@ -144,6 +144,11 @@ const driftCommand = defineCommand({
       type: 'string',
       description: 'Update baseline after successful validation'
     },
+    mode: {
+      type: 'string',
+      description: 'Drift detection mode: fail|warn|fix',
+      default: 'fail'
+    },
     'auto-fix': {
       type: 'boolean',
       description: 'Enable automatic drift fixing'
@@ -153,14 +158,39 @@ const driftCommand = defineCommand({
       description: 'Drift tolerance level (strict|normal|relaxed)',
       default: 'normal'
     },
+    'state-consistency': {
+      type: 'boolean',
+      description: 'Enable state consistency checking',
+      default: true
+    },
+    'detect-unauthorized': {
+      type: 'boolean',
+      description: 'Enable unauthorized modification detection',
+      default: true
+    },
     'output-dir': {
       type: 'string',
       description: 'Output directory for reports',
       default: './validation-reports'
+    },
+    'verbose': {
+      type: 'boolean',
+      description: 'Enable verbose output'
+    },
+    'quiet': {
+      type: 'boolean',
+      description: 'Suppress non-essential output'
     }
   },
   async run({ args }) {
     try {
+      // Configure logging
+      if (args.quiet) {
+        consola.level = 1; // Errors only
+      } else if (args.verbose) {
+        consola.level = 5; // Debug
+      }
+      
       const toleranceMap = {
         strict: 0.99,
         normal: 0.95,
@@ -171,10 +201,25 @@ const driftCommand = defineCommand({
         driftDetection: {
           enabled: true,
           autoFix: args['auto-fix'] || false,
-          tolerance: toleranceMap[args.tolerance] || 0.95
+          tolerance: toleranceMap[args.tolerance] || 0.95,
+          failMode: args.mode || 'fail',
+          stateConsistency: args['state-consistency'] !== false,
+          detectUnauthorized: args['detect-unauthorized'] !== false,
+          backupOriginal: true
         },
         reporting: {
-          outputPath: args['output-dir']
+          outputPath: args['output-dir'],
+          format: 'json',
+          includeStatistics: true,
+          timestamped: true,
+          humanReadable: true
+        },
+        exitCodes: {
+          success: 0,
+          warnings: 0,
+          violations: 3,
+          driftDetected: 3,
+          errors: 1
         }
       };
 
@@ -186,22 +231,35 @@ const driftCommand = defineCommand({
         expectedData: args.expected ? await fs.readFile(args.expected, 'utf8') : null
       };
 
-      consola.start('🔄 Running drift detection...');
+      consola.start(`🔍 Running enhanced drift detection in ${config.driftDetection.failMode} mode...`);
       const results = await engine.validateWithDriftDetection(options);
 
-      displayResults(results, args);
+      displayEnhancedDriftResults(results, args);
 
       // Update baseline if requested and no drift detected
       if (args.baseline && !results.summary.driftDetected) {
         consola.success('📝 Updating drift baseline...');
-        await engine.updateBaseline(args.target, results.drift.current);
+        await engine.updateBaseline(args.target, results.drift?.current?.content || '');
       }
 
       await engine.shutdown();
-      process.exit(results.exitCode);
+      
+      // Exit with appropriate code based on drift detection mode
+      let exitCode = results.exitCode;
+      
+      if (args.mode === 'warn' && results.summary.driftDetected) {
+        exitCode = 0; // Don't fail on warnings
+      } else if (args.mode === 'fix' && results.summary.fixesApplied > 0) {
+        exitCode = 0; // Don't fail if fixes were applied
+      }
+      
+      process.exit(exitCode);
 
     } catch (error) {
-      consola.error('❌ Drift detection failed:', error.message);
+      consola.error('❌ Enhanced drift detection failed:', error.message);
+      if (args.verbose) {
+        consola.error(error.stack);
+      }
       process.exit(ValidationExitCodes.ERRORS);
     }
   }
@@ -400,7 +458,7 @@ const main = defineCommand({
   },
   subCommands: {
     validate: validateCommand,
-    drift: driftCommand,
+    drift: artifactDriftCommand,
     baseline: baselineCommand,
     report: reportCommand
   }
@@ -506,6 +564,116 @@ function displayResults(results, args) {
     consola.error('❌ Validation failed with violations');
   } else {
     consola.warn('⚠️  Validation completed with issues');
+  }
+}
+
+function displayEnhancedDriftResults(results, args) {
+  if (args.quiet) {
+    // Only show critical information in quiet mode
+    if (results.exitCode !== 0) {
+      if (results.summary.driftDetected) {
+        consola.error(`❌ Drift detected (exit code: ${results.exitCode})`);
+      } else {
+        consola.error(`❌ Validation failed (exit code: ${results.exitCode})`);
+      }
+    } else {
+      consola.success('✅ No drift detected');
+    }
+    return;
+  }
+
+  // Display comprehensive drift detection results
+  consola.info('\n🔍 ENHANCED DRIFT DETECTION RESULTS:');
+  consola.info('='.repeat(60));
+  
+  consola.info(`🆔 Validation ID: ${results.validationId?.slice(0, 8)}`);
+  consola.info(`⏱️  Timestamp: ${results.timestamp}`);
+  consola.info(`🚦 Exit Code: ${results.exitCode}`);
+  consola.info(`🎯 Detection Mode: ${results.drift?.metadata?.detectionMode?.toUpperCase() || 'N/A'}`);
+  
+  if (results.summary) {
+    consola.info('\n📈 SUMMARY:');
+    consola.info(`  Drift Detected: ${results.summary.driftDetected ? '⚠️  YES' : '✅ NO'}`);
+    if (results.drift?.driftScore !== undefined) {
+      consola.info(`  Drift Score: ${results.drift.driftScore.toFixed(3)}`);
+    }
+    consola.info(`  Unauthorized Modifications: ${results.drift?.unauthorizedModification ? '🚨 YES' : '✅ NO'}`);
+    consola.info(`  Auto-fixes Applied: ${results.summary.fixesApplied}`);
+    consola.info(`  Violations: ${results.summary.totalViolations}`);
+    consola.info(`  Warnings: ${results.summary.totalWarnings}`);
+  }
+
+  if (results.drift?.stateConsistency) {
+    consola.info('\n🏗️  STATE CONSISTENCY:');
+    consola.info(`  Valid: ${results.drift.stateConsistency.valid ? '✅ YES' : '❌ NO'}`);
+    consola.info(`  Checks Performed: ${results.drift.stateConsistency.checks?.length || 0}`);
+    if (results.drift.stateConsistency.errors?.length > 0) {
+      consola.info(`  Errors: ${results.drift.stateConsistency.errors.length}`);
+    }
+    if (results.drift.stateConsistency.warnings?.length > 0) {
+      consola.info(`  Warnings: ${results.drift.stateConsistency.warnings.length}`);
+    }
+  }
+
+  if (results.drift?.differences && results.drift.differences.length > 0) {
+    consola.info('\n🔄 DIFFERENCES DETECTED:');
+    consola.info(`  Total Differences: ${results.drift.differences.length}`);
+    
+    if (args.verbose) {
+      consola.info('  Details:');
+      results.drift.differences.slice(0, 10).forEach((diff, index) => {
+        const icon = diff.type === 'added' ? '➕' : diff.type === 'removed' ? '➖' : '✏️';
+        consola.info(`    ${icon} ${diff.message || diff.type}`);
+        if (diff.line) {
+          consola.info(`       Line ${diff.line}`);
+        }
+      });
+      
+      if (results.drift.differences.length > 10) {
+        consola.info(`    ... and ${results.drift.differences.length - 10} more differences`);
+      }
+    }
+  }
+
+  if (results.drift?.current && results.drift?.expected) {
+    consola.info('\n📊 FILE COMPARISON:');
+    consola.info(`  Current Size: ${results.drift.current.size} bytes`);
+    consola.info(`  Expected Size: ${results.drift.expected.size} bytes`);
+    consola.info(`  Current Hash: ${results.drift.current.hash.slice(0, 16)}...`);
+    consola.info(`  Expected Hash: ${results.drift.expected.hash.slice(0, 16)}...`);
+    consola.info(`  File Exists: ${results.drift.current.exists ? '✅ YES' : '❌ NO'}`);
+  }
+
+  if (results.drift?.metadata) {
+    consola.info('\n🔧 DETECTION METADATA:');
+    consola.info(`  Target Path: ${results.drift.metadata.targetPath}`);
+    consola.info(`  Detection Time: ${results.drift.metadata.detectionTime}ms`);
+    consola.info(`  Tolerance: ${results.drift.metadata.tolerance}`);
+  }
+
+  if (results.reportPath) {
+    consola.info(`\n📋 Detailed report saved to: ${results.reportPath}`);
+  }
+
+  consola.info('='.repeat(60));
+
+  // Final status with mode-specific messaging
+  const mode = results.drift?.metadata?.detectionMode || 'fail';
+  
+  if (results.exitCode === 0) {
+    if (results.summary.fixesApplied > 0) {
+      consola.success(`✅ Drift detected and ${results.summary.fixesApplied} fixes applied (${mode} mode)`);
+    } else {
+      consola.success('✅ No drift detected - files are consistent');
+    }
+  } else if (results.exitCode === 3) {
+    if (mode === 'warn') {
+      consola.warn(`⚠️  Drift detected but proceeding (${mode} mode)`);
+    } else {
+      consola.error(`❌ Drift detection failed (${mode} mode)`);
+    }
+  } else {
+    consola.error(`❌ Validation error (exit code: ${results.exitCode})`);
   }
 }
 

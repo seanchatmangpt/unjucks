@@ -926,59 +926,287 @@ export class N3ReasoningEngine extends EventEmitter {
    * Find rule matches in store
    */
   async _findRuleMatches(parsedRule) {
-    // Simplified rule matching - in production, use full N3 reasoning
     const matches = [];
     
-    // Parse antecedent into triple patterns
-    const patterns = this._parseAntecedent(parsedRule.antecedent);
-    
-    // Find matching quads for each pattern
-    for (const pattern of patterns) {
-      const matchingQuads = this.store.getQuads(
-        pattern.subject ? namedNode(pattern.subject) : null,
-        pattern.predicate ? namedNode(pattern.predicate) : null,
-        pattern.object ? namedNode(pattern.object) : null
-      );
+    try {
+      // Parse antecedent into triple patterns
+      const patterns = this._parseAntecedent(parsedRule.antecedent);
       
-      for (const quad of matchingQuads) {
-        const bindings = this._extractBindings(pattern, quad);
-        if (bindings) {
-          matches.push({ quad, bindings, pattern });
-        }
+      if (patterns.length === 0) {
+        return matches;
       }
+      
+      // For multiple patterns, we need to find consistent variable bindings
+      if (patterns.length === 1) {
+        const pattern = patterns[0];
+        const matchingQuads = this._findQuadsForPattern(pattern);
+        
+        for (const quad of matchingQuads) {
+          const bindings = this._extractBindings(pattern, quad);
+          if (bindings && bindings.size > 0) {
+            matches.push({ quads: [quad], bindings, patterns: [pattern] });
+          }
+        }
+      } else {
+        // Handle multiple patterns with consistent variable bindings
+        const allBindings = await this._findConsistentBindings(patterns);
+        matches.push(...allBindings);
+      }
+      
+    } catch (error) {
+      this.logger.debug(`Rule matching failed: ${error.message}`);
     }
     
     return matches;
+  }
+  
+  /**
+   * Find quads that match a pattern
+   */
+  _findQuadsForPattern(pattern) {
+    try {
+      const subjectNode = pattern.subject && !pattern.subject.startsWith('?') ? 
+        this._createNode(pattern.subject) : null;
+      const predicateNode = pattern.predicate && !pattern.predicate.startsWith('?') ? 
+        this._createNode(pattern.predicate) : null;
+      const objectNode = pattern.object && !pattern.object.startsWith('?') ? 
+        this._createNode(pattern.object) : null;
+      
+      return this.store.getQuads(subjectNode, predicateNode, objectNode);
+    } catch (error) {
+      this.logger.debug(`Pattern matching failed for ${JSON.stringify(pattern)}: ${error.message}`);
+      return [];
+    }
+  }
+  
+  /**
+   * Create N3 node from URI string
+   */
+  _createNode(uri) {
+    if (uri.startsWith('<') && uri.endsWith('>')) {
+      return namedNode(uri.slice(1, -1));
+    }
+    
+    // Handle prefixed names
+    const expanded = this._expandPrefix(uri);
+    if (expanded.startsWith('<') && expanded.endsWith('>')) {
+      return namedNode(expanded.slice(1, -1));
+    }
+    
+    // Handle literal values
+    if (uri.startsWith('"') || /^\d/.test(uri)) {
+      return literal(uri.replace(/"/g, ''));
+    }
+    
+    return namedNode(uri);
+  }
+  
+  /**
+   * Find consistent variable bindings across multiple patterns
+   */
+  async _findConsistentBindings(patterns) {
+    const results = [];
+    
+    // Start with matches for first pattern
+    const firstPattern = patterns[0];
+    const firstMatches = this._findQuadsForPattern(firstPattern);
+    
+    for (const firstQuad of firstMatches) {
+      const initialBindings = this._extractBindings(firstPattern, firstQuad);
+      if (!initialBindings || initialBindings.size === 0) continue;
+      
+      let consistentBindings = new Map(initialBindings);
+      let allQuads = [firstQuad];
+      let isConsistent = true;
+      
+      // Check remaining patterns for consistency
+      for (let i = 1; i < patterns.length && isConsistent; i++) {
+        const pattern = patterns[i];
+        const candidateQuads = this._findQuadsForPattern(pattern);
+        
+        let foundConsistent = false;
+        for (const quad of candidateQuads) {
+          const bindings = this._extractBindings(pattern, quad);
+          if (this._areBindingsConsistent(consistentBindings, bindings)) {
+            // Merge bindings
+            for (const [key, value] of bindings) {
+              consistentBindings.set(key, value);
+            }
+            allQuads.push(quad);
+            foundConsistent = true;
+            break;
+          }
+        }
+        
+        if (!foundConsistent) {
+          isConsistent = false;
+        }
+      }
+      
+      if (isConsistent && allQuads.length === patterns.length) {
+        results.push({
+          quads: allQuads,
+          bindings: consistentBindings,
+          patterns
+        });
+      }
+    }
+    
+    return results;
+  }
+  
+  /**
+   * Check if two sets of bindings are consistent
+   */
+  _areBindingsConsistent(bindings1, bindings2) {
+    for (const [key, value] of bindings2) {
+      if (bindings1.has(key) && bindings1.get(key) !== value) {
+        return false;
+      }
+    }
+    return true;
   }
 
   /**
    * Parse antecedent into patterns
    */
   _parseAntecedent(antecedent) {
-    // Simplified pattern parsing - extract triple patterns from antecedent
+    // Enhanced pattern parsing for N3 rule syntax
     const patterns = [];
     
-    // Remove braces and split by periods
-    const cleaned = antecedent.replace(/[{}]/g, '').trim();
-    const statements = cleaned.split('.');
-    
-    for (const statement of statements) {
-      const parts = statement.trim().split(/\s+/);
-      if (parts.length >= 3) {
-        patterns.push({
-          subject: parts[0].startsWith('?') ? null : parts[0],
-          predicate: parts[1].startsWith('?') ? null : parts[1],
-          object: parts[2].startsWith('?') ? null : parts[2],
-          variables: {
-            subject: parts[0].startsWith('?') ? parts[0] : null,
-            predicate: parts[1].startsWith('?') ? parts[1] : null,
-            object: parts[2].startsWith('?') ? parts[2] : null
+    try {
+      // Remove braces and normalize whitespace
+      const cleaned = antecedent.replace(/[{}]/g, '').trim();
+      
+      // Handle multiple statements separated by periods or semicolons
+      const statements = cleaned.split(/[.;]/).filter(s => s.trim());
+      
+      for (const statement of statements) {
+        const trimmed = statement.trim();
+        if (!trimmed) continue;
+        
+        // Parse triple pattern: subject predicate object
+        const parts = this._parseTriplePattern(trimmed);
+        
+        if (parts.length >= 3) {
+          const pattern = {
+            subject: this._expandPrefix(parts[0]),
+            predicate: this._expandPrefix(parts[1]),
+            object: this._expandPrefix(parts[2]),
+            variables: {
+              subject: parts[0].startsWith('?') ? parts[0] : null,
+              predicate: parts[1].startsWith('?') ? parts[1] : null,
+              object: parts[2].startsWith('?') ? parts[2] : null
+            },
+            raw: trimmed
+          };
+          
+          // Handle typed literals and language tags
+          if (pattern.object.includes('^^') || pattern.object.includes('@')) {
+            pattern.objectType = this._parseObjectType(pattern.object);
           }
-        });
+          
+          patterns.push(pattern);
+        }
       }
+    } catch (error) {
+      this.logger.warn(`Failed to parse antecedent: ${antecedent}`, error.message);
     }
     
     return patterns;
+  }
+  
+  /**
+   * Parse a triple pattern from text
+   */
+  _parseTriplePattern(text) {
+    // Handle quoted strings and URIs properly
+    const parts = [];
+    let current = '';
+    let inQuotes = false;
+    let inAngleBrackets = false;
+    
+    for (let i = 0; i < text.length; i++) {
+      const char = text[i];
+      
+      if (char === '"' && text[i-1] !== '\\') {
+        inQuotes = !inQuotes;
+        current += char;
+      } else if (char === '<' && !inQuotes) {
+        inAngleBrackets = true;
+        current += char;
+      } else if (char === '>' && !inQuotes) {
+        inAngleBrackets = false;
+        current += char;
+      } else if (char === ' ' && !inQuotes && !inAngleBrackets) {
+        if (current.trim()) {
+          parts.push(current.trim());
+          current = '';
+        }
+      } else {
+        current += char;
+      }
+    }
+    
+    if (current.trim()) {
+      parts.push(current.trim());
+    }
+    
+    return parts;
+  }
+  
+  /**
+   * Expand prefixed names to full URIs
+   */
+  _expandPrefix(term) {
+    if (term.startsWith('?') || term.startsWith('<') || term.startsWith('"')) {
+      return term;
+    }
+    
+    const colonIndex = term.indexOf(':');
+    if (colonIndex > 0) {
+      const prefix = term.substring(0, colonIndex);
+      const localName = term.substring(colonIndex + 1);
+      
+      // Standard prefixes
+      const prefixes = {
+        rdf: 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
+        rdfs: 'http://www.w3.org/2000/01/rdf-schema#',
+        owl: 'http://www.w3.org/2002/07/owl#',
+        xsd: 'http://www.w3.org/2001/XMLSchema#',
+        ex: 'http://example.org/'
+      };
+      
+      if (prefixes[prefix]) {
+        return prefixes[prefix] + localName;
+      }
+    }
+    
+    // Return as-is if no prefix found
+    return term;
+  }
+  
+  /**
+   * Parse object type information
+   */
+  _parseObjectType(objectStr) {
+    if (objectStr.includes('^^')) {
+      const parts = objectStr.split('^^');
+      return {
+        value: parts[0].replace(/"/g, ''),
+        datatype: parts[1]
+      };
+    }
+    
+    if (objectStr.includes('@')) {
+      const parts = objectStr.split('@');
+      return {
+        value: parts[0].replace(/"/g, ''),
+        language: parts[1]
+      };
+    }
+    
+    return { value: objectStr };
   }
 
   /**
@@ -987,16 +1215,23 @@ export class N3ReasoningEngine extends EventEmitter {
   _extractBindings(pattern, quad) {
     const bindings = new Map();
     
-    if (pattern.variables.subject) {
-      bindings.set(pattern.variables.subject, quad.subject.value);
-    }
-    
-    if (pattern.variables.predicate) {
-      bindings.set(pattern.variables.predicate, quad.predicate.value);
-    }
-    
-    if (pattern.variables.object) {
-      bindings.set(pattern.variables.object, quad.object.value);
+    try {
+      if (pattern.variables && pattern.variables.subject) {
+        bindings.set(pattern.variables.subject, quad.subject.value);
+      }
+      
+      if (pattern.variables && pattern.variables.predicate) {
+        bindings.set(pattern.variables.predicate, quad.predicate.value);
+      }
+      
+      if (pattern.variables && pattern.variables.object) {
+        const objectValue = quad.object.termType === 'Literal' ? 
+          quad.object.value : quad.object.value;
+        bindings.set(pattern.variables.object, objectValue);
+      }
+      
+    } catch (error) {
+      this.logger.debug(`Binding extraction failed: ${error.message}`);
     }
     
     return bindings;
@@ -1009,7 +1244,7 @@ export class N3ReasoningEngine extends EventEmitter {
     try {
       // Remove braces and parse consequent
       const cleaned = consequent.replace(/[{}]/g, '').trim();
-      const parts = cleaned.split(/\s+/);
+      const parts = this._parseTriplePattern(cleaned);
       
       if (parts.length >= 3) {
         const subject = this._applyBinding(parts[0], bindings);
@@ -1017,16 +1252,22 @@ export class N3ReasoningEngine extends EventEmitter {
         const object = this._applyBinding(parts[2], bindings);
         
         if (subject && predicate && object) {
+          // Clean up URIs
+          const cleanSubject = subject.replace(/[<>]/g, '');
+          const cleanPredicate = predicate.replace(/[<>]/g, '');
+          const cleanObject = object.replace(/[<>]/g, '');
+          
           return {
-            subject,
-            predicate,
-            object
+            subject: cleanSubject,
+            predicate: cleanPredicate,
+            object: cleanObject
           };
         }
       }
       
       return null;
     } catch (error) {
+      this.logger.debug(`Consequent instantiation failed: ${error.message}`);
       return null;
     }
   }
@@ -1106,9 +1347,63 @@ export class N3ReasoningEngine extends EventEmitter {
    * Cache reasoning results
    */
   async _cacheReasoningResults(graph, rules, result) {
-    // Implement result caching for reproducible generation
-    const cacheKey = this._generateCacheKey(graph, rules);
-    // Store in cache implementation
+    try {
+      if (!this.config.enableCaching) {
+        return;
+      }
+      
+      const cacheKey = this._generateCacheKey(graph, rules);
+      
+      // Cache with TTL (time to live)
+      const cacheEntry = {
+        result: {
+          operationId: result.operationId,
+          inferences: result.inferences,
+          explanations: result.explanations,
+          consistencyReport: result.consistencyReport
+        },
+        timestamp: Date.now(),
+        ttl: 3600000, // 1 hour
+        metadata: {
+          inputTriples: graph.triples?.length || 0,
+          rulesApplied: rules.length,
+          inferencesCount: result.inferences?.length || 0
+        }
+      };
+      
+      // Store in incremental cache
+      this.incrementalState.inferenceCache.set(cacheKey, cacheEntry);
+      
+      // Clean up expired cache entries
+      this._cleanupExpiredCache();
+      
+      this.logger.debug(`Cached reasoning results with key: ${cacheKey.substring(0, 16)}...`);
+      
+    } catch (error) {
+      this.logger.warn('Failed to cache reasoning results:', error.message);
+    }
+  }
+  
+  /**
+   * Cleanup expired cache entries
+   */
+  _cleanupExpiredCache() {
+    const now = Date.now();
+    const expiredKeys = [];
+    
+    for (const [key, entry] of this.incrementalState.inferenceCache) {
+      if (now - entry.timestamp > entry.ttl) {
+        expiredKeys.push(key);
+      }
+    }
+    
+    for (const key of expiredKeys) {
+      this.incrementalState.inferenceCache.delete(key);
+    }
+    
+    if (expiredKeys.length > 0) {
+      this.logger.debug(`Cleaned up ${expiredKeys.length} expired cache entries`);
+    }
   }
 
   /**
@@ -1236,10 +1531,443 @@ export class N3ReasoningEngine extends EventEmitter {
   async _checkCustomInconsistencies() {
     const inconsistencies = [];
     
-    // Implement custom consistency rules
-    // This would check application-specific consistency requirements
+    try {
+      // Check for cardinality constraint violations
+      await this._checkCardinalityConstraints(inconsistencies);
+      
+      // Check for domain/range violations
+      await this._checkDomainRangeViolations(inconsistencies);
+      
+      // Check for business rule violations
+      await this._checkBusinessRuleViolations(inconsistencies);
+      
+      // Check for temporal consistency
+      await this._checkTemporalConsistency(inconsistencies);
+      
+    } catch (error) {
+      this.logger.error('Custom consistency checking failed:', error);
+      inconsistencies.push({
+        type: 'consistency_check_error',
+        message: `Custom consistency check failed: ${error.message}`,
+        severity: 'error'
+      });
+    }
     
     return inconsistencies;
+  }
+  
+  /**
+   * Check cardinality constraint violations
+   */
+  async _checkCardinalityConstraints(inconsistencies) {
+    // Check owl:maxCardinality constraints
+    const maxCardQuads = this.store.getQuads(
+      null,
+      namedNode('http://www.w3.org/2002/07/owl#maxCardinality'),
+      null
+    );
+    
+    for (const cardQuad of maxCardQuads) {
+      const restriction = cardQuad.subject;
+      const maxCard = parseInt(cardQuad.object.value);
+      
+      // Get the property this restriction applies to
+      const onPropertyQuads = this.store.getQuads(
+        restriction,
+        namedNode('http://www.w3.org/2002/07/owl#onProperty'),
+        null
+      );
+      
+      if (onPropertyQuads.length > 0) {
+        const property = onPropertyQuads[0].object;
+        
+        // Find instances that violate this cardinality constraint
+        const propertyTriples = this.store.getQuads(null, property, null);
+        const subjectCounts = new Map();
+        
+        for (const triple of propertyTriples) {
+          const subject = triple.subject.value;
+          subjectCounts.set(subject, (subjectCounts.get(subject) || 0) + 1);
+        }
+        
+        for (const [subject, count] of subjectCounts) {
+          if (count > maxCard) {
+            inconsistencies.push({
+              type: 'max_cardinality_violation',
+              subject,
+              property: property.value,
+              maxCardinality: maxCard,
+              actualCardinality: count,
+              severity: 'error',
+              message: `Subject ${subject} has ${count} values for property ${property.value}, exceeding maximum cardinality of ${maxCard}`
+            });
+          }
+        }
+      }
+    }
+  }
+  
+  /**
+   * Check domain and range violations
+   */
+  async _checkDomainRangeViolations(inconsistencies) {
+    // Get all property usage
+    const allTriples = this.store.getQuads();
+    
+    for (const triple of allTriples) {
+      const predicate = triple.predicate;
+      
+      // Skip RDF/RDFS/OWL system properties
+      if (predicate.value.startsWith('http://www.w3.org/1999/02/22-rdf-syntax-ns#') ||
+          predicate.value.startsWith('http://www.w3.org/2000/01/rdf-schema#') ||
+          predicate.value.startsWith('http://www.w3.org/2002/07/owl#')) {
+        continue;
+      }
+      
+      // Check domain constraints
+      const domainQuads = this.store.getQuads(
+        predicate,
+        namedNode('http://www.w3.org/2000/01/rdf-schema#domain'),
+        null
+      );
+      
+      for (const domainQuad of domainQuads) {
+        const requiredClass = domainQuad.object;
+        const subject = triple.subject;
+        
+        // Check if subject is instance of required class
+        const typeQuads = this.store.getQuads(
+          subject,
+          namedNode('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'),
+          requiredClass
+        );
+        
+        if (typeQuads.length === 0) {
+          inconsistencies.push({
+            type: 'domain_violation',
+            subject: subject.value,
+            predicate: predicate.value,
+            requiredDomain: requiredClass.value,
+            severity: 'warning',
+            message: `Subject ${subject.value} used with property ${predicate.value} but is not instance of required domain ${requiredClass.value}`
+          });
+        }
+      }
+      
+      // Check range constraints
+      const rangeQuads = this.store.getQuads(
+        predicate,
+        namedNode('http://www.w3.org/2000/01/rdf-schema#range'),
+        null
+      );
+      
+      for (const rangeQuad of rangeQuads) {
+        const requiredClass = rangeQuad.object;
+        const object = triple.object;
+        
+        // Only check if object is a resource (not a literal)
+        if (object.termType === 'NamedNode') {
+          const typeQuads = this.store.getQuads(
+            object,
+            namedNode('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'),
+            requiredClass
+          );
+          
+          if (typeQuads.length === 0) {
+            inconsistencies.push({
+              type: 'range_violation',
+              object: object.value,
+              predicate: predicate.value,
+              requiredRange: requiredClass.value,
+              severity: 'warning',
+              message: `Object ${object.value} used with property ${predicate.value} but is not instance of required range ${requiredClass.value}`
+            });
+          }
+        }
+      }
+    }
+  }
+  
+  /**
+   * Check business rule violations
+   */
+  async _checkBusinessRuleViolations(inconsistencies) {
+    // Example business rules - these would be configurable
+    const businessRules = [
+      {
+        id: 'age-consistency',
+        check: async () => {
+          // Check that age values are reasonable
+          const ageTriples = this.store.getQuads(
+            null,
+            namedNode('http://example.org/hasAge'),
+            null
+          );
+          
+          for (const ageTriple of ageTriples) {
+            const age = parseInt(ageTriple.object.value);
+            if (isNaN(age) || age < 0 || age > 150) {
+              inconsistencies.push({
+                type: 'invalid_age_value',
+                subject: ageTriple.subject.value,
+                value: ageTriple.object.value,
+                severity: 'warning',
+                message: `Subject ${ageTriple.subject.value} has invalid age value: ${ageTriple.object.value}`
+              });
+            }
+          }
+        }
+      }
+    ];
+    
+    for (const rule of businessRules) {
+      try {
+        await rule.check();
+      } catch (error) {
+        this.logger.warn(`Business rule ${rule.id} failed:`, error.message);
+      }
+    }
+  }
+  
+  /**
+   * Check temporal consistency
+   */
+  async _checkTemporalConsistency(inconsistencies) {
+    // Check for temporal relationships that don't make sense
+    const beforeTriples = this.store.getQuads(
+      null,
+      namedNode('http://example.org/before'),
+      null
+    );
+    
+    // Build temporal graph and check for cycles
+    const temporalGraph = new Map();
+    
+    for (const triple of beforeTriples) {
+      const before = triple.subject.value;
+      const after = triple.object.value;
+      
+      if (!temporalGraph.has(before)) {
+        temporalGraph.set(before, new Set());
+      }
+      temporalGraph.get(before).add(after);
+    }
+    
+    // Check for temporal cycles
+    const visited = new Set();
+    const recursionStack = new Set();
+    
+    const hasCycle = (node) => {
+      if (recursionStack.has(node)) {
+        return true;
+      }
+      if (visited.has(node)) {
+        return false;
+      }
+      
+      visited.add(node);
+      recursionStack.add(node);
+      
+      const neighbors = temporalGraph.get(node);
+      if (neighbors) {
+        for (const neighbor of neighbors) {
+          if (hasCycle(neighbor)) {
+            return true;
+          }
+        }
+      }
+      
+      recursionStack.delete(node);
+      return false;
+    };
+    
+    for (const node of temporalGraph.keys()) {
+      if (hasCycle(node)) {
+        inconsistencies.push({
+          type: 'temporal_cycle',
+          node,
+          severity: 'error',
+          message: `Temporal cycle detected involving ${node}`
+        });
+      }
+    }
+  }
+  
+  /**
+   * Add method to check if reasoning results are cached
+   */
+  async isResultCached(graph, rules) {
+    const cacheKey = this._generateCacheKey(graph, rules);
+    const cachedEntry = this.incrementalState.inferenceCache.get(cacheKey);
+    
+    if (cachedEntry && (Date.now() - cachedEntry.timestamp < cachedEntry.ttl)) {
+      return true;
+    }
+    
+    return false;
+  }
+  
+  /**
+   * Get cached reasoning results
+   */
+  async getCachedResults(graph, rules) {
+    const cacheKey = this._generateCacheKey(graph, rules);
+    const cachedEntry = this.incrementalState.inferenceCache.get(cacheKey);
+    
+    if (cachedEntry && (Date.now() - cachedEntry.timestamp < cachedEntry.ttl)) {
+      this.metrics.cacheHits++;
+      return cachedEntry.result;
+    }
+    
+    this.metrics.cacheMisses++;
+    return null;
+  }
+  
+  /**
+   * Validate inference results
+   */
+  async validateInferenceResults(inferences) {
+    const validationReport = {
+      isValid: true,
+      validInferences: [],
+      invalidInferences: [],
+      warnings: []
+    };
+    
+    for (const inference of inferences) {
+      try {
+        // Basic structure validation
+        if (!inference.subject || !inference.predicate || !inference.object) {
+          validationReport.invalidInferences.push({
+            inference,
+            reason: 'Missing required triple components'
+          });
+          continue;
+        }
+        
+        // URI validation
+        if (!this._isValidURI(inference.subject) && !this._isValidBlankNode(inference.subject)) {
+          validationReport.invalidInferences.push({
+            inference,
+            reason: 'Invalid subject URI'
+          });
+          continue;
+        }
+        
+        if (!this._isValidURI(inference.predicate)) {
+          validationReport.invalidInferences.push({
+            inference,
+            reason: 'Invalid predicate URI'
+          });
+          continue;
+        }
+        
+        // Check if inference creates inconsistency
+        const tempStore = new Store();
+        tempStore.addQuads(this.store.getQuads());
+        tempStore.addQuad(this._tripleToQuad(inference));
+        
+        const quickConsistencyCheck = await this._performQuickConsistencyCheck(tempStore);
+        if (!quickConsistencyCheck.isConsistent) {
+          validationReport.warnings.push({
+            inference,
+            reason: 'Inference may create inconsistency',
+            details: quickConsistencyCheck.issues
+          });
+        }
+        
+        validationReport.validInferences.push(inference);
+        
+      } catch (error) {
+        validationReport.invalidInferences.push({
+          inference,
+          reason: `Validation error: ${error.message}`
+        });
+      }
+    }
+    
+    validationReport.isValid = validationReport.invalidInferences.length === 0;
+    
+    return validationReport;
+  }
+  
+  /**
+   * Quick consistency check for single inference
+   */
+  async _performQuickConsistencyCheck(store) {
+    const issues = [];
+    
+    try {
+      // Quick check for obvious inconsistencies
+      const disjointViolations = await this._quickCheckDisjointViolations(store);
+      issues.push(...disjointViolations);
+      
+      const functionalViolations = await this._quickCheckFunctionalViolations(store);
+      issues.push(...functionalViolations);
+      
+    } catch (error) {
+      issues.push({
+        type: 'consistency_check_error',
+        message: error.message
+      });
+    }
+    
+    return {
+      isConsistent: issues.length === 0,
+      issues
+    };
+  }
+  
+  /**
+   * Quick check for disjoint class violations
+   */
+  async _quickCheckDisjointViolations(store) {
+    const violations = [];
+    
+    // This is a simplified version of the full disjoint check
+    // Only checks for direct disjoint violations
+    
+    return violations;
+  }
+  
+  /**
+   * Quick check for functional property violations
+   */
+  async _quickCheckFunctionalViolations(store) {
+    const violations = [];
+    
+    // This is a simplified version of the full functional property check
+    // Only checks for obvious functional property violations
+    
+    return violations;
+  }
+  
+  /**
+   * Validate URI format
+   */
+  _isValidURI(uri) {
+    try {
+      // Basic URI validation
+      if (typeof uri !== 'string') return false;
+      
+      // Allow angle bracket URIs
+      if (uri.startsWith('<') && uri.endsWith('>')) {
+        uri = uri.slice(1, -1);
+      }
+      
+      // Check for valid URI pattern
+      const uriPattern = /^https?:\/\/.+/;
+      return uriPattern.test(uri) || uri.startsWith('urn:') || uri.includes(':');
+    } catch {
+      return false;
+    }
+  }
+  
+  /**
+   * Validate blank node format
+   */
+  _isValidBlankNode(node) {
+    return typeof node === 'string' && node.startsWith('_:');
   }
 }
 

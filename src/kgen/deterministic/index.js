@@ -15,7 +15,7 @@ import ContentAddressedCache from './content-cache.js';
 import RDFIntegration from './rdf-integration.js';
 import DeterministicErrorHandler from './error-handler.js';
 import { EventEmitter } from 'events';
-import { Logger } from 'consola';
+import { consola } from 'consola';
 
 export class DeterministicRenderingSystem extends EventEmitter {
   constructor(options = {}) {
@@ -45,7 +45,7 @@ export class DeterministicRenderingSystem extends EventEmitter {
       ...options
     };
     
-    this.logger = new Logger({ tag: 'deterministic-rendering' });
+    this.logger = consola.withTag('deterministic-rendering');
     
     // Initialize components
     this._initializeComponents();

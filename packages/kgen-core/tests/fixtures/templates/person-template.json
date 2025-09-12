@@ -1,0 +1,16 @@
+{
+  "name": "person-template",
+  "description": "Template for generating person data structures",
+  "version": "1.0.0",
+  "sparqlQuery": "PREFIX foaf: <http://xmlns.com/foaf/0.1/> PREFIX schema: <http://schema.org/> SELECT ?person ?name ?email ?jobTitle WHERE { ?person a foaf:Person ; foaf:name ?name ; foaf:email ?email . OPTIONAL { ?person schema:jobTitle ?jobTitle } }",
+  "outputTemplate": {
+    "type": "javascript",
+    "template": "export interface Person {\n  id: string;\n  name: string;\n  email: string;\n  jobTitle?: string;\n}\n\nexport const people: Person[] = [\n{{#each results}}\n  {\n    id: '{{person}}',\n    name: '{{name}}',\n    email: '{{email}}'{{#if jobTitle}},\n    jobTitle: '{{jobTitle}}'{{/if}}\n  }{{#unless @last}},{{/unless}}\n{{/each}}\n];\n"
+  },
+  "outputPath": "src/generated/people.ts",
+  "deterministic": true,
+  "checksums": {
+    "enabled": true,
+    "algorithm": "sha256"
+  }
+}

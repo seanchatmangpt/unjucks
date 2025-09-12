@@ -1,0 +1,51 @@
+{
+  "errorId": "c8364785808fadad",
+  "timestamp": "2024-01-01T00:00:00.000Z",
+  "error": {
+    "name": "Error",
+    "message": "Template not found: templates/api-service.njk",
+    "stack": "Error: Template not found: templates/api-service.njk\n    at DeterministicRenderer._loadTemplate (file:///Users/sac/unjucks/src/kgen/deterministic/core-renderer.js:448:13)\n    at async DeterministicRenderer.render (file:///Users/sac/unjucks/src/kgen/deterministic/core-renderer.js:253:31)\n    at async DeterministicRenderingSystem.render (file:///Users/sac/unjucks/src/kgen/deterministic/index.js:162:28)\n    at async Object.run (file:///Users/sac/unjucks/bin/kgen.mjs:1480:26)\n    at async runCommand (file:///Users/sac/unjucks/node_modules/citty/dist/index.mjs:316:16)\n    at async runCommand (file:///Users/sac/unjucks/node_modules/citty/dist/index.mjs:307:11)\n    at async runCommand (file:///Users/sac/unjucks/node_modules/citty/dist/index.mjs:307:11)\n    at async runMain (file:///Users/sac/unjucks/node_modules/citty/dist/index.mjs:445:7)"
+  },
+  "context": {
+    "renderId": "render_1757648538717_ejk6ot",
+    "context": {
+      "service": "TestAPI",
+      "version": "2.0.0"
+    },
+    "options": {},
+    "templatePath": "templates/api-service.njk",
+    "errorType": "template-rendering",
+    "errorId": "c8364785808fadad",
+    "classification": {
+      "category": "template-not-found",
+      "severity": "high",
+      "recoverable": true,
+      "errorName": "Error",
+      "errorCode": null
+    },
+    "timestamp": "2024-01-01T00:00:00.000Z",
+    "handledAt": "2025-09-12T03:42:18.724Z",
+    "originalError": {
+      "name": "Error",
+      "message": "Template not found: templates/api-service.njk",
+      "stack": "Error: Template not found: templates/api-service.njk\n    at DeterministicRenderer._loadTemplate (file:///Users/sac/unjucks/src/kgen/deterministic/core-renderer.js:448:13)\n    at async DeterministicRenderer.render (file:///Users/sac/unjucks/src/kgen/deterministic/core-renderer.js:253:31)\n    at async DeterministicRenderingSystem.render (file:///Users/sac/unjucks/src/kgen/deterministic/index.js:162:28)\n    at async Object.run (file:///Users/sac/unjucks/bin/kgen.mjs:1480:26)\n    at async runCommand (file:///Users/sac/unjucks/node_modules/citty/dist/index.mjs:316:16)\n    at async runCommand (file:///Users/sac/unjucks/node_modules/citty/dist/index.mjs:307:11)\n    at async runCommand (file:///Users/sac/unjucks/node_modules/citty/dist/index.mjs:307:11)\n    at async runMain (file:///Users/sac/unjucks/node_modules/citty/dist/index.mjs:445:7)"
+    }
+  },
+  "classification": {
+    "category": "template-not-found",
+    "severity": "high",
+    "recoverable": true,
+    "errorName": "Error",
+    "errorCode": null
+  },
+  "recovery": {
+    "success": false,
+    "reason": "All recovery attempts exhausted",
+    "attempts": 3
+  },
+  "environment": {
+    "nodeVersion": "v22.12.0",
+    "platform": "darwin",
+    "arch": "arm64"
+  }
+}

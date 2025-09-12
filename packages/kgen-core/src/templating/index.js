@@ -1,115 +1,63 @@
 /**
- * KGEN Enhanced Templating Module
+ * KGEN Templating Module - Main Entry Point
  * 
- * Main entry point for KGEN template engine functionality.
- * Provides enhanced, deterministic template rendering with filter pipeline
- * and RDF integration, migrated from UNJUCKS.
+ * Simplified template engine with direct RDF graph integration
+ * Replaces complex legacy templating with focused, deterministic pipeline
  */
 
-import { TemplateEngine, createTemplateEngine } from './template-engine.js';
-import { FrontmatterParser } from './frontmatter-parser.js';
 import { TemplateRenderer, createRenderer } from './renderer.js';
-import { createDeterministicFilters } from './deterministic-filters.js';
-import { RDFFilters, createRDFFilters, registerRDFFilters } from './rdf-filters.js';
+import { FrontmatterParser } from './frontmatter.js';
+import { TemplateContext } from './context.js';
 
-export { 
-  TemplateEngine, 
-  createTemplateEngine, 
-  FrontmatterParser, 
-  TemplateRenderer, 
-  createRenderer,
-  createDeterministicFilters,
-  RDFFilters,
-  createRDFFilters,
-  registerRDFFilters
-};
+export { TemplateRenderer, createRenderer, FrontmatterParser, TemplateContext };
 
 /**
- * Create a complete templating system with engine and renderer
- * @param {Object} options - Configuration options
- * @returns {Object} Templating system with engine and renderer
+ * Create a complete template engine with all components
  */
-export function createTemplatingSystem(options = {}) {
-  const engine = createTemplateEngine(options);
-  const renderer = createRenderer(options);
+export function createTemplateEngine(options = {}) {
+  const renderer = new TemplateRenderer(options);
   
   return {
-    engine,
     renderer,
     
-    // Convenience methods
-    async render(templatePath, context, options) {
-      return engine.render(templatePath, context, options);
-    },
+    // Direct methods for easy access
+    render: (templatePath, context, rdfData) => 
+      renderer.render(templatePath, context, rdfData),
     
-    async renderString(templateString, context, options) {
-      return engine.renderString(templateString, context, options);
-    },
+    generate: (templatePath, context, rdfData) => 
+      renderer.generate(templatePath, context, rdfData),
     
-    async renderToFile(templatePath, context, options) {
-      return renderer.renderToFile(templatePath, context, options);
-    },
+    writeOutput: (renderResult) => 
+      renderer.writeOutput(renderResult),
     
-    async renderMultiple(templates, globalContext, options) {
-      return renderer.renderMultiple(templates, globalContext, options);
-    },
+    templateExists: (templatePath) => 
+      renderer.templateExists(templatePath),
     
-    // Utility methods
-    templateExists(templatePath) {
-      return engine.templateExists(templatePath);
-    },
+    listTemplates: () => 
+      renderer.listTemplates(),
     
-    getStats() {
-      return {
-        engine: engine.getStats(),
-        renderer: renderer.getStats()
-      };
-    },
+    getStats: () => 
+      renderer.getStats(),
     
-    // Enhanced capabilities
-    getAvailableFilters() {
-      return engine.getAvailableFilters();
-    },
-    
-    updateRDFStore(triples) {
-      return engine.updateRDFStore(triples);
-    },
-    
-    clearRDFStore() {
-      return engine.clearRDFStore();
-    },
-    
-    addFilter(name, fn, options) {
-      return engine.addFilter(name, fn, options);
-    },
-    
-    getEnvironment() {
-      return engine.getEnvironment();
-    },
-    
-    reset() {
-      engine.resetStats();
-      engine.clearCache();
-      renderer.reset();
-    }
+    reset: () => 
+      renderer.reset()
   };
 }
 
 /**
- * Create enhanced template engine with all features enabled
- * @param {Object} options - Engine configuration options
- * @returns {TemplateEngine} Fully featured template engine
+ * Quick start - render template with minimal setup
  */
-export function createEnhancedTemplateEngine(options = {}) {
-  return new TemplateEngine({
-    enableFilters: true,
-    enableRDF: true,
-    enableCache: true,
-    deterministic: true,
-    contentAddressing: true,
-    throwOnUndefined: false,
-    ...options
-  });
+export async function renderTemplate(templatePath, context = {}, options = {}) {
+  const engine = createTemplateEngine(options);
+  return await engine.render(templatePath, context);
 }
 
-export default createTemplatingSystem;
+/**
+ * Quick start - generate file from template
+ */
+export async function generateFromTemplate(templatePath, context = {}, options = {}) {
+  const engine = createTemplateEngine(options);
+  return await engine.generate(templatePath, context);
+}
+
+export default createTemplateEngine;

@@ -1,87 +1,58 @@
 {
   "name": "@kgen/core",
-  "version": "1.0.0",
-  "description": "Production-ready RDF processing core for KGEN with content-addressed hashing",
+  "version": "0.1.0",
+  "description": "KGEN core engine for RDF graph processing and artifact generation",
   "type": "module",
-  "main": "src/rdf/index.js",
+  "main": "./src/engine.js",
   "exports": {
-    ".": "./src/rdf/index.js",
-    "./graph-processor": "./src/rdf/graph-processor.js",
-    "./namespace-manager": "./src/rdf/namespace-manager.js",
-    "./serializers": "./src/rdf/serializers.js",
-    "./hash-calculator": "./src/rdf/hash-calculator.js",
-    "./project": "./src/project/index.js",
-    "./project/lockfile-generator": "./src/project/lockfile-generator.js",
-    "./project/attestation-bundler": "./src/project/attestation-bundler.js",
-    "./project/version-manager": "./src/project/version-manager.js",
-    "./project/reproducibility-verifier": "./src/project/reproducibility-verifier.js"
+    ".": "./src/engine.js",
+    "./rdf": "./src/rdf/index.js",
+    "./rdf/canonical-processor": "./src/rdf/canonical-processor.js",
+    "./rdf/graph-indexer": "./src/rdf/graph-indexer.js",
+    "./rdf/enhanced-processor": "./src/rdf/enhanced-processor.js",
+    "./semantic": "./src/semantic/processor.js",
+    "./semantic/processor": "./src/semantic/processor.js",
+    "./graph": "./src/graph/index.js",
+    "./compiler": "./src/compiler/index.js",
+    "./provenance": "./src/provenance/index.js",
+    "./types": "./src/types/index.js"
   },
   "scripts": {
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage",
-    "build": "echo 'No build step needed for ES modules'",
-    "lint": "eslint src/ tests/",
-    "lint:fix": "eslint src/ tests/ --fix"
+    "build": "tsc --project tsconfig.json",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "eslint src/ --ext .js,.ts",
+    "typecheck": "tsc --noEmit --project tsconfig.json",
+    "clean": "rm -rf dist"
   },
-  "keywords": [
-    "rdf",
-    "semantic-web",
-    "graph",
-    "hashing",
-    "content-addressing",
-    "knowledge-graph",
-    "n3",
-    "turtle",
-    "serialization",
-    "kgen"
-  ],
-  "author": "KGEN Team",
-  "license": "MIT",
   "dependencies": {
     "n3": "^1.17.2",
-    "crypto": "^1.0.1",
-    "consola": "^3.4.2",
-    "uuid": "^10.0.0",
-    "semver": "^7.5.4",
-    "archiver": "^6.0.1",
-    "node-stream-zip": "^1.15.0"
+    "rdf-ext": "^2.5.0",
+    "crypto-js": "^4.2.0",
+    "c12": "^1.4.2",
+    "zod": "^3.22.4",
+    "mkdirp": "^3.0.1",
+    "yaml": "^2.3.4"
   },
   "devDependencies": {
-    "@jest/globals": "^29.7.0",
-    "jest": "^29.7.0",
-    "eslint": "^8.56.0"
+    "typescript": "^5.3.0",
+    "vitest": "^1.0.0",
+    "@types/crypto-js": "^4.2.0"
   },
   "peerDependencies": {
-    "node": ">=18.0.0"
+    "@kgen/rules": "workspace:*",
+    "@kgen/templates": "workspace:*"
   },
-  "jest": {
-    "testEnvironment": "node",
-    "extensionsToTreatAsEsm": [".js"],
-    "globals": {
-      "transform": {}
-    },
-    "testMatch": [
-      "**/tests/**/*.test.js"
-    ],
-    "collectCoverageFrom": [
-      "src/**/*.js",
-      "!src/**/*.test.js"
-    ],
-    "coverageDirectory": "coverage",
-    "coverageReporters": [
-      "text",
-      "lcov",
-      "html"
-    ]
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/kgen-dev/unjucks.git",
-    "directory": "packages/kgen-core"
-  },
-  "bugs": {
-    "url": "https://github.com/kgen-dev/unjucks/issues"
-  },
-  "homepage": "https://github.com/kgen-dev/unjucks/tree/main/packages/kgen-core"
+  "files": [
+    "src/",
+    "dist/",
+    "README.md"
+  ],
+  "keywords": [
+    "rdf",
+    "knowledge-graph",
+    "compiler",
+    "provenance"
+  ],
+  "license": "MIT"
 }

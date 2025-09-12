@@ -1,18 +1,18 @@
 {
   "metadata": {
-    "created": "2025-09-11T23:31:39.070Z",
+    "created": "2025-09-12T03:42:13.495Z",
     "operation": "all",
-    "samples": 10,
-    "warmup": 3,
+    "samples": 1,
+    "warmup": 0,
     "environment": {
       "nodeVersion": "v22.12.0",
       "platform": "darwin",
       "arch": "arm64",
       "memory": {
-        "rss": 110247936,
-        "heapTotal": 37978112,
-        "heapUsed": 26556896,
-        "external": 2324446,
+        "rss": 111181824,
+        "heapTotal": 39550976,
+        "heapUsed": 23189928,
+        "external": 2508907,
         "arrayBuffers": 16795
       }
     },
@@ -28,61 +28,7 @@
       "samples": [
         {
           "iteration": 1,
-          "duration": 255,
-          "success": false,
-          "error": "Command failed: node \"/Users/sac/unjucks/packages/kgen-cli/bin/kgen.js\" artifact generate --graph \"/Users/sac/.cache/tmp/kgen-baseline-test.ttl\" --template simple-test --output \"/Users/sac/.cache/tmp/kgen-baseline-output\" --dry --format json"
-        },
-        {
-          "iteration": 2,
-          "duration": 279,
-          "success": false,
-          "error": "Command failed: node \"/Users/sac/unjucks/packages/kgen-cli/bin/kgen.js\" artifact generate --graph \"/Users/sac/.cache/tmp/kgen-baseline-test.ttl\" --template simple-test --output \"/Users/sac/.cache/tmp/kgen-baseline-output\" --dry --format json"
-        },
-        {
-          "iteration": 3,
-          "duration": 295,
-          "success": false,
-          "error": "Command failed: node \"/Users/sac/unjucks/packages/kgen-cli/bin/kgen.js\" artifact generate --graph \"/Users/sac/.cache/tmp/kgen-baseline-test.ttl\" --template simple-test --output \"/Users/sac/.cache/tmp/kgen-baseline-output\" --dry --format json"
-        },
-        {
-          "iteration": 4,
-          "duration": 266,
-          "success": false,
-          "error": "Command failed: node \"/Users/sac/unjucks/packages/kgen-cli/bin/kgen.js\" artifact generate --graph \"/Users/sac/.cache/tmp/kgen-baseline-test.ttl\" --template simple-test --output \"/Users/sac/.cache/tmp/kgen-baseline-output\" --dry --format json"
-        },
-        {
-          "iteration": 5,
-          "duration": 257,
-          "success": false,
-          "error": "Command failed: node \"/Users/sac/unjucks/packages/kgen-cli/bin/kgen.js\" artifact generate --graph \"/Users/sac/.cache/tmp/kgen-baseline-test.ttl\" --template simple-test --output \"/Users/sac/.cache/tmp/kgen-baseline-output\" --dry --format json"
-        },
-        {
-          "iteration": 6,
-          "duration": 255,
-          "success": false,
-          "error": "Command failed: node \"/Users/sac/unjucks/packages/kgen-cli/bin/kgen.js\" artifact generate --graph \"/Users/sac/.cache/tmp/kgen-baseline-test.ttl\" --template simple-test --output \"/Users/sac/.cache/tmp/kgen-baseline-output\" --dry --format json"
-        },
-        {
-          "iteration": 7,
-          "duration": 249,
-          "success": false,
-          "error": "Command failed: node \"/Users/sac/unjucks/packages/kgen-cli/bin/kgen.js\" artifact generate --graph \"/Users/sac/.cache/tmp/kgen-baseline-test.ttl\" --template simple-test --output \"/Users/sac/.cache/tmp/kgen-baseline-output\" --dry --format json"
-        },
-        {
-          "iteration": 8,
-          "duration": 243,
-          "success": false,
-          "error": "Command failed: node \"/Users/sac/unjucks/packages/kgen-cli/bin/kgen.js\" artifact generate --graph \"/Users/sac/.cache/tmp/kgen-baseline-test.ttl\" --template simple-test --output \"/Users/sac/.cache/tmp/kgen-baseline-output\" --dry --format json"
-        },
-        {
-          "iteration": 9,
-          "duration": 270,
-          "success": false,
-          "error": "Command failed: node \"/Users/sac/unjucks/packages/kgen-cli/bin/kgen.js\" artifact generate --graph \"/Users/sac/.cache/tmp/kgen-baseline-test.ttl\" --template simple-test --output \"/Users/sac/.cache/tmp/kgen-baseline-output\" --dry --format json"
-        },
-        {
-          "iteration": 10,
-          "duration": 255,
+          "duration": 250,
           "success": false,
           "error": "Command failed: node \"/Users/sac/unjucks/packages/kgen-cli/bin/kgen.js\" artifact generate --graph \"/Users/sac/.cache/tmp/kgen-baseline-test.ttl\" --template simple-test --output \"/Users/sac/.cache/tmp/kgen-baseline-output\" --dry --format json"
         }
@@ -95,140 +41,14 @@
         {
           "operation": "hash",
           "iteration": 1,
-          "duration": 189,
-          "success": false,
-          "error": "Command failed: node \"/Users/sac/unjucks/packages/kgen-cli/bin/kgen.js\" graph hash --input \"/Users/sac/.cache/tmp/kgen-baseline-test.ttl\" --format json\n\n ERROR  Missing required positional argument: FILE\n\n"
-        },
-        {
-          "operation": "hash",
-          "iteration": 2,
-          "duration": 184,
-          "success": false,
-          "error": "Command failed: node \"/Users/sac/unjucks/packages/kgen-cli/bin/kgen.js\" graph hash --input \"/Users/sac/.cache/tmp/kgen-baseline-test.ttl\" --format json\n\n ERROR  Missing required positional argument: FILE\n\n"
-        },
-        {
-          "operation": "hash",
-          "iteration": 3,
-          "duration": 184,
-          "success": false,
-          "error": "Command failed: node \"/Users/sac/unjucks/packages/kgen-cli/bin/kgen.js\" graph hash --input \"/Users/sac/.cache/tmp/kgen-baseline-test.ttl\" --format json\n\n ERROR  Missing required positional argument: FILE\n\n"
-        },
-        {
-          "operation": "hash",
-          "iteration": 4,
-          "duration": 183,
-          "success": false,
-          "error": "Command failed: node \"/Users/sac/unjucks/packages/kgen-cli/bin/kgen.js\" graph hash --input \"/Users/sac/.cache/tmp/kgen-baseline-test.ttl\" --format json\n\n ERROR  Missing required positional argument: FILE\n\n"
-        },
-        {
-          "operation": "hash",
-          "iteration": 5,
-          "duration": 181,
-          "success": false,
-          "error": "Command failed: node \"/Users/sac/unjucks/packages/kgen-cli/bin/kgen.js\" graph hash --input \"/Users/sac/.cache/tmp/kgen-baseline-test.ttl\" --format json\n\n ERROR  Missing required positional argument: FILE\n\n"
-        },
-        {
-          "operation": "hash",
-          "iteration": 6,
-          "duration": 189,
-          "success": false,
-          "error": "Command failed: node \"/Users/sac/unjucks/packages/kgen-cli/bin/kgen.js\" graph hash --input \"/Users/sac/.cache/tmp/kgen-baseline-test.ttl\" --format json\n\n ERROR  Missing required positional argument: FILE\n\n"
-        },
-        {
-          "operation": "hash",
-          "iteration": 7,
-          "duration": 186,
-          "success": false,
-          "error": "Command failed: node \"/Users/sac/unjucks/packages/kgen-cli/bin/kgen.js\" graph hash --input \"/Users/sac/.cache/tmp/kgen-baseline-test.ttl\" --format json\n\n ERROR  Missing required positional argument: FILE\n\n"
-        },
-        {
-          "operation": "hash",
-          "iteration": 8,
-          "duration": 185,
-          "success": false,
-          "error": "Command failed: node \"/Users/sac/unjucks/packages/kgen-cli/bin/kgen.js\" graph hash --input \"/Users/sac/.cache/tmp/kgen-baseline-test.ttl\" --format json\n\n ERROR  Missing required positional argument: FILE\n\n"
-        },
-        {
-          "operation": "hash",
-          "iteration": 9,
-          "duration": 178,
-          "success": false,
-          "error": "Command failed: node \"/Users/sac/unjucks/packages/kgen-cli/bin/kgen.js\" graph hash --input \"/Users/sac/.cache/tmp/kgen-baseline-test.ttl\" --format json\n\n ERROR  Missing required positional argument: FILE\n\n"
-        },
-        {
-          "operation": "hash",
-          "iteration": 10,
-          "duration": 181,
+          "duration": 202,
           "success": false,
           "error": "Command failed: node \"/Users/sac/unjucks/packages/kgen-cli/bin/kgen.js\" graph hash --input \"/Users/sac/.cache/tmp/kgen-baseline-test.ttl\" --format json\n\n ERROR  Missing required positional argument: FILE\n\n"
         },
         {
           "operation": "index",
           "iteration": 1,
-          "duration": 178,
-          "success": true,
-          "output": null
-        },
-        {
-          "operation": "index",
-          "iteration": 2,
-          "duration": 203,
-          "success": true,
-          "output": null
-        },
-        {
-          "operation": "index",
-          "iteration": 3,
-          "duration": 189,
-          "success": true,
-          "output": null
-        },
-        {
-          "operation": "index",
-          "iteration": 4,
-          "duration": 191,
-          "success": true,
-          "output": null
-        },
-        {
-          "operation": "index",
-          "iteration": 5,
-          "duration": 184,
-          "success": true,
-          "output": null
-        },
-        {
-          "operation": "index",
-          "iteration": 6,
-          "duration": 183,
-          "success": true,
-          "output": null
-        },
-        {
-          "operation": "index",
-          "iteration": 7,
-          "duration": 178,
-          "success": true,
-          "output": null
-        },
-        {
-          "operation": "index",
-          "iteration": 8,
-          "duration": 175,
-          "success": true,
-          "output": null
-        },
-        {
-          "operation": "index",
-          "iteration": 9,
-          "duration": 176,
-          "success": true,
-          "output": null
-        },
-        {
-          "operation": "index",
-          "iteration": 10,
-          "duration": 174,
+          "duration": 194,
           "success": true,
           "output": null
         }
@@ -236,10 +56,10 @@
       "statistics": {
         "index": {
           "successRate": 100,
-          "mean": 183,
-          "median": 183,
-          "min": 174,
-          "max": 203
+          "mean": 194,
+          "median": 194,
+          "min": 194,
+          "max": 194
         }
       }
     }
@@ -247,34 +67,34 @@
   "system": {
     "cpu": {
       "iterations": 1000000,
-      "durationNs": 2503208,
-      "durationMs": 2.503208,
-      "operationsPerSecond": 399487378
+      "durationNs": 2368791,
+      "durationMs": 2.368791,
+      "operationsPerSecond": 422156281
     },
     "memory": {
       "before": {
-        "rss": 114851840,
-        "heapTotal": 38240256,
-        "heapUsed": 24276208,
-        "external": 2248564,
-        "arrayBuffers": 51750
+        "rss": 112918528,
+        "heapTotal": 39550976,
+        "heapUsed": 26425672,
+        "external": 2216889,
+        "arrayBuffers": 21160
       },
       "after": {
-        "rss": 124076032,
-        "heapTotal": 59539456,
-        "heapUsed": 28982104,
-        "external": 2248564,
+        "rss": 120586240,
+        "heapTotal": 60325888,
+        "heapUsed": 30335192,
+        "external": 2216889,
         "arrayBuffers": 16795
       },
-      "allocated": 4705896,
+      "allocated": 3909520,
       "objectCount": 100000
     },
     "io": {
       "dataSize": 10000,
-      "duration": 1,
+      "duration": 0,
       "verified": true,
-      "throughputMBps": 20
+      "throughputMBps": null
     },
-    "timestamp": "2025-09-11T23:31:46.674Z"
+    "timestamp": "2025-09-12T03:42:14.143Z"
   }
 }

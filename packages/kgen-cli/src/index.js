@@ -17,8 +17,8 @@ import cacheCommands from './commands/cache/index.js';
 import templatesCommands from './commands/templates/index.js';
 import rulesCommands from './commands/rules/index.js';
 import metricsCommands from './commands/metrics/index.js';
-// import validateCommands from './commands/validate/index.js';
-// import driftCommands from './commands/drift/index.js';
+import validateCommands from './commands/validate/index.js';
+import driftCommands from './commands/drift/index.js';
 
 export const main = defineCommand({
   meta: {
@@ -52,8 +52,8 @@ export const main = defineCommand({
     templates: templatesCommands,
     rules: rulesCommands,
     metrics: metricsCommands,
-    // validate: validateCommands,
-    // drift: driftCommands
+    validate: validateCommands,
+    drift: driftCommands
   },
   async run({ args }) {
     // Global help output in JSON format

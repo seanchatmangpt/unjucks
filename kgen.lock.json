@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "timestamp": "2025-09-12T00:03:10.001Z",
+  "timestamp": "2025-09-12T03:42:55.862Z",
   "directory": ".",
   "files": {
     "_templates/enterprise/data/schemas/api-standards.ttl": {
@@ -98,6 +98,16 @@
       "size": 395,
       "modified": "2025-09-11T19:04:00.901Z"
     },
+    "packages/kgen-core/tests/fixtures/graphs/complex-hierarchy.ttl": {
+      "hash": "83e40f0cf95f94e39c77086543a75d8f7bbf83451a63da7292143d728aa792e8",
+      "size": 1636,
+      "modified": "2025-09-12T03:24:12.069Z"
+    },
+    "packages/kgen-core/tests/fixtures/graphs/simple-person.ttl": {
+      "hash": "6ff0f2ec9faba75d5295bb937dbc1ce18628c441e139e89a2fd530e08b9d0063",
+      "size": 672,
+      "modified": "2025-09-12T03:24:12.032Z"
+    },
     "packages/kgen-rules/api-governance/index.n3": {
       "hash": "1f41f7d3e068aaa050ac8e4efac10362a146d3c9013c3c68a6f8fbd251f4814c",
       "size": 2860,
@@ -127,6 +137,11 @@
       "hash": "8908769290a9b078a1936a3f0fb7cb478a30fb46da24fdfc8714bfd88ee8c9ab",
       "size": 1347,
       "modified": "2025-09-11T23:30:51.776Z"
+    },
+    "sample.ttl": {
+      "hash": "4ae46fa14dc9d5c41628f767cfdf966b2bf2aaa08025d0c7d8efd0e4cb545c6c",
+      "size": 212,
+      "modified": "2025-09-12T03:41:30.021Z"
     },
     "schema/user.ttl": {
       "hash": "8f630a0a6663f69fb3753d79c3d1746511a280ba4c46a5d2525ecdb78642b1c6",
@@ -174,14 +189,24 @@
       "modified": "2025-09-11T23:58:52.685Z"
     },
     "test-generation/sample.ttl": {
-      "hash": "104ff79d84613a0a47226c0ec86fe5347fe55a67f3a60e1267d85da51e15e9e4",
-      "size": 85,
-      "modified": "2025-09-11T23:57:57.631Z"
+      "hash": "c5f60e474c096e7624060b113c51da84bde905efbcac91631df41d06c52bf964",
+      "size": 483,
+      "modified": "2025-09-12T03:31:39.799Z"
     },
     "test-graph-2.ttl": {
       "hash": "c17bc58eeb6984ae8ed09d9f7b32d4191ab8b7f2b17a466646bb293afec713d5",
       "size": 471,
       "modified": "2025-09-11T21:58:10.304Z"
+    },
+    "test-graph.ttl": {
+      "hash": "d41943dde2dff7a9cabf806f7870c8595340ee6cda300d3af8b029b623e9b879",
+      "size": 1934,
+      "modified": "2025-09-12T03:42:11.966Z"
+    },
+    "test-modified.ttl": {
+      "hash": "3d1a9a5e4bc65a990a4bd33f9e25649de185cb0d877c21c2b3ace4ac334b9548",
+      "size": 436,
+      "modified": "2025-09-12T03:40:08.231Z"
     },
     "test.ttl": {
       "hash": "06af33cf8f4155bb2efffb9fa0c3c53d340344790c0de7fccede3ef53690691e",
@@ -377,6 +402,11 @@
       "hash": "6e724b61978e8de49a9ba06219204fa0171de9b95bc3a7b4b5848d7e05d88268",
       "size": 1463,
       "modified": "2025-09-10T17:22:45.215Z"
+    },
+    "tests/sample.ttl": {
+      "hash": "8455ac9c703aa62bb348d0e3abbefb4e6dfa970bed41fcf02016fafadb67fcf7",
+      "size": 604,
+      "modified": "2025-09-12T03:32:19.308Z"
     },
     "tests/security/fixtures/malicious-patterns.ttl": {
       "hash": "10049a23393b11b711a3824fcd02342021ca30e3ac798edf22703ffb2303456d",

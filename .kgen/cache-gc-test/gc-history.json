@@ -1,0 +1,732 @@
+[
+  {
+    "timestamp": 1757648311787,
+    "strategy": "expired",
+    "duration": 0,
+    "result": {
+      "strategy": "expired",
+      "collection_breakdown": {
+        "memory": 0,
+        "disk": 0,
+        "templates": 0
+      },
+      "candidates_identified": 0,
+      "collection_efficiency": 0
+    },
+    "cache_state_before": {
+      "timestamp": 1757648311787,
+      "memory": {
+        "entries": 20,
+        "bytes": 650,
+        "usage_ratio": 0.00006198883056640625
+      },
+      "disk": {
+        "entries": 0,
+        "bytes": 0,
+        "usage_ratio": 0
+      },
+      "templates": {
+        "count": 0,
+        "usage_ratio": 0
+      },
+      "total": {
+        "entries": 20,
+        "bytes": 650,
+        "hit_rate": 0,
+        "template_hit_rate": 0
+      }
+    },
+    "cache_state_after": {
+      "timestamp": 1757648311787,
+      "memory": {
+        "entries": 20,
+        "bytes": 650,
+        "usage_ratio": 0.00006198883056640625
+      },
+      "disk": {
+        "entries": 0,
+        "bytes": 0,
+        "usage_ratio": 0
+      },
+      "templates": {
+        "count": 0,
+        "usage_ratio": 0
+      },
+      "total": {
+        "entries": 20,
+        "bytes": 650,
+        "hit_rate": 0,
+        "template_hit_rate": 0
+      }
+    }
+  },
+  {
+    "timestamp": 1757648311788,
+    "strategy": "expired",
+    "duration": 0,
+    "result": {
+      "strategy": "expired",
+      "collection_breakdown": {
+        "memory": 0,
+        "disk": 0,
+        "templates": 0
+      },
+      "candidates_identified": 0,
+      "collection_efficiency": 0
+    },
+    "cache_state_before": {
+      "timestamp": 1757648311788,
+      "memory": {
+        "entries": 20,
+        "bytes": 650,
+        "usage_ratio": 0.00006198883056640625
+      },
+      "disk": {
+        "entries": 0,
+        "bytes": 0,
+        "usage_ratio": 0
+      },
+      "templates": {
+        "count": 0,
+        "usage_ratio": 0
+      },
+      "total": {
+        "entries": 20,
+        "bytes": 650,
+        "hit_rate": 0,
+        "template_hit_rate": 0
+      }
+    },
+    "cache_state_after": {
+      "timestamp": 1757648311788,
+      "memory": {
+        "entries": 20,
+        "bytes": 650,
+        "usage_ratio": 0.00006198883056640625
+      },
+      "disk": {
+        "entries": 0,
+        "bytes": 0,
+        "usage_ratio": 0
+      },
+      "templates": {
+        "count": 0,
+        "usage_ratio": 0
+      },
+      "total": {
+        "entries": 20,
+        "bytes": 650,
+        "hit_rate": 0,
+        "template_hit_rate": 0
+      }
+    }
+  },
+  {
+    "timestamp": 1757648311788,
+    "strategy": "memory",
+    "duration": 2,
+    "result": {
+      "strategy": "memory",
+      "collection_breakdown": {
+        "disk": 0,
+        "templates": 0
+      },
+      "candidates_identified": 20,
+      "collection_efficiency": 0
+    },
+    "cache_state_before": {
+      "timestamp": 1757648311789,
+      "memory": {
+        "entries": 20,
+        "bytes": 650,
+        "usage_ratio": 0.00006198883056640625
+      },
+      "disk": {
+        "entries": 0,
+        "bytes": 0,
+        "usage_ratio": 0
+      },
+      "templates": {
+        "count": 0,
+        "usage_ratio": 0
+      },
+      "total": {
+        "entries": 20,
+        "bytes": 650,
+        "hit_rate": 0,
+        "template_hit_rate": 0
+      }
+    },
+    "cache_state_after": {
+      "timestamp": 1757648311790,
+      "memory": {
+        "entries": 20,
+        "bytes": 650,
+        "usage_ratio": 0.00006198883056640625
+      },
+      "disk": {
+        "entries": 0,
+        "bytes": 0,
+        "usage_ratio": 0
+      },
+      "templates": {
+        "count": 0,
+        "usage_ratio": 0
+      },
+      "total": {
+        "entries": 20,
+        "bytes": 650,
+        "hit_rate": 0,
+        "template_hit_rate": 0
+      }
+    }
+  },
+  {
+    "timestamp": 1757648311790,
+    "strategy": "lru",
+    "duration": 1,
+    "result": {
+      "strategy": "lru",
+      "collection_breakdown": {
+        "memory": 0,
+        "disk": 0,
+        "templates": 0
+      },
+      "candidates_identified": 20,
+      "collection_efficiency": 0
+    },
+    "cache_state_before": {
+      "timestamp": 1757648311790,
+      "memory": {
+        "entries": 20,
+        "bytes": 650,
+        "usage_ratio": 0.00006198883056640625
+      },
+      "disk": {
+        "entries": 0,
+        "bytes": 0,
+        "usage_ratio": 0
+      },
+      "templates": {
+        "count": 0,
+        "usage_ratio": 0
+      },
+      "total": {
+        "entries": 20,
+        "bytes": 650,
+        "hit_rate": 0,
+        "template_hit_rate": 0
+      }
+    },
+    "cache_state_after": {
+      "timestamp": 1757648311791,
+      "memory": {
+        "entries": 20,
+        "bytes": 650,
+        "usage_ratio": 0.00006198883056640625
+      },
+      "disk": {
+        "entries": 0,
+        "bytes": 0,
+        "usage_ratio": 0
+      },
+      "templates": {
+        "count": 0,
+        "usage_ratio": 0
+      },
+      "total": {
+        "entries": 20,
+        "bytes": 650,
+        "hit_rate": 0,
+        "template_hit_rate": 0
+      }
+    }
+  },
+  {
+    "timestamp": 1757648311792,
+    "strategy": "size",
+    "duration": 0,
+    "result": {
+      "strategy": "size",
+      "collection_breakdown": {
+        "memory": 0,
+        "disk": 0,
+        "templates": 0
+      },
+      "candidates_identified": 20,
+      "collection_efficiency": 0
+    },
+    "cache_state_before": {
+      "timestamp": 1757648311792,
+      "memory": {
+        "entries": 20,
+        "bytes": 650,
+        "usage_ratio": 0.00006198883056640625
+      },
+      "disk": {
+        "entries": 0,
+        "bytes": 0,
+        "usage_ratio": 0
+      },
+      "templates": {
+        "count": 0,
+        "usage_ratio": 0
+      },
+      "total": {
+        "entries": 20,
+        "bytes": 650,
+        "hit_rate": 0,
+        "template_hit_rate": 0
+      }
+    },
+    "cache_state_after": {
+      "timestamp": 1757648311792,
+      "memory": {
+        "entries": 20,
+        "bytes": 650,
+        "usage_ratio": 0.00006198883056640625
+      },
+      "disk": {
+        "entries": 0,
+        "bytes": 0,
+        "usage_ratio": 0
+      },
+      "templates": {
+        "count": 0,
+        "usage_ratio": 0
+      },
+      "total": {
+        "entries": 20,
+        "bytes": 650,
+        "hit_rate": 0,
+        "template_hit_rate": 0
+      }
+    }
+  },
+  {
+    "timestamp": 1757648311793,
+    "strategy": "access",
+    "duration": 3,
+    "result": {
+      "strategy": "access",
+      "collection_breakdown": {
+        "memory": 0,
+        "disk": 0,
+        "templates": 0
+      },
+      "candidates_identified": 20,
+      "collection_efficiency": 0
+    },
+    "cache_state_before": {
+      "timestamp": 1757648311793,
+      "memory": {
+        "entries": 20,
+        "bytes": 650,
+        "usage_ratio": 0.00006198883056640625
+      },
+      "disk": {
+        "entries": 0,
+        "bytes": 0,
+        "usage_ratio": 0
+      },
+      "templates": {
+        "count": 0,
+        "usage_ratio": 0
+      },
+      "total": {
+        "entries": 20,
+        "bytes": 650,
+        "hit_rate": 0,
+        "template_hit_rate": 0
+      }
+    },
+    "cache_state_after": {
+      "timestamp": 1757648311796,
+      "memory": {
+        "entries": 20,
+        "bytes": 650,
+        "usage_ratio": 0.00006198883056640625
+      },
+      "disk": {
+        "entries": 0,
+        "bytes": 0,
+        "usage_ratio": 0
+      },
+      "templates": {
+        "count": 0,
+        "usage_ratio": 0
+      },
+      "total": {
+        "entries": 20,
+        "bytes": 650,
+        "hit_rate": 0,
+        "template_hit_rate": 0
+      }
+    }
+  },
+  {
+    "timestamp": 1757648484645,
+    "strategy": "expired",
+    "duration": 0,
+    "result": {
+      "strategy": "expired",
+      "collection_breakdown": {
+        "memory": 0,
+        "disk": 0,
+        "templates": 0
+      },
+      "candidates_identified": 0,
+      "collection_efficiency": 0
+    },
+    "cache_state_before": {
+      "timestamp": 1757648484645,
+      "memory": {
+        "entries": 20,
+        "bytes": 650,
+        "usage_ratio": 0.00006198883056640625
+      },
+      "disk": {
+        "entries": 20,
+        "bytes": 8055,
+        "usage_ratio": 0.2
+      },
+      "templates": {
+        "count": 0,
+        "usage_ratio": 0
+      },
+      "total": {
+        "entries": 40,
+        "bytes": 8705,
+        "hit_rate": 0,
+        "template_hit_rate": 0
+      }
+    },
+    "cache_state_after": {
+      "timestamp": 1757648484645,
+      "memory": {
+        "entries": 20,
+        "bytes": 650,
+        "usage_ratio": 0.00006198883056640625
+      },
+      "disk": {
+        "entries": 20,
+        "bytes": 8055,
+        "usage_ratio": 0.2
+      },
+      "templates": {
+        "count": 0,
+        "usage_ratio": 0
+      },
+      "total": {
+        "entries": 40,
+        "bytes": 8705,
+        "hit_rate": 0,
+        "template_hit_rate": 0
+      }
+    }
+  },
+  {
+    "timestamp": 1757648484646,
+    "strategy": "expired",
+    "duration": 0,
+    "result": {
+      "strategy": "expired",
+      "collection_breakdown": {
+        "memory": 0,
+        "disk": 0,
+        "templates": 0
+      },
+      "candidates_identified": 0,
+      "collection_efficiency": 0
+    },
+    "cache_state_before": {
+      "timestamp": 1757648484646,
+      "memory": {
+        "entries": 20,
+        "bytes": 650,
+        "usage_ratio": 0.00006198883056640625
+      },
+      "disk": {
+        "entries": 20,
+        "bytes": 8055,
+        "usage_ratio": 0.2
+      },
+      "templates": {
+        "count": 0,
+        "usage_ratio": 0
+      },
+      "total": {
+        "entries": 40,
+        "bytes": 8705,
+        "hit_rate": 0,
+        "template_hit_rate": 0
+      }
+    },
+    "cache_state_after": {
+      "timestamp": 1757648484646,
+      "memory": {
+        "entries": 20,
+        "bytes": 650,
+        "usage_ratio": 0.00006198883056640625
+      },
+      "disk": {
+        "entries": 20,
+        "bytes": 8055,
+        "usage_ratio": 0.2
+      },
+      "templates": {
+        "count": 0,
+        "usage_ratio": 0
+      },
+      "total": {
+        "entries": 40,
+        "bytes": 8705,
+        "hit_rate": 0,
+        "template_hit_rate": 0
+      }
+    }
+  },
+  {
+    "timestamp": 1757648484646,
+    "strategy": "memory",
+    "duration": 0,
+    "result": {
+      "strategy": "memory",
+      "collection_breakdown": {
+        "disk": 0,
+        "templates": 0
+      },
+      "candidates_identified": 20,
+      "collection_efficiency": 0
+    },
+    "cache_state_before": {
+      "timestamp": 1757648484646,
+      "memory": {
+        "entries": 20,
+        "bytes": 650,
+        "usage_ratio": 0.00006198883056640625
+      },
+      "disk": {
+        "entries": 20,
+        "bytes": 8055,
+        "usage_ratio": 0.2
+      },
+      "templates": {
+        "count": 0,
+        "usage_ratio": 0
+      },
+      "total": {
+        "entries": 40,
+        "bytes": 8705,
+        "hit_rate": 0,
+        "template_hit_rate": 0
+      }
+    },
+    "cache_state_after": {
+      "timestamp": 1757648484646,
+      "memory": {
+        "entries": 14,
+        "bytes": 458,
+        "usage_ratio": 0.00004367828369140625
+      },
+      "disk": {
+        "entries": 20,
+        "bytes": 8055,
+        "usage_ratio": 0.2
+      },
+      "templates": {
+        "count": 0,
+        "usage_ratio": 0
+      },
+      "total": {
+        "entries": 34,
+        "bytes": 8513,
+        "hit_rate": 0,
+        "template_hit_rate": 0
+      }
+    }
+  },
+  {
+    "timestamp": 1757648484647,
+    "strategy": "lru",
+    "duration": 1,
+    "result": {
+      "strategy": "lru",
+      "collection_breakdown": {
+        "memory": 0,
+        "disk": 0,
+        "templates": 0
+      },
+      "candidates_identified": 34,
+      "collection_efficiency": 0
+    },
+    "cache_state_before": {
+      "timestamp": 1757648484647,
+      "memory": {
+        "entries": 14,
+        "bytes": 458,
+        "usage_ratio": 0.00004367828369140625
+      },
+      "disk": {
+        "entries": 20,
+        "bytes": 8055,
+        "usage_ratio": 0.2
+      },
+      "templates": {
+        "count": 0,
+        "usage_ratio": 0
+      },
+      "total": {
+        "entries": 34,
+        "bytes": 8513,
+        "hit_rate": 0,
+        "template_hit_rate": 0
+      }
+    },
+    "cache_state_after": {
+      "timestamp": 1757648484648,
+      "memory": {
+        "entries": 14,
+        "bytes": 458,
+        "usage_ratio": 0.00004367828369140625
+      },
+      "disk": {
+        "entries": 12,
+        "bytes": 4834,
+        "usage_ratio": 0.12
+      },
+      "templates": {
+        "count": 0,
+        "usage_ratio": 0
+      },
+      "total": {
+        "entries": 26,
+        "bytes": 5292,
+        "hit_rate": 0,
+        "template_hit_rate": 0
+      }
+    }
+  },
+  {
+    "timestamp": 1757648484648,
+    "strategy": "size",
+    "duration": 0,
+    "result": {
+      "strategy": "size",
+      "collection_breakdown": {
+        "memory": 0,
+        "disk": 0,
+        "templates": 0
+      },
+      "candidates_identified": 26,
+      "collection_efficiency": 0
+    },
+    "cache_state_before": {
+      "timestamp": 1757648484648,
+      "memory": {
+        "entries": 14,
+        "bytes": 458,
+        "usage_ratio": 0.00004367828369140625
+      },
+      "disk": {
+        "entries": 12,
+        "bytes": 4834,
+        "usage_ratio": 0.12
+      },
+      "templates": {
+        "count": 0,
+        "usage_ratio": 0
+      },
+      "total": {
+        "entries": 26,
+        "bytes": 5292,
+        "hit_rate": 0,
+        "template_hit_rate": 0
+      }
+    },
+    "cache_state_after": {
+      "timestamp": 1757648484648,
+      "memory": {
+        "entries": 14,
+        "bytes": 458,
+        "usage_ratio": 0.00004367828369140625
+      },
+      "disk": {
+        "entries": 7,
+        "bytes": 2819,
+        "usage_ratio": 0.07
+      },
+      "templates": {
+        "count": 0,
+        "usage_ratio": 0
+      },
+      "total": {
+        "entries": 21,
+        "bytes": 3277,
+        "hit_rate": 0,
+        "template_hit_rate": 0
+      }
+    }
+  },
+  {
+    "timestamp": 1757648484649,
+    "strategy": "access",
+    "duration": 0,
+    "result": {
+      "strategy": "access",
+      "collection_breakdown": {
+        "memory": 0,
+        "disk": 0,
+        "templates": 0
+      },
+      "candidates_identified": 21,
+      "collection_efficiency": 0
+    },
+    "cache_state_before": {
+      "timestamp": 1757648484649,
+      "memory": {
+        "entries": 14,
+        "bytes": 458,
+        "usage_ratio": 0.00004367828369140625
+      },
+      "disk": {
+        "entries": 7,
+        "bytes": 2819,
+        "usage_ratio": 0.07
+      },
+      "templates": {
+        "count": 0,
+        "usage_ratio": 0
+      },
+      "total": {
+        "entries": 21,
+        "bytes": 3277,
+        "hit_rate": 0,
+        "template_hit_rate": 0
+      }
+    },
+    "cache_state_after": {
+      "timestamp": 1757648484649,
+      "memory": {
+        "entries": 0,
+        "bytes": 0,
+        "usage_ratio": 0
+      },
+      "disk": {
+        "entries": 7,
+        "bytes": 2819,
+        "usage_ratio": 0.07
+      },
+      "templates": {
+        "count": 0,
+        "usage_ratio": 0
+      },
+      "total": {
+        "entries": 7,
+        "bytes": 2819,
+        "hit_rate": 0,
+        "template_hit_rate": 0
+      }
+    }
+  }
+]

@@ -1,18 +1,18 @@
 {
   "metadata": {
-    "created": "2025-09-11T23:40:04.178Z",
+    "created": "2025-09-12T03:38:54.857Z",
     "operation": "graph",
-    "samples": 10,
-    "warmup": 3,
+    "samples": 2,
+    "warmup": 1,
     "environment": {
       "nodeVersion": "v22.12.0",
       "platform": "darwin",
       "arch": "arm64",
       "memory": {
-        "rss": 113541120,
-        "heapTotal": 37978112,
-        "heapUsed": 26624616,
-        "external": 2320512,
+        "rss": 103202816,
+        "heapTotal": 35618816,
+        "heapUsed": 19639912,
+        "external": 2206592,
         "arrayBuffers": 16795
       }
     },
@@ -29,186 +29,66 @@
         {
           "operation": "hash",
           "iteration": 1,
-          "duration": 218,
+          "duration": 110,
           "success": false,
-          "error": "Command failed: node \"/Users/sac/unjucks/packages/kgen-cli/bin/kgen.js\" graph hash --input \"/Users/sac/.cache/tmp/kgen-baseline-test.ttl\" --format json\n\n ERROR  Missing required positional argument: FILE\n\n"
+          "error": "Command failed: node \"/Users/sac/unjucks/packages/kgen-cli/bin/kgen.js\" graph hash --input \"/Users/sac/.cache/tmp/kgen-baseline-test.ttl\" --format json\nfile:///Users/sac/unjucks/packages/kgen-cli/src/commands/project/verify.js:12\nimport { success, error, warning, output } from '../../lib/output.js';\n                         ^^^^^^^\nSyntaxError: The requested module '../../lib/output.js' does not provide an export named 'warning'\n    at ModuleJob._instantiate (node:internal/modules/esm/module_job:180:21)\n    at async ModuleJob.run (node:internal/modules/esm/module_job:263:5)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:547:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:116:5)\n\nNode.js v22.12.0\n"
         },
         {
           "operation": "hash",
           "iteration": 2,
-          "duration": 219,
+          "duration": 110,
           "success": false,
-          "error": "Command failed: node \"/Users/sac/unjucks/packages/kgen-cli/bin/kgen.js\" graph hash --input \"/Users/sac/.cache/tmp/kgen-baseline-test.ttl\" --format json\n\n ERROR  Missing required positional argument: FILE\n\n"
-        },
-        {
-          "operation": "hash",
-          "iteration": 3,
-          "duration": 209,
-          "success": false,
-          "error": "Command failed: node \"/Users/sac/unjucks/packages/kgen-cli/bin/kgen.js\" graph hash --input \"/Users/sac/.cache/tmp/kgen-baseline-test.ttl\" --format json\n\n ERROR  Missing required positional argument: FILE\n\n"
-        },
-        {
-          "operation": "hash",
-          "iteration": 4,
-          "duration": 200,
-          "success": false,
-          "error": "Command failed: node \"/Users/sac/unjucks/packages/kgen-cli/bin/kgen.js\" graph hash --input \"/Users/sac/.cache/tmp/kgen-baseline-test.ttl\" --format json\n\n ERROR  Missing required positional argument: FILE\n\n"
-        },
-        {
-          "operation": "hash",
-          "iteration": 5,
-          "duration": 204,
-          "success": false,
-          "error": "Command failed: node \"/Users/sac/unjucks/packages/kgen-cli/bin/kgen.js\" graph hash --input \"/Users/sac/.cache/tmp/kgen-baseline-test.ttl\" --format json\n\n ERROR  Missing required positional argument: FILE\n\n"
-        },
-        {
-          "operation": "hash",
-          "iteration": 6,
-          "duration": 195,
-          "success": false,
-          "error": "Command failed: node \"/Users/sac/unjucks/packages/kgen-cli/bin/kgen.js\" graph hash --input \"/Users/sac/.cache/tmp/kgen-baseline-test.ttl\" --format json\n\n ERROR  Missing required positional argument: FILE\n\n"
-        },
-        {
-          "operation": "hash",
-          "iteration": 7,
-          "duration": 191,
-          "success": false,
-          "error": "Command failed: node \"/Users/sac/unjucks/packages/kgen-cli/bin/kgen.js\" graph hash --input \"/Users/sac/.cache/tmp/kgen-baseline-test.ttl\" --format json\n\n ERROR  Missing required positional argument: FILE\n\n"
-        },
-        {
-          "operation": "hash",
-          "iteration": 8,
-          "duration": 183,
-          "success": false,
-          "error": "Command failed: node \"/Users/sac/unjucks/packages/kgen-cli/bin/kgen.js\" graph hash --input \"/Users/sac/.cache/tmp/kgen-baseline-test.ttl\" --format json\n\n ERROR  Missing required positional argument: FILE\n\n"
-        },
-        {
-          "operation": "hash",
-          "iteration": 9,
-          "duration": 180,
-          "success": false,
-          "error": "Command failed: node \"/Users/sac/unjucks/packages/kgen-cli/bin/kgen.js\" graph hash --input \"/Users/sac/.cache/tmp/kgen-baseline-test.ttl\" --format json\n\n ERROR  Missing required positional argument: FILE\n\n"
-        },
-        {
-          "operation": "hash",
-          "iteration": 10,
-          "duration": 183,
-          "success": false,
-          "error": "Command failed: node \"/Users/sac/unjucks/packages/kgen-cli/bin/kgen.js\" graph hash --input \"/Users/sac/.cache/tmp/kgen-baseline-test.ttl\" --format json\n\n ERROR  Missing required positional argument: FILE\n\n"
+          "error": "Command failed: node \"/Users/sac/unjucks/packages/kgen-cli/bin/kgen.js\" graph hash --input \"/Users/sac/.cache/tmp/kgen-baseline-test.ttl\" --format json\nfile:///Users/sac/unjucks/packages/kgen-cli/src/commands/project/verify.js:12\nimport { success, error, warning, output } from '../../lib/output.js';\n                         ^^^^^^^\nSyntaxError: The requested module '../../lib/output.js' does not provide an export named 'warning'\n    at ModuleJob._instantiate (node:internal/modules/esm/module_job:180:21)\n    at async ModuleJob.run (node:internal/modules/esm/module_job:263:5)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:547:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:116:5)\n\nNode.js v22.12.0\n"
         },
         {
           "operation": "index",
           "iteration": 1,
-          "duration": 192,
-          "success": true,
-          "output": null
+          "duration": 109,
+          "success": false,
+          "error": "Command failed: node \"/Users/sac/unjucks/packages/kgen-cli/bin/kgen.js\" graph index --input \"/Users/sac/.cache/tmp/kgen-baseline-test.ttl\" --format json\nfile:///Users/sac/unjucks/packages/kgen-cli/src/commands/project/verify.js:12\nimport { success, error, warning, output } from '../../lib/output.js';\n                         ^^^^^^^\nSyntaxError: The requested module '../../lib/output.js' does not provide an export named 'warning'\n    at ModuleJob._instantiate (node:internal/modules/esm/module_job:180:21)\n    at async ModuleJob.run (node:internal/modules/esm/module_job:263:5)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:547:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:116:5)\n\nNode.js v22.12.0\n"
         },
         {
           "operation": "index",
           "iteration": 2,
-          "duration": 193,
-          "success": true,
-          "output": null
-        },
-        {
-          "operation": "index",
-          "iteration": 3,
-          "duration": 183,
-          "success": true,
-          "output": null
-        },
-        {
-          "operation": "index",
-          "iteration": 4,
-          "duration": 175,
-          "success": true,
-          "output": null
-        },
-        {
-          "operation": "index",
-          "iteration": 5,
-          "duration": 176,
-          "success": true,
-          "output": null
-        },
-        {
-          "operation": "index",
-          "iteration": 6,
-          "duration": 181,
-          "success": true,
-          "output": null
-        },
-        {
-          "operation": "index",
-          "iteration": 7,
-          "duration": 178,
-          "success": true,
-          "output": null
-        },
-        {
-          "operation": "index",
-          "iteration": 8,
-          "duration": 183,
-          "success": true,
-          "output": null
-        },
-        {
-          "operation": "index",
-          "iteration": 9,
-          "duration": 180,
-          "success": true,
-          "output": null
-        },
-        {
-          "operation": "index",
-          "iteration": 10,
-          "duration": 178,
-          "success": true,
-          "output": null
+          "duration": 110,
+          "success": false,
+          "error": "Command failed: node \"/Users/sac/unjucks/packages/kgen-cli/bin/kgen.js\" graph index --input \"/Users/sac/.cache/tmp/kgen-baseline-test.ttl\" --format json\nfile:///Users/sac/unjucks/packages/kgen-cli/src/commands/project/verify.js:12\nimport { success, error, warning, output } from '../../lib/output.js';\n                         ^^^^^^^\nSyntaxError: The requested module '../../lib/output.js' does not provide an export named 'warning'\n    at ModuleJob._instantiate (node:internal/modules/esm/module_job:180:21)\n    at async ModuleJob.run (node:internal/modules/esm/module_job:263:5)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:547:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:116:5)\n\nNode.js v22.12.0\n"
         }
       ],
-      "statistics": {
-        "index": {
-          "successRate": 100,
-          "mean": 182,
-          "median": 181,
-          "min": 175,
-          "max": 193
-        }
-      }
+      "statistics": {}
     }
   },
   "system": {
     "cpu": {
       "iterations": 1000000,
-      "durationNs": 2453750,
-      "durationMs": 2.45375,
-      "operationsPerSecond": 407539480
+      "durationNs": 2395208,
+      "durationMs": 2.395208,
+      "operationsPerSecond": 417500276
     },
     "memory": {
       "before": {
-        "rss": 117112832,
-        "heapTotal": 37978112,
-        "heapUsed": 23885384,
-        "external": 2208478,
-        "arrayBuffers": 20229
+        "rss": 105676800,
+        "heapTotal": 35618816,
+        "heapUsed": 22950920,
+        "external": 2206421,
+        "arrayBuffers": 19885
       },
       "after": {
-        "rss": 126025728,
-        "heapTotal": 59277312,
-        "heapUsed": 28842576,
-        "external": 2208478,
+        "rss": 109543424,
+        "heapTotal": 37257216,
+        "heapUsed": 25553576,
+        "external": 2206421,
         "arrayBuffers": 16795
       },
-      "allocated": 4957192,
+      "allocated": 2602656,
       "objectCount": 100000
     },
     "io": {
       "dataSize": 10000,
-      "duration": 1,
+      "duration": 0,
       "verified": true,
-      "throughputMBps": 20
+      "throughputMBps": null
     },
-    "timestamp": "2025-09-11T23:40:08.534Z"
+    "timestamp": "2025-09-12T03:38:55.413Z"
   }
 }

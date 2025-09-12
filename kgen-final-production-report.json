@@ -1,14 +1,14 @@
 {
-  "timestamp": "2025-09-11T23:29:14.040Z",
+  "timestamp": "2025-09-12T03:12:27.982Z",
   "summary": {
     "total": 7,
-    "working": 7,
+    "working": 5,
     "partial": 0,
-    "broken": 0,
-    "successRate": 100,
+    "broken": 2,
+    "successRate": 71.4,
     "partialRate": 0,
-    "combinedSuccessRate": 100,
-    "readinessStatus": "PRODUCTION_READY"
+    "combinedSuccessRate": 71.4,
+    "readinessStatus": "NEARLY_READY"
   },
   "tests": [
     {
@@ -18,13 +18,13 @@
     },
     {
       "name": "RDF Parsing",
-      "status": "WORKING",
-      "details": "Parsed 9 triples"
+      "status": "BROKEN",
+      "details": "ENOENT: no such file or directory, open './test-graph.ttl'"
     },
     {
       "name": "Graph Diff Simulation",
-      "status": "WORKING",
-      "details": "Files are different: 9e9b3cfb6d7d71c7... vs c17bc58eeb6984ae..."
+      "status": "BROKEN",
+      "details": "ENOENT: no such file or directory, open './test-graph.ttl'"
     },
     {
       "name": "KGEN CLI Structure",
@@ -47,6 +47,6 @@
       "details": "3 query types validated"
     }
   ],
-  "criticalBlockers": 0,
+  "criticalBlockers": 2,
   "readyForProduction": true
 }

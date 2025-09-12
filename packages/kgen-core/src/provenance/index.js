@@ -13,6 +13,10 @@ export { ComplianceAttestor } from './compliance/attestor.js';
 export { CryptoManager } from './crypto/manager.js';
 export { ArtifactExplainer } from './queries/explainer.js';
 export { ProvenanceQueryInterface } from './queries/interface.js';
+export { AttestationGenerator } from './attestation.js';
+export { CryptographicVerifier } from './verification.js';
+export { ProvenanceQueries } from './queries/sparql.js';
+export { ArtifactExplainer as EnhancedArtifactExplainer } from './artifact-explainer.js';
 
 /**
  * Create a new enhanced provenance tracker with default configuration

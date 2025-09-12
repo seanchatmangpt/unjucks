@@ -1,114 +1,194 @@
-# Unjucks Documentation
+# KGEN - Knowledge Graph Engine
 
-Welcome to the complete documentation for **Unjucks v1.0** - a powerful Hygen-style CLI generator for creating templates and scaffolding projects.
+A powerful command-line tool for deterministic artifact generation from RDF knowledge graphs with built-in provenance tracking, drift detection, and cryptographic attestations.
 
-## What is Unjucks?
+## Overview
 
-Unjucks is a modern, flexible code generator that combines the power of Nunjucks templating with an intuitive CLI interface. It allows developers to create reusable templates for rapid project scaffolding, component generation, and code automation.
+KGEN transforms RDF knowledge graphs into deterministic, reproducible artifacts using Nunjucks templates. Every generated artifact includes cryptographic attestations ensuring reproducibility and traceability.
 
-## Core Features
+### Key Features
 
-- **Hygen-style CLI** - Familiar command structure for generator-based workflows
-- **Nunjucks Templating** - Full-featured template engine with custom filters
-- **Dynamic CLI Generation** - Automatically generates CLI arguments from template variables
-- **File Injection** - Smart code injection with idempotent operations
-- **Template Discovery** - Automatic discovery and organization of generators
-- **Interactive Prompts** - User-friendly prompts for missing variables
-- **TypeScript Support** - Built with TypeScript for excellent developer experience
+- **Deterministic Generation**: Byte-for-byte reproducible outputs
+- **RDF Integration**: Native support for Turtle, RDF/XML, JSON-LD
+- **Drift Detection**: Automatic detection of configuration drift
+- **Cryptographic Attestations**: Built-in provenance and integrity verification
+- **Template System**: Flexible Nunjucks-based templates with semantic enrichment
+- **Content Addressing**: Efficient caching based on content hashes
+- **SPARQL Queries**: Query capabilities for knowledge graphs
+- **Project Lifecycle**: Lockfiles, validation, and attestation management
 
-## Quick Links
+## Quick Start
 
-### Getting Started
-- [Getting Started Guide](getting-started.md) - Quick setup and first steps
-- [Configuration Reference](configuration.md) - Complete configuration options
-
-### Core Documentation
-- [CLI Reference](cli/README.md) - Complete command line interface documentation
-- [API Reference](api/README.md) - Programmatic API documentation
-- [Testing Guide](testing/README.md) - BDD testing framework and guidelines
-
-### Advanced Topics
-- [System Architecture](architecture/README.md) - Internal design and architecture
-- [Template Development](templates/README.md) - Creating and managing templates
-
-## Installation
+### Installation
 
 ```bash
-# Install globally
-npm install -g unjucks
+# Clone and install dependencies
+git clone <repository-url>
+npm install
 
-# Or use with npx
-npx unjucks --help
+# Make CLI executable
+chmod +x bin/kgen.mjs
 ```
 
-## Quick Example
+### Basic Usage
 
 ```bash
-# Initialize a new project with templates
-unjucks init --type cli --dest ./my-project
+# Generate hash of RDF graph
+./bin/kgen.mjs graph hash test-graph.ttl
 
-# List available generators
-unjucks list
+# Generate artifact from graph using template
+./bin/kgen.mjs artifact generate -g test-graph.ttl -t api-service -o ./output
 
-# Generate a new component
-unjucks generate component react --componentName Button --withProps --dest ./src
+# List available templates
+./bin/kgen.mjs templates ls
 
-# Show help for a specific template
-unjucks help component react
+# Create project lockfile
+./bin/kgen.mjs project lock .
+
+# Check for drift
+./bin/kgen.mjs artifact drift ./output
+```
+
+## Core Concepts
+
+### Knowledge Graphs
+KGEN processes RDF knowledge graphs in various formats (Turtle, RDF/XML, JSON-LD) and extracts semantic information to drive code generation.
+
+### Templates
+Nunjucks templates with frontmatter configuration that define how knowledge graphs are transformed into artifacts. Templates support semantic enrichment through RDF data.
+
+### Deterministic Generation
+Every artifact generation is reproducible - given the same inputs, KGEN produces identical outputs with the same content hash.
+
+### Attestations
+Cryptographic attestations (`.attest.json` files) provide tamper-evident provenance data including template hashes, context hashes, and generation metadata.
+
+### Drift Detection
+KGEN tracks changes in generated artifacts and configuration, alerting when actual state diverges from expected state.
+
+## Architecture
+
+```
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│  RDF Knowledge  │    │    Templates    │    │  Configuration  │
+│     Graphs      │───▶│   (Nunjucks)    │───▶│   (kgen.config) │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+         │                       │                       │
+         ▼                       ▼                       ▼
+┌───────────────────────────────────────────────────────────────────┐
+│              KGEN Deterministic Rendering Engine                │
+│  • Content Addressing  • RDF Integration  • Error Handling     │
+└───────────────────────────────────────────────────────────────────┘
+         │
+         ▼
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   Generated     │    │  Cryptographic  │    │  Cache &        │
+│   Artifacts     │    │  Attestations   │    │  Metrics        │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
 ```
 
 ## Project Structure
 
 ```
-docs/
-├── README.md               # This file - main documentation index
-├── getting-started.md      # Quick start guide and tutorials
-├── configuration.md        # Configuration reference
-├── api/                   # API documentation
-│   └── README.md          # Programmatic API reference
-├── cli/                   # CLI documentation
-│   └── README.md          # Command line interface reference
-├── testing/               # Testing documentation
-│   └── README.md          # BDD testing guide
-├── architecture/          # System design documentation
-│   └── README.md          # Architecture and design principles
-└── templates/             # Template development guide
-    └── README.md          # Template creation and management
+├── bin/kgen.mjs           # Main CLI executable
+├── src/kgen/              # Core KGEN modules
+│   ├── deterministic/     # Deterministic rendering system
+│   ├── rdf/               # RDF processing components
+│   ├── drift/             # Drift detection engine
+│   └── impact/            # Impact analysis calculator
+├── _templates/            # Template directory
+├── generated/             # Default output directory
+├── kgen.config.js         # Configuration file
+└── kgen.lock.json         # Project lockfile
 ```
 
-## Key Concepts
+## Configuration
 
-### Generators
-Generators are collections of templates organized by purpose (e.g., `component`, `service`, `cli`). Each generator can contain multiple templates.
+Create a `kgen.config.js` file for project-specific settings:
 
-### Templates
-Templates are the actual files that get processed and generated. They use Nunjucks syntax with custom filters for common transformations.
+```javascript
+export default {
+  directories: {
+    out: './dist',
+    templates: '_templates',
+    cache: '.kgen/cache'
+  },
+  generate: {
+    defaultTemplate: 'base',
+    attestByDefault: true,
+    enableContentAddressing: true
+  },
+  drift: {
+    onDrift: 'warn',
+    exitCode: 3
+  }
+};
+```
 
-### Variables
-Variables are extracted from templates and automatically converted to CLI arguments. They can have types, defaults, and descriptions.
+## Templates
 
-### Injection
-Unjucks supports smart code injection for updating existing files, not just creating new ones.
+Templates are Nunjucks files with YAML frontmatter:
 
-## Version Information
+```nunjucks
+---
+to: "{{ graph.entity.name | lower }}-controller.js"
+inject: true
+skipIf: "{{ graph.entity.type !== 'Entity' }}"
+---
+// Generated from {{ graph.path }}
+class {{ graph.entity.name }}Controller {
+  {% for property in graph.entity.properties %}
+  validate{{ property.name | title }}(value) {
+    // Validation logic for {{ property.name }}
+  }
+  {% endfor %}
+}
+```
 
-- **Current Version**: 1.0.0
-- **Node.js**: >= 16.0.0
-- **License**: MIT
+## Common Workflows
 
-## Community
+### 1. Project Setup
+```bash
+# Initialize configuration
+echo 'export default { /* config */ };' > kgen.config.js
 
-- **Repository**: [unjs/unjucks](https://github.com/unjs/unjucks)
-- **Issues**: [GitHub Issues](https://github.com/unjs/unjucks/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/unjs/unjucks/discussions)
+# Create templates directory
+mkdir -p _templates
+
+# Generate initial lockfile
+./bin/kgen.mjs project lock
+```
+
+### 2. Development Workflow
+```bash
+# Generate artifacts
+./bin/kgen.mjs artifact generate -g schema.ttl -t api-service
+
+# Validate templates
+./bin/kgen.mjs deterministic validate _templates/api-service.njk
+
+# Check for drift
+./bin/kgen.mjs artifact drift ./generated
+```
+
+### 3. Production Deployment
+```bash
+# Create project attestation
+./bin/kgen.mjs project attest
+
+# Verify reproducibility
+./bin/kgen.mjs deterministic verify ./generated/api-service.js
+```
 
 ## Next Steps
 
-1. Start with the [Getting Started Guide](getting-started.md) for your first Unjucks project
-2. Explore the [CLI Reference](cli/README.md) to learn all available commands
-3. Check out [Template Development](templates/README.md) to create custom generators
-4. Read the [Testing Guide](testing/README.md) for contributing to the project
+- [CLI Reference Guide](CLI_REFERENCE.md) - Complete command documentation
+- [Template Examples](EXAMPLES.md) - Real-world template examples
+- [Troubleshooting Guide](TROUBLESHOOTING.md) - Common issues and solutions
 
----
+## Support
 
-*This documentation covers Unjucks v1.0. For the latest updates, check the [official repository](https://github.com/unjs/unjucks).*
+For issues and questions:
+- Check the [Troubleshooting Guide](TROUBLESHOOTING.md)
+- Review command help: `./bin/kgen.mjs <command> --help`
+- Enable debug mode: `./bin/kgen.mjs --debug <command>`

@@ -65,25 +65,19 @@ export default defineCommand({
       const rdfContent = await readFile(args.file, 'utf8');
       const parser = new Parser({ format: args.format });
       
-      // Parse into canonical form
-      const quads = [];
-      parser.parse(rdfContent, (error, quad, prefixes) => {
-        if (error) {
-          throw error;
-        }
-        if (quad) {
-          // Convert quad to canonical string representation
-          const canonicalQuad = `${quad.subject.value} ${quad.predicate.value} ${quad.object.value}`;
-          quads.push(canonicalQuad);
-        }
-      });
+      // Parse into canonical form using GraphProcessor for consistency
+      const { GraphProcessor } = await import('../../../kgen-core/src/rdf/graph-processor.js');
+      const processor = new GraphProcessor({ parser: { format: args.format } });
       
-      // Sort quads for deterministic hash
-      quads.sort();
+      // Parse RDF content
+      const parseResult = await processor.parseRDF(rdfContent, args.format);
       
-      // Generate hash
-      const canonicalContent = quads.join('\n');
-      const hash = createHash(args.algorithm.toLowerCase()).update(canonicalContent).digest('hex');
+      // Add quads to processor for canonical processing
+      processor.addQuads(parseResult.quads);
+      
+      // Generate canonical hash using processor method
+      const hash = processor.calculateContentHash({ algorithm: args.algorithm.toLowerCase() });
+      const quads = parseResult.quads;
       
       // Prepare result
       const result = {
@@ -91,15 +85,16 @@ export default defineCommand({
         hash,
         algorithm: args.algorithm,
         format: args.format,
-        quadCount: quads.length,
+        quadCount: parseResult.count,
         timestamp: new Date().toISOString()
       };
       
       if (args.verbose) {
         result.metadata = {
           fileSize: rdfContent.length,
-          canonicalSize: canonicalContent.length,
-          processingTime: Date.now() // Would be calculated properly
+          canonicalSize: parseResult.count * 50, // Rough estimate
+          processingTime: parseResult.parseTime,
+          stats: parseResult.stats
         };
       }
       

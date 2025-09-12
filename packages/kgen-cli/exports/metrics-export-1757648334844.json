@@ -1,0 +1,94 @@
+{
+  "data": {
+    "summary_type": "object",
+    "data": {
+      "export_type": "performance_report",
+      "report_timestamp": "2025-09-12T03:38:54.844Z",
+      "executive_summary": {
+        "overall_health": "good",
+        "key_findings": [],
+        "performance_trend": "stable",
+        "critical_issues": 0,
+        "recommendations_count": 0
+      },
+      "performance_metrics": {
+        "timestamp": 1757648334844,
+        "timeWindow": 3600000,
+        "totalMetrics": 0,
+        "recentDataPoints": 0,
+        "performance": {
+          "memory_efficiency": 0,
+          "cache_hit_rates": {},
+          "average_response_times": {},
+          "error_rates": {}
+        },
+        "health": {
+          "uptime": 0.009,
+          "memory_pressure": null,
+          "active_alerts": 0,
+          "bottleneck_count": 0
+        },
+        "components": {},
+        "bottlenecks": [],
+        "alerts": [],
+        "trends": {}
+      },
+      "analysis": {
+        "bottlenecks": [],
+        "trends": {},
+        "health": {
+          "uptime": 0.009,
+          "memory_pressure": null,
+          "active_alerts": 0,
+          "bottleneck_count": 0
+        }
+      },
+      "recommendations": [],
+      "appendices": {
+        "raw_metrics": {
+          "timestamp": 1757648334844,
+          "timeWindow": 3600000,
+          "totalMetrics": 0,
+          "recentDataPoints": 0,
+          "performance": {
+            "memory_efficiency": 0,
+            "cache_hit_rates": {},
+            "average_response_times": {},
+            "error_rates": {}
+          },
+          "health": {
+            "uptime": 0.009,
+            "memory_pressure": null,
+            "active_alerts": 0,
+            "bottleneck_count": 0
+          },
+          "components": {},
+          "bottlenecks": [],
+          "alerts": [],
+          "trends": {}
+        },
+        "methodology": {
+          "version": "1.0",
+          "description": "KGEN Performance Analysis Methodology",
+          "metrics_collection": "Real-time collection with 5-second intervals",
+          "aggregation_method": "Statistical aggregation with percentiles",
+          "baseline_comparison": "Historical baseline comparison"
+        },
+        "glossary": {
+          "hit_rate": "Percentage of cache requests that result in cache hits",
+          "latency": "Response time in milliseconds",
+          "throughput": "Operations processed per second",
+          "memory_efficiency": "Ratio of useful memory usage to total allocated",
+          "error_rate": "Percentage of operations that result in errors"
+        }
+      }
+    }
+  },
+  "format": "json",
+  "formatted_at": "2025-09-12T03:38:54.844Z",
+  "metadata": {
+    "generated_at": "2025-09-12T03:38:54.844Z",
+    "data_type": "object",
+    "record_count": 1
+  }
+}

@@ -458,6 +458,114 @@ export class ContentAddressedCache {
   }
 
   /**
+   * Check if a key exists in the cache
+   */
+  async has(contentKey) {
+    try {
+      // Check memory cache first
+      if (this.memoryCache.has(contentKey)) {
+        return true;
+      }
+      
+      // Check disk cache
+      if (this.diskCache.has(contentKey)) {
+        return true;
+      }
+      
+      // Check template cache
+      for (const [key] of this.templateCache) {
+        if (key.includes(contentKey) || contentKey.includes(key)) {
+          return true;
+        }
+      }
+      
+      return false;
+    } catch (error) {
+      this.logger.error(`Failed to check key existence ${contentKey}:`, error);
+      return false;
+    }
+  }
+
+  /**
+   * Remove content from cache
+   */
+  async remove(contentKey) {
+    try {
+      let removed = false;
+      let bytesFreed = 0;
+      
+      // Remove from memory cache
+      if (this.memoryCache.has(contentKey)) {
+        const entry = this.memoryCache.get(contentKey);
+        bytesFreed += entry.metadata.size || 0;
+        this.memoryCache.delete(contentKey);
+        removed = true;
+      }
+      
+      // Remove from disk cache  
+      if (this.diskCache.has(contentKey)) {
+        await this._removeCacheEntry(contentKey);
+        removed = true;
+      }
+      
+      // Remove from template cache
+      for (const [key] of this.templateCache) {
+        if (key.includes(contentKey) || contentKey.includes(key)) {
+          const entry = this.templateCache.get(key);
+          bytesFreed += entry.size || 0;
+          this.templateCache.delete(key);
+          removed = true;
+          break;
+        }
+      }
+      
+      if (removed) {
+        this.metrics.evictions++;
+        this.logger.debug(`Removed cache entry: ${contentKey.substring(0, 12)}...`);
+      }
+      
+      return { removed, bytesFreed };
+      
+    } catch (error) {
+      this.logger.error(`Failed to remove cache entry ${contentKey}:`, error);
+      return { removed: false, bytesFreed: 0 };
+    }
+  }
+
+  /**
+   * Clear entire cache
+   */
+  async clear() {
+    try {
+      let totalFreed = 0;
+      
+      // Clear memory cache
+      for (const [, entry] of this.memoryCache) {
+        totalFreed += entry.metadata.size || 0;
+      }
+      this.memoryCache.clear();
+      
+      // Clear disk cache
+      for (const [key] of this.diskCache) {
+        await this._removeCacheEntry(key);
+      }
+      
+      // Clear template cache
+      for (const [, entry] of this.templateCache) {
+        totalFreed += entry.size || 0;
+      }
+      this.templateCache.clear();
+      
+      this.logger.info(`Cleared entire cache, freed ${this._formatBytes(totalFreed)}`);
+      return { bytesFreed: totalFreed };
+      
+    } catch (error) {
+      this.logger.error('Failed to clear cache:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Show cache statistics and health
    */
   getStatistics() {

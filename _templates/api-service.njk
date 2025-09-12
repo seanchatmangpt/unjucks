@@ -1,0 +1,23 @@
+# REST API Service Documentation
+
+## {{ service.label or "Unknown Service" }}
+- Base URL: {{ service.baseURL or "Not specified" }}
+- Version: {{ service.version or "1.0.0" }}
+
+## Entities
+
+{% for entity in entities %}
+### {{ entity.label or entity.name }}
+{{ entity.comment or "No description available" }}
+
+{% endfor %}
+
+## Endpoints
+
+{% for endpoint in endpoints %}
+### {{ endpoint.label or endpoint.name }}
+- Method: **{{ endpoint.method }}**
+- Path: `{{ endpoint.path }}`
+- Status Code: {{ endpoint.statusCode }}
+
+{% endfor %}

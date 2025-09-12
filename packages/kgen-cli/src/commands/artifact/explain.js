@@ -72,11 +72,22 @@ export default defineCommand({
           const attestContent = readFileSync(attestPath, 'utf8');
           attestation = JSON.parse(attestContent);
           
-          // Verify integrity
-          if (args.verify && attestation.artifact?.hash) {
-            verificationStatus = currentHash === attestation.artifact.hash
-              ? 'verified'
-              : 'hash_mismatch';
+          // Verify integrity and signatures
+          if (args.verify) {
+            const hashMatch = attestation.artifact?.hash && currentHash === attestation.artifact.hash;
+            const hasSignature = attestation.signature?.signature && !attestation.signature?.error;
+            
+            if (hashMatch && hasSignature) {
+              verificationStatus = 'verified';
+            } else if (hashMatch && !hasSignature) {
+              verificationStatus = 'unsigned';
+            } else if (!hashMatch && hasSignature) {
+              verificationStatus = 'hash_mismatch';
+            } else if (!hashMatch && !hasSignature) {
+              verificationStatus = 'hash_mismatch_unsigned';
+            } else {
+              verificationStatus = 'not_verified';
+            }
           } else {
             verificationStatus = 'not_verified';
           }
@@ -98,7 +109,15 @@ export default defineCommand({
         verification: {
           status: verificationStatus,
           verified: verificationStatus === 'verified',
-          attestationFound: attestation !== null
+          attestationFound: attestation !== null,
+          hashMatches: attestation?.artifact?.hash ? currentHash === attestation.artifact.hash : null,
+          signature: attestation?.signature ? {
+            present: !!attestation.signature.signature,
+            algorithm: attestation.signature.algorithm,
+            keyFingerprint: attestation.signature.keyFingerprint,
+            signedAt: attestation.signature.signedAt,
+            error: attestation.signature.error || null
+          } : null
         }
       };
       

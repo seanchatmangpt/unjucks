@@ -1,15 +1,8 @@
-/**
- * Cache Command Group
- * 
- * Commands for managing content-addressed cache.
- */
-
-import { defineCommand } from 'citty';
-
-import gcCommand from './gc.js';
-import lsCommand from './ls.js';
-import purgeCommand from './purge.js';
-import showCommand from './show.js';
+import { defineCommand } from 'citty'
+import gcCommand from './gc.js'
+import lsCommand from './ls.js'
+import purgeCommand from './purge.js'
+import showCommand from './show.js'
 
 export default defineCommand({
   meta: {
@@ -22,38 +15,24 @@ export default defineCommand({
     purge: purgeCommand,
     show: showCommand
   },
-  async run() {
+  async run({ args }) {
     const result = {
       success: true,
       data: {
         tool: 'cache',
         description: 'Manage content-addressed cache',
-        verbs: [
-          {
-            name: 'gc',
-            description: 'Run garbage collection to clean old cache entries',
-            usage: 'kgen cache gc --max-age 90d'
-          },
-          {
-            name: 'ls',
-            description: 'List cache contents and statistics',
-            usage: 'kgen cache ls --sort size'
-          },
-          {
-            name: 'purge',
-            description: 'Clear entire cache or specific entries',
-            usage: 'kgen cache purge --all'
-          },
-          {
-            name: 'show',
-            description: 'Show detailed information about cache entry',
-            usage: 'kgen cache show --hash <hash>'
-          }
+        verbs: ['gc', 'ls', 'purge', 'show'],
+        usage: 'kgen cache <verb> [options]',
+        examples: [
+          'kgen cache ls',
+          'kgen cache gc --maxAge 30d',
+          'kgen cache show <cache-key>',
+          'kgen cache purge --force'
         ]
       },
       timestamp: new Date().toISOString()
-    };
-
-    console.log(JSON.stringify(result, null, 2));
+    }
+    
+    console.log(JSON.stringify(result, null, 2))
   }
-});
+})

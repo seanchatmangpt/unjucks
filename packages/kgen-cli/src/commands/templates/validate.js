@@ -103,7 +103,10 @@ export default defineCommand({
           
         templateFiles = findFiles(patterns.flatMap(p => [
           `${p}.njk`, `${p}.j2`, `${p}.ejs`
-        ]), {\n          cwd: templatesDir,\n          absolute: true\n        });
+        ]), {
+          cwd: templatesDir,
+          absolute: true
+        });
       }
       
       if (templateFiles.length === 0) {
@@ -161,7 +164,8 @@ export default defineCommand({
             schema: args.schema
           };
           
-          if (validation.valid) {\n            validCount++;
+          if (validation.valid) {
+            validCount++;
             if (args.showValid) {
               results.push(result);
             }
@@ -216,7 +220,8 @@ export default defineCommand({
           }
         },
         results: results,
-        metrics: {\n          durationMs: duration,
+        metrics: {
+          durationMs: duration,
           templatesDir,
           pattern: args.pattern
         }
@@ -224,8 +229,11 @@ export default defineCommand({
       
       // If using table format, format the output differently
       if (args.format === 'table') {
-        console.log('\\n📋 Template Frontmatter Validation Results\\n');
-        console.log(`Schema: ${args.schema} | Total: ${templateFiles.length} | Valid: ${validCount} | Invalid: ${invalidCount} | Errors: ${errorCount}\\n`);
+        console.log('\
+📋 Template Frontmatter Validation Results\
+');
+        console.log(`Schema: ${args.schema} | Total: ${templateFiles.length} | Valid: ${validCount} | Invalid: ${invalidCount} | Errors: ${errorCount}\
+`);
         
         if (results.length > 0) {
           console.log('Template'.padEnd(30) + 'Status'.padEnd(12) + 'Issues');
@@ -255,7 +263,8 @@ export default defineCommand({
           });
         }
         
-        console.log(`\\n⏱️  Completed in ${duration}ms`);
+        console.log(`\
+⏱️  Completed in ${duration}ms`);
         
         // Exit with error code if validation failed
         if (!overallValid) {

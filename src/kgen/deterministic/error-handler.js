@@ -11,7 +11,7 @@
 
 import crypto from 'crypto';
 import { EventEmitter } from 'events';
-import { Logger } from 'consola';
+import logger from 'consola';
 import fs from 'fs/promises';
 import path from 'path';
 
@@ -43,7 +43,7 @@ export class DeterministicErrorHandler extends EventEmitter {
       ...options
     };
     
-    this.logger = new Logger({ tag: 'deterministic-error-handler' });
+    this.logger = logger.withTag('deterministic-error-handler');
     
     // Error statistics
     this.stats = {

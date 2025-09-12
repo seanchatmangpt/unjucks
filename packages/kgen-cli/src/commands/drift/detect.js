@@ -6,7 +6,8 @@ import { createHash } from 'crypto';
 import { resolve, relative } from 'path';
 import { glob } from 'glob';
 import chalk from 'chalk';
-import { DriftDetectionEngine } from '../../../kgen-core/src/validation/DriftDetectionEngine.ts';
+// Note: Import validation engine for advanced drift detection
+// import { KGenValidationEngine } from '../../../kgen-core/src/validation/index.js';
 
 /**
  * Calculate SHA-256 hash of file content

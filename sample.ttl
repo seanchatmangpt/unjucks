@@ -1,0 +1,4 @@
+@prefix ex: <http://example.org/> .
+ex:Person a rdfs:Class .
+ex:name a rdf:Property .
+ex:age a rdf:Property .  # Added line to create drift

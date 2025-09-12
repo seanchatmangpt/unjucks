@@ -1,0 +1,16 @@
+{
+  "name": "hierarchy-template",
+  "description": "Template for generating hierarchical data structures",
+  "version": "1.0.0",
+  "sparqlQuery": "PREFIX skos: <http://www.w3.org/2004/02/skos/core#> SELECT ?concept ?label ?broader ?narrower WHERE { ?concept a skos:Concept ; skos:prefLabel ?label . OPTIONAL { ?concept skos:broader ?broader } OPTIONAL { ?concept skos:narrower ?narrower } }",
+  "outputTemplate": {
+    "type": "typescript",
+    "template": "export interface ConceptNode {\n  id: string;\n  label: string;\n  parent?: string;\n  children: string[];\n}\n\nexport const conceptHierarchy: ConceptNode[] = [\n{{#each results}}\n  {\n    id: '{{concept}}',\n    label: '{{label}}',\n{{#if broader}}    parent: '{{broader}}',{{/if}}\n    children: [{{#each narrower}}'{{this}}'{{#unless @last}}, {{/unless}}{{/each}}]\n  }{{#unless @last}},{{/unless}}\n{{/each}}\n];\n\n// Helper function to build tree structure\nexport function buildConceptTree(): Map<string, ConceptNode> {\n  const nodeMap = new Map<string, ConceptNode>();\n  conceptHierarchy.forEach(node => nodeMap.set(node.id, node));\n  return nodeMap;\n}\n"
+  },
+  "outputPath": "src/generated/concept-hierarchy.ts",
+  "deterministic": true,
+  "checksums": {
+    "enabled": true,
+    "algorithm": "sha256"
+  }
+}

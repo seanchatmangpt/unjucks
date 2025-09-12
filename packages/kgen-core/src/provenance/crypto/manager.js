@@ -108,7 +108,7 @@ export class CryptoManager {
       
       const signature = sign.sign({
         key: this.privateKey,
-        passphrase: this.config.keyPassphrase
+        passphrase: this.config.keyPassphrase || 'kgen-default-passphrase'
       }, 'base64');
       
       // Cache signature
@@ -224,6 +224,9 @@ export class CryptoManager {
     try {
       this.logger.info('Generating new key pair...');
       
+      // Ensure we have a passphrase for key encryption
+      const passphrase = options.passphrase || this.config.keyPassphrase || 'kgen-default-passphrase';
+      
       const keyOptions = {
         modulusLength: options.keySize || this.config.keySize,
         publicKeyEncoding: {
@@ -234,7 +237,7 @@ export class CryptoManager {
           type: 'pkcs8',
           format: 'pem',
           cipher: 'aes-256-cbc',
-          passphrase: options.passphrase || this.config.keyPassphrase
+          passphrase: passphrase
         }
       };
       

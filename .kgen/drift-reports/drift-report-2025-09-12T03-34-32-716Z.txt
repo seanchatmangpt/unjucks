@@ -1,0 +1,35 @@
+============================================================
+KGEN ARTIFACT DRIFT DETECTION REPORT
+============================================================
+Detection ID: c1aef836-c2b6-4ace-9434-90bcb73c301f
+Timestamp: 2025-09-12T03:34:31.954Z
+Exit Code: 3
+
+SUMMARY:
+- Total Files: 1756
+- Files with Drift: 1756
+- New Files: 1756
+- Modified Files: 0
+- Deleted Files: 0
+- Total Differences: 1756
+
+DRIFT DETECTED: YES
+
+FILES WITH DRIFT:
+  - /Users/sac/unjucks/tests/BDD-TEST-RESULTS-ANALYSIS.md (new): 1 differences
+  - /Users/sac/unjucks/tests/CLI_FUNCTIONALITY_TEST_REPORT.md (new): 1 differences
+  - /Users/sac/unjucks/tests/80-20-SEMANTIC-BDD-VALIDATION-REPORT.md (new): 1 differences
+  - /Users/sac/unjucks/tests/BDD-FRAMEWORK-SUMMARY.md (new): 1 differences
+  - /Users/sac/unjucks/tests/COMPREHENSIVE-TEST-VALIDATION-REPORT.md (new): 1 differences
+  - /Users/sac/unjucks/tests/CLI_TEST_REPORT.md (new): 1 differences
+  - /Users/sac/unjucks/tests/COMPREHENSIVE_TEST_REPORT.md (new): 1 differences
+  - /Users/sac/unjucks/tests/HELPER_FIXES_SUMMARY.md (new): 1 differences
+  - /Users/sac/unjucks/tests/FINAL-INTEGRATION-TEST-REPORT.md (new): 1 differences
+  - /Users/sac/unjucks/tests/COMPREHENSIVE_VALIDATION_RESULTS.md (new): 1 differences
+  ... and 1746 more files
+
+RECOMMENDATIONS:
+  - [MEDIUM] Consider updating baselines for 1756 new files
+  - [CRITICAL] Large number of differences (1756) detected
+
+============================================================

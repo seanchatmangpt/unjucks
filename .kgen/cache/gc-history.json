@@ -59,5 +59,188 @@
         "template_hit_rate": 0
       }
     }
+  },
+  {
+    "timestamp": 1757648139712,
+    "strategy": "expired",
+    "duration": 0,
+    "result": {
+      "strategy": "expired",
+      "collection_breakdown": {
+        "memory": 0,
+        "disk": 0,
+        "templates": 0
+      },
+      "candidates_identified": 0,
+      "collection_efficiency": 0
+    },
+    "cache_state_before": {
+      "timestamp": 1757648139712,
+      "memory": {
+        "entries": 1,
+        "bytes": 27,
+        "usage_ratio": 2.574920654296875e-7
+      },
+      "disk": {
+        "entries": 0,
+        "bytes": 0,
+        "usage_ratio": 0
+      },
+      "templates": {
+        "count": 0,
+        "usage_ratio": 0
+      },
+      "total": {
+        "entries": 1,
+        "bytes": 27,
+        "hit_rate": 1,
+        "template_hit_rate": 0
+      }
+    },
+    "cache_state_after": {
+      "timestamp": 1757648139712,
+      "memory": {
+        "entries": 1,
+        "bytes": 27,
+        "usage_ratio": 2.574920654296875e-7
+      },
+      "disk": {
+        "entries": 0,
+        "bytes": 0,
+        "usage_ratio": 0
+      },
+      "templates": {
+        "count": 0,
+        "usage_ratio": 0
+      },
+      "total": {
+        "entries": 1,
+        "bytes": 27,
+        "hit_rate": 1,
+        "template_hit_rate": 0
+      }
+    }
+  },
+  {
+    "timestamp": 1757648689192,
+    "strategy": "expired",
+    "duration": 1,
+    "result": {
+      "strategy": "expired",
+      "collection_breakdown": {
+        "memory": 0,
+        "disk": 0,
+        "templates": 0
+      },
+      "candidates_identified": 0,
+      "collection_efficiency": 0
+    },
+    "cache_state_before": {
+      "timestamp": 1757648689193,
+      "memory": {
+        "entries": 0,
+        "bytes": 0,
+        "usage_ratio": 0
+      },
+      "disk": {
+        "entries": 1,
+        "bytes": 365,
+        "usage_ratio": 0.0001
+      },
+      "templates": {
+        "count": 0,
+        "usage_ratio": 0
+      },
+      "total": {
+        "entries": 1,
+        "bytes": 365,
+        "hit_rate": 0,
+        "template_hit_rate": 0
+      }
+    },
+    "cache_state_after": {
+      "timestamp": 1757648689193,
+      "memory": {
+        "entries": 0,
+        "bytes": 0,
+        "usage_ratio": 0
+      },
+      "disk": {
+        "entries": 1,
+        "bytes": 365,
+        "usage_ratio": 0.0001
+      },
+      "templates": {
+        "count": 0,
+        "usage_ratio": 0
+      },
+      "total": {
+        "entries": 1,
+        "bytes": 365,
+        "hit_rate": 0,
+        "template_hit_rate": 0
+      }
+    }
+  },
+  {
+    "timestamp": 1757648708605,
+    "strategy": "expired",
+    "duration": 1,
+    "result": {
+      "strategy": "expired",
+      "collection_breakdown": {
+        "memory": 0,
+        "disk": 0,
+        "templates": 0
+      },
+      "candidates_identified": 0,
+      "collection_efficiency": 0
+    },
+    "cache_state_before": {
+      "timestamp": 1757648708605,
+      "memory": {
+        "entries": 0,
+        "bytes": 0,
+        "usage_ratio": 0
+      },
+      "disk": {
+        "entries": 1,
+        "bytes": 365,
+        "usage_ratio": 0.0001
+      },
+      "templates": {
+        "count": 0,
+        "usage_ratio": 0
+      },
+      "total": {
+        "entries": 1,
+        "bytes": 365,
+        "hit_rate": 0,
+        "template_hit_rate": 0
+      }
+    },
+    "cache_state_after": {
+      "timestamp": 1757648708606,
+      "memory": {
+        "entries": 0,
+        "bytes": 0,
+        "usage_ratio": 0
+      },
+      "disk": {
+        "entries": 1,
+        "bytes": 365,
+        "usage_ratio": 0.0001
+      },
+      "templates": {
+        "count": 0,
+        "usage_ratio": 0
+      },
+      "total": {
+        "entries": 1,
+        "bytes": 365,
+        "hit_rate": 0,
+        "template_hit_rate": 0
+      }
+    }
   }
 ]
