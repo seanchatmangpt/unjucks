@@ -43,7 +43,7 @@
     "consola": "^3.4.2",
     "crypto-js": "^4.2.0",
     "fflate": "^0.8.2",
-    "fs-extra": "^11.3.1",
+    "fs-extra": "^11.3.2",
     "glob": "^11.0.3",
     "gray-matter": "^4.0.3",
     "hash-wasm": "^4.12.0",
