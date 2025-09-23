@@ -307,7 +307,7 @@ jobs:
 
       - name: Run Hadolint on Dockerfile
         if: matrix.scanner == 'hadolint'
-        uses: hadolint/hadolint-action@v3.1.0
+        uses: hadolint/hadolint-action@v3.3.0
         with:
           dockerfile: docker/Dockerfile.${{ matrix.image_type }}
           format: sarif
