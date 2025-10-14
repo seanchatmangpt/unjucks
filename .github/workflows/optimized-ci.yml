@@ -141,7 +141,7 @@ jobs:
           fi
 
       - name: 📦 Setup Node.js with caching
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: '20'  # Primary Node version
           cache: 'npm'
@@ -203,7 +203,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: 📦 Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: '20'
           cache: 'npm'
@@ -258,7 +258,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: 📦 Setup Node.js ${{ matrix.node }}
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: ${{ matrix.node }}
           cache: 'npm'
@@ -367,7 +367,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: 📦 Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: '20'
           cache: 'npm'
@@ -418,7 +418,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: 📦 Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: '20'
           cache: 'npm'
@@ -468,7 +468,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: 📦 Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: '20'
           cache: 'npm'
@@ -559,7 +559,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: 📦 Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: '20'
           cache: 'npm'
