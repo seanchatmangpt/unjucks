@@ -1,0 +1,37 @@
+---
+to: src/entities/{{className}}.entity.ts
+deterministic: true
+---
+/**
+ * {{className}} Entity
+ * Generated from RDF ontology
+ * Schema hash: {{schemaHash | default("unknown")}}
+ * Generated: {{kgen.staticTimestamp}}
+ */
+
+import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+{% if generateInterfaces %}
+import { {{className}}Interface } from '../interfaces/{{className | kebabCase}}.interface';
+{% endif %}
+
+@Entity('{{tableName}}')
+export class {{className}}Entity{% if generateInterfaces %} implements {{className}}Interface{% endif %} {
+  {% for property in properties %}
+  {% if property.primaryKey %}
+  @PrimaryGeneratedColumn{% if property.autoIncrement %}(){% else %}('uuid'){% endif %}
+  {{property.name}}: {{property.tsType}};
+  {% else %}
+  @Column('{{property.dbType}}'{% if property.required %}, { nullable: false }{% else %}, { nullable: true }{% endif %}{% if property.unique %}, { unique: true }{% endif %}{% if property.defaultValue %}, { default: '{{property.defaultValue}}' }{% endif %})
+  {{property.name}}: {{property.tsType}}{% if not property.required %}{% endif %};
+  {% endif %}
+
+  {% endfor %}
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
+
+  // Generated with deterministic hash: {{kgen.buildHash}}
+  // Schema version: {{schemaVersion | default("1.0.0")}}
+}

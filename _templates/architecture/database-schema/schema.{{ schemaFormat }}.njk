@@ -1,5 +1,5 @@
 ---
-to: {% if schemaFormat === 'prisma' %}prisma/schema.prisma{% elsif schemaFormat === 'drizzle' %}src/db/schema.ts{% elsif schemaFormat === 'raw-sql' %}database/schema.sql{% else %}src/db/entities/index.ts{% endif %}
+to: "{% if schemaFormat === 'prisma' %}prisma/schema.prisma{% elsif schemaFormat === 'drizzle' %}src/db/schema.ts{% elsif schemaFormat === 'raw-sql' %}database/schema.sql{% else %}src/db/entities/index.ts{% endif %}"
 inject: false
 skipIf: exists
 ---

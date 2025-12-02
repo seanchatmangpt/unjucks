@@ -1,0 +1,50 @@
+# Find compliance gaps and suggest relevant compliance packs
+# Analyzes user's current compliance state and identifies missing frameworks
+
+SELECT DISTINCT ?pack ?name ?complianceFramework ?requirement ?gap ?priority ?roi WHERE {
+  # Find all compliance packs
+  ?pack a kgen:Package ;
+        kgen:hasCategory "compliance" ;
+        kgen:hasName ?name ;
+        kgen:hasComplianceFramework ?complianceFramework ;
+        kgen:hasRequirement ?requirement ;
+        kgen:hasDownloads ?downloads ;
+        kgen:hasRating ?rating .
+  
+  # Calculate gaps based on user context
+  OPTIONAL {
+    ?userProject kgen:hasComplianceFramework ?userFramework .
+    FILTER(?userFramework != ?complianceFramework)
+    BIND("missing" AS ?gap)
+  }
+  
+  # Determine priority based on industry requirements
+  OPTIONAL {
+    ?requirement kgen:hasIndustry "{{userIndustry}}" ;
+                kgen:hasCriticality ?criticality .
+    BIND(IF(?criticality = "high", "high", 
+         IF(?criticality = "medium", "medium", "low")) AS ?priority)
+  }
+  
+  # Calculate ROI based on risk reduction and implementation cost
+  OPTIONAL {
+    ?pack kgen:hasImplementationCost ?cost ;
+          kgen:hasRiskReduction ?riskReduction .
+    BIND((?riskReduction - ?cost) / ?cost AS ?roi)
+  }
+  
+  # Filter by user's industry vertical if specified
+  FILTER(
+    !BOUND(?userIndustry) || 
+    EXISTS { ?pack kgen:hasIndustryVertical "{{userIndustry}}" }
+  )
+  
+  # Only show gaps that don't exist in user's current setup
+  FILTER(
+    !EXISTS {
+      ?userProject kgen:hasComplianceFramework ?complianceFramework
+    }
+  )
+}
+ORDER BY DESC(?priority) DESC(?roi) DESC(?downloads)
+LIMIT {{limit}}

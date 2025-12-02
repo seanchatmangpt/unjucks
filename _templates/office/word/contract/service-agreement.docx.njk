@@ -1,5 +1,5 @@
 ---
-to: {{ dest || 'contracts' }}/service-agreement-{{ partyA.name | slug }}-{{ partyB.name | slug }}.docx
+to: "{{ dest || 'contracts' }}/service-agreement-{{ partyA.name | slug }}-{{ partyB.name | slug }}.docx"
 inject: false
 skipIf: false
 variables:

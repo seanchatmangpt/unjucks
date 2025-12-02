@@ -1,0 +1,65 @@
+# Find data exhaust opportunities - packages generating valuable byproduct data
+# Identifies templates and packs that produce reusable data assets
+
+SELECT DISTINCT ?pack ?name ?dataType ?format ?volume ?frequency ?value ?schema ?accessPattern WHERE {
+  # Find packages that generate data
+  ?pack a kgen:Package ;
+        kgen:hasName ?name ;
+        kgen:generatesData ?dataOutput .
+  
+  # Analyze the data output
+  ?dataOutput a kgen:DataOutput ;
+             kgen:hasDataType ?dataType ;
+             kgen:hasFormat ?format ;
+             kgen:hasVolume ?volume ;
+             kgen:hasGenerationFrequency ?frequency ;
+             kgen:hasSchema ?schema .
+  
+  # Calculate data value based on multiple factors
+  OPTIONAL {
+    ?dataOutput kgen:hasReusabilityScore ?reusability ;
+               kgen:hasQualityScore ?quality ;
+               kgen:hasBusinessValue ?businessValue .
+    BIND((?reusability + ?quality + ?businessValue) / 3 AS ?value)
+  }
+  
+  # Identify access patterns and usage
+  OPTIONAL {
+    ?dataOutput kgen:hasAccessPattern ?accessPattern ;
+               kgen:hasConsumerCount ?consumers .
+  }
+  
+  # Match with user's domain/industry
+  OPTIONAL {
+    ?pack kgen:hasIndustryVertical ?vertical .
+    FILTER(?vertical = "{{userVertical}}")
+    BIND(1.0 AS ?verticalMatch)
+  }
+  
+  # Match with user's technology stack
+  OPTIONAL {
+    ?pack kgen:hasTechnology ?technology .
+    FILTER(?technology IN ({{userTechnologies}}))
+    BIND(1.0 AS ?techMatch)
+  }
+  
+  # Calculate relevance score
+  BIND(
+    COALESCE(?verticalMatch, 0) +
+    COALESCE(?techMatch, 0) +
+    (?volume / 1000000.0)  # Normalize volume
+    AS ?relevanceScore
+  )
+  
+  # Filter for high-value data
+  FILTER(?volume > {{minVolume}})
+  FILTER(COALESCE(?value, 0) > 0.5)
+  
+  # Filter for frequently updated data
+  FILTER(?frequency IN ("daily", "hourly", "real-time"))
+  
+  # Ensure data has proper schema documentation
+  FILTER(BOUND(?schema))
+}
+ORDER BY DESC(?relevanceScore) DESC(?value) DESC(?volume)
+LIMIT {{limit}}

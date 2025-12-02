@@ -1,0 +1,36 @@
+@startuml unjucks-v4-frontmatter-containers
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+LAYOUT_WITH_LEGEND()
+
+title Container Diagram - Unjucks V4 Frontmatter System
+
+Person(developer, "Developer", "Uses CLI commands")
+
+System_Boundary(frontmatter_system, "Frontmatter Parsing and Execution System") {
+    Container(parser_container, "Parser Container", "Multiple parser implementations", "Node.js", "Deterministic, Enhanced, Document, Advanced parsers")
+    Container(execution_container, "Execution Container", "Template processing and file operations", "Node.js", "Rendering, operations, conditionals, workflows")
+    Container(integration_container, "Integration Container", "System integrations", "Node.js", "CLI, resolver, variable resolution, template bridge, office processors")
+    Container(validation_container, "Validation Container", "Validation and metadata", "Node.js", "Schema validation, metadata extraction, provenance tracking")
+    Container(support_container, "Support Container", "Supporting services", "Node.js", "Error handling, caching, performance monitoring")
+}
+
+System_Ext(file_system, "File System", "Local file system")
+System_Ext(rdf_sources, "RDF Data Sources", "Knowledge graphs, SPARQL endpoints")
+System_Ext(template_repo, "Template Repository", "Template files with frontmatter")
+
+Rel(developer, integration_container, "Uses", "CLI commands")
+Rel(integration_container, parser_container, "Uses", "Frontmatter parsing")
+Rel(integration_container, execution_container, "Uses", "Template processing")
+Rel(execution_container, parser_container, "Uses", "Parser selection")
+Rel(execution_container, validation_container, "Uses", "Validation and metadata")
+Rel(execution_container, support_container, "Uses", "Error handling, caching")
+Rel(execution_container, file_system, "Reads/Writes", "Generated files")
+Rel(parser_container, template_repo, "Reads", "Template files")
+Rel(parser_container, rdf_sources, "Queries", "RDF data (SPARQL)")
+Rel(validation_container, support_container, "Uses", "Error handling")
+Rel(support_container, file_system, "Caches to", "Cache files")
+
+@enduml
+
+

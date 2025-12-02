@@ -6,8 +6,8 @@
 
 import { defineCommand } from 'citty';
 
-import generateCommand from './generate.js';
-import driftCommand from './drift.js';
+import generateCommand from './generate.ts';
+import driftCommand from './drift.ts';
 import { driftDetectCommand } from './drift-detect.js';
 import { semanticDriftCommand } from './semantic-drift.js';
 import explainCommand from './explain.js';

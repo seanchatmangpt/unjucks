@@ -1,0 +1,118 @@
+# Find similar packages based on facet analysis and usage patterns
+# Uses collaborative filtering and content-based similarity
+
+SELECT DISTINCT ?pack ?name ?similarity ?sharedFacets ?userOverlap ?contentSimilarity WHERE {
+  # Base package information
+  ?pack a kgen:Package ;
+        kgen:hasName ?name ;
+        kgen:hasCategory ?category ;
+        kgen:hasRating ?rating .
+  
+  # Exclude the reference package itself
+  FILTER(?pack != <{{referencePackage}}>)
+  
+  # Find shared facets with reference package
+  {
+    SELECT ?pack (COUNT(DISTINCT ?facet) AS ?sharedFacets) WHERE {
+      <{{referencePackage}}> kgen:hasFacet ?facet .
+      ?pack kgen:hasFacet ?facet .
+      FILTER(?pack != <{{referencePackage}}>)
+    }
+    GROUP BY ?pack
+  }
+  
+  # Calculate user overlap (collaborative filtering)
+  OPTIONAL {
+    {
+      SELECT ?pack (COUNT(DISTINCT ?user) AS ?userOverlap) WHERE {
+        <{{referencePackage}}> kgen:usedBy ?user .
+        ?pack kgen:usedBy ?user .
+        FILTER(?pack != <{{referencePackage}}>)
+      }
+      GROUP BY ?pack
+    }
+  }
+  
+  # Content similarity based on description and features
+  OPTIONAL {
+    <{{referencePackage}}> kgen:hasDescription ?refDescription ;
+                           kgen:hasFeatures ?refFeatures .
+    ?pack kgen:hasDescription ?packDescription ;
+          kgen:hasFeatures ?packFeatures .
+    
+    # Simple text similarity (in practice, use proper NLP)
+    BIND(
+      IF(CONTAINS(LCASE(?packDescription), LCASE(?refDescription)), 0.3, 0) +
+      IF(?refFeatures = ?packFeatures, 0.4, 0)
+      AS ?contentSimilarity
+    )
+  }
+  
+  # Technology stack overlap
+  OPTIONAL {
+    {
+      SELECT ?pack (COUNT(DISTINCT ?tech) AS ?techOverlap) WHERE {
+        <{{referencePackage}}> kgen:hasTechnology ?tech .
+        ?pack kgen:hasTechnology ?tech .
+        FILTER(?pack != <{{referencePackage}}>)
+      }
+      GROUP BY ?pack
+    }
+  }
+  
+  # Use case similarity
+  OPTIONAL {
+    {
+      SELECT ?pack (COUNT(DISTINCT ?useCase) AS ?useCaseOverlap) WHERE {
+        <{{referencePackage}}> kgen:hasUseCase ?useCase .
+        ?pack kgen:hasUseCase ?useCase .
+        FILTER(?pack != <{{referencePackage}}>)
+      }
+      GROUP BY ?pack
+    }
+  }
+  
+  # Calculate total facets for normalization
+  OPTIONAL {
+    {
+      SELECT (COUNT(DISTINCT ?refFacet) AS ?totalRefFacets) WHERE {
+        <{{referencePackage}}> kgen:hasFacet ?refFacet .
+      }
+    }
+  }
+  
+  OPTIONAL {
+    {
+      SELECT ?pack (COUNT(DISTINCT ?packFacet) AS ?totalPackFacets) WHERE {
+        ?pack kgen:hasFacet ?packFacet .
+      }
+      GROUP BY ?pack
+    }
+  }
+  
+  # Calculate normalized similarity score
+  BIND(
+    # Jaccard similarity for facets
+    (?sharedFacets / (?totalRefFacets + ?totalPackFacets - ?sharedFacets)) * 0.4 +
+    
+    # User overlap similarity (normalized by user base)
+    (COALESCE(?userOverlap, 0) / (100 + COALESCE(?userOverlap, 0))) * 0.3 +
+    
+    # Content similarity
+    COALESCE(?contentSimilarity, 0) * 0.2 +
+    
+    # Technology overlap
+    (COALESCE(?techOverlap, 0) / 10.0) * 0.1
+    
+    AS ?similarity
+  )
+  
+  # Quality filters
+  FILTER(?rating >= {{minRating}})
+  FILTER(?similarity > {{minSimilarity}})
+  
+  # Ensure packages have meaningful facet overlap
+  FILTER(?sharedFacets >= 2)
+}
+ORDER BY DESC(?similarity) DESC(?userOverlap) DESC(?sharedFacets)
+LIMIT {{limit}}

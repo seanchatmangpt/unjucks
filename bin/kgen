@@ -1,0 +1,25 @@
+#!/usr/bin/env node
+
+/**
+ * KGEN - Single Binary Entry Point
+ * 
+ * This is the only binary entry point that directly invokes dist/cli-entry.js
+ * All other binary files have been removed for simplicity and consistency.
+ */
+
+import { dirname, join } from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+// Path to the unified CLI entry point
+const cliEntryPath = join(__dirname, '..', 'dist', 'cli-entry.js');
+
+// Import and execute the CLI entry point directly
+try {
+  await import(cliEntryPath);
+} catch (error) {
+  console.error('Failed to start kgen CLI:', error.message);
+  process.exit(1);
+}

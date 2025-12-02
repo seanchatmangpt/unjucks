@@ -3,36 +3,45 @@
   "version": "1.0.0",
   "description": "KGEN Command Line Interface for knowledge graph compilation",
   "type": "module",
-  "main": "./src/cli.js",
   "bin": {
-    "kgen": "./src/cli.js"
+    "kgen": "./dist/cli-entry.mjs"
   },
   "exports": {
-    ".": "./src/cli.js",
-    "./commands": "./src/commands/index.js",
-    "./utils": "./src/utils/index.js"
+    ".": {
+      "import": "./dist/cli-entry.mjs",
+      "types": "./dist/cli-entry.d.ts"
+    },
+    "./cli-entry": {
+      "import": "./dist/cli-entry.mjs",
+      "types": "./dist/cli-entry.d.ts"
+    }
   },
   "scripts": {
-    "build": "echo 'No build step needed for ES modules'",
+    "build": "unbuild",
     "test": "vitest run --reporter=verbose",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "test:cli": "vitest run tests/integration/cli.test.js",
     "test:commands": "vitest run tests/commands/",
-    "lint": "echo 'Linting skipped'",
+    "lint": "echo 'Linting delegated to root'",
+    "typecheck": "echo 'TypeScript removed - using unbuild for type checking and generation'",
     "clean": "rm -rf dist test-results",
-    "dev": "node --watch src/cli.js"
+    "dev": "node --watch ./dist/cli-entry.mjs"
   },
   "dependencies": {
+    "@kgen/core": "workspace:*",
+    "@kgen/rules": "workspace:*",
+    "@kgen/templates": "workspace:*",
     "citty": "^0.1.5",
     "consola": "^3.4.2",
     "c12": "^1.5.1"
   },
   "devDependencies": {
-    "vitest": "^1.6.1"
+    "vitest": "^1.6.1",
+    "unbuild": "^2.0.0"
   },
   "files": [
-    "src/",
+    "dist/",
     "README.md"
   ],
   "keywords": [

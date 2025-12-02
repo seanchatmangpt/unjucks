@@ -1,0 +1,158 @@
+# Analyze market trends and emerging patterns in the marketplace
+# Identifies growing categories, technologies, and usage patterns
+
+SELECT DISTINCT ?category ?technology ?trendType ?growthRate ?momentum ?adoptionRate ?timeframe WHERE {
+  # Category trends
+  {
+    SELECT ?category ("category" AS ?trendType) ?growthRate ?momentum WHERE {
+      ?pack a kgen:Package ;
+            kgen:hasCategory ?category ;
+            kgen:hasDownloads ?downloads ;
+            kgen:hasCreatedAt ?createdAt .
+      
+      # Calculate growth metrics per category
+      {
+        SELECT ?category 
+               (AVG(?monthlyGrowth) AS ?growthRate)
+               (COUNT(?pack) AS ?momentum) WHERE {
+          ?pack kgen:hasCategory ?category ;
+                kgen:hasDownloadsThisMonth ?thisMonth ;
+                kgen:hasDownloadsLastMonth ?lastMonth .
+          
+          BIND(
+            IF(?lastMonth > 0,
+               (?thisMonth - ?lastMonth) / ?lastMonth,
+               1.0
+            ) AS ?monthlyGrowth
+          )
+          
+          # Only consider active packages
+          FILTER(?thisMonth > 0)
+        }
+        GROUP BY ?category
+        HAVING (?growthRate > 0.1)  # 10% minimum growth
+      }
+    }
+  }
+  
+  UNION
+  
+  # Technology trends
+  {
+    SELECT ?technology ("technology" AS ?trendType) ?growthRate ?momentum WHERE {
+      ?pack a kgen:Package ;
+            kgen:hasTechnology ?technology ;
+            kgen:hasDownloads ?downloads .
+      
+      # Calculate growth metrics per technology
+      {
+        SELECT ?technology 
+               (AVG(?monthlyGrowth) AS ?growthRate)
+               (COUNT(?pack) AS ?momentum) WHERE {
+          ?pack kgen:hasTechnology ?technology ;
+                kgen:hasDownloadsThisMonth ?thisMonth ;
+                kgen:hasDownloadsLastMonth ?lastMonth .
+          
+          BIND(
+            IF(?lastMonth > 0,
+               (?thisMonth - ?lastMonth) / ?lastMonth,
+               1.0
+            ) AS ?monthlyGrowth
+          )
+          
+          FILTER(?thisMonth > 0)
+        }
+        GROUP BY ?technology
+        HAVING (?growthRate > 0.15)  # 15% minimum growth for technologies
+      }
+    }
+  }
+  
+  UNION
+  
+  # Usage pattern trends
+  {
+    SELECT ?pattern ("usage-pattern" AS ?trendType) ?growthRate ?momentum WHERE {
+      ?pack a kgen:Package ;
+            kgen:hasUsagePattern ?pattern .
+      
+      {
+        SELECT ?pattern 
+               (AVG(?monthlyGrowth) AS ?growthRate)
+               (COUNT(?pack) AS ?momentum) WHERE {
+          ?pack kgen:hasUsagePattern ?pattern ;
+                kgen:hasDownloadsThisMonth ?thisMonth ;
+                kgen:hasDownloadsLastMonth ?lastMonth .
+          
+          BIND(
+            IF(?lastMonth > 0,
+               (?thisMonth - ?lastMonth) / ?lastMonth,
+               1.0
+            ) AS ?monthlyGrowth
+          )
+        }
+        GROUP BY ?pattern
+        HAVING (?growthRate > 0.2)  # 20% minimum growth for patterns
+      }
+    }
+  }
+  
+  # Adoption rate analysis
+  OPTIONAL {
+    {
+      SELECT ?category ?technology 
+             (COUNT(DISTINCT ?user) / COUNT(DISTINCT ?pack) AS ?adoptionRate) WHERE {
+        ?pack kgen:hasCategory ?category ;
+              kgen:hasTechnology ?technology ;
+              kgen:usedBy ?user .
+      }
+      GROUP BY ?category ?technology
+    }
+  }
+  
+  # Timeframe analysis - identify if trend is accelerating
+  OPTIONAL {
+    BIND(
+      IF(?growthRate > 0.5, "rapid",
+      IF(?growthRate > 0.3, "fast",
+      IF(?growthRate > 0.1, "moderate", "slow")))
+      AS ?timeframe
+    )
+  }
+  
+  # Market positioning analysis
+  OPTIONAL {
+    {
+      SELECT ?category ?technology 
+             (SUM(?downloads) AS ?totalMarketSize)
+             (COUNT(?pack) AS ?competitorCount) WHERE {
+        ?pack kgen:hasCategory ?category ;
+              kgen:hasTechnology ?technology ;
+              kgen:hasDownloads ?downloads .
+      }
+      GROUP BY ?category ?technology
+    }
+  }
+  
+  # Emerging vs established trends
+  OPTIONAL {
+    BIND(
+      IF(?momentum < 10, "emerging",
+      IF(?momentum < 50, "growing", "established"))
+      AS ?maturityLevel
+    )
+  }
+  
+  # Filter for significant trends only
+  FILTER(?growthRate > {{minGrowthRate}})
+  FILTER(?momentum >= {{minMomentum}})
+  
+  # Match with user interests if specified
+  FILTER(
+    !BOUND("{{userCategories}}") ||
+    (?trendType = "category" && ?category IN ({{userCategories}})) ||
+    (?trendType = "technology" && ?technology IN ({{userTechnologies}}))
+  )
+}
+ORDER BY DESC(?growthRate) DESC(?momentum) DESC(?adoptionRate)
+LIMIT {{limit}}

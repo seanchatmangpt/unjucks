@@ -1,5 +1,5 @@
 ---
-to: src/controllers/{{ entityName | pascalCase }}Controller.ts
+to: "src/controllers/{{ entityName | pascalCase }}Controller.ts"
 ---
 import { Request, Response, NextFunction } from 'express';
 {% if withDatabase %}

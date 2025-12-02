@@ -121,7 +121,7 @@ export class HashIndex extends EventEmitter {
       const hash = this._hash(key);
       const bucketIndex = hash % this.bucketCount;
       
-      let bucket = await this._getBucket(bucketIndex);
+      const bucket = await this._getBucket(bucketIndex);
       
       // Check for existing key
       const existingIndex = bucket.findIndex(entry => entry.key === key);
@@ -222,7 +222,7 @@ export class HashIndex extends EventEmitter {
       const hash = this._hash(key);
       const bucketIndex = hash % this.bucketCount;
       
-      let bucket = await this._getBucket(bucketIndex);
+      const bucket = await this._getBucket(bucketIndex);
       const entryIndex = bucket.findIndex(entry => entry.key === key);
       
       if (entryIndex === -1) {
@@ -726,7 +726,7 @@ export class HashIndex extends EventEmitter {
       // Rehash all entries into new buckets
       for (const entry of oldBuckets) {
         const newBucketIndex = entry.hash % this.bucketCount;
-        let bucket = await this._getBucket(newBucketIndex);
+        const bucket = await this._getBucket(newBucketIndex);
         bucket.push(entry);
         await this._setBucket(newBucketIndex, bucket);
       }
@@ -767,7 +767,7 @@ export class HashIndex extends EventEmitter {
       
       entry.hash = newHash;
       
-      let bucket = await this._getBucket(newBucketIndex);
+      const bucket = await this._getBucket(newBucketIndex);
       bucket.push(entry);
       await this._setBucket(newBucketIndex, bucket);
     }

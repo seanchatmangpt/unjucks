@@ -1,5 +1,5 @@
 ---
-to: .github/workflows/{{ environment }}-{{ serviceName | kebabCase }}.yml
+to: ".github/workflows/{{ environment }}-{{ serviceName | kebabCase }}.yml"
 skipIf: "{{ environment }}-{{ serviceName | kebabCase }}.yml already exists"
 rdf: "data/deployment-policies.ttl"
 ---

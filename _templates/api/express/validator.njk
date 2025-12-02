@@ -1,6 +1,6 @@
 ---
-skipIf: "{{ withValidation }}" == "false"
-to: src/validators/{{ entityName | camelCase }}Validator.ts
+skipIf: '"{{ withValidation }}" == "false"'
+to: "src/validators/{{ entityName | camelCase }}Validator.ts"
 ---
 import Joi from 'joi';
 import { Request, Response, NextFunction } from 'express';

@@ -11,7 +11,7 @@ export default defineCommand({
     description: 'Knowledge graph operations (hash, diff, index)'
   },
   subCommands: {
-    hash: () => import('./hash.js').then(m => m.default),
+    hash: () => import('./hash.ts').then(m => m.default),
     diff: () => import('./diff.js').then(m => m.default),
     index: () => import('./index-cmd.js').then(m => m.default)
   },

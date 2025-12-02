@@ -1,5 +1,5 @@
 ---
-to: tests/unit/{{ testName | kebabCase }}.test.ts
+to: "tests/unit/{{ testName | kebabCase }}.test.ts"
 ---
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 {% if withMocks %}import { createMockInstance } from '../../helpers/mockHelpers';{% endif %}

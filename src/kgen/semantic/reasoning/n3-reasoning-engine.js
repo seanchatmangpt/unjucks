@@ -1015,8 +1015,8 @@ export class N3ReasoningEngine extends EventEmitter {
       const initialBindings = this._extractBindings(firstPattern, firstQuad);
       if (!initialBindings || initialBindings.size === 0) continue;
       
-      let consistentBindings = new Map(initialBindings);
-      let allQuads = [firstQuad];
+      const consistentBindings = new Map(initialBindings);
+      const allQuads = [firstQuad];
       let isConsistent = true;
       
       // Check remaining patterns for consistency

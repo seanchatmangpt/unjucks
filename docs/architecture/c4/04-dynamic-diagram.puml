@@ -1,0 +1,125 @@
+@startuml unjucks-v4-dynamic
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Dynamic.puml
+
+title Dynamic Diagram - Template Processing Flow
+
+actor Developer
+participant "CLI" as CLI
+participant "Core Engine" as Core
+participant "Hygen Generator" as Hygen
+participant "Frontmatter Parser" as Parser
+participant "RDF Integration" as RDF
+participant "Variable Extractor" as Vars
+participant "Nunjucks Renderer" as Nunjucks
+participant "Path Resolver" as Path
+participant "Conditional Processor" as Conditional
+participant "Operation Engine" as Ops
+participant "File Operations" as FileOps
+participant "Query Analyzer" as QueryAnalyzer
+participant "Critical Path Analyzer" as CriticalPath
+participant "Dark Matter Optimizer" as DMOptimizer
+participant "Performance Optimizer" as PerfOpt
+
+Developer -> CLI: unjucks generate component new MyComponent
+activate CLI
+
+CLI -> Core: processGeneration(generator, action, args)
+activate Core
+
+Core -> Hygen: discoverTemplates(generator, action)
+activate Hygen
+Hygen -> Hygen: scan _templates/{generator}/{action}/
+Hygen --> Core: [template files]
+deactivate Hygen
+
+loop For each template
+    Core -> Parser: parseFrontmatter(template)
+    activate Parser
+    Parser -> Parser: extract YAML frontmatter
+    Parser -> Parser: validate schema
+    Parser --> Core: {frontmatter, content}
+    deactivate Parser
+    
+    Core -> Conditional: evaluate(skipIf, context)
+    activate Conditional
+    Conditional -> Nunjucks: renderCondition(expression)
+    Conditional --> Core: skip: boolean
+    deactivate Conditional
+    
+    alt Skip condition is false
+        Core -> RDF: loadRDFData(frontmatter.rdf)
+        activate RDF
+        RDF -> RDF: parseTurtle/parseJsonLd
+        
+        alt SPARQL queries present
+            RDF -> QueryAnalyzer: analyzeQuery(sparql)
+            activate QueryAnalyzer
+            QueryAnalyzer -> QueryAnalyzer: analyze complexity
+            QueryAnalyzer -> CriticalPath: logExecution(queryId, time)
+            activate CriticalPath
+            CriticalPath -> CriticalPath: identify critical 20%
+            CriticalPath --> QueryAnalyzer: isCritical: boolean
+            deactivate CriticalPath
+            
+            alt Query is critical (20%)
+                QueryAnalyzer -> DMOptimizer: optimize(query, analysis)
+                activate DMOptimizer
+                DMOptimizer -> DMOptimizer: apply 80/20 rules
+                DMOptimizer --> RDF: optimizedQuery
+                deactivate DMOptimizer
+            end
+            QueryAnalyzer --> RDF: queryAnalysis
+            deactivate QueryAnalyzer
+        end
+        
+        RDF -> RDF: execute SPARQL queries (optimized if critical)
+        RDF -> RDF: apply reasoning rules if needed
+        RDF --> Core: rdfContext
+        deactivate RDF
+        
+        Core -> Vars: extractVariables(template)
+        activate Vars
+        Vars -> Vars: scan {{ vars }}, {% if %}, {% for %}
+        Vars -> Vars: infer types
+        Vars --> Core: variables
+        deactivate Vars
+        
+        Core -> Path: resolve(frontmatter.to, context)
+        activate Path
+        Path -> Nunjucks: renderPath(template, context)
+        Path --> Core: resolvedPath
+        deactivate Path
+        
+        Core -> PerfOpt: optimizePath(template, context)
+        activate PerfOpt
+        PerfOpt -> PerfOpt: identify critical path (20%)
+        PerfOpt -> PerfOpt: check cache
+        PerfOpt --> Core: optimizationStrategy
+        deactivate PerfOpt
+        
+        Core -> Nunjucks: render(template, context, strategy)
+        activate Nunjucks
+        Nunjucks -> Nunjucks: apply filters
+        Nunjucks -> Nunjucks: render template body (optimized path)
+        Nunjucks --> Core: renderedContent
+        deactivate Nunjucks
+        
+        Core -> Ops: execute(frontmatter, renderedContent, resolvedPath)
+        activate Ops
+        Ops -> Ops: determine operation mode (write/inject/append/prepend/lineAt)
+        Ops -> FileOps: executeOperation(mode, path, content)
+        activate FileOps
+        FileOps -> FileOps: write/inject/append/prepend/lineAt
+        FileOps --> Ops: success
+        deactivate FileOps
+        Ops --> Core: result
+        deactivate Ops
+    end
+end
+
+Core --> CLI: generation results
+deactivate Core
+CLI --> Developer: Success: Generated files
+
+@enduml
+

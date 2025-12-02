@@ -1,0 +1,78 @@
+---
+to: src/services/{{className | kebabCase}}.service.ts
+deterministic: true
+---
+/**
+ * {{className}} Service
+ * Generated: {{kgen.staticDate}}
+ * Hash: {{kgen.staticHash}}
+ */
+
+import { Injectable, Logger } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { {{className}}Entity } from '../entities/{{className | kebabCase}}.entity';
+{% if generateDTOs %}
+import { Create{{className}}Dto, Update{{className}}Dto } from '../dto/{{className | kebabCase}}.dto';
+{% endif %}
+
+@Injectable()
+export class {{className}}Service {
+  private readonly logger = new Logger({{className}}Service.name);
+
+  constructor(
+    @InjectRepository({{className}}Entity)
+    private readonly {{className | camelCase}}Repository: Repository<{{className}}Entity>,
+  ) {}
+
+  async findAll(): Promise<{{className}}Entity[]> {
+    this.logger.debug('Finding all {{className | lowerCase}} entities');
+    return this.{{className | camelCase}}Repository.find();
+  }
+
+  async findById(id: {% if primaryKeyType %}{{primaryKeyType}}{% else %}string{% endif %}): Promise<{{className}}Entity> {
+    this.logger.debug(`Finding {{className | lowerCase}} entity with id: ${id}`);
+    const entity = await this.{{className | camelCase}}Repository.findOne({ where: { id } });
+    
+    if (!entity) {
+      throw new Error(`{{className}} with id ${id} not found`);
+    }
+    
+    return entity;
+  }
+
+  {% if generateDTOs %}
+  async create(createDto: Create{{className}}Dto): Promise<{{className}}Entity> {
+    this.logger.debug('Creating new {{className | lowerCase}} entity', createDto);
+    const entity = this.{{className | camelCase}}Repository.create(createDto);
+    return this.{{className | camelCase}}Repository.save(entity);
+  }
+
+  async update(id: {% if primaryKeyType %}{{primaryKeyType}}{% else %}string{% endif %}, updateDto: Update{{className}}Dto): Promise<{{className}}Entity> {
+    this.logger.debug(`Updating {{className | lowerCase}} entity with id: ${id}`, updateDto);
+    const entity = await this.findById(id);
+    
+    Object.assign(entity, updateDto);
+    return this.{{className | camelCase}}Repository.save(entity);
+  }
+  {% endif %}
+
+  async delete(id: {% if primaryKeyType %}{{primaryKeyType}}{% else %}string{% endif %}): Promise<void> {
+    this.logger.debug(`Deleting {{className | lowerCase}} entity with id: ${id}`);
+    const entity = await this.findById(id);
+    await this.{{className | camelCase}}Repository.remove(entity);
+  }
+
+  {% if hasDateFields %}
+  async findByDateRange(startDate: Date, endDate: Date): Promise<{{className}}Entity[]> {
+    return this.{{className | camelCase}}Repository
+      .createQueryBuilder('entity')
+      .where('entity.createdAt BETWEEN :startDate AND :endDate', { startDate, endDate })
+      .getMany();
+  }
+  {% endif %}
+
+  // Content-addressed cache key: {{className | hash}}
+  // Generated at: {{kgen.staticTimestamp}}
+  // Build hash: {{kgen.buildHash}}
+}

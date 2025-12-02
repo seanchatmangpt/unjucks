@@ -1,0 +1,65 @@
+{
+  "project": {
+    "name": "unjucks",
+    "version": "1.0.0",
+    "directory": "/Users/sac/unjucks"
+  },
+  "attestation": {
+    "createdAt": "2024-01-01T00:00:00.000Z",
+    "kgenVersion": "1.0.0",
+    "nodeVersion": "v22.12.0",
+    "platform": "darwin",
+    "arch": "arm64"
+  },
+  "artifacts": [],
+  "integrity": {
+    "totalArtifacts": 11,
+    "verifiedArtifacts": 0,
+    "failedVerifications": [
+      {
+        "path": "dist/api-service.generated",
+        "error": "Cannot read properties of null (reading 'verifyReproducibility')"
+      },
+      {
+        "path": "dist/api-service.generated.attest.json.corrupted",
+        "error": "Cannot read properties of null (reading 'verifyReproducibility')"
+      },
+      {
+        "path": "dist/basic.generated",
+        "error": "Cannot read properties of null (reading 'verifyReproducibility')"
+      },
+      {
+        "path": "dist/cli-entry.js",
+        "error": "Cannot read properties of null (reading 'verifyReproducibility')"
+      },
+      {
+        "path": "dist/cli-entry.js.bak",
+        "error": "Cannot read properties of null (reading 'verifyReproducibility')"
+      },
+      {
+        "path": "dist/cli.d.mts",
+        "error": "Cannot read properties of null (reading 'verifyReproducibility')"
+      },
+      {
+        "path": "dist/cli.mjs",
+        "error": "Cannot read properties of null (reading 'verifyReproducibility')"
+      },
+      {
+        "path": "dist/index.d.mts",
+        "error": "Cannot read properties of null (reading 'verifyReproducibility')"
+      },
+      {
+        "path": "dist/index.mjs",
+        "error": "Cannot read properties of null (reading 'verifyReproducibility')"
+      },
+      {
+        "path": "dist/test-template.generated",
+        "error": "Cannot read properties of null (reading 'verifyReproducibility')"
+      },
+      {
+        "path": "dist/test.generated",
+        "error": "Cannot read properties of null (reading 'verifyReproducibility')"
+      }
+    ]
+  }
+}

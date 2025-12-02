@@ -946,7 +946,7 @@ export class KnowledgeGraphLoader {
         options.pipeline.updateProgress(ETL_STAGES.LOAD, 0, { message: 'Loading into knowledge graph' });
 
         let successCount = 0;
-        let failCount = 0;
+        const failCount = 0;
         const errors = [];
 
         // In a real implementation, this would interact with the knowledge graph service

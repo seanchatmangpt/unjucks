@@ -1,0 +1,168 @@
+{
+  "webappProject": {
+    "projectName": "MyWebApp",
+    "projectType": "webapp",
+    "projectDescription": "A full-stack web application built with Express",
+    "author": "Test Developer",
+    "license": "MIT",
+    "features": ["auth", "database", "api", "frontend"],
+    "api": {
+      "endpoints": [
+        {
+          "method": "GET",
+          "path": "/api/users",
+          "handler": "getAllUsers",
+          "description": "Get all users"
+        },
+        {
+          "method": "POST",
+          "path": "/api/users",
+          "handler": "createUser",
+          "description": "Create new user"
+        },
+        {
+          "method": "GET",
+          "path": "/api/users/:id",
+          "handler": "getUserById",
+          "description": "Get user by ID"
+        }
+      ]
+    },
+    "database": {
+      "type": "postgresql",
+      "host": "localhost",
+      "port": 5432
+    },
+    "auth": {
+      "enabled": true,
+      "strategy": "jwt",
+      "secret": "your-secret-key"
+    },
+    "rdf": {
+      "schema": {
+        "name": "WebAppSchema",
+        "turtle": "@prefix webapp: <http://example.org/webapp/> .\n@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\nwebapp:WebApplication a rdfs:Class ;\n  rdfs:label \"Web Application\" ."
+      }
+    }
+  },
+  
+  "apiProject": {
+    "projectName": "UserService",
+    "projectType": "api",
+    "projectDescription": "RESTful API service for user management",
+    "entityName": "User",
+    "features": ["validation", "pagination", "search", "bulk_operations"],
+    "database": {
+      "type": "mongodb",
+      "connectionString": "mongodb://localhost:27017/userservice"
+    },
+    "rdf": {
+      "schema": {
+        "name": "ApiSchema", 
+        "turtle": "@prefix api: <http://example.org/api/> .\n@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\napi:ApiService a rdfs:Class ;\n  rdfs:label \"API Service\" ."
+      }
+    }
+  },
+
+  "libraryProject": {
+    "projectName": "UtilsLib",
+    "projectType": "library", 
+    "projectDescription": "Utility library with common functions",
+    "features": ["typescript", "testing", "documentation"],
+    "exports": [
+      {
+        "name": "formatString",
+        "type": "function",
+        "description": "Format string with parameters"
+      },
+      {
+        "name": "validateEmail",
+        "type": "function", 
+        "description": "Validate email address format"
+      }
+    ],
+    "rdf": {
+      "schema": {
+        "name": "LibrarySchema",
+        "turtle": "@prefix lib: <http://example.org/library/> .\n@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\nlib:Library a rdfs:Class ;\n  rdfs:label \"Code Library\" ."
+      }
+    }
+  },
+
+  "templateVariables": {
+    "generatedAt": "2024-01-01T00:00:00.000Z",
+    "kgenVersion": "1.0.0",
+    "contentHash": "sha256:abcd1234567890",
+    "dependencies": {
+      "express": "^4.18.2",
+      "lodash": "^4.17.21"
+    },
+    "generatedFiles": [
+      {
+        "path": "src/index.js",
+        "size": 1024,
+        "hash": "sha256:file1hash"
+      },
+      {
+        "path": "package.json", 
+        "size": 512,
+        "hash": "sha256:file2hash"
+      }
+    ],
+    "provenance": {
+      "generator": "kgen-webapp",
+      "timestamp": "2024-01-01T00:00:00.000Z",
+      "version": "1.0.0"
+    },
+    "signature": "ed25519:signature_value_here"
+  },
+
+  "performanceData": {
+    "complexTemplateData": {
+      "categories": [
+        {
+          "name": "Frontend",
+          "enabled": true,
+          "items": [
+            {
+              "name": "Component1",
+              "value": 42,
+              "active": true,
+              "type": "alpha"
+            },
+            {
+              "name": "Component2", 
+              "value": 73,
+              "active": false,
+              "type": "beta"
+            }
+          ]
+        },
+        {
+          "name": "Backend",
+          "enabled": true,
+          "items": [
+            {
+              "name": "Service1",
+              "value": 128,
+              "active": true,
+              "type": "gamma"
+            }
+          ]
+        }
+      ],
+      "computations": [
+        {
+          "type": "alpha",
+          "multiplier": 1.5,
+          "offset": 10
+        },
+        {
+          "type": "beta",
+          "multiplier": 2.0,
+          "offset": 5
+        }
+      ]
+    }
+  }
+}

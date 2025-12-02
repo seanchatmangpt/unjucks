@@ -253,11 +253,20 @@ cd unjucks
 # Install dependencies
 npm install
 
+# Build (uses unbuild for ES modules)
+npm run build
+
+# Development with watch mode
+npm run build:watch
+
 # Run tests
 npm test
 
-# Build
-npm run build
+# Type checking
+npm run typecheck
+
+# Full validation
+npm run validate
 
 # Link for development
 npm link
@@ -269,6 +278,7 @@ npm link
 - [Template Guide](docs/TEMPLATE-GUIDE.md) - Creating custom templates
 - [Ontology Guide](docs/ONTOLOGY-GUIDE.md) - Working with RDF/Turtle
 - [LaTeX Templates](docs/LATEX-TEMPLATES.md) - Document generation
+- [Migration Report](docs/MIGRATION.md) - TypeScript to JavaScript migration details
 
 ## 🤝 Contributing
 

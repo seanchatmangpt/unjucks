@@ -1,5 +1,5 @@
 ---
-to: tests/integration/{{ testName | kebabCase }}.integration.test.ts
+to: "tests/integration/{{ testName | kebabCase }}.integration.test.ts"
 ---
 import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach } from 'vitest';
 {% if withDatabase %}import { setupTestDatabase, teardownTestDatabase } from '../../helpers/databaseHelpers';{% endif %}

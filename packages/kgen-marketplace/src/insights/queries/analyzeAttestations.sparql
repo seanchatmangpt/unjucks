@@ -1,0 +1,117 @@
+# Analyze attestation strength and trust levels across marketplace
+# Evaluates cryptographic attestations and supply chain security
+
+SELECT DISTINCT ?pack ?name ?attestationStrength ?verificationStatus ?trustScore ?signatureAlgorithm ?keyStrength WHERE {
+  # Base package information
+  ?pack a kgen:Package ;
+        kgen:hasName ?name ;
+        kgen:hasCategory ?category .
+  
+  # Attestation analysis
+  ?pack kgenattest:hasAttestation ?attestation .
+  ?attestation a ?attestationType ;
+              kgenattest:hasSignature ?signature ;
+              kgenattest:verificationStatus ?verificationStatus ;
+              kgenattest:attestedAt ?attestedAt .
+  
+  # Signature analysis
+  ?signature crypto:signatureAlgorithm ?signatureAlgorithm ;
+            crypto:hasPublicKey ?publicKey .
+  
+  ?publicKey crypto:keySize ?keySize ;
+            crypto:keyAlgorithm ?keyAlgorithm .
+  
+  # Calculate key strength
+  BIND(
+    IF(?keySize >= 4096, "very-strong",
+    IF(?keySize >= 2048, "strong",
+    IF(?keySize >= 1024, "medium", "weak")))
+    AS ?keyStrength
+  )
+  
+  # Calculate attestation strength based on multiple factors
+  BIND(
+    # Key size factor
+    (?keySize / 4096.0) * 0.4 +
+    
+    # Algorithm strength factor
+    (IF(?signatureAlgorithm IN ("ed25519", "ecdsa-p256"), 1.0,
+     IF(?signatureAlgorithm = "rsa", 0.8, 0.5))) * 0.3 +
+    
+    # Verification status factor
+    (IF(?verificationStatus = "verified", 1.0,
+     IF(?verificationStatus = "pending", 0.5, 0.0))) * 0.2 +
+    
+    # Attestation recency factor
+    (1.0 / (1 + (NOW() - ?attestedAt) / (86400 * 90))) * 0.1  # 90 days
+    
+    AS ?attestationStrength
+  )
+  
+  # Trust score based on attestation chain
+  OPTIONAL {
+    {
+      SELECT ?pack (COUNT(DISTINCT ?att) AS ?attestationCount) WHERE {
+        ?pack kgenattest:hasAttestation ?att .
+        ?att kgenattest:verificationStatus "verified" .
+      }
+      GROUP BY ?pack
+    }
+  }
+  
+  OPTIONAL {
+    ?attestation kgenattest:signedBy ?signer .
+    ?signer kgenattest:hasTrustLevel ?signerTrust .
+  }
+  
+  # Calculate overall trust score
+  BIND(
+    ?attestationStrength * 0.6 +
+    (COALESCE(?attestationCount, 0) / 5.0) * 0.2 +
+    COALESCE(?signerTrust, 0.5) * 0.2
+    AS ?trustScore
+  )
+  
+  # Supply chain analysis
+  OPTIONAL {
+    ?attestation a kgenattest:BuildProvenance ;
+                kgenattest:generationTool ?tool ;
+                kgenattest:generationVersion ?version .
+  }
+  
+  OPTIONAL {
+    ?attestation a kgenattest:SecurityScan ;
+                kgenattest:hasScanResult ?scanResult .
+    ?scanResult kgenattest:hasVulnerabilityCount ?vulnCount .
+  }
+  
+  # Match with user's security requirements
+  OPTIONAL {
+    FILTER("{{userSecurityLevel}}" = "high")
+    FILTER(?trustScore >= 0.8)
+    BIND(1.0 AS ?securityMatch)
+  }
+  
+  OPTIONAL {
+    FILTER("{{userSecurityLevel}}" = "medium")
+    FILTER(?trustScore >= 0.6)
+    BIND(1.0 AS ?securityMatch)
+  }
+  
+  # Filter for minimum attestation quality
+  FILTER(?attestationStrength >= {{minAttestationStrength}})
+  FILTER(?verificationStatus != "failed")
+  
+  # Exclude packages with known security issues
+  FILTER NOT EXISTS {
+    ?pack kgenattest:hasSecurityIssue ?issue .
+    ?issue kgenattest:severity "critical" ;
+           kgenattest:status "open" .
+  }
+  
+  # Quality filters
+  ?pack kgen:hasRating ?rating .
+  FILTER(?rating >= 3.0)
+}
+ORDER BY DESC(?trustScore) DESC(?attestationStrength) DESC(?keyStrength)
+LIMIT {{limit}}

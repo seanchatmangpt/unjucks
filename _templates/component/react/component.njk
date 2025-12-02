@@ -1,5 +1,5 @@
 ---
-to: src/components/{{ componentName | pascalCase }}/{{ componentName | pascalCase }}.tsx
+to: "src/components/{{ componentName | pascalCase }}/{{ componentName | pascalCase }}.tsx"
 ---
 import React{% if withState %}, { useState, useEffect }{% endif %} from 'react';
 {% if withStyles %}import styles from './{{ componentName | pascalCase }}.module.css';{% endif %}

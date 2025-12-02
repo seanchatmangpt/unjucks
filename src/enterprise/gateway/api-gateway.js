@@ -261,7 +261,7 @@ export class APIGateway extends EventEmitter {
     }
 
     createProxyMiddleware(routeConfig) {
-        let currentBackendIndex = 0;
+        const currentBackendIndex = 0;
         
         return httpProxy.createProxyMiddleware({
             target: 'http://placeholder', // This will be overridden
@@ -389,7 +389,7 @@ export class APIGateway extends EventEmitter {
 
     roundRobinSelection(backends, routePath) {
         const key = `rr_${routePath}`;
-        let index = this.metrics.get(key) || 0;
+        const index = this.metrics.get(key) || 0;
         const selected = backends[index % backends.length];
         this.metrics.set(key, index + 1);
         return selected;
@@ -405,7 +405,7 @@ export class APIGateway extends EventEmitter {
 
     weightedRoundRobinSelection(backends, routePath) {
         const key = `wrr_${routePath}`;
-        let weights = this.metrics.get(key) || backends.map(b => ({ id: b.id, weight: b.weight, current: 0 }));
+        const weights = this.metrics.get(key) || backends.map(b => ({ id: b.id, weight: b.weight, current: 0 }));
         
         // Find backend with highest current weight
         let selected = null;
@@ -892,7 +892,7 @@ export class APIGateway extends EventEmitter {
 
     updateCircuitBreaker(routePath, success) {
         const key = `cb:${routePath}`;
-        let circuitBreaker = this.circuitBreakers.get(key) || {
+        const circuitBreaker = this.circuitBreakers.get(key) || {
             failures: 0,
             lastFailure: null,
             state: 'CLOSED' // CLOSED, OPEN, HALF_OPEN

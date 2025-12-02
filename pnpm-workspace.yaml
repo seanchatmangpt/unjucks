@@ -1,13 +1,13 @@
 # PNPM Workspace Configuration
 # ============================
-# Enterprise-grade workspace setup for Unjucks
+# KGEN monorepo workspace setup
 
 packages:
   # Main application package
   - '.'
   
-  # VS Code extension
-  - 'vscode-extension'
+  # KGEN packages
+  - 'packages/*'
   
   # Exclude all test directories and temporary files
   - '!**/node_modules'

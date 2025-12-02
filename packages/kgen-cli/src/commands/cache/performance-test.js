@@ -1,7 +1,7 @@
 import { defineCommand } from 'citty'
-import { OptimizedCacheManager } from '@kgen/core/cache/optimized-cache-manager'
-import { CacheManager } from '@kgen/core/cache'
-import { loadConfig } from '@kgen/core/config'
+import { OptimizedCacheManager } from '@kgen/core/src/cache/optimized-cache-manager'
+import { CacheManager } from '@kgen/core/cache/cache-entry'
+import { loadConfig } from '@kgen/core/config/config-entry'
 
 export default defineCommand({
   meta: {

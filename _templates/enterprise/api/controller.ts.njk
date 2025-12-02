@@ -1,5 +1,5 @@
 ---
-to: src/{{ feature | kebabCase }}/{{ endpoint | kebabCase }}.controller.ts
+to: "src/{{ feature | kebabCase }}/{{ endpoint | kebabCase }}.controller.ts"
 inject: true  
 after: "// INJECT_CONTROLLERS_HERE"
 skipIf: "{{ endpoint | kebabCase }}Controller already exists"

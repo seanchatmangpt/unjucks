@@ -12,8 +12,8 @@ import {
   createCommandError,
 } from "../lib/command-validation.js";
 import { CommandError, UnjucksCommandError } from "../types/commands.js";
-import Table from "cli-table3";
 import yaml from "yaml";
+import { getDeterministicTimestamp } from "../utils/deterministic-time.js";
 
 /**
  * @typedef {Object} ListCommandArgs
@@ -73,7 +73,7 @@ import yaml from "yaml";
  * @param {GeneratorInfo[]} generators - Generators to output
  * @param {ListCommandArgs} args - Command arguments
  */
-async function outputResults(generators, args) {
+function outputResults(generators, args) {
   switch (args.format) {
     case "json":
       console.log(JSON.stringify(generators, null, 2));
@@ -130,25 +130,42 @@ function outputSimpleFormat(generators, args) {
 }
 
 /**
+ * Simple table formatter (replaces cli-table3 for build compatibility)
+ */
+function simpleTable(headers, rows) {
+  const colWidths = headers.map((h, i) =>
+    Math.max(h.length, ...rows.map(r => String(r[i] || '').length))
+  );
+
+  const formatRow = (row) =>
+    row.map((cell, i) => String(cell || '').padEnd(colWidths[i])).join(' │ ');
+
+  const line = colWidths.map(w => '─'.repeat(w)).join('─┼─');
+
+  return [
+    formatRow(headers),
+    line,
+    ...rows.map(formatRow)
+  ].join('\n');
+}
+
+/**
  * Output in table format
  * @param {GeneratorInfo[]} generators - Generators to output
  * @param {ListCommandArgs} args - Command arguments
  */
 function outputTableFormat(generators, args) {
+
   if (args.generator) {
     // Template listing mode
     const gen = generators[0];
     if (!gen) return;
 
-    const table = new Table({
-      head: args.detailed
-        ? ["Template", "Description", "Variables", "Outputs"]
-        : ["Template", "Description"],
-      style: { head: ["cyan"] },
-      wordWrap: true,
-      colWidths: args.detailed ? [20, 40, 25, 25] : [25, 55],
-    });
+    const headers = args.detailed
+      ? [chalk.cyan("Template"), chalk.cyan("Description"), chalk.cyan("Variables"), chalk.cyan("Outputs")]
+      : [chalk.cyan("Template"), chalk.cyan("Description")];
 
+    const rows = [];
     for (const template of gen.templates) {
       const row = [
         chalk.green(template.name),
@@ -168,28 +185,24 @@ function outputTableFormat(generators, args) {
         );
       }
 
-      table.push(row);
+      rows.push(row);
     }
 
     if (!args.quiet) {
       console.log();
     }
-    console.log(table.toString());
+    console.log(simpleTable(headers, rows));
 
     if (args.detailed && !args.quiet) {
       console.log(chalk.gray("\n* Required variables"));
     }
   } else {
     // Generator listing mode
-    const table = new Table({
-      head: args.detailed
-        ? ["Generator", "Description", "Templates", "Category", "Usage"]
-        : ["Generator", "Description", "Templates"],
-      style: { head: ["cyan"] },
-      wordWrap: true,
-      colWidths: args.detailed ? [18, 35, 20, 15, 12] : [25, 45, 30],
-    });
+    const headers = args.detailed
+      ? [chalk.cyan("Generator"), chalk.cyan("Description"), chalk.cyan("Templates"), chalk.cyan("Category"), chalk.cyan("Usage")]
+      : [chalk.cyan("Generator"), chalk.cyan("Description"), chalk.cyan("Templates")];
 
+    const rows = [];
     for (const gen of generators) {
       const row = [
         chalk.green(gen.name),
@@ -208,13 +221,13 @@ function outputTableFormat(generators, args) {
         );
       }
 
-      table.push(row);
+      rows.push(row);
     }
 
     if (!args.quiet) {
       console.log();
     }
-    console.log(table.toString());
+    console.log(simpleTable(headers, rows));
   }
 }
 
@@ -314,7 +327,7 @@ export const listCommand = defineCommand({
   },
   async run(context) {
     const { args } = context;
-    const startTime = this.getDeterministicTimestamp();
+    const startTime = getDeterministicTimestamp();
 
     try {
       // Validate command arguments
@@ -389,8 +402,8 @@ export const listCommand = defineCommand({
               created: t.created,
               modified: t.modified,
             })),
-            created: this.getDeterministicDate().toISOString(),
-            modified: this.getDeterministicDate().toISOString(),
+            created: new Date(0).toISOString(),
+            modified: new Date(0).toISOString(),
           },
         ];
       } else {
@@ -404,7 +417,7 @@ export const listCommand = defineCommand({
             success: true,
             message: "No generators found",
             data: [],
-            duration: this.getDeterministicTimestamp() - startTime,
+            duration: getDeterministicTimestamp() - startTime,
           };
         }
 
@@ -504,7 +517,7 @@ export const listCommand = defineCommand({
       // Output results in requested format
       await outputResults(filteredData, args);
 
-      const duration = this.getDeterministicTimestamp() - startTime;
+      const duration = getDeterministicTimestamp() - startTime;
 
       if (!args.quiet && args.verbose) {
         console.log(

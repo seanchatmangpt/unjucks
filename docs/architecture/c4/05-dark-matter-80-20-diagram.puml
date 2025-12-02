@@ -1,0 +1,85 @@
+@startuml unjucks-v4-dark-matter
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+LAYOUT_WITH_LEGEND()
+
+title Dark Matter 80/20 Framework - Unjucks V4
+
+' Knowledge Substrate Core (20% delivering 80% value)
+Container_Boundary(knowledge_substrate, "Knowledge Substrate Core\n(80/20 Framework)") {
+    Component(transaction_mgr, "Transaction Manager", "Core 20%", "Essential transaction management (25% value)")
+    Component(hook_mgr, "Knowledge Hook Manager", "Core 20%", "Hook system (20% value)")
+    Component(effect_sandbox, "Effect Sandbox", "Core 20%", "Security isolation (15% value)")
+    Component(observability, "Observability", "Core 20%", "Monitoring and metrics (10% value)")
+    Component(perf_opt_core, "Performance Optimizer", "Core 20%", "Critical path optimization (10% value)")
+    Component(lockchain, "Lockchain Writer", "Core 20%", "Audit trail (5% value)")
+}
+
+' Dark Matter Query Optimization
+Container_Boundary(dark_matter_query, "Dark Matter Query Optimization\n(20% queries = 80% performance)") {
+    Component(query_analyzer, "Query Analyzer", "Analysis", "Analyzes SPARQL query complexity")
+    Component(critical_path, "Critical Path Identifier", "Identification", "Identifies 20% of queries causing 80% latency")
+    Component(dm_optimizer, "Dark Matter Optimizer", "Optimization", "Optimizes critical queries with 80/20 rules")
+    Component(execution_logger, "Execution Logger", "Logging", "Logs query execution for analysis")
+}
+
+' Performance Optimization Layer (Dark Energy)
+Container_Boundary(performance_layer, "Performance Optimization Layer\n(Dark Energy)") {
+    Component(cache_mgr, "Cache Manager", "Caching", "Content-addressed caching (80/20 strategy)")
+    Component(batch_proc, "Batch Processor", "Batching", "Batches operations for efficiency")
+    Component(path_optimizer, "Path Optimizer", "Path optimization", "Optimizes critical 20% of execution paths")
+    Component(memoization, "Memoization", "Memoization", "Pure function memoization")
+}
+
+' Dark Matter Validation (20% edge cases = 80% failures)
+Container_Boundary(dark_matter_validation, "Dark Matter Validation\n(20% edge cases = 80% failures)") {
+    Component(unicode_validator, "Unicode Validator", "Edge cases", "Unicode edge cases (23.4% failures)")
+    Component(malformed_validator, "Malformed Input Validator", "Edge cases", "Malformed input (18.7% failures)")
+    Component(perf_stress, "Performance Stress Tester", "Edge cases", "Memory/stress testing (15.2% failures)")
+    Component(security_validator, "Security Validator", "Edge cases", "Security vectors (12.9% failures)")
+    Component(encoding_validator, "Encoding Validator", "Edge cases", "Encoding conflicts (11.3% failures)")
+}
+
+' Relationships
+Rel(knowledge_substrate, dark_matter_query, "Provides", "80/20 framework")
+Rel(knowledge_substrate, performance_layer, "Provides", "Optimization strategy")
+Rel(dark_matter_query, performance_layer, "Feeds", "Optimization targets")
+Rel(performance_layer, dark_matter_validation, "Validates", "Edge cases")
+
+Rel(query_analyzer, critical_path, "Feeds", "Query metrics")
+Rel(critical_path, dm_optimizer, "Identifies", "Critical queries (20%)")
+Rel(execution_logger, critical_path, "Logs", "Execution data")
+Rel(dm_optimizer, cache_mgr, "Uses", "Query result caching")
+Rel(path_optimizer, batch_proc, "Optimizes", "Operation batching")
+
+note right of knowledge_substrate
+  **80/20 Principle:**
+  Focus on the 20% of components
+  that deliver 80% of value
+end note
+
+note right of dark_matter_query
+  **Dark Matter Queries:**
+  Identify and optimize the 20%
+  of queries causing 80% of
+  performance issues
+end note
+
+note right of performance_layer
+  **Dark Energy:**
+  Optimization layer that makes
+  the system efficient through
+  caching, batching, and path
+  optimization
+end note
+
+note right of dark_matter_validation
+  **Dark Matter Testing:**
+  Test the 20% of edge cases
+  that cause 80% of production
+  failures
+end note
+
+@enduml
+
+

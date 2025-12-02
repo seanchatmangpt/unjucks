@@ -4,10 +4,14 @@
 
 import { defineCommand } from 'citty';
 import { OntologyTemplateEngine } from '../../core/ontology-template-engine.js';
+import { OntologyProjectParser } from '../../core/ontology/ontology-project-parser.js';
+import { OntologyTemplateMapper } from '../../core/ontology/ontology-template-mapper.js';
+import { ProjectScaffolder } from '../../core/ontology/project-scaffolder.js';
 import { promises as fs } from 'fs';
 import { join, dirname } from 'path';
 import chalk from 'chalk';
 import { glob } from 'glob';
+import consola from 'consola';
 
 // Main ontology command
 export const ontologyCommand = defineCommand({
@@ -268,14 +272,14 @@ export const ontologyCommand = defineCommand({
       },
       async run({ args }) {
         const engine = new OntologyTemplateEngine();
-        
+
         try {
           console.log(chalk.blue('📚 Loading ontology:'), args.ontology);
           await engine.loadOntology(args.ontology);
-          
+
           console.log(chalk.blue('🔍 Extracting data for:'), args.subject);
           const data = await engine.extractTemplateData(args.subject);
-          
+
           if (args.output) {
             await fs.writeFile(args.output, JSON.stringify(data, null, 2));
             console.log(chalk.green('✅ Data extracted to:'), args.output);
@@ -288,6 +292,131 @@ export const ontologyCommand = defineCommand({
           process.exit(1);
         }
       }
+    }),
+
+    generateProject: defineCommand({
+      meta: {
+        name: 'generate-project',
+        description: 'Generate complete project from RDF ontology'
+      },
+      args: {
+        ontology: {
+          type: 'positional',
+          description: 'Path to RDF/Turtle ontology file',
+          required: true
+        },
+        output: {
+          type: 'string',
+          description: 'Output directory for generated project',
+          alias: 'o',
+          required: true
+        },
+        projectName: {
+          type: 'string',
+          description: 'Project name',
+          alias: 'n',
+          default: 'ontology-project'
+        },
+        framework: {
+          type: 'string',
+          description: 'Framework (express, fastify, koa)',
+          alias: 'f',
+          default: 'express'
+        },
+        database: {
+          type: 'string',
+          description: 'Database (postgresql, mysql, sqlite)',
+          alias: 'd',
+          default: 'postgresql'
+        },
+        dryRun: {
+          type: 'boolean',
+          description: 'Preview without creating files',
+          alias: 'dry',
+          default: false
+        },
+        force: {
+          type: 'boolean',
+          description: 'Overwrite existing files',
+          default: false
+        }
+      },
+      async run({ args }) {
+        const parser = new OntologyProjectParser();
+        const mapper = new OntologyTemplateMapper();
+        const scaffolder = new ProjectScaffolder({
+          dryRun: args.dryRun,
+          force: args.force
+        });
+
+        try {
+          // Step 1: Parse ontology
+          consola.start('Parsing RDF ontology...');
+          await parser.loadOntology(args.ontology);
+          const projectStructure = await parser.extractProjectStructure();
+
+          consola.success(
+            `Parsed ontology: ${projectStructure.classes.length} classes, ` +
+            `${projectStructure.properties.length} properties, ` +
+            `${projectStructure.relationships.length} relationships`
+          );
+
+          // Step 2: Map to templates
+          consola.start('Mapping ontology to templates...');
+          const templateMap = await mapper.mapToTemplates(projectStructure, {
+            framework: args.framework,
+            database: args.database,
+            projectName: args.projectName
+          });
+
+          consola.success(
+            `Mapped to templates: ${templateMap.models.length} models, ` +
+            `${templateMap.controllers.length} controllers, ` +
+            `${templateMap.routes.length} routes`
+          );
+
+          // Step 3: Generate project
+          consola.start('Generating project files...');
+          const generatedFiles = await scaffolder.generateProject(
+            templateMap,
+            args.output,
+            {
+              projectName: args.projectName,
+              framework: args.framework,
+              database: args.database
+            }
+          );
+
+          consola.success(`Project generated - ${generatedFiles.length} files created`);
+
+          // Display summary
+          console.log();
+          scaffolder.displaySummary(generatedFiles);
+
+          // Show next steps
+          console.log(chalk.blue('\n📖 Next Steps:\n'));
+          console.log(chalk.gray(`  1. cd ${args.output}`));
+          console.log(chalk.gray('  2. npm install'));
+          console.log(chalk.gray('  3. Configure .env file'));
+          console.log(chalk.gray('  4. npm run migrate'));
+          console.log(chalk.gray('  5. npm run dev'));
+          console.log();
+
+          if (args.dryRun) {
+            console.log(chalk.yellow('⚠️  Dry run mode - no files were created'));
+            console.log(chalk.gray('   Run without --dry to generate files'));
+            console.log();
+          }
+        } catch (error) {
+          consola.error('Project generation failed');
+          console.error(chalk.red('\n❌ Error:'), error.message);
+          if (process.env.DEBUG) {
+            console.error(chalk.gray('\nStack trace:'));
+            console.error(error.stack);
+          }
+          process.exit(1);
+        }
+      }
     })
   },
   async run({ args }) {
@@ -295,13 +424,16 @@ export const ontologyCommand = defineCommand({
     console.log(chalk.blue('\n🦉 Unjucks Ontology Commands\n'));
     console.log('Usage: unjucks ontology <command> [options]\n');
     console.log('Commands:');
-    console.log('  generate  - Generate from ontology and template');
-    console.log('  list      - List available ontology templates');
-    console.log('  query     - Query ontology data');
-    console.log('  extract   - Extract structured data from ontology');
+    console.log('  generate         - Generate from ontology and template');
+    console.log('  generate-project - Generate complete project from RDF ontology');
+    console.log('  list             - List available ontology templates');
+    console.log('  query            - Query ontology data');
+    console.log('  extract          - Extract structured data from ontology');
     console.log('\nExamples:');
     console.log('  unjucks ontology generate person.ttl --template person-card');
     console.log('  unjucks ontology generate company.ttl --batch --output-dir ./generated');
+    console.log('  unjucks ontology generate-project schema.ttl -o ./my-api -n my-api -f express -d postgresql');
+    console.log('  unjucks ontology generate-project schema.ttl -o ./my-api --dry');
     console.log('  unjucks ontology query person.ttl --subject http://example.org/person/alex');
     console.log('  unjucks ontology list');
     console.log();

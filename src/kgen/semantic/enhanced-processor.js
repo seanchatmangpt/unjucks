@@ -218,7 +218,7 @@ export class EnhancedSemanticProcessor extends SemanticProcessor {
       };
       
       // Phase 1: Traditional reasoning (base capabilities)
-      let inferredGraph = await super.performReasoning(graph, rules, options);
+      const inferredGraph = await super.performReasoning(graph, rules, options);
       
       // Phase 2: Enhanced reasoning phases (to be implemented with components)
       // For now, demonstrate the architecture with stub implementations

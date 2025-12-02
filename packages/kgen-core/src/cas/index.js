@@ -1,71 +1,19 @@
 /**
- * Content-Addressed Storage (CAS) API
- * 
- * Clean API for kgen-core CAS functionality:
- * - Simple store/retrieve/verify interface
- * - Multiple storage backends (memory, file)
- * - Pure JavaScript implementation
- * - High-performance caching
+ * Content-Addressed Storage (CAS) system with BLAKE3 hashing
+ *
+ * This module provides a robust content-addressed storage system that:
+ * - Uses BLAKE3 for fast, secure hashing
+ * - Stores content in organized directory structure (.kgen/cache/<type>/<hash>/)
+ * - Supports graphs, templates, artifacts, and packs
+ * - Includes integrity verification and garbage collection
+ * - Provides reference counting for content lifecycle management
  */
 
-import { CASEngine, casEngine } from './engine.js';
-import { CASStore, MemoryStore, FileStore, casStore } from './store.js';
+export { ContentAddressedStorage } from './storage.js';
+export { ContentRetrieval } from './retrieval.js';
+export { GarbageCollector } from './gc.js';
 
-// Export classes and instances
-export { CASEngine, casEngine };
-export { CASStore, MemoryStore, FileStore, casStore };
-
-/**
- * Create a CAS instance with custom configuration
- * @param {Object} options - Configuration options
- * @returns {CASEngine} Configured CAS engine
- */
-export function createCAS(options = {}) {
-  return new CASEngine(options);
-}
-
-/**
- * Quick utility functions for simple use cases
- */
-export const cas = {
-  /**
-   * Store content and return hash
-   * @param {string|Buffer} content - Content to store
-   * @returns {Promise<string>} Content hash
-   */
-  async store(content) {
-    return casEngine.store(content);
-  },
-
-  /**
-   * Retrieve content by hash
-   * @param {string} hash - Content hash
-   * @returns {Promise<Buffer|null>} Content or null
-   */
-  async retrieve(hash) {
-    return casEngine.retrieve(hash);
-  },
-
-  /**
-   * Verify content matches hash
-   * @param {string} hash - Expected hash
-   * @param {string|Buffer} content - Content to verify
-   * @returns {boolean} True if valid
-   */
-  verify(hash, content) {
-    return casEngine.verify(hash, content);
-  },
-
-  /**
-   * Calculate hash for content
-   * @param {string|Buffer} content - Content to hash
-   * @returns {string} Content hash
-   */
-  hash(content) {
-    return casEngine.calculateHash(content);
-  }
-};
-
-// Re-export everything for convenience
-export * from './engine.js';
-export * from './store.js';
+// Re-export main classes for convenience
+export { default as CAS } from './storage.js';
+export { default as Retrieval } from './retrieval.js';
+export { default as GC } from './gc.js';

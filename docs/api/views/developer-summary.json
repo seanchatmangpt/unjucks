@@ -1,0 +1,96 @@
+{
+  "metadata": {
+    "generated": "2025-09-13T06:07:15.345Z",
+    "persona": "developer",
+    "depth": "summary",
+    "version": "2.0.0",
+    "githubPagesReady": true,
+    "marketplaceBaseUrl": "https://marketplace.kgen.dev"
+  },
+  "viewType": "developer",
+  "summary": {
+    "availableAPIs": 12,
+    "codeExamples": 47,
+    "quickstartGuides": 8,
+    "supportedLanguages": [
+      "TypeScript",
+      "JavaScript",
+      "Python",
+      "Go",
+      "Java"
+    ],
+    "installMethods": 4
+  },
+  "installation": {
+    "commands": [
+      {
+        "manager": "npm",
+        "command": "npm install -g @kgen/cli",
+        "global": true,
+        "postInstall": [
+          "kgen --version",
+          "kgen init"
+        ]
+      },
+      {
+        "manager": "yarn",
+        "command": "yarn global add @kgen/cli",
+        "global": true
+      }
+    ],
+    "verification": {
+      "command": "kgen --version",
+      "expectedOutput": "@kgen/cli version 2.0.0"
+    }
+  },
+  "apis": {
+    "contracts": [
+      {
+        "name": "KGEN API",
+        "version": "2.0.0",
+        "baseUrl": "https://api.kgen.dev/v2",
+        "authentication": {
+          "type": "bearer",
+          "description": "Bearer token authentication using API key"
+        }
+      }
+    ],
+    "playground": {
+      "url": "https://api-playground.kgen.dev",
+      "interactive": true
+    }
+  },
+  "examples": {
+    "featured": [
+      {
+        "title": "Basic Package Installation",
+        "description": "Install and use a KGEN package in your project",
+        "language": "javascript",
+        "marketplaceUrl": "https://marketplace.kgen.dev/packages/api-scaffold",
+        "complexity": "beginner"
+      }
+    ]
+  },
+  "marketplaceIntegrations": {
+    "developerTools": [
+      {
+        "name": "KGEN Debug Assistant",
+        "url": "https://marketplace.kgen.dev/packages/debug-assistant",
+        "category": "Development",
+        "description": "Advanced debugging tools for KGEN-generated code"
+      }
+    ],
+    "templates": [
+      {
+        "name": "React Component Library",
+        "url": "https://marketplace.kgen.dev/templates/react-components",
+        "framework": "React",
+        "features": [
+          "TypeScript support",
+          "Storybook integration"
+        ],
+        "complexity": "intermediate"
+      }
+    ]
+  }
+}

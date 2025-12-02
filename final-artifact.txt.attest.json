@@ -1,0 +1,11 @@
+{
+  "generation": {
+    "graphHash": "af24d09727a627e541108bc718e7308ac3f103bd532d32795346321769bec9ca",
+    "templateHash": "cc49bd27ad63ae5b458dbd924a806008a8165674e55884caecbb75e9231be90c",
+    "timestamp": "2024-01-01T00:00:00.000Z"
+  },
+  "artifact": {
+    "hash": "8549b04d133da7f843a1630aede6589c360fa875de1ddfef30dc4f72a537821c",
+    "path": "final-artifact.txt"
+  }
+}

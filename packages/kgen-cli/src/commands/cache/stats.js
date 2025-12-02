@@ -1,7 +1,7 @@
 import { defineCommand } from 'citty'
-import { CacheManager } from '@kgen/core/cache'
-import { loadConfig } from '@kgen/core/config'
-import { logger } from '@kgen/core/utils'
+import { CacheManager } from '@kgen/core/cache/cache-entry'
+import { loadConfig } from '@kgen/core/config/config-entry'
+import { logger } from '@kgen/core/utils/utils-entry'
 import { createStandardOutput, handleStandardError, ErrorCodes } from '../../../../../src/kgen/cli/standardized-output.js'
 
 export default defineCommand({

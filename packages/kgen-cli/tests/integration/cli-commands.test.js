@@ -10,41 +10,48 @@ import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const CLI_PATH = resolve(__dirname, '../../bin/kgen.js');
+const CLI_PATH = resolve(__dirname, '../../src/cli.js');
 
 // Helper to run CLI commands
 function runCLI(args, options = {}) {
   return new Promise((resolve, reject) => {
     const child = spawn('node', [CLI_PATH, ...args], {
       cwd: options.cwd || process.cwd(),
-      env: { ...process.env, ...options.env },
-      stdio: ['pipe', 'pipe', 'pipe']
+      env: { ...process.env, NODE_ENV: 'test', ...options.env },
+      stdio: ['pipe', 'pipe', 'pipe'],
+      shell: false
     });
 
     let stdout = '';
     let stderr = '';
 
-    child.stdout.on('data', (data) => {
+    child.stdout?.on('data', (data) => {
       stdout += data.toString();
     });
 
-    child.stderr.on('data', (data) => {
+    child.stderr?.on('data', (data) => {
       stderr += data.toString();
     });
 
     child.on('close', (code) => {
-      resolve({ code, stdout, stderr });
+      resolve({ code, stdout: stdout.trim(), stderr: stderr.trim() });
     });
 
     child.on('error', (error) => {
-      reject(error);
+      resolve({ code: -1, stdout: '', stderr: error.message });
     });
 
     // Handle stdin if provided
     if (options.stdin) {
-      child.stdin.write(options.stdin);
-      child.stdin.end();
+      child.stdin?.write(options.stdin);
+      child.stdin?.end();
     }
+    
+    // Set timeout to prevent hanging
+    setTimeout(() => {
+      child.kill('SIGTERM');
+      resolve({ code: -1, stdout, stderr: stderr + '\nTimeout' });
+    }, 10000);
   });
 }
 
@@ -52,8 +59,8 @@ describe('CLI Integration Tests', () => {
   let testDir;
   let fixturesDir;
 
-  beforeEach(() => {
-    testDir = testUtils.createTempDir();
+  beforeEach(async () => {
+    testDir = await global.testUtils.createTempDir();
     fixturesDir = resolve(__dirname, '../fixtures');
     
     // Ensure fixtures directory exists
@@ -62,8 +69,8 @@ describe('CLI Integration Tests', () => {
     }
   });
 
-  afterEach(() => {
-    testUtils.cleanupTempDir(testDir);
+  afterEach(async () => {
+    await global.testUtils.cleanupTempDir(testDir);
   });
 
   describe('kgen --help', () => {
@@ -82,8 +89,17 @@ describe('CLI Integration Tests', () => {
 
   describe('kgen --version', () => {
     it('should display version information', async () => {
-      const { code, stdout } = await runCLI(['--version']);
+      // Try with no args first to see if CLI runs at all
+      const noArgsResult = await runCLI([]);
+      console.log('No args result:', noArgsResult);
       
+      // Try with --help to see if it works
+      const helpResult = await runCLI(['--help']);
+      console.log('Help result:', helpResult);
+      
+      const { code, stdout, stderr } = await runCLI(['--version']);
+      
+      console.log('Version CLI output:', { code, stdout, stderr, CLI_PATH });
       expect(code).toBe(0);
       expect(stdout).toMatch(/\d+\.\d+\.\d+/);
     });

@@ -1,0 +1,46 @@
+---
+to: src/<%= missingVariable %>/error.js
+skipIf: <%= typeof skipCondition !== 'undefined' && skipCondition %>
+---
+// This template has intentional errors for testing
+
+<%# Missing variable reference - should cause template error -%>
+const componentName = '<%= nonExistentVariable %>';
+
+<%# Invalid JavaScript syntax -%>
+const invalidSyntax = <%= invalidJavaScript -%>;
+
+<%# Circular reference test -%>
+<% if (typeof circularRef === 'undefined') { var circularRef = true; } -%>
+<% if (circularRef) { -%>
+  <%- include('error-template', { circularRef: true }) %>
+<% } -%>
+
+<%# Undefined method call -%>
+const result = <%= undefinedMethod() %>;
+
+<%# Invalid conditional -%>
+<% if (typeof invalidCondition !== 'undefined' && invalidCondition.nonExistentProperty) { -%>
+  console.log('This should cause an error');
+<% } -%>
+
+<%# Malformed loop -%>
+<% if (items) { -%>
+<% items.forEach(item => { -%>
+  // Missing closing brace for forEach
+<% -%>
+<% } -%>
+
+<%# Invalid string interpolation -%>
+const message = `Hello ${<%= userName %>}`;
+
+<%# Type error -%>
+<% if (typeof numberValue === 'string') { -%>
+  const calculation = <%= numberValue %> + 10;
+<% } -%>
+
+module.exports = {
+  componentName,
+  invalidSyntax,
+  result
+};

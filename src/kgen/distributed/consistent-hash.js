@@ -153,7 +153,7 @@ export class ConsistentHash {
     const seenNodes = new Set();
     
     // Start from the first node whose hash is >= keyHash
-    let startIndex = this.binarySearchCeiling(keyHash);
+    const startIndex = this.binarySearchCeiling(keyHash);
     
     // Walk clockwise around the ring
     for (let i = 0; i < this.sortedHashes.length && nodes.length < count; i++) {

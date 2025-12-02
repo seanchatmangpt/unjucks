@@ -170,3 +170,4 @@ The resulting `~/kgen` project will be a clean, maintainable, and independently 
 ---
 
 **Next Steps**: Begin Phase 1 migration following the detailed plan in `KGEN-V1-MIGRATION-PLAN.md`
+

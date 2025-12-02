@@ -256,7 +256,7 @@ class CompatibilityChecker {
       description: 'Check locale and timezone compatibility',
       check: async (env1, env2) => {
         const issues = [];
-        let compatible = true;
+        const compatible = true;
         let confidence = 1.0;
 
         // Timezone compatibility
@@ -299,7 +299,7 @@ class CompatibilityChecker {
       description: 'Check tool configuration compatibility',
       check: async (env1, env2, context = {}) => {
         const issues = [];
-        let compatible = true;
+        const compatible = true;
         let confidence = 1.0;
 
         // Check Node.js flags

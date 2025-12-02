@@ -1,0 +1,46 @@
+@startuml unjucks-v4-containers
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+LAYOUT_WITH_LEGEND()
+
+title Container Diagram - Unjucks V4
+
+Person(developer, "Developer", "Uses unjucks v4 CLI")
+
+System_Boundary(unjucks_v4, "Unjucks V4 System") {
+    Container(cli, "CLI", "Command-line interface", "Node.js CLI", "Handles user commands and arguments")
+    Container(core_engine, "Core Engine", "Orchestration and workflow", "Node.js", "Coordinates template processing pipeline")
+    Container(template_engine, "Template Engine", "Template rendering and processing", "Node.js", "Frontmatter parsing, Nunjucks rendering, Hygen patterns")
+    Container(rdf_engine, "RDF Engine", "RDF data processing", "Node.js", "RDF parsing, SPARQL queries, reasoning, validation")
+    Container(file_ops, "File Operations", "File system operations", "Node.js", "Write, inject, append, prepend, lineAt operations")
+    
+    ' Dark Matter 80/20 Framework
+    Container(dark_matter_optimizer, "Dark Matter Optimizer", "80/20 query optimization", "Node.js", "Identifies and optimizes critical 20% of queries causing 80% of performance issues")
+    Container(performance_optimizer, "Performance Optimizer", "Critical path optimization", "Node.js", "Optimizes critical paths using 80/20 principle")
+    Container(critical_path_analyzer, "Critical Path Analyzer", "Performance bottleneck identification", "Node.js", "Identifies the 20% of operations causing 80% of latency")
+    Container(knowledge_substrate, "Knowledge Substrate Core", "80/20 framework core", "Node.js", "Essential 20% of components delivering 80% of value")
+}
+
+System_Ext(file_system, "File System", "Local file system")
+System_Ext(rdf_sources, "RDF Data Sources", "Turtle, JSON-LD, SPARQL endpoints")
+
+Rel(developer, cli, "Uses", "CLI commands")
+Rel(cli, core_engine, "Invokes", "Generation requests")
+Rel(core_engine, template_engine, "Orchestrates", "Template processing")
+Rel(core_engine, rdf_engine, "Loads", "RDF data for context")
+Rel(core_engine, knowledge_substrate, "Uses", "80/20 framework")
+Rel(template_engine, rdf_engine, "Queries", "SPARQL queries, RDF data")
+Rel(template_engine, file_ops, "Executes", "File operations")
+Rel(file_ops, file_system, "Reads/Writes", "Files")
+Rel(rdf_engine, rdf_sources, "Fetches", "RDF data")
+
+' Dark Matter optimization relationships
+Rel(rdf_engine, dark_matter_optimizer, "Analyzes", "SPARQL query performance")
+Rel(dark_matter_optimizer, critical_path_analyzer, "Uses", "Critical path identification")
+Rel(critical_path_analyzer, performance_optimizer, "Feeds", "Optimization targets")
+Rel(performance_optimizer, template_engine, "Optimizes", "Template rendering paths")
+Rel(performance_optimizer, rdf_engine, "Optimizes", "RDF query execution")
+Rel(knowledge_substrate, performance_optimizer, "Provides", "80/20 optimization framework")
+
+@enduml
+

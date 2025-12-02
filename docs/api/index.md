@@ -1,17 +1,17 @@
-# Unjucks API Documentation
+# KGEN API Documentation
 
 ## Overview
 
-This documentation provides comprehensive coverage of all Unjucks APIs, from CLI commands to enterprise-scale semantic processing capabilities. The system integrates template generation, semantic web processing, MCP server coordination, and advanced performance optimization.
+This documentation provides comprehensive coverage of all KGEN APIs, from CLI commands to enterprise-scale semantic processing capabilities. The system integrates deterministic artifact generation, RDF graph processing, and cryptographic attestation for reproducible builds.
 
 ## Documentation Structure
 
 ### 📚 Core References
 
 1. **[CLI Reference](./cli-reference.md)** - Complete command-line interface documentation
-   - 47+ CLI commands with examples
-   - Hygen-style positional syntax
-   - Interactive and batch modes
+   - Complete CLI command coverage with exact flags
+   - JSON output format specifications
+   - Exit code documentation (0, 1, 3)
    - Error handling and validation
 
 2. **[MCP Integration](./mcp-integration.md)** - Model Context Protocol server integration
@@ -55,68 +55,68 @@ This documentation provides comprehensive coverage of all Unjucks APIs, from CLI
 
 ## Quick Start
 
-### Basic Template Generation
+### Basic Artifact Generation
 ```bash
-# Interactive mode
-unjucks generate
+# Generate from RDF graph
+kgen artifact generate --graph sample.ttl --template base --output ./generated
 
-# Direct generation
-unjucks component react UserProfile --withTests --dest src/components
+# Generate with specific template
+kgen artifact generate --graph ontology.ttl --template api --output ./src
 
-# Dry run preview
-unjucks generate api express UserAPI --dry
+# Deterministic rendering
+kgen deterministic render _templates/base.njk --context '{"name":"User","type":"service"}' --output ./output.js
 ```
 
-### Semantic Processing
+### Graph Processing
 ```bash
-# Generate from ontology
-unjucks semantic generate --ontology schema.owl --enterprise
+# Hash RDF graph
+kgen graph hash sample.ttl
 
-# Validate RDF data
-unjucks semantic validate --rdf data.ttl --compliance GDPR,HIPAA --strict
+# Compare graphs
+kgen graph diff baseline.ttl modified.ttl
 
-# Execute SPARQL query
-unjucks semantic query --sparql "SELECT ?s ?p ?o WHERE { ?s ?p ?o } LIMIT 10"
+# Index graph triples
+kgen graph index large-ontology.ttl
 ```
 
-### Agent Coordination
+### Drift Detection
 ```bash
-# Initialize swarm
-unjucks swarm init --topology mesh --max-agents 10
+# Detect artifact drift
+kgen artifact drift ./generated
 
-# Monitor performance
-unjucks perf benchmark --suite all --iterations 20
+# Alternative drift detection
+kgen drift detect ./project
 ```
 
 ## Key Features
 
-### 🎯 Template Generation
-- **47+ CLI Commands** for comprehensive template management
-- **Hygen-style Syntax** for intuitive positional arguments
-- **Advanced Frontmatter** with injection patterns and semantic data
-- **Batch Processing** for high-volume generation
-- **Type Safety** with TypeScript integration
+### 🎯 Deterministic Generation
+- **Content Addressing** with SHA-256 hashing for reproducible artifacts
+- **Template Engine** using Nunjucks with deterministic rendering
+- **Cryptographic Attestation** with .attest.json provenance files
+- **Single Entrypoint** architecture with no index.* files
+- **Performance Optimized** with ≤2s cold start target
 
-### 🧠 Semantic Processing
-- **RDF/Turtle Support** with N3.js integration
-- **SPARQL Queries** with federated endpoint support
-- **Ontology Validation** against compliance frameworks (GDPR, HIPAA, SOX)
-- **Reasoning Engine** with N3 rules and OWL inference
-- **Enterprise Scale** processing with streaming and chunking
+### 🧠 RDF Graph Processing
+- **Multi-format Support** (Turtle, N-Triples, JSON-LD, RDF/XML)
+- **Canonical Hashing** for semantic equivalence detection
+- **SPARQL Querying** with N3.js integration
+- **SHACL Validation** for data quality assurance
+- **Drift Detection** with configurable exit codes (0, 1, 3)
 
-### 🤖 Agent Coordination  
-- **Multi-Agent Swarms** with hierarchical, mesh, ring, and star topologies
-- **MCP Integration** with three specialized servers
-- **Neural Processing** with distributed training capabilities
-- **Performance Optimization** with automatic load balancing
-- **Hooks System** for automation and workflow orchestration
+### 🔒 Provenance & Security
+- **Cryptographic Signatures** using Ed25519 for artifact integrity
+- **Reproducible Builds** with deterministic timestamps
+- **Content Addressing** for immutable artifact storage
+- **Security Validation** with input sanitization and sandboxing
+- **Audit Trails** with complete generation provenance
 
 ### ⚡ Enterprise Performance
-- **Concurrent Processing** with worker thread pools
-- **Memory Management** with garbage collection tuning
-- **Caching Strategies** with Redis integration
-- **Real-time Monitoring** with metrics and alerting
-- **Production Deployment** with Docker and Kubernetes support
+- **Lazy Loading** for optimal cold start performance
+- **Memory Management** with LRU caching and GC optimization
+- **Performance Monitoring** with built-in benchmarking
+- **Error Handling** with structured JSON responses
+- **Production Ready** with comprehensive testing
 
 ## Support and Resources
 

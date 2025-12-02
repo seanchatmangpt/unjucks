@@ -1,0 +1,101 @@
+# Identify high-ROI opportunities based on development efficiency and cost savings
+# Calculates potential return on investment for marketplace packages
+
+SELECT DISTINCT ?pack ?name ?roi ?timeSavings ?costSavings ?adoptionRisk ?paybackPeriod ?confidenceScore WHERE {
+  # Base package information
+  ?pack a kgen:Package ;
+        kgen:hasName ?name ;
+        kgen:hasCategory ?category ;
+        kgen:hasComplexity ?complexity ;
+        kgen:hasDownloads ?downloads ;
+        kgen:hasRating ?rating .
+  
+  # Time savings analysis
+  OPTIONAL {
+    ?pack kgen:hasImplementationTime ?implementationTime ;
+          kgen:replaces ?manualProcess .
+    ?manualProcess kgen:hasEstimatedTime ?manualTime .
+    BIND((?manualTime - ?implementationTime) AS ?timeSavings)
+  }
+  
+  # Cost analysis
+  OPTIONAL {
+    ?pack kgen:hasLicenseCost ?licenseCost ;
+          kgen:hasMaintenanceCost ?maintenanceCost .
+    BIND(?licenseCost + ?maintenanceCost AS ?totalCost)
+  }
+  
+  # Calculate hourly rate based on user context
+  BIND(COALESCE({{userHourlyRate}}, 150) AS ?hourlyRate)
+  
+  # Calculate cost savings
+  BIND(?timeSavings * ?hourlyRate AS ?costSavings)
+  
+  # Calculate ROI
+  BIND(
+    IF(?totalCost > 0,
+       (?costSavings - ?totalCost) / ?totalCost * 100,
+       ?costSavings / 1000 * 100  # Default cost if not specified
+    ) AS ?roi
+  )
+  
+  # Adoption risk factors
+  OPTIONAL {
+    ?pack kgen:hasLearningCurve ?learningCurve ;
+          kgen:hasCompatibilityRisk ?compatibilityRisk ;
+          kgen:hasVendorRisk ?vendorRisk .
+    BIND((?learningCurve + ?compatibilityRisk + ?vendorRisk) / 3 AS ?adoptionRisk)
+  }
+  
+  # Payback period calculation (in months)
+  BIND(
+    IF(?costSavings > 0,
+       ?totalCost / (?costSavings / 12),
+       12  # Default if can't calculate
+    ) AS ?paybackPeriod
+  )
+  
+  # Confidence score based on data quality and market validation
+  BIND(
+    (?rating / 5.0) * 0.4 +
+    (LOG(?downloads + 1) / LOG(10000)) * 0.3 +
+    (1 - COALESCE(?adoptionRisk, 0.5)) * 0.3
+    AS ?confidenceScore
+  )
+  
+  # Match with user's current tech stack and priorities
+  OPTIONAL {
+    ?pack kgen:hasTechnology ?technology .
+    FILTER(?technology IN ({{userTechnologies}}))
+    BIND(1.0 AS ?techMatch)
+  }
+  
+  OPTIONAL {
+    ?pack kgen:addressesProblem ?problem .
+    FILTER(?problem IN ({{userPainPoints}}))
+    BIND(1.0 AS ?problemMatch)
+  }
+  
+  # Calculate relevance multiplier
+  BIND(
+    1.0 + 
+    COALESCE(?techMatch, 0) * 0.2 +
+    COALESCE(?problemMatch, 0) * 0.3
+    AS ?relevanceMultiplier
+  )
+  
+  # Adjust ROI by relevance
+  BIND(?roi * ?relevanceMultiplier AS ?adjustedROI)
+  
+  # Filter for positive ROI opportunities
+  FILTER(?adjustedROI > {{minROI}})
+  
+  # Filter for reasonable payback period
+  FILTER(?paybackPeriod <= {{maxPaybackMonths}})
+  
+  # Quality threshold
+  FILTER(?rating >= 3.0)
+  FILTER(?confidenceScore >= 0.5)
+}
+ORDER BY DESC(?adjustedROI) DESC(?confidenceScore) ASC(?paybackPeriod)
+LIMIT {{limit}}

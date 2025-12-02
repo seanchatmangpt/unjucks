@@ -3,270 +3,9 @@
 import { Command } from 'commander';
 import { readFileSync, existsSync } from 'fs';
 import { resolve } from 'path';
-import { Parser, Store, Writer } from 'n3';
+import { SHACLValidationEngine } from '@kgen/rules/src/validator/shacl.js';
+import { SHACLShapesManager } from '@kgen/rules/src/validator/shapes.js';
 import chalk from 'chalk';
-
-/**
- * SHACL validation engine for RDF graphs
- */
-class SHACLValidator {
-  constructor() {
-    this.shapesGraph = new Store();
-    this.dataGraph = new Store();
-  }
-
-  /**
-   * Load SHACL shapes from file
-   * @param {string} shapesPath - Path to SHACL shapes file
-   */
-  loadShapes(shapesPath) {
-    if (!existsSync(shapesPath)) {
-      throw new Error(`SHACL shapes file not found: ${shapesPath}`);
-    }
-
-    const shapesContent = readFileSync(shapesPath, 'utf8');
-    const parser = new Parser({ format: 'text/turtle' });
-    const quads = parser.parse(shapesContent);
-    
-    quads.forEach(quad => this.shapesGraph.addQuad(quad));
-    
-    return quads.length;
-  }
-
-  /**
-   * Load data graph from file
-   * @param {string} dataPath - Path to data graph file
-   */
-  loadData(dataPath) {
-    if (!existsSync(dataPath)) {
-      throw new Error(`Data graph file not found: ${dataPath}`);
-    }
-
-    const dataContent = readFileSync(dataPath, 'utf8');
-    const parser = new Parser({ format: 'text/turtle' });
-    const quads = parser.parse(dataContent);
-    
-    quads.forEach(quad => this.dataGraph.addQuad(quad));
-    
-    return quads.length;
-  }
-
-  /**
-   * Validate data graph against SHACL shapes
-   * @returns {Object} Validation results
-   */
-  validate() {
-    const results = {
-      conforms: true,
-      violations: [],
-      warnings: [],
-      shapesCount: 0,
-      validatedNodes: 0
-    };
-
-    // Get all NodeShapes from shapes graph
-    const nodeShapes = this.shapesGraph.getQuads(null, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', 'http://www.w3.org/ns/shacl#NodeShape');
-    results.shapesCount = nodeShapes.length;
-
-    nodeShapes.forEach(shapeQuad => {
-      const shapeIRI = shapeQuad.subject;
-      this.validateNodeShape(shapeIRI, results);
-    });
-
-    return results;
-  }
-
-  /**
-   * Validate a specific node shape
-   * @param {NamedNode} shapeIRI - The shape to validate
-   * @param {Object} results - Results object to populate
-   */
-  validateNodeShape(shapeIRI, results) {
-    // Get target nodes for this shape
-    const targetNodes = this.getTargetNodes(shapeIRI);
-    
-    targetNodes.forEach(nodeIRI => {
-      results.validatedNodes++;
-      this.validateNode(nodeIRI, shapeIRI, results);
-    });
-  }
-
-  /**
-   * Get target nodes for a shape
-   * @param {NamedNode} shapeIRI - The shape IRI
-   * @returns {Array} Array of target node IRIs
-   */
-  getTargetNodes(shapeIRI) {
-    const targetNodes = [];
-
-    // sh:targetClass
-    const targetClasses = this.shapesGraph.getQuads(shapeIRI, 'http://www.w3.org/ns/shacl#targetClass', null);
-    targetClasses.forEach(targetClassQuad => {
-      const targetClass = targetClassQuad.object;
-      const instances = this.dataGraph.getQuads(null, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', targetClass);
-      instances.forEach(instance => targetNodes.push(instance.subject));
-    });
-
-    // sh:targetNode
-    const targetNodeQuads = this.shapesGraph.getQuads(shapeIRI, 'http://www.w3.org/ns/shacl#targetNode', null);
-    targetNodeQuads.forEach(targetNodeQuad => {
-      targetNodes.push(targetNodeQuad.object);
-    });
-
-    return [...new Set(targetNodes)]; // Remove duplicates
-  }
-
-  /**
-   * Validate a node against a shape
-   * @param {NamedNode} nodeIRI - Node to validate
-   * @param {NamedNode} shapeIRI - Shape to validate against
-   * @param {Object} results - Results object to populate
-   */
-  validateNode(nodeIRI, shapeIRI, results) {
-    // Get property shapes for this node shape
-    const propertyShapes = this.shapesGraph.getQuads(shapeIRI, 'http://www.w3.org/ns/shacl#property', null);
-    
-    propertyShapes.forEach(propShapeQuad => {
-      const propShape = propShapeQuad.object;
-      this.validatePropertyShape(nodeIRI, propShape, results);
-    });
-
-    // Validate closed shapes
-    this.validateClosedShape(nodeIRI, shapeIRI, results);
-  }
-
-  /**
-   * Validate property shape constraints
-   * @param {NamedNode} nodeIRI - Node being validated
-   * @param {NamedNode} propShape - Property shape
-   * @param {Object} results - Results object to populate
-   */
-  validatePropertyShape(nodeIRI, propShape, results) {
-    // Get property path
-    const pathQuads = this.shapesGraph.getQuads(propShape, 'http://www.w3.org/ns/shacl#path', null);
-    if (pathQuads.length === 0) return;
-
-    const propertyPath = pathQuads[0].object;
-    const propertyValues = this.dataGraph.getQuads(nodeIRI, propertyPath, null);
-
-    // sh:minCount
-    const minCountQuads = this.shapesGraph.getQuads(propShape, 'http://www.w3.org/ns/shacl#minCount', null);
-    if (minCountQuads.length > 0) {
-      const minCount = parseInt(minCountQuads[0].object.value);
-      if (propertyValues.length < minCount) {
-        results.conforms = false;
-        results.violations.push({
-          type: 'MinCountConstraintComponent',
-          focusNode: nodeIRI.value,
-          resultPath: propertyPath.value,
-          message: `Property ${propertyPath.value} has ${propertyValues.length} values, but minimum ${minCount} required`,
-          severity: 'http://www.w3.org/ns/shacl#Violation'
-        });
-      }
-    }
-
-    // sh:maxCount
-    const maxCountQuads = this.shapesGraph.getQuads(propShape, 'http://www.w3.org/ns/shacl#maxCount', null);
-    if (maxCountQuads.length > 0) {
-      const maxCount = parseInt(maxCountQuads[0].object.value);
-      if (propertyValues.length > maxCount) {
-        results.conforms = false;
-        results.violations.push({
-          type: 'MaxCountConstraintComponent',
-          focusNode: nodeIRI.value,
-          resultPath: propertyPath.value,
-          message: `Property ${propertyPath.value} has ${propertyValues.length} values, but maximum ${maxCount} allowed`,
-          severity: 'http://www.w3.org/ns/shacl#Violation'
-        });
-      }
-    }
-
-    // sh:datatype
-    const datatypeQuads = this.shapesGraph.getQuads(propShape, 'http://www.w3.org/ns/shacl#datatype', null);
-    if (datatypeQuads.length > 0) {
-      const expectedDatatype = datatypeQuads[0].object;
-      propertyValues.forEach(valueQuad => {
-        if (valueQuad.object.termType === 'Literal') {
-          const actualDatatype = valueQuad.object.datatype;
-          if (actualDatatype.value !== expectedDatatype.value) {
-            results.conforms = false;
-            results.violations.push({
-              type: 'DatatypeConstraintComponent',
-              focusNode: nodeIRI.value,
-              resultPath: propertyPath.value,
-              value: valueQuad.object.value,
-              message: `Value "${valueQuad.object.value}" has datatype ${actualDatatype.value}, but ${expectedDatatype.value} required`,
-              severity: 'http://www.w3.org/ns/shacl#Violation'
-            });
-          }
-        }
-      });
-    }
-
-    // sh:pattern
-    const patternQuads = this.shapesGraph.getQuads(propShape, 'http://www.w3.org/ns/shacl#pattern', null);
-    if (patternQuads.length > 0) {
-      const pattern = new RegExp(patternQuads[0].object.value);
-      propertyValues.forEach(valueQuad => {
-        if (valueQuad.object.termType === 'Literal') {
-          if (!pattern.test(valueQuad.object.value)) {
-            results.conforms = false;
-            results.violations.push({
-              type: 'PatternConstraintComponent',
-              focusNode: nodeIRI.value,
-              resultPath: propertyPath.value,
-              value: valueQuad.object.value,
-              message: `Value "${valueQuad.object.value}" does not match required pattern: ${patternQuads[0].object.value}`,
-              severity: 'http://www.w3.org/ns/shacl#Violation'
-            });
-          }
-        }
-      });
-    }
-  }
-
-  /**
-   * Validate closed shape constraints  
-   * @param {NamedNode} nodeIRI - Node being validated
-   * @param {NamedNode} shapeIRI - Shape IRI
-   * @param {Object} results - Results object to populate
-   */
-  validateClosedShape(nodeIRI, shapeIRI, results) {
-    const closedQuads = this.shapesGraph.getQuads(shapeIRI, 'http://www.w3.org/ns/shacl#closed', null);
-    if (closedQuads.length === 0 || closedQuads[0].object.value !== 'true') {
-      return; // Not a closed shape
-    }
-
-    // Get allowed properties
-    const allowedProps = new Set();
-    const propShapes = this.shapesGraph.getQuads(shapeIRI, 'http://www.w3.org/ns/shacl#property', null);
-    propShapes.forEach(propShapeQuad => {
-      const pathQuads = this.shapesGraph.getQuads(propShapeQuad.object, 'http://www.w3.org/ns/shacl#path', null);
-      if (pathQuads.length > 0) {
-        allowedProps.add(pathQuads[0].object.value);
-      }
-    });
-
-    // Add ignored properties
-    const ignoredPropQuads = this.shapesGraph.getQuads(shapeIRI, 'http://www.w3.org/ns/shacl#ignoredProperties', null);
-    // This would need more complex handling for RDF lists
-
-    // Check node properties
-    const nodeProps = this.dataGraph.getQuads(nodeIRI, null, null);
-    nodeProps.forEach(propQuad => {
-      if (!allowedProps.has(propQuad.predicate.value)) {
-        results.conforms = false;
-        results.violations.push({
-          type: 'ClosedConstraintComponent',
-          focusNode: nodeIRI.value,
-          resultPath: propQuad.predicate.value,
-          message: `Property ${propQuad.predicate.value} is not allowed in closed shape`,
-          severity: 'http://www.w3.org/ns/shacl#Violation'
-        });
-      }
-    });
-  }
-}
 
 /**
  * Create validate graph command
@@ -284,39 +23,167 @@ export function createValidateGraphCommand() {
     .option('-v, --verbose', 'Show detailed validation information')
     .option('--exit-code', 'Exit with non-zero code if validation fails')
     .action(async (dataGraph, options) => {
+      const startTime = Date.now();
+      
       try {
         console.log(chalk.blue('🔍 Graph Validation'));
         console.log(chalk.blue('━'.repeat(30)));
 
-        const validator = new SHACLValidator();
+        // Zero-tick reject: validate inputs immediately
+        if (!dataGraph) {
+          console.error(chalk.red('❌ Error: Data graph path is required'));
+          if (options.exitCode) process.exit(1);
+          return;
+        }
 
-        // Load data graph
+        // Check data graph exists
+        const dataGraphPath = resolve(dataGraph);
+        if (!existsSync(dataGraphPath)) {
+          console.error(chalk.red(`❌ Error: Data graph file not found: ${dataGraph}`));
+          if (options.exitCode) process.exit(1);
+          return;
+        }
+
         console.log(chalk.blue(`📊 Loading data graph: ${dataGraph}`));
-        const dataTriples = validator.loadData(resolve(dataGraph));
-        console.log(chalk.green(`  ✓ Loaded ${dataTriples} triples`));
+        let dataContent;
+        try {
+          dataContent = readFileSync(dataGraphPath, 'utf8');
+          if (!dataContent.trim()) {
+            throw new Error('Data graph file is empty');
+          }
+        } catch (error) {
+          console.error(chalk.red(`❌ Error loading data graph: ${error.message}`));
+          if (options.exitCode) process.exit(1);
+          return;
+        }
+        console.log(chalk.green(`  ✓ Loaded data graph (${dataContent.length} characters)`));
 
-        // Load shapes if provided
         let results;
         if (options.shapes) {
+          // SHACL validation path
+          const shapesPath = resolve(options.shapes);
+          if (!existsSync(shapesPath)) {
+            console.error(chalk.red(`❌ Error: SHACL shapes file not found: ${options.shapes}`));
+            if (options.exitCode) process.exit(1);
+            return;
+          }
+
           console.log(chalk.blue(`📋 Loading SHACL shapes: ${options.shapes}`));
-          const shapeTriples = validator.loadShapes(resolve(options.shapes));
-          console.log(chalk.green(`  ✓ Loaded ${shapeTriples} shape triples`));
+          let shapesContent;
+          try {
+            shapesContent = readFileSync(shapesPath, 'utf8');
+            if (!shapesContent.trim()) {
+              throw new Error('SHACL shapes file is empty');
+            }
+          } catch (error) {
+            console.error(chalk.red(`❌ Error loading SHACL shapes: ${error.message}`));
+            if (options.exitCode) process.exit(1);
+            return;
+          }
+          console.log(chalk.green(`  ✓ Loaded SHACL shapes (${shapesContent.length} characters)`));
 
           console.log(chalk.blue('⚡ Running SHACL validation...'));
-          results = validator.validate();
-        } else {
-          // Basic graph validation without SHACL
-          results = {
-            conforms: true,
-            violations: [],
-            warnings: [],
-            shapesCount: 0,
-            validatedNodes: 0,
-            basicValidation: true,
-            dataTriples
-          };
+          
+          // Initialize SHACL validation engine
+          const validationEngine = new SHACLValidationEngine();
+          
+          try {
+            const validationResult = await validationEngine.validateGraph(
+              dataContent, 
+              shapesContent, 
+              {
+                maxErrors: options.maxErrors || -1,
+                debug: options.verbose || false,
+                cacheKey: `${dataGraph}-${options.shapes}`
+              }
+            );
 
-          console.log(chalk.yellow('⚠️  No SHACL shapes provided - performing basic validation'));
+            // Convert to CLI format with zero-tick reject semantics
+            results = {
+              ok: validationResult.conforms,
+              conforms: validationResult.conforms,
+              violations: validationResult.violations || [],
+              warnings: validationResult.warnings || [],
+              shapesCount: validationResult.shapesCount || 0,
+              validatedNodes: validationResult.dataTriples || 0,
+              validationTime: validationResult.executionTime,
+              metadata: validationResult.metadata
+            };
+
+            console.log(chalk.green(`  ✓ SHACL validation completed (${validationResult.executionTime}ms)`));
+            
+          } catch (validationError) {
+            // Zero-tick reject: immediate failure response
+            console.error(chalk.red(`❌ SHACL validation failed: ${validationError.message}`));
+            
+            results = {
+              ok: false,
+              conforms: false,
+              violations: [{
+                type: 'ValidationEngineError',
+                message: validationError.message,
+                severity: 'critical',
+                focusNode: null,
+                resultPath: null,
+                value: null
+              }],
+              warnings: [],
+              shapesCount: 0,
+              validatedNodes: 0,
+              validationTime: Date.now() - startTime,
+              error: true
+            };
+          }
+          
+        } else {
+          // Basic graph validation without SHACL (syntax check only)
+          console.log(chalk.yellow('⚠️  No SHACL shapes provided - performing basic syntax validation'));
+          
+          const shapesManager = new SHACLShapesManager();
+          try {
+            // Try to parse the data to verify it's valid RDF
+            const parsed = await shapesManager.parseShapes(dataContent);
+            
+            results = {
+              ok: true,
+              conforms: true,
+              violations: [],
+              warnings: [{
+                type: 'NoShapesProvided',
+                message: 'Only basic syntax validation performed - no SHACL constraints checked',
+                severity: 'info'
+              }],
+              shapesCount: 0,
+              validatedNodes: parsed.size,
+              basicValidation: true,
+              validationTime: Date.now() - startTime
+            };
+            
+            console.log(chalk.green(`  ✓ Basic syntax validation passed (${parsed.size} triples)`));
+            
+          } catch (parseError) {
+            // Zero-tick reject: immediate parse failure
+            console.error(chalk.red(`❌ RDF syntax validation failed: ${parseError.message}`));
+            
+            results = {
+              ok: false,
+              conforms: false,
+              violations: [{
+                type: 'SyntaxError',
+                message: `Invalid RDF syntax: ${parseError.message}`,
+                severity: 'critical',
+                focusNode: null,
+                resultPath: null,
+                value: null
+              }],
+              warnings: [],
+              shapesCount: 0,
+              validatedNodes: 0,
+              basicValidation: true,
+              validationTime: Date.now() - startTime,
+              error: true
+            };
+          }
         }
 
         // Display results
@@ -332,8 +199,9 @@ export function createValidateGraphCommand() {
         if (options.shapes) {
           console.log(`Shapes validated: ${results.shapesCount}`);
           console.log(`Nodes validated: ${results.validatedNodes}`);
-        } else {
-          console.log(`Data triples: ${results.dataTriples}`);
+          if (results.validationTime) {
+            console.log(`Validation time: ${results.validationTime}ms`);
+          }
         }
         
         console.log(`Violations: ${chalk.red(results.violations.length)}`);
@@ -346,7 +214,9 @@ export function createValidateGraphCommand() {
           
           results.violations.forEach((violation, index) => {
             console.log(chalk.red(`${index + 1}. ${violation.type}`));
-            console.log(chalk.gray(`   Focus Node: ${violation.focusNode}`));
+            if (violation.focusNode) {
+              console.log(chalk.gray(`   Focus Node: ${violation.focusNode}`));
+            }
             if (violation.resultPath) {
               console.log(chalk.gray(`   Property: ${violation.resultPath}`));
             }
@@ -361,6 +231,7 @@ export function createValidateGraphCommand() {
         // JSON output
         if (options.json) {
           const jsonResult = {
+            ok: results.ok,
             conforms: results.conforms,
             violations: results.violations,
             warnings: results.warnings,
@@ -368,9 +239,10 @@ export function createValidateGraphCommand() {
               shapesCount: results.shapesCount,
               validatedNodes: results.validatedNodes,
               violationCount: results.violations.length,
-              warningCount: results.warnings.length
+              warningCount: results.warnings.length,
+              validationTime: results.validationTime
             },
-            timestamp: this.getDeterministicDate().toISOString()
+            timestamp: new Date().toISOString()
           };
 
           if (options.output) {
@@ -387,12 +259,15 @@ export function createValidateGraphCommand() {
           console.log(results.conforms ? 'true' : 'false');
         }
 
+        // Zero-tick reject: immediate exit on validation failure
         if (options.exitCode && !results.conforms) {
           process.exit(1);
         }
 
       } catch (error) {
-        console.error(chalk.red('Graph validation failed:'), error.message);
+        console.error(chalk.red('❌ Graph validation failed:'), error.message);
+        
+        // Zero-tick reject: always exit with error code when using --exit-code
         if (options.exitCode) {
           process.exit(1);
         }

@@ -1400,7 +1400,7 @@ export class OWLReasoner extends EventEmitter {
     reasoningStore.addQuads(this.ontologyStore.getQuads());
     
     while (iterationCount < maxIterations) {
-      let newInferences = [];
+      const newInferences = [];
       iterationCount++;
       
       this.logger.debug(`OWL reasoning iteration ${iterationCount}`);

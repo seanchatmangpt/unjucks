@@ -15,7 +15,7 @@ import { CanonicalTurtleSerializer } from './canonical-turtle-serializer.js';
 import { StreamingTurtleSerializer } from './streaming-serializer.js';
 import { SelfDocumentingSerializer } from './self-documenting-serializer.js';
 
-export class TurtleSerializationMaster extends EventEmitter {
+class TurtleSerializationMaster extends EventEmitter {
   constructor(config = {}) {
     super();
     

@@ -1,0 +1,21 @@
+---
+to: "{{ outputDir }}/rdf/{{ entityName | kebabCase }}.ttl"
+rdf:
+  enabled: true
+  prefixes:
+    foaf: "http://xmlns.com/foaf/0.1/"
+    rdfs: "http://www.w3.org/2000/01/rdf-schema#"
+---
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ex: <{{ baseUri }}> .
+
+{% if rdfData %}
+{% for triple in rdfData.triples %}
+{{ triple.subject }} {{ triple.predicate }} {{ triple.object }} .
+{% endfor %}
+{% endif %}
+
+ex:{{ entityName | camelCase }} a foaf:Person ;
+    foaf:name "{{ entityName | title }}" ;
+    rdfs:label "{{ entityName | title }}"@en .

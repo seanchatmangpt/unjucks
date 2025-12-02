@@ -869,7 +869,7 @@ export class AuditQueryEngine {
       const content = readFileSync(filePath, 'utf8');
       const lines = content.split('\n').filter(line => line.trim());
       
-      let sequenceErrors = 0;
+      const sequenceErrors = 0;
       let checksumErrors = 0;
       
       for (const line of lines) {

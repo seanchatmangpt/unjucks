@@ -1,5 +1,5 @@
 ---
-to: src/models/{{ modelName | pascalCase }}.ts
+to: "src/models/{{ modelName | pascalCase }}.ts"
 ---
 import { DataTypes, Model, Sequelize, Optional } from 'sequelize';
 {% if withAssociations %}import { {{ associatedModels | join(', ') }} } from './index';{% endif %}

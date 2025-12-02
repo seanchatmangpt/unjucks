@@ -1,0 +1,37 @@
+{
+  "name": "KGEN Marketplace Views API",
+  "description": "Static JSON API for KGEN marketplace persona-driven views",
+  "version": "2.0.0",
+  "endpoints": {
+    "index": "/api/index.json",
+    "views": "/api/views/",
+    "personas": [
+      "executive",
+      "architect",
+      "developer"
+    ],
+    "depths": [
+      "summary",
+      "detailed",
+      "comprehensive"
+    ]
+  },
+  "cors": {
+    "enabled": true,
+    "headers": {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type"
+    }
+  },
+  "caching": {
+    "maxAge": 3600,
+    "staleWhileRevalidate": 86400
+  },
+  "usage": {
+    "examples": [
+      "fetch(\"https://yourusername.github.io/yourrepo/api/views/executive-summary.json\")",
+      "curl -H \"Accept: application/json\" https://yourusername.github.io/yourrepo/api/views/developer-detailed.json"
+    ]
+  }
+}

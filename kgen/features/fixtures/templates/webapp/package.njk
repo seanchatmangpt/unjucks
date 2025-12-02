@@ -1,0 +1,64 @@
+---
+to: {{ projectName }}/package.json
+inject: false
+---
+{
+  "name": "{{ projectName.kebabCase() }}",
+  "version": "1.0.0",
+  "description": "{{ projectDescription | default('Generated webapp by KGEN') }}",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "lint": "eslint src/",
+    "lint:fix": "eslint src/ --fix",
+    "build": "webpack --mode production",
+    "docker:build": "docker build -t {{ projectName.kebabCase() }} .",
+    "docker:run": "docker run -p 3000:3000 {{ projectName.kebabCase() }}"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "helmet": "^7.0.0",
+    "dotenv": "^16.3.1"{% if database.type === 'postgresql' %},
+    "pg": "^8.11.0",
+    "knex": "^2.5.1"{% endif %}{% if database.type === 'mongodb' %},
+    "mongoose": "^7.4.0"{% endif %}{% if auth.enabled %},
+    "jsonwebtoken": "^9.0.1",
+    "bcryptjs": "^2.4.3"{% endif %}
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1",
+    "jest": "^29.6.2",
+    "supertest": "^6.3.3",
+    "eslint": "^8.45.0",
+    "@babel/preset-env": "^7.22.9",
+    "webpack": "^5.88.2",
+    "webpack-cli": "^5.1.4"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "keywords": [
+    "webapp",
+    "express",
+    "kgen-generated"{% if features %}{% for feature in features %},
+    "{{ feature }}"{% endfor %}{% endif %}
+  ],
+  "author": "{{ author | default('KGEN Generator') }}",
+  "license": "{{ license | default('MIT') }}",
+  "kgen": {
+    "generator": "webapp",
+    "version": "{{ kgenVersion }}",
+    "timestamp": "{{ generatedAt }}",
+    "schema": "{{ rdf.schema.name }}",
+    "features": {{ features | dump }},
+    "provenance": {
+      "contentHash": "{{ contentHash }}",
+      "templateVersion": "1.0.0"
+    }
+  }
+}

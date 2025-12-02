@@ -1,563 +1,755 @@
-# CLI Reference Guide
+# KGEN CLI Reference
 
-## Overview
-
-Unjucks provides 47+ commands organized into logical groups for template generation, semantic processing, MCP coordination, and system management.
+Complete reference for all CLI commands in the KGEN (Knowledge Graph Engine) deterministic artifact generation system.
 
 ## Command Structure
 
 ```bash
-unjucks <command> [subcommand] [options]
-# or Hygen-style positional syntax:
-unjucks <generator> <template> [args...]
+kgen [OPTIONS] <COMMAND>
+kgen <command> <subcommand> [arguments] [options]
 ```
-
-## Core Commands
-
-### generate
-Generate files from templates with intelligent scaffolding.
-
-**Usage:**
-```bash
-unjucks generate <generator> <template> [args...]
-unjucks <generator> <template> [args...]  # Hygen-style shorthand
-```
-
-**Arguments:**
-- `generator` - Name of the generator to use (e.g., component, api, model)
-- `template` - Template within the generator (e.g., react, express, sequelize)  
-- `name` - Name/identifier for the generated entity
-
-**Options:**
-- `--dest <path>` - Destination directory (default: ".")
-- `--force` - Overwrite existing files without confirmation
-- `--dry` - Preview mode - show what would be generated without creating files
-- `--backup` - Create backup copies of existing files before overwriting
-- `--skip-prompts, -y` - Skip interactive prompts and use defaults
-- `--verbose, -v` - Enable verbose logging with detailed progress information
-- `--quiet, -q` - Suppress non-essential output
-
-**Examples:**
-```bash
-# Interactive mode
-unjucks generate
-
-# Direct generation with Hygen-style syntax
-unjucks component react MyButton --withTests --dest src/components
-
-# Explicit syntax
-unjucks generate api express UserService --auth --database postgresql
-
-# Dry run to preview
-unjucks generate model sequelize User --dry
-
-# Force overwrite with backup
-unjucks generate component vue UserCard --force --backup
-```
-
-### list
-List available generators and templates.
-
-**Usage:**
-```bash
-unjucks list [generator]
-```
-
-**Arguments:**
-- `generator` - Optional: Show templates for specific generator
-
-**Examples:**
-```bash
-unjucks list                    # Show all generators
-unjucks list component          # Show templates in component generator
-```
-
-### init
-Initialize a new project with scaffolding.
-
-**Usage:**
-```bash
-unjucks init [template]
-```
-
-**Arguments:**
-- `template` - Project template to initialize
-
-**Options:**
-- `--name <name>` - Project name
-- `--dest <path>` - Destination directory
-
-**Examples:**
-```bash
-unjucks init                    # Interactive initialization
-unjucks init fullstack-app      # Initialize with specific template
-```
-
-### inject
-Inject or modify content in existing files.
-
-**Usage:**
-```bash
-unjucks inject <generator> <template> [options]
-```
-
-**Options:**
-- `--target <file>` - Target file to modify
-- `--before <pattern>` - Insert before matching pattern
-- `--after <pattern>` - Insert after matching pattern
-- `--line-at <number>` - Insert at specific line number
-- `--skip-if <condition>` - Skip injection if condition is met
-
-**Examples:**
-```bash
-unjucks inject route express users --target app.js --after "// Routes"
-unjucks inject import react useState --target Component.jsx --line-at 3
-```
-
-### version
-Show version information.
-
-**Usage:**
-```bash
-unjucks version
-unjucks --version
-unjucks -v
-```
-
-### help
-Show template variable help.
-
-**Usage:**
-```bash
-unjucks help <generator> <template>
-```
-
-**Examples:**
-```bash
-unjucks help component react    # Show variables for react component template
-```
-
-## Semantic Commands
-
-### semantic generate
-Generate code from RDF/OWL ontologies with semantic awareness.
-
-**Usage:**
-```bash
-unjucks semantic generate [options]
-```
-
-**Options:**
-- `--ontology, -o <file>` - Path to RDF/OWL ontology file
-- `--templates, -t <dir>` - Template directory path (default: "_templates")
-- `--output, --out <dir>` - Output directory (default: "./generated")
-- `--enterprise, -e` - Enable enterprise scaffolding (APIs, forms, tests)
-- `--types` - Generate TypeScript interfaces (default: true)
-- `--schemas` - Generate Zod validation schemas (default: true)
-- `--validators` - Generate validation helpers (default: true)
-- `--tests` - Generate test suites
-- `--docs` - Generate documentation
-- `--validate` - Validate generated output (default: true)
-- `--cross-package` - Enable cross-package type sharing
-- `--watch, -w` - Watch for changes and regenerate
-
-**Examples:**
-```bash
-unjucks semantic generate -o schema.owl --enterprise
-unjucks semantic generate --ontology user.ttl --output ./generated --tests --docs
-```
-
-### semantic types
-Generate TypeScript types from RDF ontology.
-
-**Usage:**
-```bash
-unjucks semantic types -o <ontology> [options]
-```
-
-**Options:**
-- `--ontology, -o <file>` - Path to RDF/OWL ontology file (required)
-- `--output, --out <dir>` - Output directory (default: "./types")
-- `--schemas, -s` - Also generate Zod schemas (default: true)
-- `--validators, -v` - Also generate validation helpers (default: true)
-
-### semantic scaffold
-Scaffold complete application from RDF ontology.
-
-**Usage:**
-```bash
-unjucks semantic scaffold -o <ontology> -n <name> [options]
-```
-
-**Options:**
-- `--ontology, -o <file>` - Path to RDF/OWL ontology file (required)
-- `--name, -n <name>` - Project name (required)
-- `--template, -t <type>` - Scaffold template: api, fullstack, component-lib (default: fullstack)
-- `--database, --db <type>` - Database type: postgresql, mysql, sqlite (default: postgresql)
-- `--auth` - Include authentication system
-- `--testing` - Include testing setup (default: true)
-
-### semantic validate
-Validate RDF/OWL ontologies with comprehensive semantic analysis.
-
-**Usage:**
-```bash
-unjucks semantic validate [options]
-```
-
-**Options:**
-- `--rdf, -r <file>` - Path to RDF/Turtle data file to validate
-- `--ontology, -o <file>` - Path to ontology file
-- `--generated, -g <dir>` - Path to generated code directory
-- `--schema, -s <file>` - Path to custom validation schema
-- `--compliance, -c <frameworks>` - Compliance frameworks: SOX,GDPR,HIPAA,API_GOVERNANCE (default: API_GOVERNANCE)
-- `--strict` - Strict validation mode (fail on warnings)
-- `--format, -f <format>` - Output format: json, turtle, summary (default: json)
-
-### semantic reason
-Apply reasoning rules to enhance template context.
-
-**Usage:**
-```bash
-unjucks semantic reason -v <variables> -r <rules> [options]
-```
-
-**Options:**
-- `--variables, -v <file>` - JSON file with template variables (required)
-- `--rules, -r <files>` - Comma-separated list of N3 rule files (required)
-- `--premises, -p <files>` - Comma-separated list of premise TTL files
-- `--depth, -d <number>` - Maximum reasoning depth 1-10 (default: 3)
-- `--mode, -m <mode>` - Reasoning mode: forward, backward, hybrid (default: forward)
-- `--output, -o <file>` - Output enhanced variables to file
-
-### semantic query
-Execute SPARQL queries on knowledge graphs.
-
-**Usage:**
-```bash
-unjucks semantic query [options]
-```
-
-**Options:**
-- `--sparql, -q <query>` - SPARQL query string
-- `--pattern, -p <pattern>` - Simple triple pattern (subject,predicate,object)
-- `--knowledge, -k <files>` - Comma-separated knowledge base files
-- `--reasoning, -r` - Enable reasoning over results
-- `--limit, -l <number>` - Maximum results to return (default: 100)
-- `--format, -f <format>` - Output format: json, table, csv, turtle (default: table)
-
-### semantic convert
-Convert between RDF formats (TTL, N3, JSON-LD).
-
-**Usage:**
-```bash
-unjucks semantic convert -i <input> -o <output> -f <from> -t <to> [options]
-```
-
-**Options:**
-- `--input, -i <file>` - Input file path (required)
-- `--output, -o <file>` - Output file path (required)
-- `--from, -f <format>` - Input format: turtle, n3, jsonld (required)
-- `--to, -t <format>` - Output format: turtle, n3, jsonld (required)
-- `--validate, -v` - Validate during conversion (default: true)
-
-### Additional Semantic Commands
-
-The semantic command group includes 20+ additional subcommands:
-
-- `orchestrate` - Orchestrate semantic workflow with multiple steps
-- `monitor` - Real-time monitoring of semantic operations
-- `benchmark` - Performance benchmarking for semantic operations
-- `map` - Cross-ontology mapping and alignment
-- `import` - Import RDF data from external sources with format conversion
-- `export` - Export RDF data to different formats and destinations
-- `merge` - Merge multiple RDF datasets with conflict resolution
-- `diff` - Compare RDF datasets and show differences
-- `create` - Create new ontology with guided setup
-- `infer` - Advanced inference and reasoning with multiple engines
-- `federate` - Set up federated knowledge graph endpoints
-- `analytics` - Advanced analytics and reporting on semantic data
-- `performance` - Enterprise performance metrics and analysis
-
-## Swarm Commands
-
-### swarm init
-Initialize multi-agent swarm with specified topology.
-
-**Usage:**
-```bash
-unjucks swarm init --topology <type> [options]
-```
-
-**Options:**
-- `--topology <type>` - Swarm topology: hierarchical, mesh, ring, star (required)
-- `--max-agents <number>` - Maximum number of agents in swarm (default: 8)
-- `--strategy <strategy>` - Agent distribution strategy: balanced, specialized, adaptive (default: balanced)
-
-### swarm agents
-Manage swarm agents.
-
-**Usage:**
-```bash
-unjucks swarm agents <action> [options]
-```
-
-**Actions:**
-- `list` - List active agents
-- `spawn` - Create new agent
-- `destroy` - Remove agent
-- `status` - Get agent status
-
-### swarm tasks
-Orchestrate and manage tasks across swarm.
-
-**Usage:**
-```bash
-unjucks swarm tasks <action> [options]
-```
-
-**Actions:**
-- `create` - Create new task
-- `status` - Check task status
-- `results` - Get task results
-- `cancel` - Cancel running task
-
-## Workflow Commands
-
-### workflow create
-Create custom development workflows.
-
-**Usage:**
-```bash
-unjucks workflow create --name <name> [options]
-```
-
-**Options:**
-- `--name <name>` - Workflow name (required)
-- `--template <template>` - Workflow template
-- `--steps <steps>` - Workflow steps configuration
-- `--triggers <triggers>` - Event triggers for workflow
-
-### workflow run
-Execute workflow with specified parameters.
-
-**Usage:**
-```bash
-unjucks workflow run <workflow-id> [options]
-```
-
-**Options:**
-- `--params <params>` - Workflow parameters (JSON)
-- `--async` - Run workflow asynchronously
-- `--monitor` - Monitor workflow execution
-
-## Performance Commands
-
-### perf benchmark
-Run performance benchmarks on various operations.
-
-**Usage:**
-```bash
-unjucks perf benchmark --suite <suite> [options]
-```
-
-**Options:**
-- `--suite <suite>` - Benchmark suite to run: all, generation, validation, conversion
-- `--iterations <number>` - Number of test iterations (default: 10)
-- `--output <file>` - Benchmark results output file
-
-### perf monitor
-Monitor system performance in real-time.
-
-**Usage:**
-```bash
-unjucks perf monitor [options]
-```
-
-**Options:**
-- `--interval <seconds>` - Monitoring interval (default: 5)
-- `--metrics <metrics>` - Metrics to track: cpu, memory, disk, network
-
-## GitHub Commands
-
-### github analyze
-Analyze GitHub repositories for patterns and insights.
-
-**Usage:**
-```bash
-unjucks github analyze --repo <repo> [options]
-```
-
-**Options:**
-- `--repo <repo>` - Repository in format owner/repo (required)
-- `--analysis-type <type>` - Analysis type: code_quality, performance, security
-- `--output <file>` - Analysis report output file
-
-### github sync
-Synchronize with GitHub repository data.
-
-**Usage:**
-```bash
-unjucks github sync --repo <repo> [options]
-```
-
-**Options:**
-- `--repo <repo>` - Repository to sync with
-- `--branch <branch>` - Specific branch to sync
-- `--templates` - Sync template definitions
-
-## Knowledge Commands
-
-### knowledge load
-Load and process knowledge bases.
-
-**Usage:**
-```bash
-unjucks knowledge load <source> [options]
-```
-
-**Arguments:**
-- `source` - Knowledge source file or URL
-
-**Options:**
-- `--format <format>` - Source format: rdf, turtle, owl, json-ld
-- `--validate` - Validate knowledge base after loading
-- `--index` - Create search index
-
-### knowledge query
-Query loaded knowledge bases.
-
-**Usage:**
-```bash
-unjucks knowledge query --query <query> [options]
-```
-
-**Options:**
-- `--query <query>` - SPARQL query or natural language query
-- `--format <format>` - Output format: json, table, csv
-- `--limit <number>` - Maximum results to return
-
-## Neural Commands
-
-### neural train
-Train AI/ML neural networks for enhanced processing.
-
-**Usage:**
-```bash
-unjucks neural train --architecture <arch> [options]
-```
-
-**Options:**
-- `--architecture <arch>` - Network architecture: transformer, lstm, cnn
-- `--tier <tier>` - Training tier: nano, mini, small, medium, large
-- `--epochs <number>` - Number of training epochs
-- `--data <path>` - Training data path
-
-### neural predict
-Run inference on trained models.
-
-**Usage:**
-```bash
-unjucks neural predict --model <model-id> --input <data> [options]
-```
-
-**Options:**
-- `--model <model-id>` - ID of trained model (required)
-- `--input <data>` - Input data for prediction (required)
-- `--format <format>` - Input data format: json, csv, text
-
-## Migration Commands
-
-### migrate
-Handle database and project migrations.
-
-**Usage:**
-```bash
-unjucks migrate <action> [options]
-```
-
-**Actions:**
-- `create` - Create new migration
-- `up` - Apply migrations
-- `down` - Rollback migrations
-- `status` - Show migration status
-
-**Options:**
-- `--name <name>` - Migration name
-- `--database <type>` - Database type
-- `--dry-run` - Preview migration without applying
 
 ## Global Options
 
-These options are available for all commands:
+All commands support these global options:
 
-- `--help, -h` - Show help information
-- `--version, -v` - Show version information
-- `--verbose` - Enable verbose output
-- `--quiet, -q` - Suppress non-essential output
-- `--config <file>` - Use custom configuration file
-- `--dry-run` - Preview mode (where applicable)
-- `--force` - Force operation without confirmation (where applicable)
+| Option | Alias | Type | Default | Description |
+|--------|-------|------|---------|-------------|
+| `--help` | `-h` | boolean | false | Show command help |
+| `--debug` | `-d` | boolean | false | Enable debug mode with detailed tracing |
+| `--verbose` | `-v` | boolean | false | Enable verbose output |
+| `--config` | `-c` | string | | Path to configuration file |
 
-## Configuration
+## Exit Codes
 
-Commands can be configured via:
+KGEN follows standard Unix conventions:
 
-1. **Configuration file**: `unjucks.config.ts` or `unjucks.config.js`
-2. **Environment variables**: `UNJUCKS_*` prefix
-3. **Command-line flags**: Override configuration
-4. **Interactive prompts**: For missing required values
+- **0**: Success - Operation completed successfully
+- **1**: General error - Command failed due to invalid input, missing files, or runtime errors  
+- **3**: Drift detected - Used specifically by drift detection commands when artifacts have diverged from expected state
+
+## Graph Operations
+
+### `kgen graph hash <file>`
+
+Generate canonical SHA256 hash of RDF graph.
+
+**Usage:**
+```bash
+kgen graph hash sample.ttl
+kgen graph hash --debug large-ontology.ttl
+```
+
+**Arguments:**
+- `file` (required) - Path to RDF/Turtle file
+
+**Output Format:**
+```json
+{
+  "success": true,
+  "operation": "graph:hash",
+  "result": {
+    "file": "sample.ttl",
+    "hash": "1ada3c84c4f41d771c91a6b44d391be85dbffbb8537522edb53074a0c636ae78",
+    "size": 555,
+    "mode": "fallback",
+    "algorithm": "sha256"
+  },
+  "metadata": {
+    "timestamp": "2025-09-13T03:49:05.949Z",
+    "operationId": "0845bf82-b403-4979-9b3c-1be50b975d7a",
+    "duration": 0.2
+  }
+}
+```
+
+**Exit Codes:**
+- 0: Hash generated successfully
+- 1: File not found or invalid RDF
+
+### `kgen graph diff <graph1> <graph2>`
+
+Compare two RDF graphs and show semantic differences using impact analysis.
+
+**Usage:**
+```bash
+kgen graph diff baseline.ttl modified.ttl
+kgen graph diff --verbose graph1.ttl graph2.ttl
+```
+
+**Arguments:**
+- `graph1` (required) - First graph file path
+- `graph2` (required) - Second graph file path
+
+**Output Format:**
+```json
+{
+  "success": true,
+  "operation": "graph:diff",
+  "graph1": "baseline.ttl",
+  "graph2": "modified.ttl",
+  "summary": {
+    "totalChanges": 5,
+    "added": 2,
+    "removed": 1,
+    "modified": 2
+  },
+  "changes": {
+    "added": 2,
+    "removed": 1,
+    "changedSubjects": 3
+  },
+  "impactScore": 0.75,
+  "riskLevel": "medium",
+  "blastRadius": 3,
+  "recommendations": ["Review semantic equivalence", "Validate dependent artifacts"],
+  "timestamp": "2024-01-01T00:00:00.000Z"
+}
+```
+
+### `kgen graph index <file>`
+
+Build searchable index of RDF graph with triple statistics.
+
+**Usage:**
+```bash
+kgen graph index sample.ttl
+kgen graph index --verbose large-ontology.ttl
+```
+
+**Arguments:**
+- `file` (required) - Path to RDF/Turtle file
+
+**Output Format:**
+```json
+{
+  "success": true,
+  "operation": "graph:index",
+  "file": "sample.ttl",
+  "triples": 125,
+  "subjects": 45,
+  "predicates": 12,
+  "objects": 67,
+  "index": {
+    "subjects": ["ex:Person1", "ex:Person2"],
+    "predicates": ["rdf:type", "foaf:name"],
+    "objects": ["John Doe", "Jane Smith"]
+  },
+  "timestamp": "2024-01-01T00:00:00.000Z"
+}
+```
+
+## Artifact Operations
+
+### `kgen artifact generate [OPTIONS]`
+
+Generate deterministic artifacts from knowledge graphs with cryptographic attestation.
+
+**Usage:**
+```bash
+kgen artifact generate --graph sample.ttl --template base
+kgen artifact generate -g ontology.ttl -t api -o ./src
+```
+
+**Options:**
+| Flag | Long Form | Type | Description |
+|------|-----------|------|-------------|
+| `-g` | `--graph` | string | Path to RDF/Turtle graph file |
+| `-t` | `--template` | string | Template to use for generation |
+| `-o` | `--output` | string | Output directory |
+
+**Output Format:**
+```json
+{
+  "success": true,
+  "operation": "artifact:generate",
+  "graph": "sample.ttl",
+  "template": "base",
+  "templatePath": "templates/base.njk",
+  "outputPath": "./generated/output.js",
+  "contentHash": "sha256:a7e35700290a69e4ac9ccbab995ec67933cb763b39e1aac0fd4f344b91ce37c8",
+  "attestationPath": "./generated/output.js.attest.json",
+  "context": ["graph", "template", "environment"],
+  "timestamp": "2024-01-01T00:00:00.000Z"
+}
+```
+
+**Exit Codes:**
+- 0: Artifact generated successfully
+- 1: Template not found, invalid graph, or generation error
+
+### `kgen artifact drift <directory>`
+
+Detect drift between expected and actual artifacts with configurable exit codes.
+
+**Usage:**
+```bash
+kgen artifact drift ./generated
+kgen artifact drift --verbose ./project
+```
+
+**Arguments:**
+- `directory` (required) - Directory to check for drift
+
+**Output Format:**
+```json
+{
+  "success": true,
+  "operation": "artifact:drift",
+  "directory": "./test-data",
+  "driftDetected": true,
+  "exitCode": 3,
+  "summary": {
+    "totalArtifacts": 5,
+    "driftedArtifacts": 2,
+    "severityLevel": "medium"
+  },
+  "reportPath": "./.kgen/state/drift-report-2024-01-01.json",
+  "timestamp": "2024-01-01T00:00:00.000Z",
+  "recommendations": ["Regenerate drifted artifacts", "Update baseline"]
+}
+```
+
+**Exit Codes:**
+- 0: No drift detected
+- 3: Drift detected (configurable via `drift.exitCode` in config)
+- 1: Command execution error
+
+### `kgen artifact explain <artifact>`
+
+Explain artifact generation with complete provenance and attestation data.
+
+**Usage:**
+```bash
+kgen artifact explain ./generated/output.js
+kgen artifact explain --verbose ./artifacts/service.ts
+```
+
+**Arguments:**
+- `artifact` (required) - Path to artifact file
+
+**Output Format:**
+```json
+{
+  "success": true,
+  "operation": "artifact:explain",
+  "artifact": "./generated/output.js",
+  "hasAttestation": true,
+  "attestation": {
+    "generation": {
+      "template": "base",
+      "templateHash": "sha256:...",
+      "contextHash": "sha256:..."
+    },
+    "environment": {
+      "generatedAt": "2024-01-01T00:00:00.000Z",
+      "nodeVersion": "v18.0.0"
+    },
+    "verification": {
+      "reproducible": true
+    }
+  },
+  "verification": {
+    "verified": true,
+    "currentHash": "sha256:...",
+    "expectedHash": "sha256:..."
+  },
+  "timestamp": "2024-01-01T00:00:00.000Z"
+}
+```
+
+## Project Operations
+
+### `kgen project lock [directory]`
+
+Generate lockfile for reproducible builds with RDF file tracking.
+
+**Usage:**
+```bash
+kgen project lock
+kgen project lock ./my-project
+```
+
+**Arguments:**
+- `directory` (optional) - Project directory (default: current)
+
+**Output Format:**
+```json
+{
+  "success": true,
+  "operation": "project:lock",
+  "lockfile": "./kgen.lock.json",
+  "filesHashed": 47,
+  "rdfFiles": 12,
+  "timestamp": "2024-01-01T00:00:00.000Z"
+}
+```
+
+### `kgen project attest [directory]`
+
+Create cryptographic attestation bundle for entire project.
+
+**Usage:**
+```bash
+kgen project attest
+kgen project attest ./production-build
+```
+
+**Arguments:**
+- `directory` (optional) - Project directory (default: current)
+
+**Output Format:**
+```json
+{
+  "success": true,
+  "operation": "project:attest",
+  "directory": "./",
+  "attestationPath": "./kgen-attestation-2024-01-01T00-00-00-000Z.json",
+  "summary": {
+    "totalArtifacts": 15,
+    "verifiedArtifacts": 13,
+    "failedVerifications": 2
+  },
+  "timestamp": "2024-01-01T00:00:00.000Z"
+}
+```
+
+## Template Operations
+
+### `kgen templates ls [OPTIONS]`
+
+List available templates with optional detailed information.
+
+**Usage:**
+```bash
+kgen templates ls
+kgen templates ls --verbose
+```
+
+**Options:**
+| Flag | Long Form | Type | Description |
+|------|-----------|------|-------------|
+| `-v` | `--verbose` | boolean | Show detailed template information |
+
+**Output Format:**
+```json
+{
+  "success": true,
+  "operation": "templates:ls",
+  "templatesDir": "./templates",
+  "templates": [
+    {
+      "name": "api-service",
+      "path": "templates/api-service.njk",
+      "size": 531,
+      "modified": "2025-09-12T03:37:04.586Z"
+    },
+    {
+      "name": "simple-demo",
+      "path": "templates/simple-demo.njk",
+      "size": 652,
+      "modified": "2025-09-12T04:25:44.067Z"
+    }
+  ],
+  "count": 6,
+  "timestamp": "2024-01-01T00:00:00.000Z"
+}
+```
+
+### `kgen templates show <template>`
+
+Show detailed template analysis including variables and structure.
+
+**Usage:**
+```bash
+kgen templates show base
+kgen templates show api-service
+```
+
+**Arguments:**
+- `template` (required) - Template name to analyze
+
+**Output Format:**
+```json
+{
+  "success": true,
+  "operation": "templates:show",
+  "template": "base",
+  "details": {
+    "name": "base",
+    "path": "templates/base.njk",
+    "frontmatter": {
+      "to": "{{ name }}.js",
+      "inject": false
+    },
+    "variables": ["name", "type", "description"],
+    "structure": {
+      "blocks": [],
+      "includes": [],
+      "macros": [],
+      "complexity": 0
+    },
+    "size": 1024,
+    "lines": 45,
+    "modified": "2024-01-01T00:00:00.000Z"
+  },
+  "timestamp": "2024-01-01T00:00:00.000Z"
+}
+```
+
+## Rules Operations
+
+### `kgen rules ls`
+
+List available reasoning rules for semantic processing.
+
+**Usage:**
+```bash
+kgen rules ls
+kgen rules ls --verbose
+```
+
+**Output Format:**
+```json
+{
+  "success": true,
+  "operation": "rules:ls",
+  "rulesDir": "./rules",
+  "rules": [
+    {
+      "name": "gdpr-compliance",
+      "path": "./rules/compliance/gdpr-compliance.n3",
+      "type": "n3",
+      "size": 1258,
+      "modified": "2024-01-01T00:00:00.000Z",
+      "relativePath": "compliance/gdpr-compliance.n3"
+    }
+  ],
+  "count": 4,
+  "timestamp": "2024-01-01T00:00:00.000Z"
+}
+```
+
+### `kgen rules show <rule>`
+
+Show detailed rule analysis and content.
+
+**Usage:**
+```bash
+kgen rules show gdpr-compliance
+kgen rules show api-governance
+```
+
+**Arguments:**
+- `rule` (required) - Rule name to analyze
+
+## Deterministic Operations
+
+### `kgen deterministic render <template> [OPTIONS]`
+
+Render template with deterministic output and optional RDF enrichment.
+
+**Usage:**
+```bash
+kgen deterministic render templates/base.njk
+kgen deterministic render template.njk --context '{"name":"User"}' --output result.js
+```
+
+**Arguments:**
+- `template` (required) - Template path to render
+
+**Options:**
+| Flag | Long Form | Type | Description |
+|------|-----------|------|-------------|
+| `-c` | `--context` | string | JSON context for template |
+| `-o` | `--output` | string | Output file path |
+| `-r` | `--rdf` | string | RDF content for semantic enrichment |
+
+**Output Format:**
+```json
+{
+  "success": true,
+  "operation": "deterministic:render",
+  "template": "templates/base.njk",
+  "contentHash": "sha256:...",
+  "deterministic": true,
+  "outputPath": "./output.js",
+  "metadata": {
+    "renderTime": 15.2,
+    "templateSize": 1024,
+    "contextKeys": ["name", "type"]
+  },
+  "timestamp": "2024-01-01T00:00:00.000Z"
+}
+```
+
+### `kgen deterministic generate <template> [OPTIONS]`
+
+Generate deterministic artifact with attestation.
+
+**Usage:**
+```bash
+kgen deterministic generate templates/service.njk --output ./service.js
+kgen deterministic generate template.njk --context '{"name":"API"}' --output api.ts
+```
+
+**Arguments:**
+- `template` (required) - Template path to generate from
+
+**Options:**
+| Flag | Long Form | Type | Description |
+|------|-----------|------|-------------|
+| `-c` | `--context` | string | JSON context for template |
+| `-o` | `--output` | string | Output file path |
+
+### `kgen deterministic verify <artifact> [OPTIONS]`
+
+Verify artifact reproducibility with multiple iterations.
+
+**Usage:**
+```bash
+kgen deterministic verify ./output.js
+kgen deterministic verify ./service.ts --iterations 5
+```
+
+**Arguments:**
+- `artifact` (required) - Artifact path to verify
+
+**Options:**
+| Flag | Long Form | Type | Default | Description |
+|------|-----------|------|---------|-------------|
+| `--iterations` | `--iterations` | number | 3 | Number of verification iterations |
+
+## Performance Operations
+
+### `kgen perf test [OPTIONS]`
+
+Run performance compliance tests against KGEN charter targets.
+
+**Usage:**
+```bash
+kgen perf test
+kgen perf test --report performance-report.json
+```
+
+**Options:**
+| Flag | Long Form | Type | Description |
+|------|-----------|------|-------------|
+| `-r` | `--report` | string | Output report file path |
+
+**Output Format:**
+```json
+{
+  "success": true,
+  "operation": "perf:test",
+  "compliance": {
+    "allPassing": true,
+    "coldStart": {
+      "actual": 1850,
+      "target": 2000,
+      "passing": true
+    },
+    "renderP95": {
+      "actual": 120,
+      "target": 150,
+      "passing": true
+    }
+  },
+  "benchmarks": {
+    "coldStartTime": 1.85,
+    "templateRenderTime": 0.12,
+    "graphHashTime": 0.08
+  },
+  "timestamp": "2024-01-01T00:00:00.000Z"
+}
+```
+
+**Exit Codes:**
+- 0: All performance tests pass
+- 1: Performance tests fail or error
+
+### `kgen perf status`
+
+Show current performance metrics and charter compliance.
+
+**Usage:**
+```bash
+kgen perf status
+```
+
+**Output Format:**
+```json
+{
+  "success": true,
+  "operation": "perf:status",
+  "coldStart": {
+    "elapsed": 376.47,
+    "target": 2000,
+    "status": "PASS"
+  },
+  "charter": {
+    "coldStartTarget": "≤2s",
+    "renderTarget": "≤150ms p95",
+    "cacheTarget": "≥80%"
+  },
+  "timestamp": "2024-01-01T00:00:00.000Z"
+}
+```
+
+### `kgen perf benchmark [OPTIONS]`
+
+Run performance benchmarks for core operations.
+
+**Usage:**
+```bash
+kgen perf benchmark
+kgen perf benchmark --type graph-hash
+kgen perf benchmark --type template-render
+```
+
+**Options:**
+| Flag | Long Form | Type | Default | Description |
+|------|-----------|------|---------|-------------|
+| `--type` | `--type` | string | full | Benchmark type (graph-hash, template-render, full) |
+
+## Validation Operations
+
+### `kgen validate artifacts <path> [OPTIONS]`
+
+Validate generated artifacts with SHACL schema validation.
+
+**Usage:**
+```bash
+kgen validate artifacts ./generated
+kgen validate artifacts . --recursive --shapes-file shapes.ttl
+```
+
+**Arguments:**
+- `path` (optional) - Path to artifact or directory (default: current)
+
+**Options:**
+| Flag | Long Form | Type | Description |
+|------|-----------|------|-------------|
+| `-r` | `--recursive` | boolean | Recursively validate directories |
+| `-s` | `--shapes-file` | string | Path to SHACL shapes file for validation |
+| `-v` | `--verbose` | boolean | Enable verbose validation output |
+
+**Output Format:**
+```json
+{
+  "success": true,
+  "operation": "validate:artifacts",
+  "path": "./generated",
+  "summary": {
+    "totalFiles": 10,
+    "validFiles": 8,
+    "errors": 2,
+    "warnings": 1
+  },
+  "results": [
+    {
+      "file": "./generated/output.js",
+      "valid": true,
+      "attestationValid": true,
+      "shaclResults": []
+    }
+  ],
+  "timestamp": "2024-01-01T00:00:00.000Z"
+}
+```
+
+**Exit Codes:**
+- 0: All artifacts valid
+- 1: Validation errors found
+
+### `kgen validate graph <file> [OPTIONS]`
+
+Validate RDF graphs with optional SHACL validation.
+
+**Usage:**
+```bash
+kgen validate graph sample.ttl
+kgen validate graph ontology.ttl --shacl
+```
+
+**Arguments:**
+- `file` (required) - Path to RDF file
+
+**Options:**
+| Flag | Long Form | Type | Description |
+|------|-----------|------|-------------|
+| `--shacl` | `--shacl` | boolean | Enable SHACL validation |
+
+## Drift Detection
+
+### `kgen drift detect <directory>`
+
+Alternative access to drift detection functionality.
+
+**Usage:**
+```bash
+kgen drift detect ./generated
+kgen drift detect ./project --verbose
+```
+
+**Arguments:**
+- `directory` (required) - Directory to check for drift
+
+**Note:** This is equivalent to `kgen artifact drift` but provides alternative access.
 
 ## Error Handling
 
-All commands provide:
+All commands return structured JSON output for machine consumption:
 
-- **Descriptive error messages** with context
-- **Suggestions for resolution** 
-- **Exit codes** for scripting (0 = success, >0 = error)
-- **Stack traces** in verbose mode
-- **Validation results** with detailed feedback
-
-## Examples
-
-### Basic Template Generation
-```bash
-# Interactive mode
-unjucks generate
-
-# Direct generation
-unjucks component react UserProfile --withTests --dest src/components
-
-# Dry run
-unjucks api express UserAPI --dry --verbose
+**Error Response Format:**
+```json
+{
+  "success": false,
+  "operation": "graph:hash",
+  "error": {
+    "code": "FILE_NOT_FOUND",
+    "message": "File not found: nonexistent.ttl",
+    "details": {
+      "path": "nonexistent.ttl"
+    }
+  },
+  "metadata": {
+    "timestamp": "2025-09-13T03:47:35.605Z",
+    "operationId": "22081cbf-c219-44c1-9c9b-e093ba7b1860",
+    "duration": 0.04
+  }
+}
 ```
 
-### Semantic Processing
-```bash
-# Generate from ontology
-unjucks semantic generate --ontology user.owl --enterprise --output ./generated
+**Common Error Codes:**
+- `FILE_NOT_FOUND`: Specified file does not exist
+- `INVALID_RDF`: RDF parsing failed
+- `TEMPLATE_NOT_FOUND`: Template file missing
+- `DRIFT_DETECTOR_UNAVAILABLE`: Drift detection system not initialized
+- `OPERATION_FAILED`: General operation failure
 
-# Validate RDF data
-unjucks semantic validate --rdf data.ttl --compliance GDPR,HIPAA --strict
+## Configuration
 
-# Run SPARQL query
-unjucks semantic query --sparql "SELECT ?s ?p ?o WHERE { ?s ?p ?o } LIMIT 10"
+Commands can be configured via `kgen.config.js` file. Key configuration options:
+
+```javascript
+export default {
+  directories: {
+    templates: 'templates',  // Template directory (default: _templates)
+    out: './generated',      // Output directory
+    state: './.kgen/state'   // State directory for drift detection
+  },
+  drift: {
+    onDrift: 'fail',        // Action on drift detection
+    exitCode: 3             // Exit code for drift detected
+  }
+}
 ```
 
-### Swarm Coordination
-```bash
-# Initialize swarm
-unjucks swarm init --topology mesh --max-agents 10
+See [Configuration Reference](./configuration.md) for complete details.
 
-# Create coordinated task
-unjucks swarm tasks create --task "Analyze codebase and generate tests"
-```
+---
 
-### Performance Analysis
-```bash
-# Run benchmarks
-unjucks perf benchmark --suite all --iterations 20 --output benchmark-results.json
-
-# Monitor performance
-unjucks perf monitor --metrics cpu,memory,disk --interval 10
-```
+**Last Updated**: September 12, 2025  
+**CLI Version**: 1.0.0  
+**Implementation Parity**: Complete

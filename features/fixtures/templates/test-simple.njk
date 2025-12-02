@@ -1,0 +1,6 @@
+---
+to: "{{ outputDir }}/{{ name | kebabCase }}.txt"
+---
+Hello {{ name | upper }}!
+Generated at: {{ kgen.timestamp }}
+Component: {{ componentName | pascalCase }}Component

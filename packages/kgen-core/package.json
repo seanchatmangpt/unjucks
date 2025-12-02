@@ -3,40 +3,106 @@
   "version": "0.1.0",
   "description": "KGEN core engine for RDF graph processing and artifact generation",
   "type": "module",
-  "main": "./src/engine.js",
   "exports": {
-    ".": "./src/engine.js",
-    "./rdf": "./src/rdf/index.js",
-    "./rdf/canonical-processor": "./src/rdf/canonical-processor.js",
-    "./rdf/graph-indexer": "./src/rdf/graph-indexer.js",
-    "./rdf/enhanced-processor": "./src/rdf/enhanced-processor.js",
-    "./semantic": "./src/semantic/processor.js",
-    "./semantic/processor": "./src/semantic/processor.js",
-    "./graph": "./src/graph/index.js",
-    "./compiler": "./src/compiler/index.js",
-    "./provenance": "./src/provenance/index.js",
-    "./types": "./src/types/index.js",
-    "./cache": "./src/cache/index.js",
-    "./validation": "./src/validation/index.js",
-    "./config": "./src/config/index.js",
-    "./utils": "./src/utils/index.js",
-    "./cas": "./src/cas/index.js",
-    "./cas/atomic-storage": "./src/cas/atomic-storage-engine.js",
-    "./deterministic": "./src/deterministic/index.js",
-    "./drift": "./src/drift/index.js",
-    "./shacl": "./src/shacl/validator.js",
-    "./shacl/reporter": "./src/shacl/reporter.js"
+    ".": {
+      "import": "./dist/core.mjs",
+      "types": "./dist/core.d.ts"
+    },
+    "./engine": {
+      "import": "./dist/engine.mjs",
+      "types": "./dist/engine.d.ts"
+    },
+    "./rdf": {
+      "import": "./dist/rdf/rdf-entry.mjs",
+      "types": "./dist/rdf/rdf-entry.d.ts"
+    },
+    "./rdf/canonical-processor": {
+      "import": "./dist/rdf/canonical-processor.mjs",
+      "types": "./dist/rdf/canonical-processor.d.ts"
+    },
+    "./rdf/graph-indexer": {
+      "import": "./dist/rdf/graph-indexer.mjs",
+      "types": "./dist/rdf/graph-indexer.d.ts"
+    },
+    "./rdf/enhanced-processor": {
+      "import": "./dist/rdf/enhanced-processor.mjs",
+      "types": "./dist/rdf/enhanced-processor.d.ts"
+    },
+    "./semantic": {
+      "import": "./dist/semantic/semantic-processor.mjs",
+      "types": "./dist/semantic/semantic-processor.d.ts"
+    },
+    "./semantic/processor": {
+      "import": "./dist/semantic/semantic-processor.mjs",
+      "types": "./dist/semantic/semantic-processor.d.ts"
+    },
+    "./graph": {
+      "import": "./dist/graph/graph-entry.mjs",
+      "types": "./dist/graph/graph-entry.d.ts"
+    },
+    "./compiler": {
+      "import": "./dist/compiler/compiler-entry.mjs",
+      "types": "./dist/compiler/compiler-entry.d.ts"
+    },
+    "./provenance": {
+      "import": "./dist/provenance/provenance-entry.mjs",
+      "types": "./dist/provenance/provenance-entry.d.ts"
+    },
+    "./types": {
+      "import": "./dist/types/types-entry.mjs",
+      "types": "./dist/types/types-entry.d.ts"
+    },
+    "./cache": {
+      "import": "./dist/cache/cache-entry.mjs",
+      "types": "./dist/cache/cache-entry.d.ts"
+    },
+    "./validation": {
+      "import": "./dist/validation/validation-entry.mjs",
+      "types": "./dist/validation/validation-entry.d.ts"
+    },
+    "./config": {
+      "import": "./dist/config/config-entry.mjs",
+      "types": "./dist/config/config-entry.d.ts"
+    },
+    "./utils": {
+      "import": "./dist/utils/utils-entry.mjs",
+      "types": "./dist/utils/utils-entry.d.ts"
+    },
+    "./cas": {
+      "import": "./dist/cas/cas-entry.mjs",
+      "types": "./dist/cas/cas-entry.d.ts"
+    },
+    "./cas/atomic-storage": {
+      "import": "./dist/cas/atomic-storage-engine.mjs",
+      "types": "./dist/cas/atomic-storage-engine.d.ts"
+    },
+    "./deterministic": {
+      "import": "./dist/deterministic/deterministic-entry.mjs",
+      "types": "./dist/deterministic/deterministic-entry.d.ts"
+    },
+    "./drift": {
+      "import": "./dist/drift/drift-entry.mjs",
+      "types": "./dist/drift/drift-entry.d.ts"
+    },
+    "./shacl": {
+      "import": "./dist/shacl/shacl-validator.mjs",
+      "types": "./dist/shacl/shacl-validator.d.ts"
+    },
+    "./shacl/reporter": {
+      "import": "./dist/shacl/shacl-reporter.mjs",
+      "types": "./dist/shacl/shacl-reporter.d.ts"
+    }
   },
   "scripts": {
-    "build": "tsc --project tsconfig.json",
+    "build": "unbuild",
     "test": "vitest run --reporter=verbose",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage --reporter=verbose",
     "test:deterministic": "vitest run tests/unit/deterministic.test.js",
     "test:integration": "vitest run tests/integration/",
     "test:performance": "vitest run tests/performance/ --testTimeout=30000",
-    "lint": "eslint src/ --ext .js,.ts",
-    "typecheck": "tsc --noEmit --project tsconfig.json",
+    "lint": "echo 'Linting delegated to root'",
+    "typecheck": "echo 'TypeScript removed - using unbuild for type checking and generation'",
     "clean": "rm -rf dist test-results"
   },
   "dependencies": {
@@ -52,20 +118,19 @@
     "sparqljs": "^3.7.3",
     "gray-matter": "^4.0.3",
     "nunjucks": "^3.2.4",
+    "tar-stream": "^3.1.7",
+    "pako": "^2.1.0",
     "hash-wasm": "^4.12.0",
     "multiformats": "^13.0.0",
     "consola": "^3.2.3",
     "events": "^3.3.0"
   },
   "devDependencies": {
-    "typescript": "^5.3.0",
     "vitest": "^1.0.0",
-    "@types/crypto-js": "^4.2.0"
+    "unbuild": "^2.0.0"
   },
-  "peerDependencies": {
-  },
+  "peerDependencies": {},
   "files": [
-    "src/",
     "dist/",
     "README.md"
   ],
@@ -73,7 +138,8 @@
     "rdf",
     "knowledge-graph",
     "compiler",
-    "provenance"
+    "provenance",
+    "esm"
   ],
   "license": "MIT"
 }

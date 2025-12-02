@@ -1,0 +1,118 @@
+# Get popular packages in user's domain with trending analysis
+# Identifies community favorites and emerging packages
+
+SELECT DISTINCT ?pack ?name ?downloads ?rating ?trend ?momentum ?communityScore ?recency WHERE {
+  # Base package information
+  ?pack a kgen:Package ;
+        kgen:hasName ?name ;
+        kgen:hasCategory ?category ;
+        kgen:hasDownloads ?downloads ;
+        kgen:hasRating ?rating ;
+        kgen:hasLastUpdated ?lastUpdated .
+  
+  # Match user's domain/industry
+  OPTIONAL {
+    ?pack kgen:hasIndustryVertical ?vertical .
+    FILTER(?vertical IN ({{userVerticals}}))
+    BIND(1.0 AS ?verticalMatch)
+  }
+  
+  # Match user's technology stack
+  OPTIONAL {
+    ?pack kgen:hasTechnology ?technology .
+    FILTER(?technology IN ({{userTechnologies}}))
+    BIND(1.0 AS ?techMatch)
+  }
+  
+  # Calculate trend based on download velocity
+  OPTIONAL {
+    ?pack kgen:hasDownloadsLastMonth ?recentDownloads ;
+          kgen:hasDownloadsThreeMonthsAgo ?oldDownloads .
+    BIND(
+      IF(?oldDownloads > 0,
+         (?recentDownloads - ?oldDownloads) / ?oldDownloads,
+         1.0
+      ) AS ?trend
+    )
+  }
+  
+  # Calculate momentum (recent activity)
+  OPTIONAL {
+    ?pack kgen:hasCommitsLastMonth ?recentCommits ;
+          kgen:hasIssuesResolvedLastMonth ?resolvedIssues ;
+          kgen:hasPullRequestsLastMonth ?prs .
+    BIND((?recentCommits + ?resolvedIssues + ?prs) / 30.0 AS ?momentum)
+  }
+  
+  # Community engagement score
+  OPTIONAL {
+    ?pack kgen:hasStars ?stars ;
+          kgen:hasForks ?forks ;
+          kgen:hasContributors ?contributors ;
+          kgen:hasIssues ?openIssues .
+    BIND(
+      (?stars / 1000.0) * 0.4 +
+      (?forks / 100.0) * 0.2 +
+      (?contributors / 10.0) * 0.3 +
+      (1 / (1 + ?openIssues / 10.0)) * 0.1
+      AS ?communityScore
+    )
+  }
+  
+  # Recency factor (how recently updated)
+  BIND(
+    IF(BOUND(?lastUpdated),
+       1.0 / (1 + (NOW() - ?lastUpdated) / (86400 * 30)),  # 30 days
+       0.1
+    ) AS ?recency
+  )
+  
+  # Calculate overall popularity score
+  BIND(
+    # Download popularity (normalized)
+    (?downloads / 10000.0) * 0.3 +
+    
+    # Rating quality
+    (?rating / 5.0) * 0.2 +
+    
+    # Trend momentum
+    COALESCE(?trend, 0) * 0.2 +
+    
+    # Community engagement
+    COALESCE(?communityScore, 0) * 0.2 +
+    
+    # Recency bonus
+    ?recency * 0.1
+    
+    AS ?popularityScore
+  )
+  
+  # Relevance multiplier
+  BIND(
+    1.0 + 
+    COALESCE(?verticalMatch, 0) * 0.3 +
+    COALESCE(?techMatch, 0) * 0.3
+    AS ?relevanceMultiplier
+  )
+  
+  # Final score
+  BIND(?popularityScore * ?relevanceMultiplier AS ?finalScore)
+  
+  # Quality filters
+  FILTER(?rating >= {{minRating}})
+  FILTER(?downloads >= {{minDownloads}})
+  
+  # Maintenance status filter
+  ?pack kgen:hasMaintenanceStatus ?status .
+  FILTER(?status IN ("active", "maintained"))
+  
+  # Exclude deprecated packages
+  FILTER NOT EXISTS {
+    ?pack kgen:hasStatus "deprecated" .
+  }
+  
+  # Time-based filters
+  FILTER(?lastUpdated >= "{{minLastUpdated}}"^^xsd:dateTime)
+}
+ORDER BY DESC(?finalScore) DESC(?downloads) DESC(?rating)
+LIMIT {{limit}}

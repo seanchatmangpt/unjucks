@@ -1,0 +1,157 @@
+---
+to: src/api/routes/<%= entityName.toLowerCase() %>.ts
+unless_exists: true
+---
+import { Router, Request, Response } from 'express';
+import { z } from 'zod';
+import { <%= entityName %> } from '../models/<%= entityName %>';
+import { validateRequest } from '../middleware/validation';
+import { authenticate } from '../middleware/auth';
+
+const router = Router();
+
+// Validation schemas
+const create<%= entityName %>Schema = z.object({
+<% if (properties && properties.length > 0) { -%>
+<% properties.forEach(prop => { -%>
+  <%= prop.name %>: z.<%= getZodType(prop.type) %>()<% if (prop.required) { %><% } else { %>.optional()<% } %>,
+<% }) -%>
+<% } -%>
+});
+
+const update<%= entityName %>Schema = create<%= entityName %>Schema.partial();
+
+/**
+ * GET /<%= entityName.toLowerCase() %>s
+ * Retrieve all <%= entityName.toLowerCase() %>s with pagination
+ */
+router.get('/', authenticate, async (req: Request, res: Response) => {
+  try {
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const offset = (page - 1) * limit;
+
+    const <%= entityName.toLowerCase() %>s = await <%= entityName %>.findAndCountAll({
+      limit,
+      offset,
+      order: [['createdAt', 'DESC']],
+    });
+
+    res.json({
+      data: <%= entityName.toLowerCase() %>s.rows,
+      pagination: {
+        page,
+        limit,
+        total: <%= entityName.toLowerCase() %>s.count,
+        totalPages: Math.ceil(<%= entityName.toLowerCase() %>s.count / limit),
+      },
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+/**
+ * GET /<%= entityName.toLowerCase() %>s/:id
+ * Retrieve a specific <%= entityName.toLowerCase() %> by ID
+ */
+router.get('/:id', authenticate, async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const <%= entityName.toLowerCase() %> = await <%= entityName %>.findByPk(id<% if (includeRelationships) { %>, {
+      include: [
+<% relationships.forEach(rel => { -%>
+        { model: <%= rel.targetEntity %>, as: '<%= rel.alias %>' },
+<% }) -%>
+      ],
+    }<% } %>);
+
+    if (!<%= entityName.toLowerCase() %>) {
+      return res.status(404).json({ error: '<%= entityName %> not found' });
+    }
+
+    res.json(<%= entityName.toLowerCase() %>);
+  } catch (error) {
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+/**
+ * POST /<%= entityName.toLowerCase() %>s
+ * Create a new <%= entityName.toLowerCase() %>
+ */
+router.post(
+  '/',
+  authenticate,
+  validateRequest(create<%= entityName %>Schema),
+  async (req: Request, res: Response) => {
+    try {
+      const <%= entityName.toLowerCase() %> = await <%= entityName %>.create(req.body);
+      res.status(201).json(<%= entityName.toLowerCase() %>);
+    } catch (error) {
+      if (error.name === 'SequelizeValidationError') {
+        return res.status(400).json({ 
+          error: 'Validation error', 
+          details: error.errors 
+        });
+      }
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  }
+);
+
+/**
+ * PUT /<%= entityName.toLowerCase() %>s/:id
+ * Update an existing <%= entityName.toLowerCase() %>
+ */
+router.put(
+  '/:id',
+  authenticate,
+  validateRequest(update<%= entityName %>Schema),
+  async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const [updatedRowsCount] = await <%= entityName %>.update(req.body, {
+        where: { id },
+      });
+
+      if (updatedRowsCount === 0) {
+        return res.status(404).json({ error: '<%= entityName %> not found' });
+      }
+
+      const updated<%= entityName %> = await <%= entityName %>.findByPk(id);
+      res.json(updated<%= entityName %>);
+    } catch (error) {
+      if (error.name === 'SequelizeValidationError') {
+        return res.status(400).json({ 
+          error: 'Validation error', 
+          details: error.errors 
+        });
+      }
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  }
+);
+
+/**
+ * DELETE /<%= entityName.toLowerCase() %>s/:id
+ * Delete a <%= entityName.toLowerCase() %>
+ */
+router.delete('/:id', authenticate, async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const deletedRowsCount = await <%= entityName %>.destroy({
+      where: { id },
+    });
+
+    if (deletedRowsCount === 0) {
+      return res.status(404).json({ error: '<%= entityName %> not found' });
+    }
+
+    res.status(204).send();
+  } catch (error) {
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+export default router;

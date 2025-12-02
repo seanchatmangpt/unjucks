@@ -1,5 +1,5 @@
 ---
-to: {{ dest || 'reports' }}/monthly-report-{{ year }}-{{ month | pad(2) }}.docx
+to: "{{ dest || 'reports' }}/monthly-report-{{ year }}-{{ month | pad(2) }}.docx"
 inject: false
 skipIf: false
 variables:

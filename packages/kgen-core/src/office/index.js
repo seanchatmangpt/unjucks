@@ -84,7 +84,7 @@ export const Office = {
  * 
  * @example
  * ```javascript
- * import { createOfficeProcessor } from '@kgen/office';
+ * import { createOfficeProcessor } from '@kgen/core/src/office/index';
  * 
  * const processor = createOfficeProcessor({
  *   syntax: 'nunjucks',
@@ -112,7 +112,7 @@ export function createOfficeProcessor(options = {}) {
  * 
  * @example
  * ```javascript
- * import { createOfficeInjector } from '@kgen/office';
+ * import { createOfficeInjector } from '@kgen/core/src/office/index';
  * 
  * const injector = createOfficeInjector({
  *   preserveFormatting: true,
@@ -142,7 +142,7 @@ export function createOfficeInjector(options = {}) {
  * 
  * @example
  * ```javascript
- * import { detectDocumentFormat } from '@kgen/office';
+ * import { detectDocumentFormat } from '@kgen/core/src/office/index';
  * 
  * const format = await detectDocumentFormat('./document.docx');
  * console.log(format); // 'word'
@@ -163,7 +163,7 @@ export async function detectDocumentFormat(filePath) {
  * 
  * @example
  * ```javascript
- * import { extractTemplateVariables } from '@kgen/office';
+ * import { extractTemplateVariables } from '@kgen/core/src/office/index';
  * 
  * const variables = await extractTemplateVariables('./template.docx');
  * console.log(variables);
@@ -199,7 +199,7 @@ export async function extractTemplateVariables(filePath, syntax = 'nunjucks') {
  * 
  * @example
  * ```javascript
- * import { validateTemplateData } from '@kgen/office';
+ * import { validateTemplateData } from '@kgen/core/src/office/index';
  * 
  * const result = await validateTemplateData(
  *   { userName: 'John', age: 30 },
@@ -237,7 +237,7 @@ export async function validateTemplateData(data, filePath, options = {}) {
  * 
  * @example
  * ```javascript
- * import { processTemplate } from '@kgen/office';
+ * import { processTemplate } from '@kgen/core/src/office/index';
  * 
  * const result = await processTemplate(
  *   './templates/report.docx',
@@ -264,7 +264,7 @@ export async function processTemplate(templatePath, data, outputPath, options = 
  * 
  * @example
  * ```javascript
- * import { batchProcessTemplates } from '@kgen/office';
+ * import { batchProcessTemplates } from '@kgen/core/src/office/index';
  * 
  * const results = await batchProcessTemplates([
  *   { templatePath: './template1.docx', data: { name: 'John' }, outputPath: './output1.docx' },

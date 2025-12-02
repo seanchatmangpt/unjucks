@@ -808,7 +808,7 @@ export class ProvenanceQueries {
    */
   _analyzeQueryComplexity(parsedQuery) {
     let score = 0;
-    let factors = [];
+    const factors = [];
     
     // Count triple patterns
     const triplePatternCount = this._countTriplePatterns(parsedQuery.where || []);

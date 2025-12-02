@@ -421,7 +421,7 @@ export class BloomFilterIndex extends EventEmitter {
     const chunkIndex = Math.floor(bitIndex / (this.config.bitArrayChunkSize * 8));
     const bitInChunk = bitIndex % (this.config.bitArrayChunkSize * 8);
     
-    let chunk = await this._getChunk(chunkIndex);
+    const chunk = await this._getChunk(chunkIndex);
     
     const byteIndex = Math.floor(bitInChunk / 8);
     const bitInByte = bitInChunk % 8;

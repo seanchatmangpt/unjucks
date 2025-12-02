@@ -1,0 +1,21 @@
+---
+to: "{{ baseDir }}/{{ moduleType | kebabCase }}/{{ componentName | kebabCase }}.component.ts"
+inject: false
+skipIf: false
+deterministic: true
+---
+{{ include 'header.njk' }}
+
+export class {{ componentName }}Component {
+  {% if withConstructor %}
+  constructor(
+    private service: {{ serviceType }}
+  ) {}
+  {% endif %}
+
+  {% for method in methods %}
+  {{ method.name }}(): {{ method.returnType }} {
+    return {{ method.defaultReturn }};
+  }
+  {% endfor %}
+}

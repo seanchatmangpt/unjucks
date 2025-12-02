@@ -1,0 +1,149 @@
+{
+  "name": "@enterprise/gdpr-compliance",
+  "version": "2.1.3",
+  "description": "Enterprise GDPR compliance templates with automated audit trails",
+  "main": "templates/index.njk",
+  "author": "Legal Compliance Associates <legal@lca-consulting.com>",
+  "license": "Commercial",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lca-consulting/gdpr-compliance-kpack.git"
+  },
+  "keywords": [
+    "gdpr",
+    "compliance",
+    "privacy",
+    "data-protection",
+    "enterprise",
+    "audit"
+  ],
+  "category": "compliance",
+  "visibility": "enterprise",
+  "compliance": {
+    "frameworks": ["GDPR", "CCPA", "LGPD"],
+    "dataProcessing": {
+      "purposes": ["consent-management", "data-minimization", "subject-rights"],
+      "legalBasis": ["consent", "legitimate-interest"],
+      "retentionPolicies": true,
+      "crossBorderTransfer": ["adequacy-decision", "sccs"]
+    },
+    "auditTrail": {
+      "enabled": true,
+      "immutable": true,
+      "encryption": "AES-256",
+      "retention": "7-years"
+    },
+    "privacyByDesign": true,
+    "dataSubjectRights": {
+      "access": true,
+      "rectification": true,
+      "erasure": true,
+      "portability": true,
+      "restriction": true,
+      "objection": true
+    }
+  },
+  "security": {
+    "encryptionAtRest": "AES-256",
+    "encryptionInTransit": "TLS-1.3",
+    "accessControls": "RBAC",
+    "auditLogging": true,
+    "vulnerabilityScanning": true
+  },
+  "pricing": {
+    "model": "commercial",
+    "tiers": {
+      "enterprise": {
+        "price": 2999,
+        "currency": "USD",
+        "billingPeriod": "one-time",
+        "features": [
+          "Multi-jurisdiction support",
+          "Custom modifications",
+          "Legal review included",
+          "Priority support"
+        ]
+      }
+    }
+  },
+  "dependencies": {
+    "@kgen/core": "^2.0.0",
+    "@kgen/validation": "^1.5.0",
+    "@kgen/compliance": "^3.1.0"
+  },
+  "files": [
+    "templates/**/*",
+    "schemas/**/*",
+    "docs/**/*",
+    "examples/**/*",
+    "README.md",
+    "LICENSE"
+  ],
+  "templates": {
+    "consent-management": {
+      "path": "templates/consent/consent-manager.njk",
+      "description": "GDPR-compliant consent management system",
+      "variables": {
+        "companyName": "string",
+        "dataRetentionYears": "number",
+        "enableWithdrawal": "boolean"
+      }
+    },
+    "data-processing-record": {
+      "path": "templates/records/processing-record.njk", 
+      "description": "Article 30 data processing record template",
+      "variables": {
+        "controllerName": "string",
+        "processingPurposes": "array",
+        "dataCategories": "array",
+        "recipients": "array"
+      }
+    },
+    "privacy-policy": {
+      "path": "templates/policy/privacy-policy.njk",
+      "description": "Comprehensive privacy policy generator",
+      "variables": {
+        "jurisdiction": "string",
+        "companyType": "string",
+        "dataTypes": "array"
+      }
+    }
+  },
+  "validation": {
+    "shacl": "schemas/gdpr-compliance-shapes.ttl",
+    "rules": [
+      "consent-must-be-explicit",
+      "data-minimization-required",
+      "retention-period-defined",
+      "dpo-contact-provided"
+    ]
+  },
+  "certification": {
+    "certified": true,
+    "certificationBody": "European Data Protection Board",
+    "certificationDate": "2024-01-15",
+    "validUntil": "2025-01-15",
+    "certificationId": "EDPB-2024-001"
+  },
+  "attestation": {
+    "slsa": {
+      "level": "SLSA_BUILD_LEVEL_3",
+      "builder": "kgen-enterprise-builder@2.0.0",
+      "buildType": "https://kgen.dev/BuildTypes/enterprise-compliance/v1"
+    },
+    "sbom": {
+      "format": "SPDX-2.3",
+      "included": true
+    },
+    "signature": {
+      "algorithm": "Ed25519",
+      "keyId": "lca-signing-key-2024"
+    }
+  },
+  "kgen": {
+    "version": "2.0.0",
+    "marketplace": true,
+    "deterministic": true,
+    "reproducible": true
+  }
+}

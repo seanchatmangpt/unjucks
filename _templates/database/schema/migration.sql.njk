@@ -1,5 +1,5 @@
 ---
-to: migrations/{{ timestamp() }}_create_{{ tableName }}_table.sql
+to: "migrations/{{ timestamp() }}_create_{{ tableName }}_table.sql"
 ---
 {% set primaryKeyType = 'UUID' if withUUID else 'BIGSERIAL' %}
 {% if databaseType === 'postgresql' %}-- PostgreSQL Migration{% elif databaseType === 'mysql' %}-- MySQL Migration{% else %}-- {{ databaseType | upper }} Migration{% endif %}

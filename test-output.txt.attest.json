@@ -1,0 +1,17 @@
+{
+  "artifact": {
+    "path": "test-output.txt",
+    "hash": "6d20f1b8b89c9106227a2ef6b55b5e3245f45275cd0a7972999c14897c574b46",
+    "size": 21
+  },
+  "generation": {
+    "template": "templates/test.njk",
+    "templateHash": "6d20f1b8b89c9106227a2ef6b55b5e3245f45275cd0a7972999c14897c574b46",
+    "timestamp": "2025-09-13T05:15:59.975Z",
+    "kgenVersion": "1.0.0"
+  },
+  "graph": {
+    "path": "test-graph.ttl",
+    "hash": "568d18df6c9f2a07e8e35f3b1b54889d0f8724a0c25d6e3674dd971e71052892"
+  }
+}

@@ -1403,7 +1403,7 @@ echo "🚀 Setting up KGEN drift detection for ${platform}..."
 # Install KGEN CLI
 if ! command -v kgen &> /dev/null; then
   echo "📦 Installing KGEN CLI..."
-  npm install -g @kgen/cli
+  npm install -g @kgen/cli/cli-entry
 fi
 
 # Create configuration

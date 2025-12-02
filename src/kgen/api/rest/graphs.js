@@ -289,7 +289,7 @@ export class KnowledgeGraphAPI {
       const includeProvenance = req.query.includeProvenance === 'true';
       const includeMetrics = req.query.includeMetrics === 'true';
       
-      let responseData = this._formatGraphResponse(graph);
+      const responseData = this._formatGraphResponse(graph);
       
       // Add provenance if requested
       if (includeProvenance) {

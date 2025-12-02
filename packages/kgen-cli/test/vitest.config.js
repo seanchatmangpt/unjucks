@@ -41,7 +41,8 @@ export default defineConfig({
       'test/**/*.{test,spec}.{js,ts}',
       'test/unit/**/*.test.js',
       'test/integration/**/*.test.js',
-      'test/e2e/**/*.test.js'
+      'test/e2e/**/*.test.js',
+      'test/commands/**/*.test.js'
     ],
     
     // Test exclusion patterns
@@ -53,7 +54,7 @@ export default defineConfig({
     
     // CLI-specific settings
     retry: 1, // Allow one retry for flaky CLI operations
-    threads: false, // Single-threaded for CLI consistency
+    pool: 'forks', // Use forks instead of threads for process operations
     isolate: true,
     
     // Reporter configuration

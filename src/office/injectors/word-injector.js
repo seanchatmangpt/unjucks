@@ -53,7 +53,7 @@ export class WordInjector {
     try {
       // Load the document
       const documentBuffer = await fs.readFile(filePath);
-      let document = await this.loadDocument(documentBuffer);
+      const document = await this.loadDocument(documentBuffer);
       
       this.logger.info(`Processing ${injections.length} injections for ${path.basename(filePath)}`);
 

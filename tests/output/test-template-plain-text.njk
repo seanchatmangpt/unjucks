@@ -1,0 +1,15 @@
+---
+to: "{{title | replace(' ', '-') | lower}}.txt"
+---
+# {{title}}
+
+Author: {{author}}
+Generated: {{timestamp}}
+
+Content:
+{{content}}
+
+Items:
+{% for item in items %}
+- {{item}}
+{% endfor %}

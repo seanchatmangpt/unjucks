@@ -581,7 +581,7 @@ const injectCommand = defineCommand({
       }
       
       // Read original content
-      let originalContent = readFileSync(args.file, 'utf8');
+      const originalContent = readFileSync(args.file, 'utf8');
       let modifiedContent = originalContent;
       
       // Perform injection based on position

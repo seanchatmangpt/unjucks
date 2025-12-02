@@ -1,0 +1,22 @@
+\documentclass{article}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage[utf8]{inputenc}
+
+\title{ Test Document }
+\author{ KGEN Templates }
+\date{ 2024-01-01T00:00:00.000Z }
+
+\begin{document}
+
+\maketitle \section{Content}
+This is deterministic test content
+
+\section{Items}
+\begin{itemize}
+\item Item 1
+\item Item 2
+\item Item 3
+\end{itemize}
+
+\end{document}

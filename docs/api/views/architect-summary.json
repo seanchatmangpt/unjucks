@@ -1,0 +1,78 @@
+{
+  "metadata": {
+    "generated": "2025-09-13T06:07:15.344Z",
+    "persona": "architect",
+    "depth": "summary",
+    "version": "2.0.0",
+    "githubPagesReady": true,
+    "marketplaceBaseUrl": "https://marketplace.kgen.dev"
+  },
+  "viewType": "architect",
+  "summary": {
+    "totalComponents": 45,
+    "integrationComplexity": 7.2,
+    "performanceScore": 85.6,
+    "architecturalHealth": 78.9,
+    "technicalDebtLevel": "medium",
+    "trustPolicyCompliance": 87
+  },
+  "dependencies": {
+    "totalNodes": 45,
+    "criticalPaths": [
+      {
+        "path": [
+          "kgen-users",
+          "kgen-auth",
+          "kgen-api-core",
+          "postgres-db"
+        ],
+        "risk": "medium",
+        "impact": 7.8
+      }
+    ],
+    "recommendations": [
+      "Consider implementing circuit breakers for external dependencies",
+      "Upgrade PostgreSQL to version 16.x for improved performance"
+    ]
+  },
+  "performance": {
+    "benchmarks": [
+      {
+        "metric": "API Response Time",
+        "value": 245,
+        "unit": "ms",
+        "baseline": 300,
+        "target": 200,
+        "trend": "improving",
+        "percentile": 95
+      }
+    ],
+    "optimizationTargets": [
+      {
+        "component": "API Gateway",
+        "potential": 34,
+        "effort": "medium",
+        "marketplaceSolutions": [
+          {
+            "name": "kgen-gateway-optimizer",
+            "url": "https://marketplace.kgen.dev/packages/gateway-optimizer",
+            "effectiveness": 87
+          }
+        ]
+      }
+    ]
+  },
+  "trustPolicies": {
+    "complianceScore": 87,
+    "diffs": [
+      {
+        "policy": "minimumTrustScore",
+        "current": 80,
+        "proposed": 85,
+        "impact": "medium",
+        "reason": "Improve overall security posture",
+        "recommendation": "Implement gradually over 30 days"
+      }
+    ]
+  }
+}

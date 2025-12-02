@@ -1,0 +1,20 @@
+---
+to: "{{ outputDir }}/{{ className | kebabCase }}.service.ts"
+---
+{% macro renderMethod(name, returnType, params) -%}
+{{ name }}({{ params | join(', ') }}): {{ returnType }} {}
+{%- endmacro %}
+
+{% macro renderProperty(name, type, defaultValue) -%}
+private {{ name }}: {{ type }}{{ ' = ' + defaultValue if defaultValue }};
+{%- endmacro %}
+
+{% macro renderImport(module, items) -%}
+import { {{ items | join(', ') }} } from '{{ module }}';
+{%- endmacro %}
+
+export class {{ className }} {
+  {{ renderMethod('getUser', 'User', ['id: string']) }}
+  {{ renderMethod('deleteUser', 'void', ['id: string']) }}
+  {{ renderMethod('updateUser', 'User', ['id: string', 'data: Partial<User>']) }}
+}

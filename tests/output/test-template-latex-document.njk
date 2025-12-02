@@ -1,0 +1,27 @@
+---
+to: "{{title | replace(' ', '-') | lower}}.tex"
+---
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{graphicx}
+
+\title{ {{title}} }
+\author{ {{author}} }
+\date{ {{timestamp}} }
+
+\begin{document}
+
+\maketitle
+
+\section{Content}
+{{content}}
+
+\section{Items}
+\begin{itemize}
+{% for item in items %}
+\item {{item}}
+{% endfor %}
+\end{itemize}
+
+\end{document}

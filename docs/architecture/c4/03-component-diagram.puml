@@ -1,0 +1,63 @@
+@startuml unjucks-v4-components
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+LAYOUT_WITH_LEGEND()
+
+title Component Diagram - Unjucks V4 Template Engine
+
+Container_Boundary(template_engine, "Template Engine") {
+    Component(frontmatter_parser, "Frontmatter Parser", "YAML frontmatter parsing", "Parses and validates YAML frontmatter from templates")
+    Component(nunjucks_renderer, "Nunjucks Renderer", "Template rendering", "Renders Nunjucks templates with context and filters")
+    Component(hygen_generator, "Hygen Generator", "Generator pattern matching", "Implements Hygen-style generator/action/file patterns")
+    Component(rdf_integration, "RDF Integration", "RDF context builder", "Integrates RDF data into template context")
+    Component(variable_extractor, "Variable Extractor", "Variable detection", "Scans templates for variables and infers types")
+    Component(path_resolver, "Path Resolver", "Dynamic path resolution", "Resolves output paths using Nunjucks templating")
+    Component(operation_engine, "Operation Engine", "File operation executor", "Executes write, inject, append, prepend, lineAt operations")
+    Component(filter_registry, "Filter Registry", "Nunjucks filter catalog", "Manages custom filters (case conversion, RDF, etc.)")
+    Component(conditional_processor, "Conditional Processor", "Condition evaluation", "Evaluates skipIf and conditional logic")
+}
+
+Container_Boundary(dark_matter_optimizer, "Dark Matter Optimizer") {
+    Component(query_analyzer, "Query Analyzer", "SPARQL query analysis", "Analyzes query complexity and identifies expensive operations")
+    Component(critical_path_id, "Critical Path Identifier", "Bottleneck detection", "Identifies 20% of queries causing 80% of performance issues")
+    Component(dm_optimizer, "Dark Matter Optimizer", "Query optimization", "Optimizes critical queries using 80/20 rules")
+    Component(edge_case_validator, "Edge Case Validator", "Dark matter testing", "Validates 20% of edge cases causing 80% of failures")
+}
+
+Container_Boundary(performance_optimizer, "Performance Optimizer") {
+    Component(cache_manager, "Cache Manager", "Content-addressed caching", "Manages cache with 80/20 optimization")
+    Component(critical_path_opt, "Critical Path Optimizer", "Path optimization", "Optimizes critical 20% of execution paths")
+    Component(batch_processor, "Batch Processor", "Batch operations", "Batches operations for efficiency")
+}
+
+Container(rdf_engine, "RDF Engine", "RDF data processing")
+Container(file_ops, "File Operations", "File system operations")
+Container(core_engine, "Core Engine", "Orchestration")
+Container(knowledge_substrate, "Knowledge Substrate Core", "80/20 framework")
+
+Rel(frontmatter_parser, nunjucks_renderer, "Provides config", "Frontmatter metadata")
+Rel(hygen_generator, frontmatter_parser, "Uses", "Template discovery")
+Rel(nunjucks_renderer, filter_registry, "Uses", "Custom filters")
+Rel(nunjucks_renderer, variable_extractor, "Uses", "Variable context")
+Rel(nunjucks_renderer, rdf_integration, "Uses", "RDF context")
+Rel(rdf_integration, rdf_engine, "Queries", "SPARQL, RDF data")
+Rel(path_resolver, nunjucks_renderer, "Uses", "Path templating")
+Rel(conditional_processor, nunjucks_renderer, "Uses", "Condition evaluation")
+Rel(operation_engine, path_resolver, "Uses", "Resolved paths")
+Rel(operation_engine, file_ops, "Executes", "File operations")
+Rel(core_engine, hygen_generator, "Orchestrates", "Generation workflow")
+
+' Dark Matter optimization relationships
+Rel(rdf_engine, query_analyzer, "Feeds", "SPARQL queries")
+Rel(query_analyzer, critical_path_id, "Analyzes", "Query performance")
+Rel(critical_path_id, dm_optimizer, "Identifies", "Critical queries (20%)")
+Rel(dm_optimizer, rdf_engine, "Optimizes", "Query execution")
+Rel(critical_path_opt, nunjucks_renderer, "Optimizes", "Rendering paths")
+Rel(cache_manager, nunjucks_renderer, "Caches", "Rendered templates")
+Rel(cache_manager, rdf_engine, "Caches", "RDF query results")
+Rel(batch_processor, operation_engine, "Batches", "File operations")
+Rel(knowledge_substrate, critical_path_opt, "Provides", "80/20 framework")
+Rel(knowledge_substrate, cache_manager, "Provides", "Optimization strategy")
+
+@enduml
+

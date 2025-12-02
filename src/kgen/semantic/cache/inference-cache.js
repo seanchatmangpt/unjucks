@@ -829,7 +829,7 @@ export class InferenceCache extends EventEmitter {
       const filePath = path.join(partitionInfo.directory, `${this._hashKey(key)}.json`);
       
       const data = await fs.readFile(filePath, 'utf8');
-      let cacheEntry = JSON.parse(data);
+      const cacheEntry = JSON.parse(data);
       
       // Check TTL
       if (cacheEntry.expiresAt && this.getDeterministicTimestamp() > cacheEntry.expiresAt) {

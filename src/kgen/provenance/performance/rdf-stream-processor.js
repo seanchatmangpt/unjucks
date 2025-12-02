@@ -328,7 +328,7 @@ export class RDFStreamProcessor extends EventEmitter {
    */
   createAdaptiveBuffer() {
     let bufferSize = this.config.batchSize;
-    let buffer = [];
+    const buffer = [];
     let lastMemoryCheck = this.getDeterministicTimestamp();
     
     return new Transform({

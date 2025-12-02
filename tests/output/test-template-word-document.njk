@@ -1,0 +1,15 @@
+---
+to: "{{title | replace(' ', '-') | lower}}.docx"
+---
+# {{title}}
+
+Author: {{author}}
+Generated: {{timestamp}}
+
+Content:
+{{content}}
+
+Items:
+{% for item in items %}
+- {{item}}
+{% endfor %}

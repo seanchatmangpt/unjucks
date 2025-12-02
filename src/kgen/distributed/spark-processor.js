@@ -360,7 +360,7 @@ export class SparkGraphProcessor extends EventEmitter {
     const partitions = options.partitions || Math.ceil(graphData.triples.length / 100000);
     
     let currentTriples = this.sparkContext.parallelize(graphData.triples, partitions);
-    let newTriples = [];
+    const newTriples = [];
     let iteration = 0;
     
     // Iterative reasoning

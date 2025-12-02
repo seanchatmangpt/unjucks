@@ -176,7 +176,7 @@ export default {{ name | pascalCase }};`,
 to: "{{ dest }}/components/{{ name | pascalCase }}/{{ name | pascalCase }}.test.js"
 ---
 import { render } from '@testing-library/react';
-import { {{ name | pascalCase }} } from './index';
+import { {{ name | pascalCase }} } from './cli-entry';
 
 describe('{{ name | pascalCase }}', () => {
   it('renders correctly', () => {

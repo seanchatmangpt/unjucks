@@ -1,0 +1,24 @@
+@startuml unjucks-v4-context
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+
+LAYOUT_WITH_LEGEND()
+
+title System Context Diagram - Unjucks V4
+
+Person(developer, "Developer", "Uses unjucks v4 to generate code from templates")
+System(unjucks_v4, "Unjucks V4", "Template-driven code generation system with frontmatter, Nunjucks, and RDF support")
+
+System_Ext(file_system, "File System", "Local file system for templates and generated artifacts")
+System_Ext(rdf_sources, "RDF Data Sources", "Turtle, JSON-LD, and SPARQL endpoints for semantic data")
+System_Ext(template_repos, "Template Repositories", "External template collections and generators")
+System_Ext(ci_cd, "CI/CD System", "Automated build and deployment pipelines")
+
+Rel(developer, unjucks_v4, "Uses", "CLI commands")
+Rel(unjucks_v4, file_system, "Reads/Writes", "Templates and generated files")
+Rel(unjucks_v4, rdf_sources, "Loads", "RDF data for template context")
+Rel(unjucks_v4, template_repos, "Imports", "Template collections")
+Rel(ci_cd, unjucks_v4, "Executes", "Automated generation")
+
+@enduml
+
+

@@ -1,0 +1,288 @@
+{
+  "valid_ed25519_attestation": {
+    "version": "2.0.0",
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "artifact_name": "button.tsx",
+    "artifact_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "algorithm": "sha256",
+    "generation_timestamp": "2023-12-01T10:00:00.000Z",
+    
+    "git_commit_sha": "a1b2c3d4e5f6789012345678901234567890abcd",
+    "git_branch": "main", 
+    "git_repository_url": "https://github.com/example/repo.git",
+    "git_author": {
+      "name": "Test User",
+      "email": "test@example.com"
+    },
+    
+    "template_name": "component.njk",
+    "template_hash": "f1e2d3c4b5a67890123456789012345678901234",
+    "template_commit": "b2c3d4e5f6a789012345678901234567890abcde",
+    
+    "template_hierarchy": [
+      {
+        "template": "component.njk",
+        "hash": "f1e2d3c4b5a67890123456789012345678901234",
+        "relationship": "direct"
+      },
+      {
+        "template": "base.njk", 
+        "hash": "c3d4e5f6a7b89012345678901234567890abcdef",
+        "relationship": "inherited"
+      }
+    ],
+    
+    "variables": {
+      "componentName": "Button",
+      "componentType": "interactive",
+      "props": ["onClick", "disabled", "children"]
+    },
+    
+    "kgen_version": "2.0.0",
+    "generator": "KGEN CLI",
+    "host_info": {
+      "platform": "darwin",
+      "node_version": "v18.17.0",
+      "user": "testuser"
+    },
+    
+    "prov:wasGeneratedBy": {
+      "prov:activity": "kgen:generation",
+      "prov:agent": "kgen:cli", 
+      "prov:time": "2023-12-01T10:00:00.000Z",
+      "prov:location": "/workspace/generated"
+    },
+    
+    "jose_header": {
+      "alg": "Ed25519",
+      "typ": "JWT",
+      "kid": "ed25519_001"
+    },
+    
+    "signature": "eyJhbGciOiJFZDI1NTE5IiwidHlwIjoiSldUIn0.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.signature_placeholder_64_bytes_base64url_encoded_ed25519_signature_data"
+  },
+  
+  "valid_rsa_attestation": {
+    "version": "2.0.0",
+    "id": "660f9500-f39c-52e5-b827-557766551111",
+    "artifact_name": "service.ts",
+    "artifact_hash": "d2d2d2d2298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "algorithm": "sha256",
+    "generation_timestamp": "2023-12-01T11:30:00.000Z",
+    
+    "git_commit_sha": "b2c3d4e5f6a789012345678901234567890abcde",
+    "git_branch": "feature/new-service",
+    "git_repository_url": "https://github.com/example/repo.git",
+    
+    "template_name": "service.njk",
+    "template_hash": "a2b3c4d5e6f789012345678901234567890abcde",
+    "template_commit": "c3d4e5f6a7b89012345678901234567890abcdef",
+    
+    "kgen_version": "2.0.0",
+    "generator": "KGEN CLI",
+    
+    "jose_header": {
+      "alg": "RS256",
+      "typ": "JWT", 
+      "kid": "rsa_002"
+    },
+    
+    "signature": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.rsa_signature_placeholder_256_bytes_base64url_encoded_rsa_signature_data_here"
+  },
+  
+  "multi_signature_attestation": {
+    "version": "2.0.0", 
+    "id": "770f9500-f39c-52e5-b827-557766552222",
+    "artifact_name": "critical-component.tsx",
+    "artifact_hash": "f3f3f3f3298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "algorithm": "sha256",
+    "generation_timestamp": "2023-12-01T15:45:00.000Z",
+    
+    "git_commit_sha": "c3d4e5f6a7b89012345678901234567890abcdef", 
+    "git_branch": "main",
+    
+    "template_name": "critical.njk",
+    "kgen_version": "2.0.0",
+    
+    "signatures": [
+      {
+        "jose_header": {
+          "alg": "Ed25519",
+          "typ": "JWT",
+          "kid": "ed25519_001"
+        },
+        "signature": "ed25519_multi_sig_1.payload.signature"
+      },
+      {
+        "jose_header": {
+          "alg": "RS256", 
+          "typ": "JWT",
+          "kid": "rsa_002"
+        },
+        "signature": "rsa_multi_sig_1.payload.signature_256_bytes"
+      }
+    ]
+  },
+  
+  "corrupted_signature_attestation": {
+    "version": "2.0.0",
+    "id": "880f9500-f39c-52e5-b827-557766553333", 
+    "artifact_name": "test-component.tsx",
+    "artifact_hash": "a4a4a4a4298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "algorithm": "sha256",
+    "generation_timestamp": "2023-12-01T16:00:00.000Z",
+    
+    "git_commit_sha": "d4e5f6a7b8c90123456789012345678901234abc",
+    "git_branch": "test-branch",
+    
+    "template_name": "test.njk", 
+    "kgen_version": "2.0.0",
+    
+    "jose_header": {
+      "alg": "Ed25519",
+      "typ": "JWT",
+      "kid": "ed25519_001"
+    },
+    
+    "signature": "CORRUPTED_SIGNATURE_DATA_XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+  },
+  
+  "cross_repo_attestation": {
+    "version": "2.0.0",
+    "id": "990f9500-f39c-52e5-b827-557766554444",
+    "artifact_name": "shared-component.tsx", 
+    "artifact_hash": "b5b5b5b5298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "algorithm": "sha256",
+    "generation_timestamp": "2023-12-01T17:15:00.000Z",
+    
+    "git_commit_sha": "e5f6a7b8c9d0123456789012345678901234abcd",
+    "git_branch": "main",
+    "git_repository_url": "https://github.com/example/consumer-repo.git",
+    
+    "template_name": "shared/base.njk",
+    "template_hash": "f6a7b8c9d0e1234567890123456789012345abcd", 
+    "template_repository": "https://github.com/example/template-repo.git",
+    "template_commit": "g7h8i9j0k1l2345678901234567890123456bcde",
+    
+    "cross_repo_references": [
+      {
+        "repository": "https://github.com/example/template-repo.git",
+        "template": "shared/base.njk", 
+        "commit": "g7h8i9j0k1l2345678901234567890123456bcde",
+        "hash": "f6a7b8c9d0e1234567890123456789012345abcd"
+      }
+    ],
+    
+    "kgen_version": "2.0.0",
+    
+    "jose_header": {
+      "alg": "Ed25519",
+      "typ": "JWT", 
+      "kid": "ed25519_001"
+    },
+    
+    "signature": "cross_repo.payload.signature_ed25519"
+  },
+  
+  "template_hierarchy_attestation": {
+    "version": "2.0.0",
+    "id": "aa0f9500-f39c-52e5-b827-557766555555",
+    "artifact_name": "homepage.tsx",
+    "artifact_hash": "c6c6c6c6298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", 
+    "algorithm": "sha256",
+    "generation_timestamp": "2023-12-01T18:30:00.000Z",
+    
+    "git_commit_sha": "f6a7b8c9d0e1234567890123456789012345abcd",
+    "git_branch": "main",
+    
+    "template_name": "page.njk",
+    "template_hash": "a7b8c9d0e1f234567890123456789012345abcde",
+    
+    "template_hierarchy": [
+      {
+        "template": "page.njk",
+        "hash": "a7b8c9d0e1f234567890123456789012345abcde", 
+        "relationship": "direct",
+        "commit": "f6a7b8c9d0e1234567890123456789012345abcd"
+      },
+      {
+        "template": "layout.njk",
+        "hash": "b8c9d0e1f2a34567890123456789012345abcdef",
+        "relationship": "inherited", 
+        "commit": "e5f6a7b8c9d0123456789012345678901234abcd"
+      },
+      {
+        "template": "base.njk",
+        "hash": "c9d0e1f2a3b4567890123456789012345abcdef0",
+        "relationship": "inherited",
+        "commit": "d4e5f6a7b8c90123456789012345678901234abc" 
+      }
+    ],
+    
+    "template_dependency_graph": {
+      "@type": "prov:Entity",
+      "prov:wasInfluencedBy": [
+        {
+          "@id": "template:page.njk",
+          "prov:hadInfluencer": "template:layout.njk"
+        },
+        {
+          "@id": "template:layout.njk", 
+          "prov:hadInfluencer": "template:base.njk"
+        }
+      ]
+    },
+    
+    "kgen_version": "2.0.0",
+    
+    "jose_header": {
+      "alg": "Ed25519",
+      "typ": "JWT",
+      "kid": "ed25519_001" 
+    },
+    
+    "signature": "template_hierarchy.payload.signature_ed25519"
+  },
+  
+  "performance_test_bundle": {
+    "version": "2.0.0",
+    "bundle_type": "attestation_collection",
+    "created": "2023-12-01T20:00:00.000Z",
+    "repository": "https://github.com/example/large-repo.git",
+    "commit_range": "abc123..def456",
+    
+    "attestations": [
+      {
+        "artifact": "file_001.js",
+        "hash": "d7d7d7d7298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "signature": "bundle_sig_001"
+      },
+      {
+        "artifact": "file_002.ts", 
+        "hash": "e8e8e8e8298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "signature": "bundle_sig_002"
+      },
+      {
+        "artifact": "file_003.tsx",
+        "hash": "f9f9f9f9298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", 
+        "signature": "bundle_sig_003"
+      }
+    ],
+    
+    "bundle_signature": {
+      "jose_header": {
+        "alg": "Ed25519",
+        "typ": "JWT",
+        "kid": "ed25519_001"
+      },
+      "signature": "bundle_level.payload.signature_ed25519"
+    },
+    
+    "statistics": {
+      "total_attestations": 3,
+      "total_files": 1000,
+      "coverage_percentage": 85.5,
+      "generation_time_ms": 1250
+    }
+  }
+}

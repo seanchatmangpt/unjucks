@@ -10,7 +10,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import consola from 'consola';
 import { ArtifactExplainer } from '@kgen/core/src/provenance/artifact-explainer.js';
-import { createProvenanceTracker } from '@kgen/core/src/provenance/index.js';
+import { createProvenanceTracker } from '@kgen/core/src/provenance/provenance-entry.js';
 
 /**
  * Create the artifact explain command

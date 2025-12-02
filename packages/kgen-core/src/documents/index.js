@@ -97,7 +97,7 @@ export const Documents = {
  * 
  * @example
  * ```javascript
- * import { generateDocument } from '@kgen/documents';
+ * import { generateDocument } from '@kgen/core/src/documents/index';
  * 
  * // Generate Word document
  * const result = await generateDocument({
@@ -145,7 +145,7 @@ export async function generateDocument(options) {
  * 
  * @example
  * ```javascript
- * import { generateDocuments } from '@kgen/documents';
+ * import { generateDocuments } from '@kgen/core/src/documents/index';
  * 
  * const results = await generateDocuments([
  *   { template: './templates/invoice.docx', data: { customer: 'A' }, output: './invoices/A.docx' },
@@ -187,7 +187,7 @@ export async function generateDocuments(documents, sharedConfig = {}) {
  * 
  * @example
  * ```javascript
- * import { createDocumentProcessor } from '@kgen/documents';
+ * import { createDocumentProcessor } from '@kgen/core/src/documents/index';
  * 
  * const processor = createDocumentProcessor({
  *   type: 'word',
@@ -224,7 +224,7 @@ export function createDocumentProcessor(options = {}) {
  * 
  * @example
  * ```javascript
- * import { validateDocumentTemplate } from '@kgen/documents';
+ * import { validateDocumentTemplate } from '@kgen/core/src/documents/index';
  * 
  * const validation = await validateDocumentTemplate('./templates/report.docx', {
  *   strictValidation: true,
@@ -280,7 +280,7 @@ export async function validateDocumentTemplate(templatePath, options = {}) {
  * 
  * @example
  * ```javascript
- * import { extractDocumentVariables } from '@kgen/documents';
+ * import { extractDocumentVariables } from '@kgen/core/src/documents/index';
  * 
  * const variables = await extractDocumentVariables('./templates/contract.docx');
  * console.log('Template variables:', variables.variables);

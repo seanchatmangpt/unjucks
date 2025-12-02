@@ -1,0 +1,66 @@
+{
+  "name": "marketplace-bdd-tests",
+  "version": "1.0.0",
+  "description": "Comprehensive BDD tests for marketplace functionality",
+  "scripts": {
+    "test": "cucumber-js --config tests/cucumber.js",
+    "test:smoke": "cucumber-js --config tests/cucumber.js --profile smoke",
+    "test:performance": "cucumber-js --config tests/cucumber.js --profile performance && npm run test:benchmarks",
+    "test:security": "cucumber-js --config tests/cucumber.js --profile security",
+    "test:ci": "cucumber-js --config tests/cucumber.js --profile ci",
+    "test:benchmarks": "mocha tests/performance/marketplace-benchmarks.js --timeout 60000",
+    "test:publish": "cucumber-js --config tests/cucumber.js --tags '@publish'",
+    "test:search": "cucumber-js --config tests/cucumber.js --tags '@search'",
+    "test:install": "cucumber-js --config tests/cucumber.js --tags '@install'",
+    "test:payments": "cucumber-js --config tests/cucumber.js --tags '@payment'",
+    "test:personas": "cucumber-js --config tests/cucumber.js --tags '@persona-views'",
+    "test:crypto": "cucumber-js --config tests/cucumber.js --tags '@cryptography'",
+    "test:debug": "cucumber-js --config tests/cucumber.js --tags '@debug' --parallel 1",
+    "test:watch": "nodemon --exec 'npm run test:smoke' --watch tests",
+    "report:generate": "node scripts/generate-reports.js",
+    "report:serve": "http-server tests/reports -p 8080 -o",
+    "lint": "eslint tests/**/*.js",
+    "format": "prettier --write tests/**/*.js",
+    "setup": "mkdir -p tests/reports && npm install",
+    "clean": "rimraf tests/reports/*"
+  },
+  "devDependencies": {
+    "@cucumber/cucumber": "^10.0.1",
+    "chai": "^4.3.10",
+    "mocha": "^10.2.0",
+    "axios": "^1.6.0",
+    "nodemon": "^3.0.1",
+    "eslint": "^8.50.0",
+    "prettier": "^3.0.3",
+    "rimraf": "^5.0.5",
+    "http-server": "^14.1.1",
+    "cucumber-html-reporter": "^7.1.1",
+    "mochawesome": "^7.1.3"
+  },
+  "dependencies": {
+    "crypto": "^1.0.1",
+    "performance-hooks": "^1.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "bdd",
+    "cucumber",
+    "testing",
+    "marketplace",
+    "e2e",
+    "performance",
+    "security"
+  ],
+  "author": "Marketplace Test Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/marketplace/bdd-tests.git"
+  },
+  "bugs": {
+    "url": "https://github.com/marketplace/bdd-tests/issues"
+  },
+  "homepage": "https://github.com/marketplace/bdd-tests#readme"
+}

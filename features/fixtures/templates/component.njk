@@ -1,0 +1,24 @@
+---
+to: "{{ outputDir }}/components/{{ componentName | kebabCase }}.component.ts"
+inject: false
+chmod: 0644
+---
+{% extends "base.njk" %}
+
+{% block methods %}
+{% for method in methods %}
+{{ method.name }}({{ method.params | join(', ') }}): {{ method.returnType }} {
+  {% if method.implementation %}
+  {{ method.implementation }}
+  {% else %}
+  throw new Error('Method {{ method.name }} not implemented');
+  {% endif %}
+}
+{% endfor %}
+{% endblock %}
+
+{% block properties %}
+{% for prop in properties %}
+private {{ prop.name }}: {{ prop.type }}{{ ' = ' + prop.default if prop.default }};
+{% endfor %}
+{% endblock %}

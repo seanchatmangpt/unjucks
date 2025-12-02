@@ -1,0 +1,121 @@
+{
+  "version": "1.0.0",
+  "metadata": {
+    "name": "KGEN Development Trust Policy",
+    "description": "Trust policy for KGEN code generation and attestation verification",
+    "owner": "KGEN Security Team",
+    "created": "2024-01-01T00:00:00.000Z",
+    "lastModified": "2024-01-01T00:00:00.000Z",
+    "tags": ["development", "kgen", "slsa"]
+  },
+  "trustedSigners": [
+    {
+      "keyid": "did:key:z6MkhaXgBZDvotDkL5257faiztiGiC2QtKLGpbnnEGta2doK",
+      "publicKey": "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAGb9ECWmEzf6FQbrBZ9w7lshQhqowtrbLDFw4rXAxZuE=\n-----END PUBLIC KEY-----",
+      "name": "KGEN CI System",
+      "organization": "KGEN Project",
+      "roles": ["ci-system"],
+      "expires": "2025-01-01T00:00:00.000Z"
+    },
+    {
+      "keyid": "did:key:z6MkiTBz1ymuepAQ4HEHYSF1H8quG5GLVVQR3djdX3mDooWp",
+      "publicKey": "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAhtnYmDNiudwKhAdyMVvS1LdJa9zPJjJhEqPAIl33NkI=\n-----END PUBLIC KEY-----",
+      "name": "Alice Developer",
+      "organization": "KGEN Project",
+      "roles": ["developer", "release-manager"],
+      "expires": "2025-06-01T00:00:00.000Z"
+    },
+    {
+      "keyid": "did:key:z6MkfrQKqunfWkLzeT5GYEBJANsj9FRTsWZ1SgHgQmqVm98V",
+      "publicKey": "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAXGSxdU3HZjHXTmZHJ4WY9J4+xE8V+3kM2hNk7xW6P2k=\n-----END PUBLIC KEY-----",
+      "name": "Bob Security Admin",
+      "organization": "KGEN Project",
+      "roles": ["admin"],
+      "expires": "2025-12-31T00:00:00.000Z"
+    }
+  ],
+  "requiredSignatures": 1,
+  "allowedPredicateTypes": [
+    "https://kgen.dev/attestation/v1",
+    "https://slsa.dev/provenance/v0.2",
+    "https://in-toto.io/attestation/link/v0.1"
+  ],
+  "slsaLevel": 2,
+  "additionalChecks": {
+    "requireGitSigning": false,
+    "requireReproducibleBuilds": true,
+    "allowedEnvironments": [
+      "development",
+      "ci",
+      "staging",
+      "production"
+    ],
+    "maxAttestationAge": "30d",
+    "allowedCommands": [
+      "kgen",
+      "npm",
+      "node",
+      "docker"
+    ],
+    "requiredMaterials": [
+      "package.json",
+      "package-lock.json"
+    ],
+    "forbiddenMaterials": [
+      "*.key",
+      "*.pem",
+      "*.p12",
+      ".env",
+      "secrets.*"
+    ],
+    "requiredEnvironmentVariables": [
+      "NODE_ENV"
+    ]
+  },
+  "exemptions": {
+    "artifacts": [
+      {
+        "pattern": "test/**/*.js",
+        "reason": "Test files do not require attestation",
+        "expires": "2025-12-31T00:00:00.000Z"
+      },
+      {
+        "pattern": "docs/**/*.md",
+        "reason": "Documentation files have relaxed requirements"
+      },
+      {
+        "pattern": "*.example.*",
+        "reason": "Example files used for demonstration"
+      }
+    ],
+    "environments": [
+      {
+        "name": "development",
+        "reason": "Relaxed requirements for development environment",
+        "reducedChecks": [
+          "signatures",
+          "reproducible"
+        ]
+      },
+      {
+        "name": "local",
+        "reason": "Local development builds",
+        "reducedChecks": [
+          "signatures",
+          "slsaLevel",
+          "reproducible",
+          "age"
+        ]
+      }
+    ]
+  },
+  "notifications": {
+    "webhook": "https://hooks.example.com/kgen/attestation",
+    "email": [
+      "security@example.com",
+      "kgen-team@example.com"
+    ],
+    "onFailure": true,
+    "onSuccess": false
+  }
+}

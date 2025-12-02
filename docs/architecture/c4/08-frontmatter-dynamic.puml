@@ -1,0 +1,40 @@
+@startuml unjucks-v4-frontmatter-dynamic
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Dynamic.puml
+
+LAYOUT_WITH_LEGEND()
+
+title Dynamic Diagram - Frontmatter Processing Flow
+
+Person(developer, "Developer")
+Container(cli, "CLI", "Command-line interface")
+Container(workflow_engine, "Workflow Engine", "Orchestration")
+Container(parser, "Frontmatter Parser", "Parsing")
+Container(conditional_processor, "Conditional Processor", "skipIf evaluation")
+Container(path_resolver, "Path Resolver", "Path resolution")
+Container(operation_engine, "Operation Engine", "File operations")
+Container(metadata_extractor, "Metadata Extractor", "Metadata extraction")
+Container(schema_validator, "Schema Validator", "Validation")
+System_Ext(file_system, "File System")
+
+' Main flow
+Rel(developer, cli, "1. Executes command", "kgen generate")
+Rel(cli, workflow_engine, "2. Initiates workflow", "Template processing request")
+Rel(workflow_engine, parser, "3. Parses frontmatter", "Extract frontmatter from template")
+Rel(workflow_engine, metadata_extractor, "4. Extracts metadata", "Comprehensive metadata")
+Rel(workflow_engine, schema_validator, "5. Validates schema", "Frontmatter validation")
+Rel(workflow_engine, conditional_processor, "6. Evaluates conditions", "skipIf evaluation")
+Rel(conditional_processor, workflow_engine, "7. Returns skip decision", "Continue or skip")
+Rel(workflow_engine, path_resolver, "8. Resolves output path", "Dynamic path from 'to' field")
+Rel(workflow_engine, operation_engine, "9. Executes operation", "write/inject/append/prepend/lineAt")
+Rel(operation_engine, file_system, "10. Writes file", "Generated artifact")
+Rel(operation_engine, workflow_engine, "11. Returns result", "Operation result")
+Rel(workflow_engine, cli, "12. Returns success", "Generation complete")
+Rel(cli, developer, "13. Displays result", "Success message")
+
+' Alternative flows
+Rel(conditional_processor, workflow_engine, "6a. Skip decision", "Processing skipped")
+Rel(workflow_engine, cli, "7a. Returns skipped", "Skipped message")
+
+@enduml
+
+

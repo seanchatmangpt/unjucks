@@ -1,0 +1,110 @@
+---
+to: src/migrations/<%= timestamp %>-create-<%= tableName.toLowerCase() %>.js
+unless_exists: true
+---
+'use strict';
+
+/** @type {import('sequelize-cli').Migration} */
+module.exports = {
+  async up(queryInterface, Sequelize) {
+    await queryInterface.createTable('<%= tableName %>', {
+      id: {
+        allowNull: false,
+        primaryKey: true,
+        type: Sequelize.UUID,
+        defaultValue: Sequelize.UUIDV4,
+      },
+<% if (properties && properties.length > 0) { -%>
+<% properties.forEach(prop => { -%>
+      <%= prop.name %>: {
+        type: Sequelize.<%= getSequelizeType(prop.type) %>,
+<% if (prop.required) { -%>
+        allowNull: false,
+<% } else { -%>
+        allowNull: true,
+<% } -%>
+<% if (prop.unique) { -%>
+        unique: true,
+<% } -%>
+<% if (prop.defaultValue) { -%>
+        defaultValue: <%= JSON.stringify(prop.defaultValue) %>,
+<% } -%>
+      },
+<% }) -%>
+<% } -%>
+<% if (relationships && relationships.length > 0) { -%>
+<% relationships.filter(rel => rel.type === 'belongsTo').forEach(rel => { -%>
+      <%= rel.foreignKey %>: {
+        type: Sequelize.UUID,
+        allowNull: <%= rel.required ? 'false' : 'true' %>,
+        references: {
+          model: '<%= rel.targetTable %>',
+          key: 'id',
+        },
+        onUpdate: 'CASCADE',
+        onDelete: '<%= rel.onDelete || 'SET NULL' %>',
+      },
+<% }) -%>
+<% } -%>
+      createdAt: {
+        allowNull: false,
+        type: Sequelize.DATE,
+        defaultValue: Sequelize.NOW,
+      },
+      updatedAt: {
+        allowNull: false,
+        type: Sequelize.DATE,
+        defaultValue: Sequelize.NOW,
+      },
+    });
+
+<% if (indexes && indexes.length > 0) { -%>
+    // Add indexes
+<% indexes.forEach(index => { -%>
+    await queryInterface.addIndex('<%= tableName %>', {
+      fields: <%= JSON.stringify(index.fields) %>,
+<% if (index.unique) { -%>
+      unique: true,
+<% } -%>
+      name: '<%= index.name %>',
+    });
+
+<% }) -%>
+<% } -%>
+<% if (constraints && constraints.length > 0) { -%>
+    // Add constraints
+<% constraints.forEach(constraint => { -%>
+    await queryInterface.addConstraint('<%= tableName %>', {
+      fields: <%= JSON.stringify(constraint.fields) %>,
+      type: '<%= constraint.type %>',
+      name: '<%= constraint.name %>',
+<% if (constraint.references) { -%>
+      references: {
+        table: '<%= constraint.references.table %>',
+        field: '<%= constraint.references.field %>',
+      },
+<% } -%>
+    });
+
+<% }) -%>
+<% } -%>
+  },
+
+  async down(queryInterface, Sequelize) {
+<% if (constraints && constraints.length > 0) { -%>
+    // Remove constraints
+<% constraints.forEach(constraint => { -%>
+    await queryInterface.removeConstraint('<%= tableName %>', '<%= constraint.name %>');
+<% }) -%>
+
+<% } -%>
+<% if (indexes && indexes.length > 0) { -%>
+    // Remove indexes
+<% indexes.forEach(index => { -%>
+    await queryInterface.removeIndex('<%= tableName %>', '<%= index.name %>');
+<% }) -%>
+
+<% } -%>
+    await queryInterface.dropTable('<%= tableName %>');
+  }
+};

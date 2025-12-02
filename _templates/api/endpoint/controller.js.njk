@@ -1,5 +1,5 @@
 ---
-to: src/controllers/{{ endpointName | pascalCase }}Controller.js
+to: "src/controllers/{{ endpointName | pascalCase }}Controller.js"
 ---
 const Joi = require('joi');
 {% if withCaching %}const redis = require('../utils/redis');{% endif %}

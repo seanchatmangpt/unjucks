@@ -10,6 +10,7 @@
 import { defineCommand } from 'citty';
 
 // Import command groups
+import initCommand from './commands/init.ts';
 import artifactCommands from './commands/artifact/index.js';
 import graphCommands from './commands/graph/index.js';
 import projectCommands from './commands/project/index.js';
@@ -19,6 +20,9 @@ import rulesCommands from './commands/rules/index.js';
 import metricsCommands from './commands/metrics/index.js';
 import validateCommands from './commands/validate/index.js';
 import driftCommands from './commands/drift/index.js';
+import marketplaceCommands from './commands/marketplace/index.js';
+import exploreCommands from './commands/explore/index.js';
+import receiptCommands from './commands/receipt/index.ts';
 import lintCommand from './commands/lint.js';
 
 export const main = defineCommand({
@@ -46,6 +50,7 @@ export const main = defineCommand({
     }
   },
   subCommands: {
+    init: initCommand,
     artifact: artifactCommands,
     graph: graphCommands,
     project: projectCommands,
@@ -55,6 +60,9 @@ export const main = defineCommand({
     metrics: metricsCommands,
     validate: validateCommands,
     drift: driftCommands,
+    marketplace: marketplaceCommands,
+    explore: exploreCommands,
+    receipt: receiptCommands,
     lint: lintCommand
   },
   async run({ args }) {
@@ -66,6 +74,11 @@ export const main = defineCommand({
         version: '1.0.0',
         description: 'Knowledge Graph to Artifact Compilation Tool for Autonomous Agents',
         tools: [
+          {
+            name: 'init',
+            description: 'Initialize new KGEN project with configuration',
+            verbs: ['(default)']
+          },
           {
             name: 'artifact',
             description: 'Generate, validate, and explain artifacts from knowledge graphs',
@@ -80,6 +93,26 @@ export const main = defineCommand({
             name: 'project',
             description: 'Project-level operations for reproducible builds',
             verbs: ['lock', 'attest']
+          },
+          {
+            name: 'validate',
+            description: 'Validate graphs and artifacts with SHACL',
+            verbs: ['graph', 'artifact']
+          },
+          {
+            name: 'marketplace',
+            description: 'Publish, search, and install knowledge packages',
+            verbs: ['publish', 'search', 'install']
+          },
+          {
+            name: 'explore',
+            description: 'Interactive exploration with persona views',
+            verbs: ['execute-view', 'list-views']
+          },
+          {
+            name: 'receipt',
+            description: 'Display attestation and provenance information',
+            verbs: ['show']
           },
           {
             name: 'cache',
@@ -104,10 +137,15 @@ export const main = defineCommand({
         ],
         usage: 'kgen <tool> <verb> [options]',
         examples: [
-          'kgen artifact generate --graph api-model.ttl --template api-service',
+          'kgen init --name my-project --template enterprise',
+          'kgen artifact generate --graph api-model.ttl --template api-service --attest',
           'kgen graph hash --input knowledge.ttl',
           'kgen artifact drift --check dist/',
-          'kgen project lock --output project.lock'
+          'kgen validate graph --input schema.ttl --shacl validation.ttl',
+          'kgen marketplace search --query "financial api" --dim domain=Finance',
+          'kgen marketplace publish --package ./dist --sign',
+          'kgen explore execute-view --persona architect --graph project.ttl',
+          'kgen receipt show --file generated-api.js --verify'
         ]
       },
       timestamp: this.getDeterministicDate().toISOString()

@@ -1,5 +1,5 @@
 ---
-to: src/routes/{{ entityName | camelCase }}Routes.ts
+to: "src/routes/{{ entityName | camelCase }}Routes.ts"
 ---
 import { Router } from 'express';
 import { {{ entityName | pascalCase }}Controller } from '../controllers/{{ entityName | pascalCase }}Controller';

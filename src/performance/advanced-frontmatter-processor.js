@@ -32,7 +32,7 @@ class SimpleTOMLParser {
       if (equalIndex === -1) continue;
       
       const key = line.slice(0, equalIndex).trim();
-      let value = line.slice(equalIndex + 1).trim();
+      const value = line.slice(equalIndex + 1).trim();
       
       // Parse value types
       currentSection[key] = this.parseValue(value);

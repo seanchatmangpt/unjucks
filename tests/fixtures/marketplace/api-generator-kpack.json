@@ -1,0 +1,134 @@
+{
+  "name": "@api/rest-generator",
+  "version": "1.5.2", 
+  "description": "Enterprise-grade REST API generator with OpenAPI 3.1 support and comprehensive testing",
+  "main": "templates/api/index.njk",
+  "author": "API Standards Team <api@standards.org>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/api-standards/rest-generator-kpack.git"
+  },
+  "keywords": [
+    "api",
+    "rest",
+    "openapi",
+    "swagger",
+    "microservices",
+    "express",
+    "fastify"
+  ],
+  "category": "api",
+  "visibility": "public",
+  "pricing": {
+    "model": "free",
+    "tiers": {
+      "community": {
+        "price": 0,
+        "features": [
+          "Basic REST endpoints",
+          "OpenAPI documentation",
+          "Community support"
+        ],
+        "limitations": [
+          "Attribution required",
+          "No commercial use without upgrade"
+        ]
+      },
+      "pro": {
+        "price": 299,
+        "currency": "USD",
+        "billingPeriod": "one-time",
+        "features": [
+          "Advanced middleware",
+          "Authentication templates",
+          "Database integration",
+          "Testing utilities",
+          "Commercial license"
+        ]
+      }
+    }
+  },
+  "dependencies": {
+    "@kgen/core": "^2.0.0",
+    "@kgen/validation": "^1.5.0"
+  },
+  "files": [
+    "templates/**/*",
+    "schemas/**/*",
+    "middleware/**/*",
+    "tests/**/*",
+    "README.md",
+    "LICENSE"
+  ],
+  "templates": {
+    "express-api": {
+      "path": "templates/express/api-server.njk",
+      "description": "Express.js REST API with middleware",
+      "variables": {
+        "projectName": "string",
+        "port": "number",
+        "enableCors": "boolean",
+        "authType": "enum:jwt|oauth|basic|none",
+        "database": "enum:postgresql|mongodb|mysql|sqlite"
+      }
+    },
+    "fastify-api": {
+      "path": "templates/fastify/api-server.njk", 
+      "description": "Fastify REST API with performance optimizations",
+      "variables": {
+        "projectName": "string",
+        "enableSwagger": "boolean",
+        "enableMetrics": "boolean",
+        "logLevel": "enum:debug|info|warn|error"
+      }
+    },
+    "openapi-spec": {
+      "path": "templates/openapi/spec.njk",
+      "description": "OpenAPI 3.1 specification generator",
+      "variables": {
+        "apiTitle": "string",
+        "apiVersion": "string",
+        "serverUrl": "string",
+        "includeAuth": "boolean"
+      }
+    }
+  },
+  "validation": {
+    "shacl": "schemas/api-validation-shapes.ttl",
+    "rules": [
+      "openapi-spec-valid",
+      "endpoints-documented",
+      "security-defined",
+      "error-responses-defined"
+    ]
+  },
+  "certification": {
+    "certified": true,
+    "certificationBody": "Open API Initiative",
+    "certificationDate": "2024-02-01",
+    "validUntil": "2025-02-01",
+    "certificationId": "OAI-2024-REST-001"
+  },
+  "attestation": {
+    "slsa": {
+      "level": "SLSA_BUILD_LEVEL_2",
+      "builder": "kgen-community-builder@1.8.0",
+      "buildType": "https://kgen.dev/BuildTypes/api-generator/v1"
+    },
+    "sbom": {
+      "format": "SPDX-2.3",
+      "included": true
+    },
+    "signature": {
+      "algorithm": "RSA-2048",
+      "keyId": "api-standards-key-2024"
+    }
+  },
+  "kgen": {
+    "version": "2.0.0",
+    "marketplace": true,
+    "deterministic": true,
+    "reproducible": true
+  }
+}

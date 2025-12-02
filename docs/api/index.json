@@ -1,0 +1,62 @@
+{
+  "generated": "2025-09-13T06:07:15.346Z",
+  "version": "2.0.0",
+  "description": "KGEN Marketplace Persona-Driven Views - Static JSON API",
+  "githubPages": {
+    "baseUrl": "https://yourusername.github.io/yourrepo/api/views",
+    "note": "Replace with your actual GitHub Pages URL"
+  },
+  "views": {
+    "executive": {
+      "summary": {
+        "url": "./views/executive-summary.json",
+        "description": "executive view with summary level details",
+        "lastUpdated": "2025-09-13T06:07:15.346Z"
+      },
+      "detailed": {
+        "url": "./views/executive-detailed.json",
+        "description": "executive view with detailed level details",
+        "lastUpdated": "2025-09-13T06:07:15.346Z"
+      },
+      "comprehensive": {
+        "url": "./views/executive-comprehensive.json",
+        "description": "executive view with comprehensive level details",
+        "lastUpdated": "2025-09-13T06:07:15.346Z"
+      }
+    },
+    "architect": {
+      "summary": {
+        "url": "./views/architect-summary.json",
+        "description": "architect view with summary level details",
+        "lastUpdated": "2025-09-13T06:07:15.346Z"
+      },
+      "detailed": {
+        "url": "./views/architect-detailed.json",
+        "description": "architect view with detailed level details",
+        "lastUpdated": "2025-09-13T06:07:15.346Z"
+      },
+      "comprehensive": {
+        "url": "./views/architect-comprehensive.json",
+        "description": "architect view with comprehensive level details",
+        "lastUpdated": "2025-09-13T06:07:15.346Z"
+      }
+    },
+    "developer": {
+      "summary": {
+        "url": "./views/developer-summary.json",
+        "description": "developer view with summary level details",
+        "lastUpdated": "2025-09-13T06:07:15.346Z"
+      },
+      "detailed": {
+        "url": "./views/developer-detailed.json",
+        "description": "developer view with detailed level details",
+        "lastUpdated": "2025-09-13T06:07:15.346Z"
+      },
+      "comprehensive": {
+        "url": "./views/developer-comprehensive.json",
+        "description": "developer view with comprehensive level details",
+        "lastUpdated": "2025-09-13T06:07:15.346Z"
+      }
+    }
+  }
+}

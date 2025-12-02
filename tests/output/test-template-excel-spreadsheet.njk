@@ -1,0 +1,10 @@
+---
+to: "{{title | replace(' ', '-') | lower}}.xlsx"
+---
+Title,Value
+Author,{{author}}
+Generated,{{timestamp}}
+Content,{{content}}
+{% for item in items %}
+Item,{{item}}
+{% endfor %}

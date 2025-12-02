@@ -591,7 +591,7 @@ export class NLToSPARQLTranslator {
     const confidence = 0.7 + Math.random() * 0.2; // Random confidence 0.7-0.9
     
     // Simple rule-based translation as fallback
-    let query = this.generateBasicQuery(input, context);
+    const query = this.generateBasicQuery(input, context);
     
     const alternatives = [
       this.generateAlternativeQuery(input, context, 1),

@@ -337,7 +337,7 @@ export class MetadataExtractor extends EventEmitter {
    */
   _extractComplexityMetadata(frontmatter, options) {
     let complexity = 1; // Base complexity
-    let factors = [];
+    const factors = [];
     
     // Conditional complexity
     if (frontmatter.skipIf) {

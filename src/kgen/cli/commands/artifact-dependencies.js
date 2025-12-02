@@ -237,7 +237,7 @@ export const artifactDependenciesCommand = {
   },
   
   _processResults(dependencyResult, options) {
-    let processed = { ...dependencyResult };
+    const processed = { ...dependencyResult };
     
     // Group results if requested
     if (options['group-by']) {

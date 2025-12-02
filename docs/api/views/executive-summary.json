@@ -1,0 +1,76 @@
+{
+  "metadata": {
+    "generated": "2025-09-13T06:07:15.342Z",
+    "persona": "executive",
+    "depth": "summary",
+    "version": "2.0.0",
+    "githubPagesReady": true,
+    "marketplaceBaseUrl": "https://marketplace.kgen.dev"
+  },
+  "viewType": "executive",
+  "summary": {
+    "totalPacksInstalled": 127,
+    "activeProjects": 34,
+    "monthlyROI": 156789,
+    "complianceScore": 87,
+    "riskLevel": "medium"
+  },
+  "kpis": {
+    "developmentVelocity": {
+      "metric": 47,
+      "trend": "up",
+      "target": 50,
+      "status": "below-target"
+    },
+    "timeToMarket": {
+      "metric": 38,
+      "unit": "days",
+      "improvement": 23,
+      "industry_benchmark": 45
+    },
+    "costEfficiency": {
+      "savedHours": 1524,
+      "savedCost": 129540,
+      "roi": 3.4,
+      "paybackPeriod": 2.1
+    }
+  },
+  "compliance": {
+    "overallScore": 87,
+    "frameworks": [
+      {
+        "name": "SOC 2 Type II",
+        "coverage": 94,
+        "status": "compliant",
+        "gaps": []
+      },
+      {
+        "name": "GDPR",
+        "coverage": 76,
+        "status": "partial",
+        "gaps": [
+          "Data retention policies",
+          "Right to erasure automation"
+        ]
+      }
+    ]
+  },
+  "marketplaceLinks": {
+    "topPackages": [
+      {
+        "name": "kgen-api-scaffold",
+        "url": "https://marketplace.kgen.dev/packages/api-scaffold",
+        "category": "API Development",
+        "adoption": 89
+      }
+    ],
+    "recommendations": [
+      {
+        "name": "kgen-security-hardening",
+        "url": "https://marketplace.kgen.dev/packages/security-hardening",
+        "reason": "Addresses compliance gaps identified in GDPR",
+        "potentialROI": 145000
+      }
+    ]
+  }
+}

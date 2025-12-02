@@ -1,0 +1,10 @@
+---
+to: "/Users/sac/unjucks/tests/output/injection-target.js"
+inject: true
+after: "// End of base file"
+---
+
+// Injected deterministic content
+export function injected() {
+  return '{{message}}';
+}

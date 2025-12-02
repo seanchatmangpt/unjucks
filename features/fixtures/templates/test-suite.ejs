@@ -1,0 +1,248 @@
+---
+to: src/__tests__/<%= componentName %>.test.tsx
+unless_exists: true
+---
+import React from 'react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { <%= componentName %> } from '../<%= componentName %>';
+
+describe('<%= componentName %>', () => {
+  const defaultProps = {
+<% if (props && props.length > 0) { -%>
+<% props.filter(p => p.required).forEach(prop => { -%>
+    <%= prop.name %>: <%= getDefaultValue(prop) %>,
+<% }) -%>
+<% } -%>
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  describe('Rendering', () => {
+    it('should render without crashing', () => {
+      render(<<%= componentName %> {...defaultProps} />);
+      expect(screen.getByTestId('<%= componentName.toLowerCase() %>')).toBeInTheDocument();
+    });
+
+<% if (hasChildren) { -%>
+    it('should render children content', () => {
+      const childContent = 'Test child content';
+      render(
+        <<%= componentName %> {...defaultProps}>
+          {childContent}
+        </<%= componentName %>>
+      );
+      expect(screen.getByText(childContent)).toBeInTheDocument();
+    });
+
+<% } -%>
+    it('should apply custom className', () => {
+      const customClass = 'custom-test-class';
+      render(<<%= componentName %> {...defaultProps} className={customClass} />);
+      const component = screen.getByTestId('<%= componentName.toLowerCase() %>');
+      expect(component).toHaveClass(customClass);
+    });
+
+<% if (hasVariants) { -%>
+    it.each([
+<% variants.forEach(variant => { -%>
+      '<%= variant %>',
+<% }) -%>
+    ])('should render %s variant correctly', (variant) => {
+      render(<<%= componentName %> {...defaultProps} variant={variant} />);
+      const component = screen.getByTestId('<%= componentName.toLowerCase() %>');
+      expect(component).toHaveClass(`<%= componentName.toLowerCase() %>--${variant}`);
+    });
+
+<% } -%>
+<% if (hasSizes) { -%>
+    it.each([
+<% sizes.forEach(size => { -%>
+      '<%= size %>',
+<% }) -%>
+    ])('should render %s size correctly', (size) => {
+      render(<<%= componentName %> {...defaultProps} size={size} />);
+      const component = screen.getByTestId('<%= componentName.toLowerCase() %>');
+      expect(component).toHaveClass(`<%= componentName.toLowerCase() %>--${size}`);
+    });
+
+<% } -%>
+  });
+
+<% if (hasInteraction) { -%>
+  describe('Interactions', () => {
+<% if (hasClick) { -%>
+    it('should call onClick when clicked', async () => {
+      const mockOnClick = jest.fn();
+      render(<<%= componentName %> {...defaultProps} onClick={mockOnClick} />);
+      
+      const component = screen.getByTestId('<%= componentName.toLowerCase() %>');
+      await userEvent.click(component);
+      
+      expect(mockOnClick).toHaveBeenCalledTimes(1);
+    });
+
+<% } -%>
+<% if (hasChange) { -%>
+    it('should call onChange when value changes', async () => {
+      const mockOnChange = jest.fn();
+      const testValue = 'new test value';
+      
+      render(<<%= componentName %> {...defaultProps} onChange={mockOnChange} />);
+      
+      const input = screen.getByRole('textbox');
+      await userEvent.clear(input);
+      await userEvent.type(input, testValue);
+      
+      expect(mockOnChange).toHaveBeenCalled();
+    });
+
+<% } -%>
+<% if (hasFocus) { -%>
+    it('should handle focus and blur events', async () => {
+      const mockOnFocus = jest.fn();
+      const mockOnBlur = jest.fn();
+      
+      render(
+        <<%= componentName %> 
+          {...defaultProps} 
+          onFocus={mockOnFocus}
+          onBlur={mockOnBlur}
+        />
+      );
+      
+      const component = screen.getByRole('<%= getAriaRole() %>');
+      
+      await userEvent.click(component);
+      expect(mockOnFocus).toHaveBeenCalledTimes(1);
+      
+      await userEvent.tab();
+      expect(mockOnBlur).toHaveBeenCalledTimes(1);
+    });
+
+<% } -%>
+  });
+
+<% } -%>
+<% if (hasAsyncBehavior) { -%>
+  describe('Async Behavior', () => {
+<% if (hasLoading) { -%>
+    it('should show loading state', async () => {
+      render(<<%= componentName %> {...defaultProps} loading={true} />);
+      expect(screen.getByTestId('loading-spinner')).toBeInTheDocument();
+    });
+
+    it('should handle async operations', async () => {
+      const mockAsyncAction = jest.fn().mockResolvedValue('success');
+      render(<<%= componentName %> {...defaultProps} onSubmit={mockAsyncAction} />);
+      
+      const submitButton = screen.getByRole('button');
+      await userEvent.click(submitButton);
+      
+      expect(screen.getByTestId('loading-spinner')).toBeInTheDocument();
+      
+      await waitFor(() => {
+        expect(screen.queryByTestId('loading-spinner')).not.toBeInTheDocument();
+      });
+      
+      expect(mockAsyncAction).toHaveBeenCalledTimes(1);
+    });
+
+<% } -%>
+  });
+
+<% } -%>
+<% if (hasValidation) { -%>
+  describe('Validation', () => {
+    it('should display error message when validation fails', () => {
+      const errorMessage = 'This field is required';
+      render(<<%= componentName %> {...defaultProps} error={errorMessage} />);
+      expect(screen.getByText(errorMessage)).toBeInTheDocument();
+    });
+
+    it('should remove error message when validation passes', () => {
+      const { rerender } = render(
+        <<%= componentName %> {...defaultProps} error="Required field" />
+      );
+      expect(screen.getByText('Required field')).toBeInTheDocument();
+      
+      rerender(<<%= componentName %> {...defaultProps} error={undefined} />);
+      expect(screen.queryByText('Required field')).not.toBeInTheDocument();
+    });
+  });
+
+<% } -%>
+  describe('Accessibility', () => {
+    it('should have proper ARIA attributes', () => {
+      render(<<%= componentName %> {...defaultProps} />);
+      const component = screen.getByTestId('<%= componentName.toLowerCase() %>');
+      
+<% if (hasAriaLabel) { -%>
+      expect(component).toHaveAttribute('aria-label');
+<% } -%>
+<% if (hasAriaDescribedBy) { -%>
+      expect(component).toHaveAttribute('aria-describedby');
+<% } -%>
+<% if (isInteractive) { -%>
+      expect(component).toHaveAttribute('role', '<%= getAriaRole() %>');
+<% } -%>
+    });
+
+<% if (isInteractive) { -%>
+    it('should be keyboard navigable', async () => {
+      render(<<%= componentName %> {...defaultProps} />);
+      const component = screen.getByTestId('<%= componentName.toLowerCase() %>');
+      
+      await userEvent.tab();
+      expect(component).toHaveFocus();
+      
+      await userEvent.keyboard('{Enter}');
+      // Add assertions for keyboard interaction
+    });
+
+<% } -%>
+<% if (hasDisabled) { -%>
+    it('should handle disabled state correctly', () => {
+      render(<<%= componentName %> {...defaultProps} disabled={true} />);
+      const component = screen.getByTestId('<%= componentName.toLowerCase() %>');
+      
+      expect(component).toBeDisabled();
+      expect(component).toHaveAttribute('aria-disabled', 'true');
+    });
+
+<% } -%>
+  });
+
+  describe('Edge Cases', () => {
+<% if (hasOptionalProps) { -%>
+    it('should handle missing optional props gracefully', () => {
+      const minimalProps = {
+<% props.filter(p => p.required).forEach(prop => { -%>
+        <%= prop.name %>: <%= getDefaultValue(prop) %>,
+<% }) -%>
+      };
+      
+      expect(() => {
+        render(<<%= componentName %> {...minimalProps} />);
+      }).not.toThrow();
+    });
+
+<% } -%>
+<% if (hasStringProps) { -%>
+    it('should handle empty strings appropriately', () => {
+      render(<<%= componentName %> {...defaultProps} title="" />);
+      // Add assertions for empty string handling
+    });
+
+<% } -%>
+<% if (hasArrayProps) { -%>
+    it('should handle empty arrays appropriately', () => {
+      render(<<%= componentName %> {...defaultProps} items={[]} />);
+      // Add assertions for empty array handling
+    });
+
+<% } -%>
+  });
+});

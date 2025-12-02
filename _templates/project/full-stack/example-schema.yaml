@@ -1,0 +1,177 @@
+# Example Project Schema for Testing
+# This demonstrates the expected input format
+
+name: BlogPlatform
+namespace: http://example.org/blog#
+description: A complete blog platform with users, posts, and comments
+
+classes:
+  - name: User
+    uri: http://example.org/blog#User
+    description: Registered user account
+    tags:
+      - authentication
+      - core
+    properties:
+      - name: username
+        type: string
+        required: true
+        description: Unique username for login
+      - name: email
+        type: string
+        required: true
+        description: User email address
+      - name: passwordHash
+        type: string
+        required: true
+        description: Hashed password
+      - name: firstName
+        type: string
+        required: false
+      - name: lastName
+        type: string
+        required: false
+      - name: bio
+        type: text
+        required: false
+      - name: isActive
+        type: boolean
+        required: false
+        defaultValue: true
+      - name: roles
+        type: string
+        required: false
+        multiple: true
+
+  - name: Post
+    uri: http://example.org/blog#Post
+    description: Blog post article
+    tags:
+      - content
+      - core
+    properties:
+      - name: title
+        type: string
+        required: true
+        description: Post title
+      - name: slug
+        type: string
+        required: true
+        description: URL-friendly slug
+      - name: content
+        type: text
+        required: true
+        description: Post content (markdown)
+      - name: excerpt
+        type: text
+        required: false
+        description: Short excerpt
+      - name: coverImage
+        type: string
+        required: false
+        description: Cover image URL
+      - name: published
+        type: boolean
+        required: false
+        defaultValue: false
+      - name: publishedAt
+        type: datetime
+        required: false
+      - name: viewCount
+        type: integer
+        required: false
+        defaultValue: 0
+      - name: tags
+        type: string
+        required: false
+        multiple: true
+
+  - name: Comment
+    uri: http://example.org/blog#Comment
+    description: Comment on a blog post
+    properties:
+      - name: content
+        type: text
+        required: true
+      - name: approved
+        type: boolean
+        required: false
+        defaultValue: false
+      - name: isEdited
+        type: boolean
+        required: false
+        defaultValue: false
+
+  - name: Category
+    uri: http://example.org/blog#Category
+    description: Post category
+    properties:
+      - name: name
+        type: string
+        required: true
+      - name: slug
+        type: string
+        required: true
+      - name: description
+        type: text
+        required: false
+      - name: color
+        type: string
+        required: false
+
+relationships:
+  # Post -> User (author)
+  - source: Post
+    target: User
+    type: belongsTo
+    name: author
+    required: true
+
+  # Comment -> User (author)
+  - source: Comment
+    target: User
+    type: belongsTo
+    name: author
+    required: true
+
+  # Comment -> Post
+  - source: Comment
+    target: Post
+    type: belongsTo
+    name: post
+    required: true
+
+  # Post -> Category (many-to-many)
+  - source: Post
+    target: Category
+    type: manyToMany
+    name: categories
+
+  # User -> Post (hasMany)
+  - source: User
+    target: Post
+    type: hasMany
+    name: posts
+
+  # User -> Comment (hasMany)
+  - source: User
+    target: Comment
+    type: hasMany
+    name: comments
+
+  # Post -> Comment (hasMany)
+  - source: Post
+    target: Comment
+    type: hasMany
+    name: comments
+
+metadata:
+  version: 1.0.0
+  author: Project Scaffolder
+  generatedDate: 2024-01-01
+  features:
+    - REST API
+    - TypeScript
+    - Database migrations
+    - BDD tests
+    - API documentation

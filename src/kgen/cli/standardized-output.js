@@ -243,7 +243,7 @@ export function handleStandardError(operation, error, output = null) {
   
   // Map common error types to error codes
   let errorCode = ErrorCodes.INTERNAL_ERROR;
-  let details = {};
+  const details = {};
   
   if (error.code === 'ENOENT') {
     errorCode = ErrorCodes.FILE_NOT_FOUND;

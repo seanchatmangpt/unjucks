@@ -1,0 +1,111 @@
+@startuml unjucks-v4-frontmatter-architecture
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+LAYOUT_WITH_LEGEND()
+
+title Component Diagram - Unjucks V4 Frontmatter Parsing and Execution Architecture
+
+Container_Boundary(parser_layer, "Parser Layer") {
+    Component(deterministic_parser, "Deterministic Parser", "YAML/JSON, Deterministic", "Pure JS parser with key sorting, hash computation, canonical encoding")
+    Component(enhanced_parser, "Enhanced Parser", "SPARQL/RDF Support", "YAML parser with SPARQL preprocessing, RDF config extraction, variable extraction")
+    Component(document_processor, "Document Processor", "Document-Specific", "Extends base parser for Office docs, LaTeX, PDF with injection points")
+    Component(advanced_processor, "Advanced Processor", "Performance-Optimized", "Multi-format (YAML/TOML/JSON), caching, metrics, <5ms target")
+}
+
+Container_Boundary(execution_layer, "Execution Layer") {
+    Component(deterministic_renderer, "Deterministic Renderer", "Template Rendering", "Frontmatter parsing, context merging, deterministic post-processing, caching")
+    Component(operation_engine, "Operation Engine", "File Operations", "Executes write, inject, append, prepend, lineAt with chmod, sh execution")
+    Component(conditional_processor, "Conditional Processor", "skipIf Evaluation", "Evaluates conditional logic with caching, provenance tracking")
+    Component(path_resolver, "Path Resolver", "Dynamic Path Resolution", "Resolves output paths from frontmatter 'to' field using templating")
+    Component(workflow_engine, "Workflow Engine", "Orchestration", "Coordinates parsing, validation, conditional processing, path resolution, operations")
+}
+
+Container_Boundary(integration_layer, "Integration Layer") {
+    Component(cli_integration, "CLI Integration", "CLI Operations", "Template discovery, analysis, validation, artifact generation")
+    Component(cli_enhancements, "CLI Enhancements", "Simple Parsing", "Basic frontmatter parsing for CLI operations")
+    Component(resolver_integration, "Resolver Integration", "Template Resolution", "Frontmatter parsing during template resolution with gray-matter fallback")
+    Component(variable_resolution, "Variable Resolution", "Variable Extraction", "Frontmatter parsing for variable extraction and resolution")
+    Component(template_bridge, "Template Bridge", "Template Discovery", "Frontmatter processing in template discovery and generation")
+    Component(office_processors, "Office Processors", "Document Processing", "Frontmatter extraction from Office documents, variable extraction")
+}
+
+Container_Boundary(validation_layer, "Validation Layer") {
+    Component(schema_validator, "Schema Validator", "Schema Validation", "Validates frontmatter against schemas with strict/lenient modes")
+    Component(metadata_extractor, "Metadata Extractor", "Metadata Extraction", "Extracts comprehensive metadata from frontmatter and templates")
+    Component(provenance_tracker, "Provenance Tracker", "Audit Trail", "Tracks all operations for audit trail and compliance")
+}
+
+Container_Boundary(support_layer, "Support Layer") {
+    Component(error_handler, "Error Handler", "Error Management", "Handles errors with recovery strategies, retry logic, event emission")
+    Component(cache_manager, "Cache Manager", "Caching", "Manages parse result caching, expression evaluation caching, template caching")
+    Component(performance_monitor, "Performance Monitor", "Metrics", "Tracks parsing performance, cache hit rates, format usage")
+}
+
+' Parser relationships
+Rel(deterministic_parser, deterministic_renderer, "Used by", "Frontmatter parsing")
+Rel(enhanced_parser, workflow_engine, "Used by", "SPARQL/RDF templates")
+Rel(document_processor, office_processors, "Used by", "Document generation")
+Rel(advanced_processor, performance_monitor, "Reports to", "Performance metrics")
+
+' Execution flow relationships
+Rel(workflow_engine, deterministic_parser, "Uses", "Parsing")
+Rel(workflow_engine, enhanced_parser, "Uses", "SPARQL templates")
+Rel(workflow_engine, schema_validator, "Validates with", "Frontmatter validation")
+Rel(workflow_engine, conditional_processor, "Evaluates with", "skipIf conditions")
+Rel(workflow_engine, path_resolver, "Resolves with", "Output paths")
+Rel(workflow_engine, operation_engine, "Executes with", "File operations")
+Rel(workflow_engine, metadata_extractor, "Extracts with", "Metadata")
+Rel(workflow_engine, provenance_tracker, "Tracks with", "Operations")
+
+Rel(deterministic_renderer, deterministic_parser, "Uses", "Frontmatter parsing")
+Rel(deterministic_renderer, cache_manager, "Uses", "Result caching")
+
+Rel(operation_engine, path_resolver, "Uses", "Resolved paths")
+Rel(operation_engine, error_handler, "Handles errors with", "Error recovery")
+
+Rel(conditional_processor, cache_manager, "Uses", "Expression caching")
+Rel(conditional_processor, provenance_tracker, "Tracks with", "Conditional decisions")
+
+' Integration relationships
+Rel(cli_integration, enhanced_parser, "Uses", "Template analysis")
+Rel(cli_integration, deterministic_renderer, "Uses", "Artifact generation")
+Rel(cli_integration, workflow_engine, "Uses", "Full workflow")
+
+Rel(cli_enhancements, deterministic_parser, "Uses", "Simple parsing")
+
+Rel(resolver_integration, enhanced_parser, "Uses", "Template resolution")
+
+Rel(variable_resolution, enhanced_parser, "Uses", "Variable extraction")
+Rel(variable_resolution, metadata_extractor, "Uses", "Variable analysis")
+
+Rel(template_bridge, enhanced_parser, "Uses", "Template discovery")
+Rel(template_bridge, workflow_engine, "Uses", "Template processing")
+Rel(template_bridge, metadata_extractor, "Uses", "Metadata extraction")
+
+Rel(office_processors, document_processor, "Uses", "Document frontmatter")
+Rel(office_processors, metadata_extractor, "Uses", "Variable extraction")
+
+' Validation relationships
+Rel(schema_validator, error_handler, "Reports to", "Validation errors")
+Rel(metadata_extractor, provenance_tracker, "Tracks with", "Metadata extraction")
+
+' Support relationships
+Rel(error_handler, provenance_tracker, "Records to", "Error events")
+Rel(cache_manager, performance_monitor, "Reports to", "Cache metrics")
+Rel(advanced_processor, cache_manager, "Uses", "Parse caching")
+
+' External systems
+System_Ext(file_system, "File System", "Local file system")
+System_Ext(rdf_sources, "RDF Sources", "Knowledge graphs, SPARQL endpoints")
+
+Rel(operation_engine, file_system, "Reads/Writes", "Files")
+Rel(enhanced_parser, rdf_sources, "Queries", "RDF data")
+Rel(document_processor, rdf_sources, "Binds to", "Semantic data")
+
+' Annotation for key flows
+Rel_Back(workflow_engine, deterministic_renderer, "Orchestrates", "Rendering pipeline")
+Rel_Back(workflow_engine, operation_engine, "Orchestrates", "File operations")
+
+@enduml
+
+

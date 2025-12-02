@@ -1091,7 +1091,7 @@ export class QueryIntentAnalyzer {
   updateUserBehaviorProfile(userId, analysis) {
     if (!userId) return;
     
-    let profile = this.userBehaviorProfiles.get(userId) || {
+    const profile = this.userBehaviorProfiles.get(userId) || {
       intentFrequency: {},
       preferredIntents: [],
       queryPatterns: [],

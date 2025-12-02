@@ -15,7 +15,7 @@ import { DeterministicGenerationEngine } from './deterministic-generation-engine
 import { KGenEngine } from '../core/engine.js';
 import { KGenErrorHandler } from '../utils/error-handler.js';
 
-export class KGenIntegrationSystem extends EventEmitter {
+class KGenIntegrationSystem extends EventEmitter {
   constructor(config = {}) {
     super();
     

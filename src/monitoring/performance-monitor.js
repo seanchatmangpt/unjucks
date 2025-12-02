@@ -364,7 +364,7 @@ class PerformanceMonitor extends EventEmitter {
   handlePerformanceEntry(entry) {
     let metricName = null;
     let value = entry.duration;
-    let metadata = {
+    const metadata = {
       entryType: entry.entryType,
       name: entry.name
     };

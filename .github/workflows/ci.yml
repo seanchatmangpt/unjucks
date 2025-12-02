@@ -30,8 +30,8 @@ jobs:
       - name: Install dependencies
         run: npm ci --prefer-offline --no-audit
         
-      - name: Run ESLint
-        run: npm run lint
+      - name: Run ESLint (check)
+        run: npm run lint:check
         
       - name: Save lint results
         if: always()
@@ -115,13 +115,7 @@ jobs:
         run: npm ci --prefer-offline --no-audit
         
       - name: TypeScript check
-        run: |
-          if [ -f "tsconfig.json" ]; then
-            npx tsc --noEmit
-          else
-            echo "TypeScript config not found, running basic typecheck"
-            npm run typecheck || echo "Basic typecheck completed"
-          fi
+        run: npm run typecheck
           
       - name: Build project
         run: npm run build
@@ -250,7 +244,7 @@ jobs:
           
           # Test validate command
           echo "✅ Testing validation"
-          npm run validate
+          npm run validate:full
           
           echo "✅ CLI validation completed successfully"
 

@@ -1,0 +1,70 @@
+# Suggest templates matching project's technology stack and patterns
+# Analyzes kgen.config.js and project structure to recommend relevant templates
+
+SELECT DISTINCT ?template ?name ?description ?framework ?language ?pattern ?matchScore ?usageCount WHERE {
+  # Find all templates in the marketplace
+  ?template a kgen:Template ;
+           kgen:hasName ?name ;
+           kgen:hasDescription ?description ;
+           kgen:generates ?artifactType ;
+           kgen:hasDownloads ?usageCount .
+  
+  # Match technology frameworks
+  OPTIONAL {
+    ?template kgen:hasFramework ?framework .
+    FILTER(?framework IN ({{userFrameworks}}))
+    BIND(1.0 AS ?frameworkScore)
+  }
+  
+  # Match programming languages
+  OPTIONAL {
+    ?template kgen:hasLanguage ?language .
+    FILTER(?language IN ({{userLanguages}}))
+    BIND(1.0 AS ?languageScore)
+  }
+  
+  # Match architectural patterns
+  OPTIONAL {
+    ?template kgen:hasPattern ?pattern .
+    FILTER(?pattern IN ({{userPatterns}}))
+    BIND(1.0 AS ?patternScore)
+  }
+  
+  # Match project type
+  OPTIONAL {
+    ?template kgen:hasProjectType ?projectType .
+    FILTER(?projectType = "{{userProjectType}}")
+    BIND(1.0 AS ?projectScore)
+  }
+  
+  # Match current template usage patterns
+  OPTIONAL {
+    ?template kgen:complementsTemplate ?existingTemplate .
+    FILTER(?existingTemplate IN ({{userTemplates}}))
+    BIND(0.8 AS ?complementScore)
+  }
+  
+  # Calculate overall match score
+  BIND(
+    COALESCE(?frameworkScore, 0) +
+    COALESCE(?languageScore, 0) +
+    COALESCE(?patternScore, 0) +
+    COALESCE(?projectScore, 0) +
+    COALESCE(?complementScore, 0)
+    AS ?matchScore
+  )
+  
+  # Only return templates with some relevance
+  FILTER(?matchScore > 0)
+  
+  # Exclude templates user already has
+  FILTER(?template NOT IN ({{userTemplates}}))
+  
+  # Quality filters
+  ?template kgen:hasRating ?rating .
+  FILTER(?rating >= 3.0)
+  
+  ?template kgen:hasMaintenanceStatus "active" .
+}
+ORDER BY DESC(?matchScore) DESC(?usageCount) DESC(?rating)
+LIMIT {{limit}}

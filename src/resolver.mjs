@@ -33,12 +33,12 @@ import { Worker, isMainThread, parentPort, workerData } from 'worker_threads';
 
 // KGEN Integration Imports (with compatibility fixes)
 let n3Module = null;
-let shaclEngine = null;
-let policyResolver = null;
+const shaclEngine = null;
+const policyResolver = null;
 let nunjucks = null;
 let matter = null;
 let loadConfig = null;
-let consola = null;
+const consola = null;
 
 // Lazy import function for better error handling
 async function importModule(moduleName, namedExports = null) {

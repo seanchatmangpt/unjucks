@@ -491,7 +491,7 @@ export class MasterCoordinator extends EventEmitter {
       console.log(`[MasterCoordinator] Aggregating ${results.length} results using ${aggregationStrategy}`);
     }
     
-    let finalResult = {
+    const finalResult = {
       success: true,
       totalPartitions: results.length,
       successfulPartitions: 0,

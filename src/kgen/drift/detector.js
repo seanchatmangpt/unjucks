@@ -38,6 +38,29 @@ export class DriftDetector extends EventEmitter {
       recommendations: []
     };
   }
+
+  /**
+   * Get deterministic timestamp (milliseconds)
+   * Uses SOURCE_DATE_EPOCH if set, otherwise current time
+   */
+  getDeterministicTimestamp() {
+    const sourceEpoch = process.env.SOURCE_DATE_EPOCH;
+    
+    if (sourceEpoch) {
+      return parseInt(sourceEpoch) * 1000;
+    }
+    
+    // Default to fixed time for reproducible builds
+    return new Date('2024-01-01T00:00:00.000Z').getTime();
+  }
+  
+  /**
+   * Get deterministic Date object
+   * Uses SOURCE_DATE_EPOCH if set, otherwise fixed time
+   */
+  getDeterministicDate() {
+    return new Date(this.getDeterministicTimestamp());
+  }
 }
 
 export default DriftDetector;

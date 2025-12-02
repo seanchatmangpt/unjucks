@@ -531,7 +531,7 @@ export class CanonicalTurtleSerializer extends EventEmitter {
     // Generate optimal prefix name for base URI
     try {
       const url = new URL(baseUri);
-      let prefix = url.hostname.replace(/\./g, '');
+      const prefix = url.hostname.replace(/\./g, '');
       
       // Make unique
       let counter = 1;

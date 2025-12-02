@@ -1,0 +1,23 @@
+---
+to: "{{ outputDir }}/{{ className | kebabCase }}.base.ts"
+---
+/**
+ * Base class template
+ * Generated for: {{ className }}
+ */
+
+export class {{ className }} {
+  {% block constructor %}
+  constructor() {
+    // Default constructor
+  }
+  {% endblock %}
+
+  {% block methods %}
+  // Default methods
+  {% endblock %}
+
+  {% block properties %}
+  // Default properties
+  {% endblock %}
+}

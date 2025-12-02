@@ -1,5 +1,5 @@
 ---
-to: src/routes/{{ endpointName | kebabCase }}.js
+to: "src/routes/{{ endpointName | kebabCase }}.js"
 ---
 const express = require('express');
 {% if withRateLimit %}const rateLimit = require('express-rate-limit');{% endif %}

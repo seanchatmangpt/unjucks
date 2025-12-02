@@ -514,6 +514,29 @@ export class DeterministicRenderingSystem extends EventEmitter {
     }
   }
   
+  /**
+   * Get deterministic timestamp (milliseconds)
+   * Uses SOURCE_DATE_EPOCH if set, otherwise static build time
+   */
+  getDeterministicTimestamp() {
+    const sourceEpoch = process.env.SOURCE_DATE_EPOCH;
+    
+    if (sourceEpoch) {
+      return parseInt(sourceEpoch) * 1000;
+    }
+    
+    // Use static build time for deterministic behavior
+    return new Date(this.config.staticBuildTime).getTime();
+  }
+  
+  /**
+   * Get deterministic Date object
+   * Uses SOURCE_DATE_EPOCH if set, otherwise static build time
+   */
+  getDeterministicDate() {
+    return new Date(this.getDeterministicTimestamp());
+  }
+
   _generateRenderId() {
     return `render_${this.getDeterministicTimestamp()}_${Math.random().toString(36).substring(2, 8)}`;
   }

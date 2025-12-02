@@ -31,7 +31,7 @@ global.testUtils = {
   // Execute CLI command
   async execCLI(args, options = {}) {
     return new Promise((resolve) => {
-      const binPath = resolve(__dirname, '..', 'bin', 'kgen.js');
+      const binPath = resolve(__dirname, '..', 'src', 'cli.js');
       const child = spawn('node', [binPath, ...args], {
         cwd: options.cwd || process.cwd(),
         stdio: ['pipe', 'pipe', 'pipe'],
@@ -88,13 +88,15 @@ global.testUtils = {
   }
 };
 
-// Create fixtures directory if it doesn't exist
+// Create fixtures directory if it doesn't exist  
 const fixturesDir = resolve(__dirname, 'fixtures');
-try {
-  await import('fs/promises').then(fs => fs.mkdir(fixturesDir, { recursive: true }));
-} catch (error) {
-  // Directory already exists or other error
-}
+import('fs/promises').then(async fs => {
+  try {
+    await fs.mkdir(fixturesDir, { recursive: true });
+  } catch (error) {
+    // Directory already exists or other error
+  }
+}).catch(() => {});
 
 // Set test-specific environment variables
 process.env.NODE_ENV = 'test';

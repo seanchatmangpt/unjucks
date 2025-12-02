@@ -640,6 +640,29 @@ export class DeterministicErrorHandler extends EventEmitter {
     }
     return '';
   }
+
+  /**
+   * Get deterministic timestamp (milliseconds)
+   * Uses SOURCE_DATE_EPOCH if set, otherwise static error time
+   */
+  getDeterministicTimestamp() {
+    const sourceEpoch = process.env.SOURCE_DATE_EPOCH;
+    
+    if (sourceEpoch) {
+      return parseInt(sourceEpoch) * 1000;
+    }
+    
+    // Use static error time for deterministic behavior
+    return new Date(this.config.staticErrorTime).getTime();
+  }
+  
+  /**
+   * Get deterministic Date object
+   * Uses SOURCE_DATE_EPOCH if set, otherwise static error time
+   */
+  getDeterministicDate() {
+    return new Date(this.getDeterministicTimestamp());
+  }
 }
 
 export default DeterministicErrorHandler;

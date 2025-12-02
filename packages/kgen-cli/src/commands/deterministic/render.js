@@ -2,7 +2,7 @@
  * Deterministic Render Command
  * 
  * Renders templates with deterministic output ensuring byte-for-byte reproducibility.
- * Integrates with the deterministic engine for autonomous agent systems.
+ * Uses ONLY the single DeterministicRenderer from kgen-templates package.
  */
 
 import { defineCommand } from 'citty';
@@ -10,6 +10,7 @@ import { createHash } from 'crypto';
 import { readFileSync, writeFileSync } from 'fs';
 import { join, dirname, resolve } from 'path';
 import { fileURLToPath } from 'url';
+import { DeterministicRenderer } from '../../../kgen/packages/kgen-templates/src/renderer/deterministic.js';
 
 export default defineCommand({
   meta: {
@@ -79,16 +80,31 @@ export default defineCommand({
         }
       };
 
-      // Mock template rendering engine (would integrate with actual template engine)
-      const rendered = await renderTemplate(args.template, context, { seed });
+      // Use the SINGLE deterministic renderer from templates package
+      const renderer = new DeterministicRenderer({
+        staticBuildTime: '2024-01-01T00:00:00.000Z',
+        enableCaching: false,
+        strictMode: true
+      });
+      
+      const renderResult = await renderer.render(args.template, context, { seed });
+      
+      if (!renderResult.success) {
+        throw new Error(renderResult.error);
+      }
+      
+      const rendered = renderResult.content;
       
       // Calculate content hash
       const contentHash = createHash('sha256').update(rendered).digest('hex');
       
       // Verify deterministic property if requested
       if (args['verify-deterministic']) {
-        const secondRender = await renderTemplate(args.template, context, { seed });
-        const secondHash = createHash('sha256').update(secondRender).digest('hex');
+        const secondRenderResult = await renderer.render(args.template, context, { seed });
+        if (!secondRenderResult.success) {
+          throw new Error(secondRenderResult.error);
+        }
+        const secondHash = createHash('sha256').update(secondRenderResult.content).digest('hex');
         
         if (contentHash !== secondHash) {
           throw new Error('Template rendering is not deterministic - outputs differ between runs');
@@ -156,29 +172,3 @@ export default defineCommand({
   }
 });
 
-/**
- * Mock template rendering function
- * In production, this would integrate with the actual template engine
- */
-async function renderTemplate(template, context, options = {}) {
-  // Deterministic template rendering logic would go here
-  // For now, return a deterministic mock based on inputs
-  const { seed = '0' } = options;
-  
-  // Create a deterministic hash from template + context + seed
-  const input = JSON.stringify({ template, context, seed }, Object.keys({ template, context, seed }).sort());
-  const hash = createHash('sha256').update(input).digest('hex');
-  
-  return `# Rendered Template: ${template}
-# Seed: ${seed}
-# Hash: ${hash}
-# Timestamp: ${context.__deterministic?.timestamp}
-
-Template Content for: ${template}
-Context Variables: ${Object.keys(context).filter(k => !k.startsWith('__')).join(', ')}
-Deterministic Hash: ${hash}
-
-This is a deterministic render that will always produce the same output
-given the same inputs and seed value.
-`;
-}

@@ -88,7 +88,7 @@ export class DeterministicArtifactGenerator extends EventEmitter {
       const generationKey = this._createGenerationKey(templatePath, normalizedContext);
       
       // Check content cache first
-      let artifact = null;
+      const artifact = null;
       if (this.config.enableContentAddressing) {
         const cached = await this.contentCache.retrieve(generationKey);
         if (cached.found) {
@@ -587,6 +587,29 @@ export class DeterministicArtifactGenerator extends EventEmitter {
   _deriveOutputPath(templatePath, renderResult) {
     const basename = path.basename(templatePath, path.extname(templatePath));
     return path.join(this.config.outputDir, `${basename}.generated`);
+  }
+
+  /**
+   * Get deterministic timestamp (milliseconds)
+   * Uses SOURCE_DATE_EPOCH if set, otherwise static build time
+   */
+  getDeterministicTimestamp() {
+    const sourceEpoch = process.env.SOURCE_DATE_EPOCH;
+    
+    if (sourceEpoch) {
+      return parseInt(sourceEpoch) * 1000;
+    }
+    
+    // Use static build time for deterministic behavior
+    return new Date(this.config.staticBuildTime).getTime();
+  }
+  
+  /**
+   * Get deterministic Date object
+   * Uses SOURCE_DATE_EPOCH if set, otherwise static build time
+   */
+  getDeterministicDate() {
+    return new Date(this.getDeterministicTimestamp());
   }
 
   /**
