@@ -107,7 +107,7 @@
     "@cucumber/cucumber": "^12.2.0",
     "bcryptjs": "^3.0.2",
     "chai": "^6.0.1",
-    "eslint": "^8.56.0",
+    "eslint": "^10.8.0",
     "jsonwebtoken": "^9.0.2",
     "prettier": "^3.6.2",
     "unbuild": "^2.0.0",
