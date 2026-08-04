@@ -50,7 +50,7 @@ jobs:
           echo "key=${{ runner.os }}-production-${{ hashFiles('package-lock.json') }}-${{ github.sha }}" >> $GITHUB_OUTPUT
 
       - name: Cache Production Dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             ~/.npm
@@ -155,7 +155,7 @@ jobs:
           cache: 'npm'
 
       - name: Restore Dependencies Cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             ~/.npm
