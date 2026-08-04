@@ -119,8 +119,8 @@ jobs:
             echo "⚠️ Warning: actions/cache@v4 may have limited functionality in Act"
           fi
           
-          if grep -q "actions/upload-artifact@v4" "$WORKFLOW_PATH"; then
-            echo "ℹ️ Info: actions/upload-artifact@v4 works with --artifact-server-path"
+          if grep -q "actions/upload-artifact@v7" "$WORKFLOW_PATH"; then
+            echo "ℹ️ Info: actions/upload-artifact@v7 works with --artifact-server-path"
           fi
           
           if grep -q "environment:" "$WORKFLOW_PATH"; then
@@ -399,7 +399,7 @@ jobs:
           echo "✅ Act development environment created"
 
       - name: 📤 Upload Act Compatibility Package
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: act-compatibility-package
           path: |

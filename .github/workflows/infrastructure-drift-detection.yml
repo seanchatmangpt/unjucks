@@ -306,7 +306,7 @@ jobs:
             infrastructure-team
       
       - name: 'Upload Drift Analysis Artifacts'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: drift-analysis-${{ matrix.environment }}
           path: |
@@ -528,7 +528,7 @@ jobs:
           EOF
       
       - name: 'Upload Kubernetes Drift Artifacts'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: k8s-drift-analysis-${{ matrix.environment }}
           path: |
@@ -740,7 +740,7 @@ jobs:
             }
       
       - name: 'Upload Compliance Artifacts'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: compliance-monitoring-results
           path: |

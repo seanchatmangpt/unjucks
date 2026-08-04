@@ -108,7 +108,7 @@ jobs:
       
       - name: 'Upload Code Quality Artifacts'
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: code-quality-reports
           path: |
@@ -176,7 +176,7 @@ jobs:
       
       - name: 'Upload Test Results'
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: test-results-${{ matrix.node-version }}-${{ matrix.test-type }}
           path: |
@@ -280,7 +280,7 @@ jobs:
       
       - name: 'Upload Container Artifacts'
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: container-artifacts
           path: |
@@ -347,7 +347,7 @@ jobs:
       
       - name: 'Upload Infrastructure Artifacts'
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: infrastructure-validation
           path: |

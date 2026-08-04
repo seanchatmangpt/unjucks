@@ -447,7 +447,7 @@ jobs:
           ./test-incremental-backups.sh
 
       - name: 📤 Upload Backup Validation Reports
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: backup-validation-reports
           path: |
@@ -1023,7 +1023,7 @@ jobs:
           python generate-dr-report.py
 
       - name: 📤 Upload DR Simulation Results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: disaster-recovery-simulation-results
           path: |
@@ -1215,7 +1215,7 @@ jobs:
           python business-continuity-test.py
 
       - name: 📤 Upload Business Continuity Results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: business-continuity-test-results
           path: business-continuity-report.json
@@ -1341,7 +1341,7 @@ jobs:
           echo "📧 Stakeholder notifications sent"
 
       - name: 📤 Upload Final DR Documentation
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: disaster-recovery-final-report
           path: final-dr-report.md

@@ -150,7 +150,7 @@ jobs:
           echo "error-rate=$error_rate" >> $GITHUB_OUTPUT
 
       - name: 📤 Upload Baseline Results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: performance-baseline-${{ github.run_number }}
           path: |
@@ -349,7 +349,7 @@ jobs:
           fi
 
       - name: 📤 Upload ${{ matrix.test_type }} Results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: performance-${{ matrix.test_type }}-${{ github.run_number }}
           path: |
@@ -473,7 +473,7 @@ jobs:
           fi
 
       - name: 📤 Upload Regression Analysis
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: regression-analysis-${{ github.run_number }}
           path: regression-report.md
@@ -608,7 +608,7 @@ jobs:
           destination_dir: performance
 
       - name: 📤 Upload Dashboard
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: performance-dashboard-${{ github.run_number }}
           path: performance-dashboard/

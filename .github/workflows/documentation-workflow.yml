@@ -140,7 +140,7 @@ jobs:
           echo "✅ Workflow documentation validation passed"
 
       - name: 📤 Upload workflow documentation
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: workflow-documentation
           path: docs/workflows/
@@ -199,7 +199,7 @@ jobs:
           echo "✅ API documentation validation passed"
 
       - name: 📤 Upload API documentation
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: api-documentation
           path: docs/api/
@@ -301,7 +301,7 @@ jobs:
             });
 
       - name: 📤 Upload SOX compliance reports
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: sox-compliance-report
           path: docs/compliance/sox/
@@ -379,7 +379,7 @@ jobs:
           fi
 
       - name: 📤 Upload GDPR compliance reports
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: gdpr-compliance-report
           path: docs/compliance/gdpr/
@@ -469,7 +469,7 @@ jobs:
           fi
 
       - name: 📤 Upload PCI DSS reports
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: pci-dss-report
           path: docs/compliance/pci-dss/
@@ -582,7 +582,7 @@ jobs:
           echo "✅ Audit trail integrity verified"
 
       - name: 📤 Upload audit logs
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: audit-logs
           path: logs/audit/
@@ -705,7 +705,7 @@ jobs:
           echo "✅ Knowledge base validation passed"
 
       - name: 📤 Upload knowledge base
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: knowledge-base
           path: docs/kb-output/
@@ -776,7 +776,7 @@ jobs:
           echo "✅ Training materials validation passed"
 
       - name: 📤 Upload training materials
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: training-materials
           path: docs/training-output/
@@ -858,7 +858,7 @@ jobs:
           cat integration-test-results.md
 
       - name: 📤 Upload integration test results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: integration-test-results
           path: |

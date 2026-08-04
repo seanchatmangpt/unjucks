@@ -281,7 +281,7 @@ jobs:
 
       - name: 📤 Upload Validation Artifacts
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: terraform-validation-${{ matrix.environment }}
           path: terraform/${{ matrix.environment }}/tfsec-*.json
@@ -459,7 +459,7 @@ jobs:
           fi
 
       - name: 📤 Upload Plan Artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: terraform-plan-${{ matrix.environment }}
           path: |
@@ -586,7 +586,7 @@ jobs:
 
       - name: 📤 Upload Apply Artifacts
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: terraform-apply-${{ matrix.environment }}
           path: terraform/${{ matrix.environment }}/terraform-outputs-*.json
@@ -715,7 +715,7 @@ jobs:
           echo "📋 Environment summary report generated"
 
       - name: 📤 Upload Summary Report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: environment-summary-report
           path: environment-summary.md

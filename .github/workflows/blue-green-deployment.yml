@@ -409,7 +409,7 @@ jobs:
           echo "📊 Deployment metrics collected"
 
       - name: 📤 Upload Deployment Artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: blue-green-deployment-${{ inputs.version }}
           path: |
@@ -507,7 +507,7 @@ jobs:
           echo "📊 Rollback metrics collected"
 
       - name: 📤 Upload Rollback Artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: rollback-metrics-${{ inputs.version }}
           path: rollback-metrics.json
@@ -629,7 +629,7 @@ jobs:
             "$MONITORING_WEBHOOK"
 
       - name: 📤 Upload Final Report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: blue-green-report-${{ inputs.version }}
           path: deployment-report.md

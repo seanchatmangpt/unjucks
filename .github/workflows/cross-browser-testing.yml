@@ -331,7 +331,7 @@ jobs:
 
       - name: 📤 Upload test artifacts
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: local-browser-results-${{ matrix.browser }}-${{ matrix.suite }}-${{ github.run_number }}
           path: |
@@ -546,7 +546,7 @@ jobs:
 
       - name: 📤 Upload BrowserStack artifacts
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: browserstack-results-${{ matrix.browser }}-${{ matrix.suite }}-${{ github.run_number }}
           path: |
@@ -762,7 +762,7 @@ jobs:
 
       - name: 📤 Upload Sauce Labs artifacts
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: saucelabs-results-${{ matrix.browser }}-${{ matrix.suite }}-${{ github.run_number }}
           path: |
@@ -909,7 +909,7 @@ jobs:
           echo "📊 Compatibility report generated"
 
       - name: 📤 Upload comprehensive report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: cross-browser-compatibility-report-${{ github.run_number }}
           path: |

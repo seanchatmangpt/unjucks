@@ -371,7 +371,7 @@ jobs:
 
       - name: 📋 Upload Detailed Security Reports
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: security-scan-${{ matrix.scanner }}
           path: |
@@ -503,7 +503,7 @@ jobs:
           echo "✅ Supply chain risk assessment completed"
 
       - name: 📤 Upload Supply Chain Security Reports
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: supply-chain-security
           path: |
@@ -677,7 +677,7 @@ jobs:
           fi
 
       - name: 📤 Upload Compliance Reports
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: compliance-validation-reports
           path: |
@@ -793,7 +793,7 @@ jobs:
             });
 
       - name: 📤 Upload Security Monitoring Data
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: security-monitoring
           path: |
@@ -921,7 +921,7 @@ jobs:
           echo "📊 Security findings prepared for storage"
 
       - name: 📤 Upload Final Security Report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: comprehensive-security-report
           path: |

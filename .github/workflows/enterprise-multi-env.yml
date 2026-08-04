@@ -259,7 +259,7 @@ jobs:
           echo "✅ Compliance report generated"
 
       - name: 📤 Upload Compliance Report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: compliance-report-${{ inputs.target_environment }}
           path: compliance-report.json
@@ -592,7 +592,7 @@ jobs:
           echo "✅ Deployment report generated"
 
       - name: 📤 Upload Deployment Report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: deployment-report-${{ inputs.target_environment }}
           path: deployment-report-${{ inputs.target_environment }}.json
