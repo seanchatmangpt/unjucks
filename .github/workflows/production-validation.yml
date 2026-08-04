@@ -67,7 +67,7 @@ jobs:
           error-classification: 'critical'
           
       - name: Cache Dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v6
         with:
           path: ~/.npm
           key: ${{ needs.setup.outputs.cache-key }}

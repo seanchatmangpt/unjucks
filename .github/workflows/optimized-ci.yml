@@ -149,7 +149,7 @@ jobs:
 
       - name: 🔑 Unified caching strategy
         id: cache-setup
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             ~/.npm
@@ -209,7 +209,7 @@ jobs:
           cache: 'npm'
 
       - name: 🔄 Restore cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             ~/.npm
@@ -264,7 +264,7 @@ jobs:
           cache: 'npm'
 
       - name: 🔄 Restore unified cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             ~/.npm
@@ -373,7 +373,7 @@ jobs:
           cache: 'npm'
 
       - name: 🔄 Restore cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             ~/.npm
@@ -424,7 +424,7 @@ jobs:
           cache: 'npm'
 
       - name: 🔄 Restore cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             ~/.npm
@@ -474,7 +474,7 @@ jobs:
           cache: 'npm'
 
       - name: 🔄 Restore cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             ~/.npm
@@ -566,7 +566,7 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
 
       - name: 🔄 Restore cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             ~/.npm
