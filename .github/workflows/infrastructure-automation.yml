@@ -370,7 +370,7 @@ jobs:
           fi
 
       - name: 📤 Upload Infrastructure Artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: infrastructure-validation-${{ steps.config.outputs.environment }}-${{ steps.config.outputs.cloud-provider }}
           path: |
@@ -756,7 +756,7 @@ jobs:
           EOF
 
       - name: 📤 Upload Cost Reports
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: cost-optimization-reports
           path: |
@@ -991,7 +991,7 @@ jobs:
           EOF
 
       - name: 📤 Upload DR Reports
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: disaster-recovery-reports
           path: |
@@ -1215,7 +1215,7 @@ jobs:
           EOF
 
       - name: 📤 Upload Final Reports
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: infrastructure-final-report
           path: |

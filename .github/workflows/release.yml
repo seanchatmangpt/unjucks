@@ -163,7 +163,7 @@ jobs:
           conventional-changelog -p angular -i TEMP_CHANGELOG.md -s
           
       - name: Upload changelog artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: changelog-${{ github.run_id }}
           path: TEMP_CHANGELOG.md
@@ -255,7 +255,7 @@ jobs:
           template: 'conventional'
           
       - name: Upload changelog artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: changelog-${{ needs.prepare-release.outputs.version }}
           path: CHANGELOG_${{ needs.prepare-release.outputs.version }}.md
@@ -319,7 +319,7 @@ jobs:
           
       - name: Upload test results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: test-results-${{ matrix.os }}-node${{ matrix.node-version }}
           path: |

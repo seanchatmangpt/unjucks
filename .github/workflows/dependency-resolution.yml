@@ -207,7 +207,7 @@ jobs:
           echo "matrix={\"node_version\":[\"18.x\",\"20.x\"],\"os\":[\"ubuntu-latest\",\"windows-latest\",\"macos-latest\"]}" >> $GITHUB_OUTPUT
 
       - name: Upload Audit Results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: audit-results
           path: |
@@ -441,7 +441,7 @@ jobs:
           echo "::endgroup::"
 
       - name: Upload Production Report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: production-readiness-report
           path: dependency-status-report.json

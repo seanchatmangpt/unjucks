@@ -431,7 +431,7 @@ jobs:
           fi
 
       - name: 📤 Upload Validation Artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: multi-cloud-validation-${{ matrix.cloud_provider }}
           path: |
@@ -659,7 +659,7 @@ jobs:
           echo "✅ Cross-cloud connectivity configured"
 
       - name: 📤 Upload Deployment Artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: multi-cloud-deployment-${{ matrix.cloud_provider }}
           path: multi-cloud-outputs-*.json
@@ -1011,7 +1011,7 @@ jobs:
           echo "📊 Cost optimization dashboard generated"
 
       - name: 📤 Upload Cost Optimization Reports
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: cross-cloud-cost-optimization
           path: |
@@ -1179,7 +1179,7 @@ jobs:
           echo "📊 Cross-cloud monitoring configuration created"
 
       - name: 📤 Upload Health Check Results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: multi-cloud-health-monitoring
           path: |
@@ -1272,7 +1272,7 @@ jobs:
           EOF
 
       - name: 📤 Upload Final Multi-Cloud Report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: multi-cloud-final-report
           path: multi-cloud-final-report.md

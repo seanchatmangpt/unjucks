@@ -218,7 +218,7 @@ jobs:
           EOF
 
       - name: Upload status artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: status-dashboard
           path: |
@@ -319,7 +319,7 @@ jobs:
           EOF
 
       - name: Upload health report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: health-report
           path: health-report.md

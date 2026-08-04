@@ -245,7 +245,7 @@ jobs:
           fi
 
       - name: 📤 Upload k6 Results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: k6-load-test-results-${{ github.run_number }}
           path: |
@@ -393,7 +393,7 @@ jobs:
           fi
 
       - name: 📤 Upload Artillery Results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: artillery-stress-test-results-${{ github.run_number }}
           path: |
@@ -589,7 +589,7 @@ jobs:
           fi
 
       - name: 📤 Upload JMeter Results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: jmeter-endurance-test-results-${{ github.run_number }}
           path: |
@@ -679,7 +679,7 @@ jobs:
           echo "✅ Comparison report generated"
 
       - name: 📤 Upload Comparison Report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: load-testing-comparison-${{ github.run_number }}
           path: load-testing-comparison.md

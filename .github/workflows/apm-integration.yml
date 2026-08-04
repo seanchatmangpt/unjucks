@@ -205,7 +205,7 @@ jobs:
           fi
 
       - name: 📤 Upload New Relic Configuration
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: newrelic-config-${{ github.run_number }}
           path: newrelic.js
@@ -500,7 +500,7 @@ jobs:
           echo "✅ Datadog dashboard created"
 
       - name: 📤 Upload Datadog Configuration
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: datadog-config-${{ github.run_number }}
           path: datadog.js
@@ -655,7 +655,7 @@ jobs:
           echo "✅ Dynatrace notifications configured"
 
       - name: 📤 Upload Dynatrace Configuration
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: dynatrace-config-${{ github.run_number }}
           path: dynatrace.js
@@ -756,7 +756,7 @@ jobs:
           echo "✅ APM integration summary completed"
 
       - name: 📤 Upload Summary Report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: apm-integration-summary-${{ github.run_number }}
           path: apm-integration-summary.md

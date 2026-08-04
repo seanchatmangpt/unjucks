@@ -233,7 +233,7 @@ jobs:
 
       - name: Upload build digest
         if: github.event_name != 'pull_request'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: digest-${{ matrix.image_type }}
           path: /tmp/digests/*
@@ -323,7 +323,7 @@ jobs:
 
       - name: Upload detailed security reports
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: security-scan-${{ matrix.scanner }}-${{ matrix.image_type }}
           path: |
@@ -439,7 +439,7 @@ jobs:
 
       - name: Upload Compose test results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: compose-test-${{ matrix.compose_env }}
           path: compose-logs/${{ matrix.compose_env }}/
@@ -506,7 +506,7 @@ jobs:
           esac
 
       - name: Upload performance results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: performance-${{ matrix.test_type }}
           path: performance-reports/
@@ -711,7 +711,7 @@ jobs:
           EOF
 
       - name: Upload consolidated report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: unified-docker-report
           path: reports/

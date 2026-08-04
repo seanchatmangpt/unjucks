@@ -728,7 +728,7 @@ jobs:
 
       - name: 📤 Upload Security Monitoring Reports
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: security-monitoring-reports
           path: |
