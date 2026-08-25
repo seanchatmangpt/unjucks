@@ -1,0 +1,134 @@
+name: ISO 27001 Repository Readiness
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  SUBJECT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+
+jobs:
+  repository-readiness:
+    name: Repository control readiness
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout exact subject
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.SUBJECT_SHA }}
+
+      - name: Assert exact subject identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          actual_sha="$(git rev-parse HEAD)"
+          echo "Admitted subject: ${SUBJECT_SHA}"
+          echo "Executed subject: ${actual_sha}"
+          if [[ "$actual_sha" != "$SUBJECT_SHA" ]]; then
+            echo "FAIL: checkout identity mismatch"
+            exit 1
+          fi
+
+      - name: Validate repository security-control evidence
+        id: readiness
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          failures=0
+          total=5
+          results_file="iso27001-repository-readiness.json"
+
+          policy=false
+          ownership=false
+          security_workflows=false
+          least_privilege=false
+          crypto_indicators=false
+
+          if [[ -s SECURITY.md || -s .github/SECURITY.md ]]; then
+            policy=true
+          else
+            echo "FAIL: repository security policy evidence is missing"
+            failures=$((failures + 1))
+          fi
+
+          if [[ -s .github/CODEOWNERS ]]; then
+            ownership=true
+          else
+            echo "FAIL: .github/CODEOWNERS is missing"
+            failures=$((failures + 1))
+          fi
+
+          if find .github/workflows -type f \( -name '*.yml' -o -name '*.yaml' \) -print0 \
+             | xargs -0 grep -Eli 'security|vulnerab|incident|breach' >/dev/null 2>&1; then
+            security_workflows=true
+          else
+            echo "FAIL: no security-integrated workflow evidence found"
+            failures=$((failures + 1))
+          fi
+
+          if find .github/workflows -type f \( -name '*.yml' -o -name '*.yaml' \) -print0 \
+             | xargs -0 grep -El '^permissions:' >/dev/null 2>&1; then
+            least_privilege=true
+          else
+            echo "FAIL: no workflow-level permissions policy found"
+            failures=$((failures + 1))
+          fi
+
+          if find . -type f \( -name '*.yml' -o -name '*.yaml' -o -name '*.json' \) -print0 \
+             | xargs -0 grep -Eli 'https|ssl|tls|encrypt|crypto|hash|sha256|sha512' >/dev/null 2>&1; then
+            crypto_indicators=true
+          else
+            echo "FAIL: no repository cryptographic-control indicators found"
+            failures=$((failures + 1))
+          fi
+
+          passed=$((total - failures))
+          score=$((passed * 100 / total))
+          executed_sha="$(git rev-parse HEAD)"
+
+          cat > "$results_file" <<EOF
+          {
+            "schema": "unjucks.iso27001.repository-readiness.v1",
+            "repository": "${GITHUB_REPOSITORY}",
+            "admitted_subject": "${SUBJECT_SHA}",
+            "executed_subject": "${executed_sha}",
+            "workflow_sha": "${GITHUB_SHA}",
+            "run_id": "${GITHUB_RUN_ID}",
+            "total_controls": ${total},
+            "passed_controls": ${passed},
+            "failed_controls": ${failures},
+            "score": ${score},
+            "controls": {
+              "security_policy": ${policy},
+              "code_ownership": ${ownership},
+              "security_integrated_workflows": ${security_workflows},
+              "workflow_permissions": ${least_privilege},
+              "cryptographic_indicators": ${crypto_indicators}
+            },
+            "standing": "$([[ ${failures} -eq 0 && "${executed_sha}" == "${SUBJECT_SHA}" ]] && echo ALIVE || echo BLOCKED)",
+            "boundary": "Repository-level readiness evidence only; not ISO/IEC 27001 certification or an accredited audit result."
+          }
+          EOF
+
+          cat "$results_file"
+
+          if [[ "$failures" -ne 0 ]]; then
+            exit 1
+          fi
+
+      - name: Upload transient CI evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: iso27001-repository-readiness-${{ env.SUBJECT_SHA }}
+          path: iso27001-repository-readiness.json
+          if-no-files-found: error
+          retention-days: 90
