@@ -10,6 +10,9 @@ on:
 permissions:
   contents: read
 
+env:
+  SUBJECT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+
 jobs:
   repository-readiness:
     name: Repository control readiness
@@ -18,6 +21,20 @@ jobs:
     steps:
       - name: Checkout exact subject
         uses: actions/checkout@v4
+        with:
+          ref: ${{ env.SUBJECT_SHA }}
+
+      - name: Assert exact subject identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          actual_sha="$(git rev-parse HEAD)"
+          echo "Admitted subject: ${SUBJECT_SHA}"
+          echo "Executed subject: ${actual_sha}"
+          if [[ "$actual_sha" != "$SUBJECT_SHA" ]]; then
+            echo "FAIL: checkout identity mismatch"
+            exit 1
+          fi
 
       - name: Validate repository security-control evidence
         id: readiness
@@ -75,12 +92,15 @@ jobs:
 
           passed=$((total - failures))
           score=$((passed * 100 / total))
+          executed_sha="$(git rev-parse HEAD)"
 
           cat > "$results_file" <<EOF
           {
             "schema": "unjucks.iso27001.repository-readiness.v1",
             "repository": "${GITHUB_REPOSITORY}",
-            "commit": "${GITHUB_SHA}",
+            "admitted_subject": "${SUBJECT_SHA}",
+            "executed_subject": "${executed_sha}",
+            "workflow_sha": "${GITHUB_SHA}",
             "run_id": "${GITHUB_RUN_ID}",
             "total_controls": ${total},
             "passed_controls": ${passed},
@@ -93,7 +113,7 @@ jobs:
               "workflow_permissions": ${least_privilege},
               "cryptographic_indicators": ${crypto_indicators}
             },
-            "standing": "$([[ ${failures} -eq 0 ]] && echo ALIVE || echo BLOCKED)",
+            "standing": "$([[ ${failures} -eq 0 && "${executed_sha}" == "${SUBJECT_SHA}" ]] && echo ALIVE || echo BLOCKED)",
             "boundary": "Repository-level readiness evidence only; not ISO/IEC 27001 certification or an accredited audit result."
           }
           EOF
@@ -108,7 +128,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: iso27001-repository-readiness-${{ github.sha }}
+          name: iso27001-repository-readiness-${{ env.SUBJECT_SHA }}
           path: iso27001-repository-readiness.json
           if-no-files-found: error
           retention-days: 90
