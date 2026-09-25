@@ -1,0 +1,15 @@
+{
+  "name": "test-unjucks-nuxt4",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@seanchatmangpt/unjucks": "^2025.9.0-6.17.40"
+  }
+}
